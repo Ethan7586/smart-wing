@@ -1,0 +1,418 @@
+/**
+ * 智慧翼企业福利商城 - 顶栏与主导航 HeaderBar 组件
+ * 包含企业商城切换、大型搜索与实时联想、福利卡/餐卡余额卡片、购物车与快捷分类
+ * 技术服务方：雍彻科技
+ */
+
+import React, { useState, useRef, useEffect } from 'react';
+import { useMall, PageRoute } from '../../context/MallContext';
+import { MOCK_PRODUCTS } from '../../mock/data';
+import {
+  Search,
+  ShoppingCart,
+  CreditCard,
+  Utensils,
+  Building2,
+  ChevronDown,
+  Headphones,
+  User,
+  Heart,
+  Ticket,
+  Wallet,
+  Sparkles,
+  ShieldCheck,
+  Store,
+  Menu,
+  ChevronRight,
+  Flame
+} from 'lucide-react';
+
+export const HeaderBar: React.FC = () => {
+  const {
+    user,
+    currentMall,
+    malls,
+    switchMall,
+    cartCount,
+    navigateTo,
+    currentPage
+  } = useMall();
+
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [showSearchSuggest, setShowSearchSuggest] = useState(false);
+  const [showMallDropdown, setShowMallDropdown] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Search suggestion matches
+  const suggestions = searchKeyword.trim()
+    ? MOCK_PRODUCTS.filter(
+        p =>
+          p.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+          p.categoryName.includes(searchKeyword) ||
+          p.brand.toLowerCase().includes(searchKeyword.toLowerCase())
+      ).slice(0, 6)
+    : [];
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(e.target as Node)
+      ) {
+        setShowSearchSuggest(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSearchSubmit = (kw?: string) => {
+    const finalKw = kw !== undefined ? kw : searchKeyword;
+    setShowSearchSuggest(false);
+    navigateTo('category', { keyword: finalKw });
+  };
+
+  const hotKeywords = ['五常大米', '星巴克卡', '戴森吸尘器', '电影通兑', '盒马鲜生', '端午礼盒', '途虎洗车'];
+
+  return (
+    <header className="w-full bg-white border-b border-gray-200 select-none sticky top-0 z-40 shadow-xs">
+      {/* 1. 顶部公共服务栏 */}
+      <div className="bg-[#143A8F] text-white text-xs py-1.5 px-4">
+        <div className="max-w-[1280px] mx-auto flex items-center justify-between">
+          {/* 左侧：当前所属企业与商城切换 */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 font-medium text-blue-100">
+              <Building2 className="w-3.5 h-3.5 text-blue-300" />
+              <span>当前所属单位：{user.enterpriseName}</span>
+            </div>
+
+            <div className="h-3 w-[1px] bg-blue-400/40" />
+
+            {/* 商城切换 Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowMallDropdown(!showMallDropdown)}
+                className="flex items-center gap-1 bg-white/15 hover:bg-white/25 text-white px-2 py-0.5 rounded text-xs transition-colors cursor-pointer"
+              >
+                <span className="font-semibold">{currentMall.logoText}</span>
+                <span className="text-blue-200">({currentMall.mallName})</span>
+                <ChevronDown className="w-3 h-3 text-blue-200" />
+              </button>
+
+              {showMallDropdown && (
+                <div className="absolute left-0 top-full mt-1.5 w-72 bg-white text-gray-800 rounded shadow-xl border border-gray-200 z-50 py-2">
+                  <div className="px-3 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                    可切换的专属企业福利商城
+                  </div>
+                  {malls.map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => {
+                        switchMall(m.id);
+                        setShowMallDropdown(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50 flex items-center justify-between transition-colors ${
+                        m.id === currentMall.id ? 'bg-blue-50/80 text-[#1F5EFF] font-semibold' : 'text-gray-700'
+                      }`}
+                    >
+                      <div>
+                        <div className="font-medium">{m.mallName}</div>
+                        <div className="text-[11px] text-gray-400">{m.enterpriseName}</div>
+                      </div>
+                      {m.id === currentMall.id && (
+                        <span className="text-[10px] bg-[#1F5EFF] text-white px-1.5 py-0.5 rounded">当前</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 右侧：用户状态与快捷导航 */}
+          <div className="flex items-center gap-4 text-blue-100 text-xs">
+            <div className="flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-blue-300" />
+              <span>{user.name} ({user.department})</span>
+            </div>
+
+            <div className="h-3 w-[1px] bg-blue-400/40" />
+
+            <button
+              onClick={() => navigateTo('orders')}
+              className="hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+            >
+              我的订单
+            </button>
+
+            <button
+              onClick={() => navigateTo('coupons')}
+              className="hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+            >
+              我的卡券
+              <span className="bg-orange-500 text-white text-[10px] px-1 rounded-full font-bold">
+                {user.couponCount}
+              </span>
+            </button>
+
+            <button
+              onClick={() => navigateTo('balance')}
+              className="hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+            >
+              账户流水
+            </button>
+
+            <button
+              onClick={() => navigateTo('user-center')}
+              className="hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+            >
+              个人中心
+            </button>
+
+            <div className="h-3 w-[1px] bg-blue-400/40" />
+
+            <div className="flex items-center gap-1 text-blue-200 hover:text-white cursor-pointer">
+              <Headphones className="w-3.5 h-3.5" />
+              <span>专属客服</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. 主 Logo、搜索框与福利余额区 */}
+      <div className="max-w-[1280px] mx-auto py-3.5 px-4 flex items-center justify-between gap-6">
+        {/* Original Branding Logo */}
+        <div
+          onClick={() => navigateTo('home')}
+          className="flex items-center gap-3 cursor-pointer group"
+        >
+          <div className="w-10 h-10 rounded-md bg-gradient-to-br from-[#1F5EFF] to-[#143A8F] flex items-center justify-center text-white shadow-md shadow-blue-500/10 group-hover:scale-105 transition-transform">
+            <Sparkles className="w-6 h-6 text-yellow-300" />
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xl font-black tracking-tight text-gray-900 font-sans">
+                智慧翼
+              </span>
+              <span className="text-xs bg-[#EAF1FF] text-[#1F5EFF] font-bold px-1.5 py-0.5 rounded border border-blue-200">
+                福利商城
+              </span>
+            </div>
+            <div className="text-[11px] text-gray-400 font-normal tracking-wide flex items-center gap-1">
+              <span>{currentMall.logoText}</span>
+              <span>·</span>
+              <span className="text-blue-600 font-medium">B2B2C 企采通</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 大型搜索框与热门词 */}
+        <div className="flex-1 max-w-2xl relative" ref={searchContainerRef}>
+          <div className="flex items-center">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={searchKeyword}
+                onChange={e => {
+                  setSearchKeyword(e.target.value);
+                  setShowSearchSuggest(true);
+                }}
+                onFocus={() => setShowSearchSuggest(true)}
+                onKeyDown={e => e.key === 'Enter' && handleSearchSubmit()}
+                placeholder="搜索福利卡可兑商品、米面粮油、影音卡券、附近门店..."
+                className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border-2 border-[#1F5EFF] rounded-l-md focus:outline-none focus:bg-white text-gray-900 placeholder-gray-400"
+              />
+              <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            </div>
+
+            <button
+              onClick={() => handleSearchSubmit()}
+              className="bg-[#1F5EFF] hover:bg-blue-700 text-white font-medium text-sm px-6 py-2.5 rounded-r-md transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>搜索</span>
+            </button>
+          </div>
+
+          {/* Search suggestions dropdown */}
+          {showSearchSuggest && suggestions.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-md shadow-2xl border border-gray-200 z-50 overflow-hidden divide-y divide-gray-100">
+              <div className="p-2 text-xs font-semibold text-gray-400 bg-gray-50 flex items-center justify-between">
+                <span>匹配商城推荐商品</span>
+                <span className="text-blue-600">回车快速搜索</span>
+              </div>
+              {suggestions.map(p => (
+                <div
+                  key={p.id}
+                  onClick={() => {
+                    navigateTo('detail', { productId: p.id });
+                    setShowSearchSuggest(false);
+                  }}
+                  className="p-2.5 hover:bg-blue-50/80 cursor-pointer flex items-center justify-between gap-3 text-xs transition-colors"
+                >
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <img
+                      src={p.images[0]}
+                      alt={p.title}
+                      className="w-8 h-8 rounded object-cover flex-shrink-0"
+                    />
+                    <span className="font-medium text-gray-800 truncate">{p.title}</span>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <span className="text-[#FF7A00] font-bold">¥{p.priceWelfare.toFixed(2)}</span>
+                    <span className="text-[10px] text-gray-400 block">{p.supplierName}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Hot search keyword tags */}
+          <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500 overflow-x-auto whitespace-nowrap">
+            <span className="text-gray-400 text-[11px] font-medium flex items-center gap-0.5">
+              <Flame className="w-3 h-3 text-orange-500" />
+              热搜：
+            </span>
+            {hotKeywords.map(kw => (
+              <button
+                key={kw}
+                onClick={() => handleSearchSubmit(kw)}
+                className="hover:text-[#1F5EFF] transition-colors text-[11px] text-gray-600 cursor-pointer"
+              >
+                {kw}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 福利账户与购物车区域 */}
+        <div className="flex items-center gap-3">
+          {/* 福利卡余额 Pill */}
+          <div
+            onClick={() => navigateTo('balance', { accountTab: 'welfare' })}
+            className="bg-[#EAF1FF] hover:bg-blue-100 border border-blue-200 rounded-md p-2 flex items-center gap-2.5 cursor-pointer transition-colors"
+          >
+            <div className="w-8 h-8 rounded bg-[#1F5EFF] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+              <CreditCard className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-[10px] text-blue-700 font-medium leading-none">福利卡余额</div>
+              <div className="text-sm font-black text-[#1F5EFF] mt-0.5">
+                ¥{user.welfareBalance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+              </div>
+            </div>
+          </div>
+
+          {/* 餐卡余额 Pill */}
+          <div
+            onClick={() => navigateTo('balance', { accountTab: 'meal' })}
+            className="bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-md p-2 flex items-center gap-2.5 cursor-pointer transition-colors"
+          >
+            <div className="w-8 h-8 rounded bg-[#FF7A00] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+              <Utensils className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-[10px] text-orange-700 font-medium leading-none">餐卡余额</div>
+              <div className="text-sm font-black text-[#FF7A00] mt-0.5">
+                ¥{user.mealBalance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+              </div>
+            </div>
+          </div>
+
+          {/* 购物车 */}
+          <button
+            onClick={() => navigateTo('cart')}
+            className="relative bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-md flex items-center gap-2 font-medium text-xs shadow-xs transition-colors cursor-pointer"
+          >
+            <ShoppingCart className="w-4 h-4 text-blue-300" />
+            <span>购物车</span>
+            {cartCount > 0 && (
+              <span className="bg-[#FF7A00] text-white font-bold text-[10px] px-1.5 py-0.2 rounded-full">
+                {cartCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* 3. 分类与快速频道导航 */}
+      <div className="bg-[#1F5EFF] text-white shadow-xs">
+        <div className="max-w-[1280px] mx-auto px-4 flex items-center justify-between text-xs font-semibold">
+          {/* 左侧：全部商品分类标题栏 */}
+          <div
+            onClick={() => navigateTo('category')}
+            className="w-56 bg-[#143A8F] py-2.5 px-4 flex items-center justify-between cursor-pointer hover:bg-blue-900 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Menu className="w-4 h-4 text-yellow-300" />
+              <span className="tracking-wide text-sm">全部商品分类</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-blue-300" />
+          </div>
+
+          {/* 快捷导航频道 */}
+          <div className="flex-1 flex items-center gap-1 ml-4 py-1.5 overflow-x-auto">
+            <button
+              onClick={() => navigateTo('home')}
+              className={`px-3 py-1.5 rounded transition-colors cursor-pointer ${
+                currentPage === 'home' ? 'bg-white/20 text-white font-bold' : 'hover:bg-white/10 text-blue-50'
+              }`}
+            >
+              首页
+            </button>
+            <button
+              onClick={() => navigateTo('category', { itemType: 'physical', categoryId: 'cat_welfare_zone' })}
+              className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
+              <span>企业福利专区</span>
+            </button>
+            <button
+              onClick={() => navigateTo('category', { categoryId: 'cat_food' })}
+              className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer"
+            >
+              米面粮油
+            </button>
+            <button
+              onClick={() => navigateTo('category', { itemType: 'movie_ticket' })}
+              className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <Ticket className="w-3.5 h-3.5 text-orange-200" />
+              <span>电影影音</span>
+            </button>
+            <button
+              onClick={() => navigateTo('category', { itemType: 'virtual_coupon' })}
+              className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer"
+            >
+              虚拟卡券
+            </button>
+            <button
+              onClick={() => navigateTo('category', { itemType: 'supermarket' })}
+              className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer"
+            >
+              商超卡包
+            </button>
+            <button
+              onClick={() => navigateTo('category', { itemType: 'nearby_store' })}
+              className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <Store className="w-3.5 h-3.5 text-blue-200" />
+              <span>附近门店核销</span>
+            </button>
+            <button
+              onClick={() => navigateTo('category', { categoryId: 'cat_appliance' })}
+              className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer"
+            >
+              数码家电
+            </button>
+          </div>
+
+          {/* 右侧：福利保障标语 */}
+          <div className="hidden lg:flex items-center gap-1.5 text-blue-100 font-normal text-xs bg-white/10 px-3 py-1 rounded border border-white/20">
+            <ShieldCheck className="w-3.5 h-3.5 text-yellow-300" />
+            <span>国企/央企特规正品保障</span>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};

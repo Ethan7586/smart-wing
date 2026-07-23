@@ -1,0 +1,6 @@
+{
+  "name": "智慧翼企业福利商城",
+  "description": "面向国企、央企及大型企业的桌面端高密度B2B2C企业福利商城，支持福利卡/餐卡余额抵扣与微信补差，技术服务方：雍彻科技",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

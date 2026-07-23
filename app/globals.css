@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: #f5f7fa;
+}
+
+body {
+  margin: 0;
+  background: #f5f7fa;
+  color: #111827;
+  font-family: Arial, "Microsoft YaHei", sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
