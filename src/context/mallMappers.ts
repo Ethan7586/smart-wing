@@ -1,4 +1,5 @@
 import type { Order, OrderStatus, Product, ProductItemType } from '../types';
+import { isStrictTaxonomyPath } from '../domain/catalog/taxonomy';
 import type { ApiOrder, ApiProduct } from '../services/productionApi';
 
 const CATEGORY_MAP: Record<string, { id: string; name: string }> = {
@@ -19,7 +20,9 @@ const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600&auto=format&fit=crop&q=80';
 
 export function mapApiProduct(product: ApiProduct): Product {
-  const category = CATEGORY_MAP[product.categoryCode] ?? {
+  const taxonomy = product.taxonomy;
+  const strictPath = isStrictTaxonomyPath(taxonomy?.l1 ?? null, taxonomy?.l2 ?? null, taxonomy?.l3 ?? null);
+  const category = CATEGORY_MAP[strictPath ? taxonomy!.l1! : product.categoryCode] ?? {
     id: 'cat_welfare_zone',
     name: '企业福利专区',
   };

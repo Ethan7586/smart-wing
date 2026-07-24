@@ -68,3 +68,23 @@ export const TAXONOMY_LEAF_NAMES: Record<string, string> = {
   apparel_footwear_shoes: '鞋靴', apparel_bags_bag: '箱包', apparel_jewelry_fine: '珠宝首饰',
   welfare_gift_festival: '节日礼盒', welfare_care_employee: '员工关怀', welfare_review_unclassified: '待审核商品',
 };
+
+/** 仅此映射可进入商城公开目录；展示翻译不能改变分类路径。 */
+export const STRICT_TAXONOMY_PATHS: Record<string, readonly [string, string]> = {
+  food_grain_rice: ['food', 'food_grain'], food_grain_oil: ['food', 'food_grain'], food_snack_nuts: ['food', 'food_snack'],
+  food_drink_coffee_tea: ['food', 'food_drink'], food_drink_dairy: ['food', 'food_drink'],
+  appliance_kitchen_cook: ['appliance', 'appliance_kitchen'], appliance_living_clean: ['appliance', 'appliance_living'], appliance_living_air: ['appliance', 'appliance_living'],
+  digital_computer_pc: ['digital', 'digital_computer'], digital_computer_peripheral: ['digital', 'digital_computer'], digital_mobile_accessory: ['digital', 'digital_mobile'],
+  digital_audio_mobile: ['digital', 'digital_audio'], digital_audio_audio: ['digital', 'digital_audio'], digital_office_stationery: ['digital', 'digital_office'],
+  home_furniture_bedding: ['home', 'home_furniture'], home_furniture_furniture: ['home', 'home_furniture'], home_kitchen_tableware: ['home', 'home_kitchen'], home_storage_organize: ['home', 'home_storage'],
+  personal_beauty_skin: ['personal', 'personal_beauty'], personal_wash_hair: ['personal', 'personal_wash'], personal_wash_clean: ['personal', 'personal_wash'],
+  supermarket_office_paper: ['supermarket', 'supermarket_office'], supermarket_family_toys: ['supermarket', 'supermarket_family'], supermarket_outdoor_sports: ['supermarket', 'supermarket_outdoor'], supermarket_outdoor_auto: ['supermarket', 'supermarket_outdoor'],
+  apparel_footwear_shoes: ['apparel', 'apparel_footwear'], apparel_bags_bag: ['apparel', 'apparel_bags'], apparel_jewelry_fine: ['apparel', 'apparel_jewelry'],
+  welfare_gift_festival: ['welfare', 'welfare_gift'], welfare_care_employee: ['welfare', 'welfare_care'], welfare_review_unclassified: ['welfare', 'welfare_review'],
+};
+
+export function isStrictTaxonomyPath(l1: string | null, l2: string | null, l3: string | null) {
+  if (!l1 || !l2 || !l3) return false;
+  const path = STRICT_TAXONOMY_PATHS[l3];
+  return Boolean(path && path[0] === l1 && path[1] === l2);
+}

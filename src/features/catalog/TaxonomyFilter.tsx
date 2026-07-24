@@ -1,3 +1,5 @@
+import { TAXONOMY_LEAF_NAMES } from '../../domain/catalog/taxonomy';
+
 type TaxonomyOption = {
   code: string;
   label: string;
@@ -33,4 +35,3 @@ function chipClass(isActive: boolean) {
     isActive ? 'bg-[#143A8F] text-white font-bold' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
   }`;
 }
-import { TAXONOMY_LEAF_NAMES } from '../../domain/catalog/taxonomy';
