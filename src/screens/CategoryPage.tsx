@@ -27,7 +27,7 @@ import {
 export const CategoryPage: React.FC = () => {
   const model = useCategoryCatalog();
   const {
-    navigateTo, routeParams, selectedCategory, setSelectedCategory, selectedItemType,
+    navigateTo, routeParams, products, selectedCategory, setSelectedCategory, selectedItemType,
     setSelectedItemType, selectedSupplier, setSelectedSupplier,
     selectedAccount, setSelectedAccount, keyword, setKeyword, minPrice,
     setMinPrice, maxPrice, setMaxPrice, inStockOnly, setInStockOnly,
@@ -36,6 +36,17 @@ export const CategoryPage: React.FC = () => {
     availableBrands, finalProducts, totalPages, paginatedProducts,
     resetFilters, toggleCompare
   } = model;
+  const availableCategories = MOCK_CATEGORIES.filter(category =>
+    products.some(product => product.categoryId === category.id)
+  );
+  const itemTypeOptions = [
+    { id: 'physical', label: '实物快递' },
+    { id: 'movie_ticket', label: '电影票通兑' },
+    { id: 'virtual_coupon', label: '虚拟卡券' },
+    { id: 'supermarket', label: '商超好卡' },
+    { id: 'nearby_store', label: '附近门店核销' },
+    { id: 'life_service', label: '生活服务' }
+  ].filter(option => products.some(product => product.itemType === option.id));
   return (
     <div className="max-w-[1280px] mx-auto px-4 py-4 space-y-4 font-sans">
       <div className="flex items-center gap-1.5 text-xs text-gray-500">
@@ -71,7 +82,7 @@ export const CategoryPage: React.FC = () => {
             >
               全部品类
             </button>
-            {MOCK_CATEGORIES.map(cat => (
+            {availableCategories.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => {
@@ -92,15 +103,7 @@ export const CategoryPage: React.FC = () => {
         <div className="flex items-start gap-4 pb-2.5 border-b border-gray-100">
           <span className="w-20 font-bold text-gray-700 flex-shrink-0 pt-1">商品类型：</span>
           <div className="flex-1 flex flex-wrap gap-1.5">
-            {[
-              { id: 'all', label: '全部形态' },
-              { id: 'physical', label: '实物快递' },
-              { id: 'movie_ticket', label: '电影票通兑' },
-              { id: 'virtual_coupon', label: '虚拟卡券' },
-              { id: 'supermarket', label: '商超好卡' },
-              { id: 'nearby_store', label: '附近门店核销' },
-              { id: 'life_service', label: '生活服务' }
-            ].map(t => (
+            {[{ id: 'all', label: '全部形态' }, ...itemTypeOptions].map(t => (
               <button
                 key={t.id}
                 onClick={() => {

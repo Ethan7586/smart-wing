@@ -16,11 +16,9 @@ import {
   Headphones,
   User,
   Heart,
-  Ticket,
   Wallet,
   Sparkles,
   ShieldCheck,
-  Store,
   Menu,
   ChevronRight,
   Flame
@@ -49,6 +47,15 @@ export const HeaderBar: React.FC = () => {
           p.brand.toLowerCase().includes(searchKeyword.toLowerCase())
       ).slice(0, 6)
     : [];
+  const catalogNavigation = [
+    { id: 'cat_welfare_zone', label: '企业福利专区', icon: true },
+    { id: 'cat_food', label: '食品饮料' },
+    { id: 'cat_appliance', label: '家用电器' },
+    { id: 'cat_digital', label: '数码办公' },
+    { id: 'cat_home', label: '家居日用' },
+    { id: 'cat_personal', label: '个护清洁' },
+    { id: 'cat_supermarket', label: '商超商品' },
+  ].filter(item => products.some(product => product.categoryId === item.id));
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -229,51 +236,16 @@ export const HeaderBar: React.FC = () => {
             >
               首页
             </button>
-            <button
-              onClick={() => navigateTo('category', { itemType: 'physical', categoryId: 'cat_welfare_zone' })}
-              className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-              <span>企业福利专区</span>
-            </button>
-            <button
-              onClick={() => navigateTo('category', { categoryId: 'cat_food' })}
-              className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer"
-            >
-              米面粮油
-            </button>
-            <button
-              onClick={() => navigateTo('category', { itemType: 'movie_ticket' })}
-              className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <Ticket className="w-3.5 h-3.5 text-orange-200" />
-              <span>电影影音</span>
-            </button>
-            <button
-              onClick={() => navigateTo('category', { itemType: 'virtual_coupon' })}
-              className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer"
-            >
-              虚拟卡券
-            </button>
-            <button
-              onClick={() => navigateTo('category', { itemType: 'supermarket' })}
-              className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer"
-            >
-              商超卡包
-            </button>
-            <button
-              onClick={() => navigateTo('category', { itemType: 'nearby_store' })}
-              className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <Store className="w-3.5 h-3.5 text-blue-200" />
-              <span>附近门店核销</span>
-            </button>
-            <button
-              onClick={() => navigateTo('category', { categoryId: 'cat_appliance' })}
-              className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer"
-            >
-              数码家电
-            </button>
+            {catalogNavigation.map(item => (
+              <button
+                key={item.id}
+                onClick={() => navigateTo('category', { categoryId: item.id })}
+                className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer flex items-center gap-1 whitespace-nowrap"
+              >
+                {item.icon && <Sparkles className="w-3.5 h-3.5 text-yellow-300" />}
+                <span>{item.label}</span>
+              </button>
+            ))}
           </div>
           <div className="hidden lg:flex items-center gap-1.5 text-blue-100 font-normal text-xs bg-white/10 px-3 py-1 rounded border border-white/20">
             <ShieldCheck className="w-3.5 h-3.5 text-yellow-300" />
