@@ -9,6 +9,15 @@ export const CategoryResults: React.FC<{ model: CategoryCatalogModel }> = ({ mod
     setCurrentPageNum, pageSize, finalProducts, totalPages, paginatedProducts,
     resetFilters, toggleCompare, viewMode
   } = model;
+  const pageNumbers = Array.from(
+    new Set([
+      1,
+      totalPages,
+      ...Array.from({ length: 5 }, (_, index) =>
+        Math.min(totalPages, Math.max(1, currentPageNum + index - 2))
+      ),
+    ])
+  ).sort((left, right) => left - right);
   return (
     <>
       {/* 4. 商品展示区域 (网格 vs 列表) */}
@@ -122,7 +131,7 @@ export const CategoryResults: React.FC<{ model: CategoryCatalogModel }> = ({ mod
               上一页
             </button>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            {pageNumbers.map(page => (
               <button
                 key={page}
                 onClick={() => setCurrentPageNum(page)}

@@ -7,7 +7,7 @@ import type {
   Product,
   UserProfile,
 } from '../types';
-import { productionApi } from '../services/productionApi';
+import { productionApi, type ApiProduct } from '../services/productionApi';
 import { mapApiOrder, mapApiProduct } from './mallMappers';
 import type { SessionStatus } from './MallContext.types';
 
@@ -18,6 +18,24 @@ interface ProductionSyncSetters {
   setOrders: Dispatch<SetStateAction<Order[]>>;
   setAccountLogs: Dispatch<SetStateAction<AccountLog[]>>;
   setSessionStatus: Dispatch<SetStateAction<SessionStatus>>;
+}
+
+async function loadCompleteCatalog(): Promise<ApiProduct[]> {
+  const items = new Map<string, ApiProduct>();
+  let cursor: number | null = 0;
+  let pageCount = 0;
+
+  while (cursor !== null && pageCount < 60) {
+    const page = await productionApi.listProducts('smart-wing-demo', {
+      cursor,
+      limit: 100,
+    });
+    page.items.forEach((item) => items.set(item.id, item));
+    if (page.pagination.nextCursor === cursor) break;
+    cursor = page.pagination.nextCursor;
+    pageCount += 1;
+  }
+  return [...items.values()];
 }
 
 export function useProductionSync(setters: ProductionSyncSetters) {
@@ -77,11 +95,10 @@ export function useProductionSync(setters: ProductionSyncSetters) {
 
   useEffect(() => {
     let active = true;
-    void productionApi
-      .listProducts('smart-wing-demo', { limit: 100 })
+    void loadCompleteCatalog()
       .then((response) => {
-        if (active && response.items.length) {
-          setters.setProducts(response.items.map(mapApiProduct));
+        if (active && response.length) {
+          setters.setProducts(response.map(mapApiProduct));
         }
       })
       .catch(() => undefined);
