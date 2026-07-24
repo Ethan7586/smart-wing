@@ -14,6 +14,7 @@ import { ToastContainer } from './components/common/ToastContainer';
 import { Footer } from './components/common/Footer';
 import { MobileBottomNav } from './components/common/MobileBottomNav';
 import { MvpSessionBar } from './components/common/MvpSessionBar';
+import { TestPreviewGate } from './components/common/TestPreviewGate';
 import { MobileFrame } from './components/mobile/MobileFrame';
 import { TabletFrame } from './components/mobile/TabletFrame';
 import { LaptopFrame } from './components/laptop/LaptopFrame';
@@ -85,7 +86,7 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA] text-gray-800 flex flex-col justify-between pb-16 md:pb-0 font-sans antialiased selection:bg-[#1F5EFF] selection:text-white">
+    <TestPreviewGate><div className="min-h-screen bg-[#F5F7FA] text-gray-800 flex flex-col justify-between pb-16 md:pb-0 font-sans antialiased selection:bg-[#1F5EFF] selection:text-white">
       {/* 顶部企业导航栏 */}
       <HeaderBar />
       <MvpSessionBar />
@@ -104,7 +105,7 @@ const AppContent: React.FC = () => {
 
       {/* 底部 Footer (带雍彻科技服务方标识) */}
       <Footer />
-    </div>
+    </div></TestPreviewGate>
   );
 };
 
