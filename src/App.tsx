@@ -14,6 +14,9 @@ import { ToastContainer } from './components/common/ToastContainer';
 import { Footer } from './components/common/Footer';
 import { MobileBottomNav } from './components/common/MobileBottomNav';
 import { MvpSessionBar } from './components/common/MvpSessionBar';
+import { MobileFrame } from './components/mobile/MobileFrame';
+import { TabletFrame } from './components/mobile/TabletFrame';
+import { LaptopFrame } from './components/laptop/LaptopFrame';
 
 // Pages
 import { HomePage } from './screens/HomePage';
@@ -31,7 +34,7 @@ import { BalancePage } from './screens/BalancePage';
 import { MvpConsolePage } from './screens/MvpConsolePage';
 
 const AppContent: React.FC = () => {
-  const { currentPage } = useMall();
+  const { currentPage, appMode } = useMall();
 
   const renderPage = () => {
     switch (currentPage) {
@@ -65,6 +68,18 @@ const AppContent: React.FC = () => {
         return <HomePage />;
     }
   };
+
+  if (appMode === 'mini-program' || appMode === 'android-app') {
+    return <MobileFrame />;
+  }
+
+  if (appMode === 'tablet-app') {
+    return <TabletFrame />;
+  }
+
+  if (appMode === 'laptop-web') {
+    return <LaptopFrame />;
+  }
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] text-gray-800 flex flex-col justify-between pb-16 md:pb-0 font-sans antialiased selection:bg-[#1F5EFF] selection:text-white">

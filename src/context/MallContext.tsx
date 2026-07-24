@@ -27,6 +27,20 @@ import {
 
 export type SessionStatus = 'checking' | 'guest' | 'authenticated';
 
+export type ViewportMode = 'auto' | 'laptop-1366' | 'desktop-1440' | 'side-by-side';
+export type AppMode = 'pc' | 'mini-program' | 'android-app' | 'tablet-app' | 'laptop-web';
+export type MiniProgramPage = 'home' | 'category' | 'detail' | 'cart' | 'profile';
+export type AndroidAppPage = 'home' | 'search' | 'detail' | 'checkout' | 'profile';
+export type TabletPage = 'home' | 'category' | 'detail' | 'cart' | 'orders' | 'profile';
+export type TabletOrientation = 'landscape' | 'portrait';
+export type LaptopPage = 'home-1366' | 'home-1440' | 'category' | 'detail' | 'cart' | 'orders';
+
+export interface PendingFeatureInfo {
+  isOpen: boolean;
+  featureName: string;
+  desc?: string;
+}
+
 export type PageRoute =
   | 'home'
   | 'category'
@@ -60,6 +74,27 @@ export interface ToastMessage {
 }
 
 interface MallContextType {
+  // Multi-device presentation
+  appMode: AppMode;
+  setAppMode: (mode: AppMode) => void;
+  viewportMode: ViewportMode;
+  setViewportMode: (mode: ViewportMode) => void;
+  mpPage: MiniProgramPage;
+  setMpPage: (page: MiniProgramPage, productId?: string) => void;
+  androidPage: AndroidAppPage;
+  setAndroidPage: (page: AndroidAppPage, productId?: string) => void;
+  tabletPage: TabletPage;
+  setTabletPage: (page: TabletPage, productId?: string) => void;
+  tabletOrientation: TabletOrientation;
+  setTabletOrientation: (orientation: TabletOrientation) => void;
+  laptopPage: LaptopPage;
+  setLaptopPage: (page: LaptopPage, productId?: string) => void;
+  mobileProductId: string;
+  setMobileProductId: (id: string) => void;
+  pendingFeature: PendingFeatureInfo;
+  triggerPendingFeature: (featureName: string, desc?: string) => void;
+  closePendingFeatureModal: () => void;
+
   // Navigation State
   currentPage: PageRoute;
   routeParams: RouteParams;
@@ -110,6 +145,26 @@ interface MallContextType {
 const MallContext = createContext<MallContextType | undefined>(undefined);
 
 export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [appMode, setAppModeState] = useState<AppMode>(() => {
+    if (typeof window === 'undefined') return 'pc';
+    const path = window.location.pathname;
+    if (path.startsWith('/mini-program')) return 'mini-program';
+    if (path.startsWith('/android-app')) return 'android-app';
+    if (path.startsWith('/tablet-app')) return 'tablet-app';
+    if (path.startsWith('/laptop-web')) return 'laptop-web';
+    return 'pc';
+  });
+  const [viewportMode, setViewportMode] = useState<ViewportMode>('auto');
+  const [mpPage, setMpPageState] = useState<MiniProgramPage>('home');
+  const [androidPage, setAndroidPageState] = useState<AndroidAppPage>('home');
+  const [tabletPage, setTabletPageState] = useState<TabletPage>('home');
+  const [tabletOrientation, setTabletOrientation] = useState<TabletOrientation>('landscape');
+  const [laptopPage, setLaptopPageState] = useState<LaptopPage>('home-1366');
+  const [mobileProductId, setMobileProductId] = useState<string>('p_101');
+  const [pendingFeature, setPendingFeature] = useState<PendingFeatureInfo>({
+    isOpen: false,
+    featureName: '',
+  });
   const [currentPage, setCurrentPage] = useState<PageRoute>('home');
   const [routeParams, setRouteParams] = useState<RouteParams>({});
   
@@ -126,6 +181,53 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [addresses, setAddresses] = useState<DeliveryAddress[]>(() => mallService.getAddresses());
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+
+  const setAppMode = (mode: AppMode) => {
+    setAppModeState(mode);
+    const pathByMode: Record<AppMode, string> = {
+      pc: '/',
+      'mini-program': '/mini-program',
+      'android-app': '/android-app',
+      'tablet-app': '/tablet-app',
+      'laptop-web': '/laptop-web',
+    };
+    const targetPath = pathByMode[mode];
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({}, '', targetPath);
+    }
+  };
+
+  const setMpPage = (page: MiniProgramPage, productId?: string) => {
+    setMpPageState(page);
+    if (productId) setMobileProductId(productId);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const setAndroidPage = (page: AndroidAppPage, productId?: string) => {
+    setAndroidPageState(page);
+    if (productId) setMobileProductId(productId);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const setTabletPage = (page: TabletPage, productId?: string) => {
+    setTabletPageState(page);
+    if (productId) setMobileProductId(productId);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const setLaptopPage = (page: LaptopPage, productId?: string) => {
+    setLaptopPageState(page);
+    if (productId) setMobileProductId(productId);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const triggerPendingFeature = (featureName: string, desc?: string) => {
+    setPendingFeature({ isOpen: true, featureName, desc });
+  };
+
+  const closePendingFeatureModal = () => {
+    setPendingFeature((previous) => ({ ...previous, isOpen: false }));
+  };
 
   const syncPublicCatalog = async () => {
     try {
@@ -204,8 +306,17 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  // Sync hash routing for desktop forward/back support
+  // Sync pathname modes and desktop hash routing for browser forward/back support.
   useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path.startsWith('/mini-program')) setAppModeState('mini-program');
+      else if (path.startsWith('/android-app')) setAppModeState('android-app');
+      else if (path.startsWith('/tablet-app')) setAppModeState('tablet-app');
+      else if (path.startsWith('/laptop-web')) setAppModeState('laptop-web');
+      else setAppModeState('pc');
+    };
+
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#/', '');
       if (!hash) return;
@@ -225,8 +336,12 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
+    window.addEventListener('popstate', handlePopState);
     window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handleHashChange);
+    };
   }, []);
 
   const navigateTo = (page: PageRoute, params: RouteParams = {}) => {
@@ -371,6 +486,25 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <MallContext.Provider
       value={{
+        appMode,
+        setAppMode,
+        viewportMode,
+        setViewportMode,
+        mpPage,
+        setMpPage,
+        androidPage,
+        setAndroidPage,
+        tabletPage,
+        setTabletPage,
+        tabletOrientation,
+        setTabletOrientation,
+        laptopPage,
+        setLaptopPage,
+        mobileProductId,
+        setMobileProductId,
+        pendingFeature,
+        triggerPendingFeature,
+        closePendingFeatureModal,
         currentPage,
         routeParams,
         navigateTo,
