@@ -32,6 +32,7 @@ import { AfterSalePage } from './screens/AfterSalePage';
 import { CouponsPage } from './screens/CouponsPage';
 import { BalancePage } from './screens/BalancePage';
 import { MvpConsolePage } from './screens/MvpConsolePage';
+import { ArchitecturePage } from './screens/ArchitecturePage';
 
 const AppContent: React.FC = () => {
   const { currentPage, appMode } = useMall();
@@ -64,6 +65,8 @@ const AppContent: React.FC = () => {
         return <BalancePage />;
       case 'mvp-console':
         return <MvpConsolePage />;
+      case 'architecture':
+        return <ArchitecturePage />;
       default:
         return <HomePage />;
     }

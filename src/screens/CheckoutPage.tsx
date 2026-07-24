@@ -4,12 +4,7 @@
  * 技术服务方：雍彻科技
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { useMall } from '../context/MallContext';
-import { mallService } from '../services/mallService';
-import { productionApi, ProductionApiError } from '../services/productionApi';
-import { DeliveryAddress } from '../types';
-import { calculatePaymentAllocation } from '../utils/finance';
+import React from 'react';
 import {
   MapPin,
   Plus,
@@ -22,157 +17,20 @@ import {
   Lock,
   ArrowRight
 } from 'lucide-react';
+import { CheckoutAddressModal } from '../features/checkout/CheckoutAddressModal';
+import { CheckoutAddressSelector } from '../features/checkout/CheckoutAddressSelector';
+import { useCheckoutModel } from '../features/checkout/useCheckoutModel';
 
 export const CheckoutPage: React.FC = () => {
+  const model = useCheckoutModel();
   const {
-    cart,
-    user,
-    addresses,
-    addAddress,
-    navigateTo,
-    refreshUserData,
-    showToast,
-    sessionStatus,
-    refreshProductionData,
-    removeCartItem
-  } = useMall();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const selectedItems = useMemo(() => cart.filter(i => i.selected), [cart]);
-
-  // Address state
-  const [selectedAddrId, setSelectedAddrId] = useState<string>(
-    addresses.find(a => a.isDefault)?.id || addresses[0]?.id || ''
-  );
-  const [showAddAddrModal, setShowAddAddrModal] = useState(false);
-  const [newAddrForm, setNewAddrForm] = useState({
-    name: user.name,
-    phone: '13812349281',
-    province: '北京市',
-    city: '北京市',
-    district: '西城区',
-    detail: '',
-    isDefault: false,
-    tag: '公司'
-  });
-
-  // Calculate Total Order Amount
-  const totalGoodsAmount = useMemo(() => {
-    return selectedItems.reduce((sum, i) => sum + i.product.priceWelfare * i.quantity, 0);
-  }, [selectedItems]);
-
-  // Payment deduction state
-  const [useWelfare, setUseWelfare] = useState(true);
-  const [welfareInput, setWelfareInput] = useState<number>(() =>
-    Math.min(totalGoodsAmount, user.welfareBalance)
-  );
-
-  const effectiveWelfareInput = useWelfare
-    ? Math.min(totalGoodsAmount, user.welfareBalance, Math.max(0, welfareInput))
-    : 0;
-  const remAfterWelfare = Math.max(0, totalGoodsAmount - effectiveWelfareInput);
-
-  const [useMeal, setUseMeal] = useState(true);
-  const [mealInput, setMealInput] = useState<number>(() =>
-    Math.min(remAfterWelfare, user.mealBalance)
-  );
-
-  useEffect(() => {
-    setMealInput(previous => Math.min(previous, remAfterWelfare, user.mealBalance));
-  }, [remAfterWelfare, user.mealBalance]);
-
-  const paymentAllocation = calculatePaymentAllocation(
-    totalGoodsAmount,
-    effectiveWelfareInput,
-    useMeal ? mealInput : 0,
-    user.welfareBalance,
-    user.mealBalance
-  );
-  const finalWechatTopUp = paymentAllocation.external;
-
-  // Invoice state
-  const [invoiceType, setInvoiceType] = useState<'none' | 'personal' | 'company'>('company');
-  const [invoiceTitle, setInvoiceTitle] = useState(user.enterpriseName);
-  const [invoiceTaxNo, setInvoiceTaxNo] = useState('91110000100011889X');
-
-  // User Remark
-  const [userRemark, setUserRemark] = useState('');
-
-  // Grouped items by supplier for order split preview
-  const groupedItems = useMemo(() => {
-    const map = new Map<string, typeof selectedItems>();
-    selectedItems.forEach(i => {
-      const k = i.product.supplierName;
-      if (!map.has(k)) map.set(k, []);
-      map.get(k)!.push(i);
-    });
-    return Array.from(map.entries());
-  }, [selectedItems]);
-
-  const handleAddNewAddress = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newAddrForm.detail) {
-      showToast('请填写详细收货地址', 'warning');
-      return;
-    }
-    addAddress(newAddrForm);
-    setShowAddAddrModal(false);
-  };
-
-  const handleSubmitOrder = async () => {
-    const selectedAddr = addresses.find(a => a.id === selectedAddrId);
-    if (!selectedAddr) {
-      showToast('请选择有效的收货地址', 'warning');
-      return;
-    }
-
-    if (sessionStatus !== 'authenticated') {
-      showToast('请先点击页面顶部“登录MVP”，再提交测试订单', 'warning');
-      return;
-    }
-    if (finalWechatTopUp > 0) {
-      showToast('尚未接入真实微信支付，请将福利卡与餐卡调整为全额抵扣', 'warning');
-      return;
-    }
-    if (selectedItems.some(item => !item.product.skuId)) {
-      showToast('购物车存在旧版演示商品，请清空后从最新商品目录重新加入', 'warning');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const idempotencyRoot = crypto.randomUUID();
-      const created = await productionApi.createOrder({
-        items: selectedItems.map(item => ({
-          skuId: item.product.skuId!,
-          quantity: item.quantity
-        })),
-        recipient: {
-          name: selectedAddr.name,
-          mobile: selectedAddr.phone,
-          province: selectedAddr.province,
-          city: selectedAddr.city,
-          district: selectedAddr.district,
-          address: selectedAddr.detail
-        }
-      }, `order-${idempotencyRoot}`);
-      await productionApi.payWithInternalAccounts(created.order.id, {
-        welfareCents: Math.round(paymentAllocation.welfare * 100),
-        mealCents: Math.round(paymentAllocation.meal * 100)
-      }, `payment-${idempotencyRoot}`);
-      selectedItems.forEach(item => removeCartItem(item.id));
-      await refreshProductionData();
-      showToast('订单已写入生产型数据库并完成福利账户支付', 'success');
-      navigateTo('orders');
-    } catch (error) {
-      const message = error instanceof ProductionApiError
-        ? error.message
-        : '服务暂时不可用';
-      showToast(`提交订单失败：${message}`, 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    user, addresses, navigateTo, isSubmitting, selectedItems, selectedAddrId,
+    setSelectedAddrId, setShowAddAddrModal, totalGoodsAmount, useWelfare,
+    setUseWelfare, welfareInput, setWelfareInput, remAfterWelfare, useMeal,
+    setUseMeal, mealInput, setMealInput, paymentAllocation, finalWechatTopUp,
+    invoiceType, setInvoiceType, invoiceTitle, setInvoiceTitle, invoiceTaxNo,
+    setInvoiceTaxNo, userRemark, setUserRemark, groupedItems, handleSubmitOrder
+  } = model;
 
   if (selectedItems.length === 0) {
     return (
@@ -197,50 +55,7 @@ export const CheckoutPage: React.FC = () => {
         </span>
       </div>
 
-      {/* 1. 收货地址选择器 */}
-      <div className="bg-white border border-gray-200 rounded-md p-5 shadow-xs space-y-3">
-        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-          <div className="font-bold text-sm text-gray-900 flex items-center gap-1.5">
-            <MapPin className="w-4 h-4 text-[#1F5EFF]" />
-            <span>选择收货地址 / 配送地点</span>
-          </div>
-          <button
-            onClick={() => setShowAddAddrModal(true)}
-            className="text-xs text-[#1F5EFF] font-bold hover:underline flex items-center gap-1 cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" /> 新增收货地址
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-          {addresses.map(addr => {
-            const isSelected = selectedAddrId === addr.id;
-            return (
-              <div
-                key={addr.id}
-                onClick={() => setSelectedAddrId(addr.id)}
-                className={`p-3 rounded border cursor-pointer transition-all ${
-                  isSelected
-                    ? 'border-[#1F5EFF] bg-blue-50/60 ring-2 ring-blue-500/20'
-                    : 'border-gray-200 hover:border-gray-300 bg-white'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-gray-900">{addr.name} ({addr.phone})</span>
-                  {addr.tag && (
-                    <span className="bg-gray-200 text-gray-700 text-[10px] px-1.5 py-0.2 rounded font-medium">
-                      {addr.tag}
-                    </span>
-                  )}
-                </div>
-                <p className="text-gray-600 leading-relaxed">
-                  {addr.province}{addr.city}{addr.district}{addr.detail}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <CheckoutAddressSelector model={model} />
 
       {/* 2. 商品按供应商拆单清单预览 */}
       <div className="bg-white border border-gray-200 rounded-md p-5 shadow-xs space-y-4">
@@ -474,86 +289,7 @@ export const CheckoutPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal: 新增收货地址 */}
-      {showAddAddrModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-md p-6 max-w-md w-full space-y-4 shadow-2xl">
-            <h3 className="font-bold text-sm text-gray-900 border-b pb-2">新增个人/公司收货地址</h3>
-            <form onSubmit={handleAddNewAddress} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-gray-600 font-bold mb-1">收货人姓名</label>
-                <input
-                  type="text"
-                  required
-                  value={newAddrForm.name}
-                  onChange={e => setNewAddrForm({ ...newAddrForm, name: e.target.value })}
-                  className="w-full border p-2 rounded"
-                />
-              </div>
-              <div>
-                <label className="block text-gray-600 font-bold mb-1">联系电话</label>
-                <input
-                  type="text"
-                  required
-                  value={newAddrForm.phone}
-                  onChange={e => setNewAddrForm({ ...newAddrForm, phone: e.target.value })}
-                  className="w-full border p-2 rounded"
-                />
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <input
-                  type="text"
-                  value={newAddrForm.province}
-                  onChange={e => setNewAddrForm({ ...newAddrForm, province: e.target.value })}
-                  className="border p-2 rounded"
-                  placeholder="省"
-                />
-                <input
-                  type="text"
-                  value={newAddrForm.city}
-                  onChange={e => setNewAddrForm({ ...newAddrForm, city: e.target.value })}
-                  className="border p-2 rounded"
-                  placeholder="市"
-                />
-                <input
-                  type="text"
-                  value={newAddrForm.district}
-                  onChange={e => setNewAddrForm({ ...newAddrForm, district: e.target.value })}
-                  className="border p-2 rounded"
-                  placeholder="区"
-                />
-              </div>
-              <div>
-                <label className="block text-gray-600 font-bold mb-1">详细门牌地址</label>
-                <input
-                  type="text"
-                  required
-                  value={newAddrForm.detail}
-                  onChange={e => setNewAddrForm({ ...newAddrForm, detail: e.target.value })}
-                  placeholder="例如：金融大街1号大厦1208"
-                  className="w-full border p-2 rounded"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddAddrModal(false)}
-                  className="px-4 py-1.5 border rounded text-gray-600"
-                >
-                  取消
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 bg-[#1F5EFF] text-white font-bold rounded"
-                >
-                  保存地址
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <CheckoutAddressModal model={model} />
     </div>
   );
 };

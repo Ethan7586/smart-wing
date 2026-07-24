@@ -3,8 +3,8 @@
  * 包含企业商城切换、大型搜索与实时联想、福利卡/餐卡余额卡片、购物车与快捷分类
  * 技术服务方：雍彻科技
  */
-
 import React, { useState, useRef, useEffect } from 'react';
+import { HeaderEnterpriseBar } from './HeaderEnterpriseBar';
 import { useMall, PageRoute } from '../../context/MallContext';
 import {
   Search,
@@ -25,7 +25,6 @@ import {
   ChevronRight,
   Flame
 } from 'lucide-react';
-
 export const HeaderBar: React.FC = () => {
   const {
     user,
@@ -38,12 +37,9 @@ export const HeaderBar: React.FC = () => {
     products,
     sessionStatus
   } = useMall();
-
   const [searchKeyword, setSearchKeyword] = useState('');
   const [showSearchSuggest, setShowSearchSuggest] = useState(false);
-  const [showMallDropdown, setShowMallDropdown] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
-
   // Search suggestion matches
   const suggestions = searchKeyword.trim()
     ? products.filter(
@@ -53,7 +49,6 @@ export const HeaderBar: React.FC = () => {
           p.brand.toLowerCase().includes(searchKeyword.toLowerCase())
       ).slice(0, 6)
     : [];
-
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -66,132 +61,16 @@ export const HeaderBar: React.FC = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
   const handleSearchSubmit = (kw?: string) => {
     const finalKw = kw !== undefined ? kw : searchKeyword;
     setShowSearchSuggest(false);
     navigateTo('category', { keyword: finalKw });
   };
-
   const hotKeywords = ['五常大米', '星巴克卡', '戴森吸尘器', '电影通兑', '盒马鲜生', '端午礼盒', '途虎洗车'];
-
   return (
     <header className="w-full bg-white border-b border-gray-200 select-none sticky top-0 z-40 shadow-xs">
-      {/* 1. 顶部公共服务栏 */}
-      <div className="hidden md:block bg-[#143A8F] text-white text-xs py-1.5 px-4">
-        <div className="max-w-[1280px] mx-auto flex items-center justify-between">
-          {/* 左侧：当前所属企业与商城切换 */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5 font-medium text-blue-100">
-              <Building2 className="w-3.5 h-3.5 text-blue-300" />
-              <span>当前所属单位：{user.enterpriseName}</span>
-            </div>
-
-            <div className="h-3 w-[1px] bg-blue-400/40" />
-
-            {/* 商城切换 Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowMallDropdown(!showMallDropdown)}
-                className="flex items-center gap-1 bg-white/15 hover:bg-white/25 text-white px-2 py-0.5 rounded text-xs transition-colors cursor-pointer"
-              >
-                <span className="font-semibold">{currentMall.logoText}</span>
-                <span className="text-blue-200">({currentMall.mallName})</span>
-                <ChevronDown className="w-3 h-3 text-blue-200" />
-              </button>
-
-              {showMallDropdown && (
-                <div className="absolute left-0 top-full mt-1.5 w-72 bg-white text-gray-800 rounded shadow-xl border border-gray-200 z-50 py-2">
-                  <div className="px-3 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-100">
-                    可切换的专属企业福利商城
-                  </div>
-                  {malls.map(m => (
-                    <button
-                      key={m.id}
-                      onClick={() => {
-                        switchMall(m.id);
-                        setShowMallDropdown(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50 flex items-center justify-between transition-colors ${
-                        m.id === currentMall.id ? 'bg-blue-50/80 text-[#1F5EFF] font-semibold' : 'text-gray-700'
-                      }`}
-                    >
-                      <div>
-                        <div className="font-medium">{m.mallName}</div>
-                        <div className="text-[11px] text-gray-400">{m.enterpriseName}</div>
-                      </div>
-                      {m.id === currentMall.id && (
-                        <span className="text-[10px] bg-[#1F5EFF] text-white px-1.5 py-0.5 rounded">当前</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* 右侧：用户状态与快捷导航 */}
-          <div className="flex items-center gap-4 text-blue-100 text-xs">
-            <div className="flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-blue-300" />
-              <span>{user.name} ({user.department})</span>
-            </div>
-
-            <div className="h-3 w-[1px] bg-blue-400/40" />
-
-            <button
-              onClick={() => navigateTo('orders')}
-              className="hover:text-white transition-colors cursor-pointer flex items-center gap-1"
-            >
-              我的订单
-            </button>
-
-            <button
-              onClick={() => navigateTo('coupons')}
-              className="hover:text-white transition-colors cursor-pointer flex items-center gap-1"
-            >
-              我的卡券
-              <span className="bg-orange-500 text-white text-[10px] px-1 rounded-full font-bold">
-                {user.couponCount}
-              </span>
-            </button>
-
-            <button
-              onClick={() => navigateTo('balance')}
-              className="hover:text-white transition-colors cursor-pointer flex items-center gap-1"
-            >
-              账户流水
-            </button>
-
-            <button
-              onClick={() => navigateTo('user-center')}
-              className="hover:text-white transition-colors cursor-pointer flex items-center gap-1"
-            >
-              个人中心
-            </button>
-
-            {sessionStatus === 'authenticated' && (
-              <button
-                onClick={() => navigateTo('mvp-console')}
-                className="hover:text-white transition-colors cursor-pointer flex items-center gap-1 font-bold"
-              >
-                MVP验收台
-              </button>
-            )}
-
-            <div className="h-3 w-[1px] bg-blue-400/40" />
-
-            <div className="flex items-center gap-1 text-blue-200 hover:text-white cursor-pointer">
-              <Headphones className="w-3.5 h-3.5" />
-              <span>专属客服</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. 主 Logo、搜索框与福利余额区 */}
+      <HeaderEnterpriseBar />
       <div className="max-w-[1280px] mx-auto py-3 px-3 md:py-3.5 md:px-4 flex items-center justify-between gap-3 md:gap-6">
-        {/* Original Branding Logo */}
         <div
           onClick={() => navigateTo('home')}
           className="flex items-center gap-3 cursor-pointer group"
@@ -215,8 +94,6 @@ export const HeaderBar: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* 大型搜索框与热门词 */}
         <div className="flex-1 max-w-2xl relative" ref={searchContainerRef}>
           <div className="flex items-center">
             <div className="relative flex-1">
@@ -234,7 +111,6 @@ export const HeaderBar: React.FC = () => {
               />
               <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
-
             <button
               onClick={() => handleSearchSubmit()}
               className="bg-[#1F5EFF] hover:bg-blue-700 text-white font-medium text-sm px-6 py-2.5 rounded-r-md transition-colors flex items-center gap-1.5 cursor-pointer"
@@ -242,8 +118,6 @@ export const HeaderBar: React.FC = () => {
               <span>搜索</span>
             </button>
           </div>
-
-          {/* Search suggestions dropdown */}
           {showSearchSuggest && suggestions.length > 0 && (
             <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-md shadow-2xl border border-gray-200 z-50 overflow-hidden divide-y divide-gray-100">
               <div className="p-2 text-xs font-semibold text-gray-400 bg-gray-50 flex items-center justify-between">
@@ -275,8 +149,6 @@ export const HeaderBar: React.FC = () => {
               ))}
             </div>
           )}
-
-          {/* Hot search keyword tags */}
           <div className="hidden md:flex items-center gap-2 mt-1.5 text-xs text-gray-500 overflow-x-auto whitespace-nowrap">
             <span className="text-gray-400 text-[11px] font-medium flex items-center gap-0.5">
               <Flame className="w-3 h-3 text-orange-500" />
@@ -293,10 +165,7 @@ export const HeaderBar: React.FC = () => {
             ))}
           </div>
         </div>
-
-        {/* 福利账户与购物车区域 */}
         <div className="flex items-center gap-3">
-          {/* 福利卡余额 Pill */}
           <div
             onClick={() => navigateTo('balance', { accountTab: 'welfare' })}
             className="hidden lg:flex bg-[#EAF1FF] hover:bg-blue-100 border border-blue-200 rounded-md p-2 items-center gap-2.5 cursor-pointer transition-colors"
@@ -311,8 +180,6 @@ export const HeaderBar: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* 餐卡余额 Pill */}
           <div
             onClick={() => navigateTo('balance', { accountTab: 'meal' })}
             className="hidden lg:flex bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-md p-2 items-center gap-2.5 cursor-pointer transition-colors"
@@ -327,8 +194,6 @@ export const HeaderBar: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* 购物车 */}
           <button
             onClick={() => navigateTo('cart')}
             className="relative bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-md flex items-center gap-2 font-medium text-xs shadow-xs transition-colors cursor-pointer"
@@ -343,11 +208,8 @@ export const HeaderBar: React.FC = () => {
           </button>
         </div>
       </div>
-
-      {/* 3. 分类与快速频道导航 */}
       <div className="hidden md:block bg-[#1F5EFF] text-white shadow-xs">
         <div className="max-w-[1280px] mx-auto px-4 flex items-center justify-between text-xs font-semibold">
-          {/* 左侧：全部商品分类标题栏 */}
           <div
             onClick={() => navigateTo('category')}
             className="w-56 bg-[#143A8F] py-2.5 px-4 flex items-center justify-between cursor-pointer hover:bg-blue-900 transition-colors"
@@ -358,8 +220,6 @@ export const HeaderBar: React.FC = () => {
             </div>
             <ChevronRight className="w-4 h-4 text-blue-300" />
           </div>
-
-          {/* 快捷导航频道 */}
           <div className="flex-1 flex items-center gap-1 ml-4 py-1.5 overflow-x-auto">
             <button
               onClick={() => navigateTo('home')}
@@ -415,8 +275,6 @@ export const HeaderBar: React.FC = () => {
               数码家电
             </button>
           </div>
-
-          {/* 右侧：福利保障标语 */}
           <div className="hidden lg:flex items-center gap-1.5 text-blue-100 font-normal text-xs bg-white/10 px-3 py-1 rounded border border-white/20">
             <ShieldCheck className="w-3.5 h-3.5 text-yellow-300" />
             <span>国企/央企特规正品保障</span>

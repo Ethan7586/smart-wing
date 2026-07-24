@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LaptopBreadcrumb } from './LaptopBreadcrumb';
 import { useMall, LaptopPage } from '../../context/MallContext';
 import {
   ShoppingCart,
@@ -49,30 +50,10 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
   return (
     <div className="w-full bg-[#F5F7FA] min-h-[80vh] pb-8 font-sans">
       <div className="max-w-[1240px] mx-auto pt-3 px-3 space-y-3">
-        {/* 面包屑 */}
-        <div className="flex items-center gap-1.5 text-xs text-gray-500">
-          <span
-            onClick={() => onSelectTab('home-1366')}
-            className="hover:text-[#1F5EFF] cursor-pointer"
-          >
-            首页
-          </span>
-          <span>&gt;</span>
-          <span
-            onClick={() => onSelectTab('category')}
-            className="hover:text-[#1F5EFF] cursor-pointer"
-          >
-            企采数码办公
-          </span>
-          <span>&gt;</span>
-          <span className="font-bold text-gray-800 truncate">{product.title}</span>
-        </div>
+        <LaptopBreadcrumb productTitle={product.title} onSelectTab={onSelectTab} />
 
-        {/* 1366×768 左右两栏首屏主体卡片 */}
         <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-2xs grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* 左侧：商品大图 + 缩略图轮播 + 服务保障 */}
           <div className="space-y-3">
-            {/* 主图 */}
             <div className="w-full h-[300px] bg-gray-50 rounded-lg border border-gray-200 p-4 flex items-center justify-center relative overflow-hidden">
               <span className="absolute top-2 left-2 bg-[#E5484D] text-white text-[10px] font-black px-2 py-0.5 rounded shadow-2xs">
                 企业特惠补贴 20%
@@ -84,7 +65,6 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
               />
             </div>
 
-            {/* 缩略图栏 */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1">
               {[product.image, product.image, product.image].map((img, i) => (
                 <div
@@ -96,7 +76,6 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
               ))}
             </div>
 
-            {/* 服务承诺条 */}
             <div className="bg-blue-50/60 border border-blue-100 rounded-lg p-2.5 grid grid-cols-3 gap-2 text-[11px] text-gray-700 text-center">
               <div className="flex items-center justify-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#1F5EFF]" />
@@ -113,10 +92,8 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
             </div>
           </div>
 
-          {/* 右侧：商品购买属性与操作区域 */}
           <div className="space-y-3 flex flex-col justify-between">
             <div>
-              {/* 供应商与标题 */}
               <div className="flex items-center gap-2 mb-1">
                 <span className="bg-[#143A8F] text-white font-bold text-[10px] px-1.5 py-0.2 rounded">
                   {product.supplierName || '京东自营'}
@@ -133,7 +110,6 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
                 高性能企业办公标配，支持福利卡全额扣减与对公专票直开。
               </p>
 
-              {/* 价格与福利扣减信息卡 */}
               <div className="bg-gradient-to-r from-red-50 via-orange-50 to-blue-50 border border-red-200/80 rounded-lg p-3 mt-3 space-y-1">
                 <div className="flex items-baseline gap-2">
                   <span className="text-xs font-bold text-[#E5484D]">企采福利价:</span>
@@ -159,7 +135,6 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
                 </div>
               </div>
 
-              {/* 规格选择 */}
               <div className="mt-3 space-y-2 text-xs">
                 <div className="font-bold text-gray-800">选择规格配置:</div>
                 <div className="flex flex-wrap gap-2">
@@ -183,14 +158,12 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
                 </div>
               </div>
 
-              {/* 配送地址 */}
               <div className="mt-3 text-xs flex items-center gap-2 text-gray-700">
                 <MapPin className="w-4 h-4 text-[#1F5EFF] flex-shrink-0" />
                 <span>配送至：</span>
                 <span className="font-bold text-gray-800">北京市东城区国家电网总部大楼 (员工专送)</span>
               </div>
 
-              {/* 数量选择 */}
               <div className="mt-3 flex items-center gap-3 text-xs">
                 <span className="font-bold text-gray-800">购买数量:</span>
                 <div className="flex items-center border border-gray-300 rounded overflow-hidden">
@@ -211,7 +184,6 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
               </div>
             </div>
 
-            {/* 操作按钮组 (在1366下必须清晰可见) */}
             <div className="pt-3 border-t border-gray-100 flex items-center gap-3">
               <button
                 onClick={handleAddToCart}
@@ -232,9 +204,7 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
           </div>
         </div>
 
-        {/* 下方标签页：商品详情、规格参数、评价与售后开票 */}
         <div className="bg-white border border-gray-200 rounded-lg shadow-2xs overflow-hidden">
-          {/* 标签栏 */}
           <div className="flex border-b border-gray-200 bg-gray-50 text-xs font-bold text-gray-700">
             {[
               { id: 'detail', name: '商品详情' },
@@ -256,7 +226,6 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
             ))}
           </div>
 
-          {/* 标签页内容 */}
           <div className="p-4 text-xs text-gray-700 leading-relaxed">
             {activeTab === 'detail' && (
               <div className="space-y-3">

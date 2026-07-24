@@ -76,6 +76,7 @@ export const Footer: React.FC = () => {
           <ul className="space-y-2 text-gray-400">
             <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>商城简介</li>
             <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>企业福利解决方案</li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('architecture')}>系统 Canvas 架构图</li>
             <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>供应商入驻标准</li>
             <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>分销服务商政策 (distributorId)</li>
           </ul>

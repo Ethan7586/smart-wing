@@ -1,4 +1,5 @@
 import React from 'react';
+import { LaptopAccountPane1440 } from './LaptopAccountPane1440';
 import { useMall, LaptopPage } from '../../context/MallContext';
 import {
   Sparkles,
@@ -57,9 +58,7 @@ export const LaptopHomePage1440: React.FC<LaptopHomePage1440Props> = ({ onSelect
 
   return (
     <div className="w-full bg-[#F5F7FA] pb-8 font-sans">
-      {/* 1440×900 宽屏首屏高密度布局容器 */}
       <div className="max-w-[1280px] mx-auto pt-3 px-4">
-        {/* 顶部公告与提示条 */}
         <div className="bg-gradient-to-r from-blue-900 via-[#143A8F] to-indigo-900 text-white text-xs px-4 py-1.5 rounded-md mb-2.5 flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-2.5">
             <span className="bg-[#1F5EFF] text-white font-bold px-2 py-0.5 rounded text-[10px] shadow-2xs">
@@ -79,9 +78,7 @@ export const LaptopHomePage1440: React.FC<LaptopHomePage1440Props> = ({ onSelect
           </div>
         </div>
 
-        {/* 三栏主体：左侧分类 (210px) | 中间Banner与4列商品 (Flex-1) | 右侧福利账户 (250px) */}
         <div className="flex gap-3 items-start">
-          {/* 左侧：分类栏 (宽度 210px) */}
           <div className="w-[210px] flex-shrink-0 bg-white border border-gray-200 rounded-lg shadow-2xs overflow-hidden">
             <div className="bg-[#143A8F] text-white px-3 py-2.5 font-bold text-xs flex items-center justify-between">
               <span>全部分类导航</span>
@@ -112,7 +109,6 @@ export const LaptopHomePage1440: React.FC<LaptopHomePage1440Props> = ({ onSelect
               ))}
             </div>
 
-            {/* 企业福利专区入口 */}
             <div className="p-2.5 bg-gradient-to-br from-blue-50 to-indigo-50 border-t border-blue-100">
               <div
                 onClick={() => onSelectTab('category')}
@@ -129,9 +125,7 @@ export const LaptopHomePage1440: React.FC<LaptopHomePage1440Props> = ({ onSelect
             </div>
           </div>
 
-          {/* 中间：活动Banner + 10个快捷图标 + 4列商品网格 (Flex-1) */}
           <div className="flex-1 min-w-0 space-y-3">
-            {/* 活动Banner (高度 250px) */}
             <div className="relative rounded-lg overflow-hidden bg-gradient-to-r from-[#143A8F] via-[#1F5EFF] to-indigo-900 text-white p-5 h-[250px] flex flex-col justify-between shadow-xs border border-blue-900">
               <div className="absolute top-0 right-0 opacity-20 pointer-events-none transform translate-x-10 -translate-y-6">
                 <Sparkles className="w-64 h-64 text-yellow-300" />
@@ -151,7 +145,6 @@ export const LaptopHomePage1440: React.FC<LaptopHomePage1440Props> = ({ onSelect
                 </p>
               </div>
 
-              {/* Banner 底部亮点 */}
               <div className="relative z-10 flex items-center justify-between border-t border-white/20 pt-3">
                 <div className="flex items-center gap-4 text-xs text-blue-100">
                   <span className="flex items-center gap-1">
@@ -178,7 +171,6 @@ export const LaptopHomePage1440: React.FC<LaptopHomePage1440Props> = ({ onSelect
               </div>
             </div>
 
-            {/* 10个快捷图标栏 */}
             <div className="bg-white border border-gray-200 rounded-lg p-2.5 shadow-2xs grid grid-cols-5 sm:grid-cols-10 gap-2 text-center text-xs">
               {[
                 { icon: Coffee, label: '园区咖啡', color: 'bg-amber-100 text-amber-700' },
@@ -207,7 +199,6 @@ export const LaptopHomePage1440: React.FC<LaptopHomePage1440Props> = ({ onSelect
               ))}
             </div>
 
-            {/* 1440 专属 4列高密度商品网格 */}
             <div className="bg-white border border-gray-200 rounded-lg p-3.5 shadow-2xs">
               <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
                 <div className="flex items-center gap-2">
@@ -228,7 +219,6 @@ export const LaptopHomePage1440: React.FC<LaptopHomePage1440Props> = ({ onSelect
                 </button>
               </div>
 
-              {/* 4列商品网格 */}
               <div className="grid grid-cols-4 gap-3">
                 {products.map(product => (
                   <div
@@ -236,7 +226,6 @@ export const LaptopHomePage1440: React.FC<LaptopHomePage1440Props> = ({ onSelect
                     onClick={() => onSelectTab('detail')}
                     className="border border-gray-200 hover:border-[#1F5EFF] rounded-lg p-2.5 bg-white hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group relative"
                   >
-                    {/* 标签 */}
                     <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
                       <span className="bg-[#E5484D] text-white text-[9px] font-bold px-1.5 py-0.2 rounded shadow-2xs">
                         企采价
@@ -249,7 +238,6 @@ export const LaptopHomePage1440: React.FC<LaptopHomePage1440Props> = ({ onSelect
                     </div>
 
                     <div>
-                      {/* 商品主图 */}
                       <div className="w-full h-[125px] rounded-md overflow-hidden bg-gray-50 mb-2 flex items-center justify-center p-1">
                         <img
                           src={product.image}
@@ -258,7 +246,6 @@ export const LaptopHomePage1440: React.FC<LaptopHomePage1440Props> = ({ onSelect
                         />
                       </div>
 
-                      {/* 供应商 */}
                       <div className="text-[10px] text-gray-400 mb-1 flex items-center gap-1">
                         <span className="bg-gray-100 text-gray-600 px-1 py-0.2 rounded font-medium">
                           {product.supplierName || '自营仓'}
@@ -267,13 +254,11 @@ export const LaptopHomePage1440: React.FC<LaptopHomePage1440Props> = ({ onSelect
                         <span className="text-emerald-600 font-medium">可开专票</span>
                       </div>
 
-                      {/* 标题 */}
                       <h3 className="font-bold text-xs text-gray-800 group-hover:text-[#1F5EFF] line-clamp-2 leading-tight min-h-[32px]">
                         {product.title}
                       </h3>
                     </div>
 
-                    {/* 价格与加入购物车 */}
                     <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between">
                       <div>
                         <div className="flex items-baseline gap-1">
@@ -301,103 +286,7 @@ export const LaptopHomePage1440: React.FC<LaptopHomePage1440Props> = ({ onSelect
             </div>
           </div>
 
-          {/* 右侧：员工福利账户与近况流 (宽度 250px) */}
-          <div className="w-[250px] flex-shrink-0 space-y-3">
-            {/* 员工信息卡 */}
-            <div className="bg-white border border-gray-200 rounded-lg p-3.5 shadow-2xs">
-              <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
-                <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#143A8F] to-[#1F5EFF] text-white flex items-center justify-center font-bold text-base shadow-2xs">
-                  {user.name[0]}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-extrabold text-xs text-gray-900 truncate">
-                    {user.name}
-                  </div>
-                  <div className="text-[11px] text-gray-500 truncate">
-                    {user.department}
-                  </div>
-                  <div className="text-[10px] text-[#1F5EFF] font-bold mt-0.5">
-                    工号：{user.id.toUpperCase()}
-                  </div>
-                </div>
-              </div>
-
-              {/* 账户余额卡片 */}
-              <div className="mt-3 space-y-2">
-                <div className="bg-blue-50/80 border border-blue-200/80 rounded-md p-2.5">
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <CreditCard className="w-3.5 h-3.5 text-[#1F5EFF]" />
-                      <span>福利卡可用余额</span>
-                    </span>
-                    <span className="text-[9px] bg-blue-600 text-white font-bold px-1 rounded">
-                      通用扣减
-                    </span>
-                  </div>
-                  <div className="text-lg font-black text-[#143A8F] mt-1">
-                    ¥{user.welfareBalance.toFixed(2)}
-                  </div>
-                </div>
-
-                <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-md p-2.5">
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <Gift className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>餐卡可用余额</span>
-                    </span>
-                    <span className="text-[9px] bg-emerald-600 text-white font-bold px-1 rounded">
-                      生鲜/园区
-                    </span>
-                  </div>
-                  <div className="text-lg font-black text-emerald-700 mt-1">
-                    ¥{user.mealBalance.toFixed(2)}
-                  </div>
-                </div>
-              </div>
-
-              {/* 快捷按钮 */}
-              <div className="grid grid-cols-2 gap-1.5 mt-3 pt-2.5 border-t border-gray-100 text-xs">
-                <button
-                  onClick={() => triggerPendingFeature('卡券包', '查询您的已领福利券与纸质卡券密码')}
-                  className="p-1.5 bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-[#1F5EFF] rounded font-bold transition-colors cursor-pointer text-center"
-                >
-                  我的卡券包 (3)
-                </button>
-                <button
-                  onClick={() => triggerPendingFeature('流水明细', '查看福利账户实时扣款与变动记录')}
-                  className="p-1.5 bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-[#1F5EFF] rounded font-bold transition-colors cursor-pointer text-center"
-                >
-                  账户流水
-                </button>
-              </div>
-            </div>
-
-            {/* 订单动态卡片 */}
-            <div className="bg-white border border-gray-200 rounded-lg p-3.5 shadow-2xs">
-              <div className="flex items-center justify-between mb-2 text-xs font-bold text-gray-800">
-                <span>最近订单追踪</span>
-                <button
-                  onClick={() => onSelectTab('orders')}
-                  className="text-[10px] text-[#1F5EFF] hover:underline cursor-pointer"
-                >
-                  订单中心 &gt;
-                </button>
-              </div>
-
-              <div className="bg-gray-50 rounded-md p-2 border border-gray-100 text-xs space-y-1">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-bold text-gray-700">NO.20260722881</span>
-                  <span className="text-emerald-600 font-bold text-[10px]">运输中</span>
-                </div>
-                <div className="text-[10px] text-gray-500 truncate">
-                  戴尔27寸4K专业显示器 x1 ...
-                </div>
-                <div className="text-[9px] text-gray-400">
-                  京东快递 · 预估明日14:00送达
-                </div>
-              </div>
-            </div>
-          </div>
+          <LaptopAccountPane1440 onSelectTab={onSelectTab} />
         </div>
       </div>
     </div>
