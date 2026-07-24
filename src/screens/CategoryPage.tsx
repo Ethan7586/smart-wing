@@ -6,28 +6,13 @@
 import React from 'react';
 import { MOCK_CATEGORIES } from '../mock/data';
 import { CategoryResults } from '../features/catalog/CategoryResults';
+import { TaxonomyFilter } from '../features/catalog/TaxonomyFilter';
 import { useCategoryCatalog } from '../features/catalog/useCategoryCatalog';
-import {
-  Search,
-  SlidersHorizontal,
-  Grid,
-  List,
-  ChevronRight,
-  CreditCard,
-  Utensils,
-  Truck,
-  Check,
-  X,
-  RotateCcw,
-  Sparkles,
-  ShoppingBag,
-  Store,
-  Ticket
-} from 'lucide-react';
+import { Search, SlidersHorizontal, Grid, List, ChevronRight, CreditCard, Utensils, Truck, Check, X, RotateCcw, Sparkles, ShoppingBag, Store, Ticket } from 'lucide-react';
 export const CategoryPage: React.FC = () => {
   const model = useCategoryCatalog();
   const {
-    navigateTo, routeParams, products, selectedCategory, setSelectedCategory, selectedItemType,
+    navigateTo, routeParams, products, selectedCategory, setSelectedCategory, selectedTaxonomyL3, setSelectedTaxonomyL3, selectedItemType,
     setSelectedItemType, selectedSupplier, setSelectedSupplier,
     selectedAccount, setSelectedAccount, keyword, setKeyword, minPrice,
     setMinPrice, maxPrice, setMaxPrice, inStockOnly, setInStockOnly,
@@ -47,6 +32,12 @@ export const CategoryPage: React.FC = () => {
     { id: 'nearby_store', label: '附近门店核销' },
     { id: 'life_service', label: '生活服务' }
   ].filter(option => products.some(product => product.itemType === option.id));
+  const leafTaxonomyOptions = Array.from(new Set(
+    products
+      .filter(product => selectedCategory === 'all' || product.categoryId === selectedCategory)
+      .map(product => product.taxonomy?.l3)
+      .filter((code): code is string => Boolean(code))
+  )).map(code => ({ code, label: code }));
   return (
     <div className="max-w-[1280px] mx-auto px-4 py-4 space-y-4 font-sans">
       <div className="flex items-center gap-1.5 text-xs text-gray-500">
@@ -72,6 +63,7 @@ export const CategoryPage: React.FC = () => {
             <button
               onClick={() => {
                 setSelectedCategory('all');
+                setSelectedTaxonomyL3('all');
                 setCurrentPageNum(1);
               }}
               className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${
@@ -87,6 +79,7 @@ export const CategoryPage: React.FC = () => {
                 key={cat.id}
                 onClick={() => {
                   setSelectedCategory(cat.id);
+                  setSelectedTaxonomyL3('all');
                   setCurrentPageNum(1);
                 }}
                 className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${
@@ -100,6 +93,11 @@ export const CategoryPage: React.FC = () => {
             ))}
           </div>
         </div>
+        <TaxonomyFilter
+          options={leafTaxonomyOptions}
+          selected={selectedTaxonomyL3}
+          onSelect={(code) => { setSelectedTaxonomyL3(code); setCurrentPageNum(1); }}
+        />
         <div className="flex items-start gap-4 pb-2.5 border-b border-gray-100">
           <span className="w-20 font-bold text-gray-700 flex-shrink-0 pt-1">商品类型：</span>
           <div className="flex-1 flex flex-wrap gap-1.5">

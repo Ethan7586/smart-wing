@@ -2,15 +2,15 @@ import { useMemo, useState } from 'react';
 import { useMall } from '../../context/MallContext';
 import type { Product, ProductItemType } from '../../types';
 
-const CATEGORY_SEARCH_ALIASES: Record<string, string> = {
-  cat_food: '食品 饮料 粮油 零食 茶叶 咖啡 牛奶',
-  cat_appliance: '家电 空气净化器 吸尘器 冰箱 洗衣机 厨房电器',
-  cat_digital: '数码 办公 电脑 手机 键盘 鼠标 显示器',
-  cat_home: '家居 日用 家具 床品 厨具 灯具 收纳',
-  cat_personal: '个护 清洁 洗护 牙膏 美妆 纸品',
-  cat_supermarket: '商超 文具 母婴 玩具 宠物 运动 户外',
-  cat_apparel: '服饰 鞋靴 箱包 配饰 珠宝 首饰',
-  cat_welfare_zone: '企业福利 员工福利 福利专区',
+const GENERIC_CATEGORY_TERMS: Record<string, string[]> = {
+  cat_food: ['食品', '饮料', '粮油'],
+  cat_appliance: ['家电', '电器'],
+  cat_digital: ['数码', '办公'],
+  cat_home: ['家居', '日用'],
+  cat_personal: ['个护', '洗护'],
+  cat_supermarket: ['商超'],
+  cat_apparel: ['服饰', '鞋包'],
+  cat_welfare_zone: ['企业福利', '员工福利', '福利专区'],
 };
 
 export function useCategoryCatalog() {
@@ -23,6 +23,7 @@ export function useCategoryCatalog() {
     (routeParams.itemType as ProductItemType) || 'all'
   );
   const [selectedSupplier, setSelectedSupplier] = useState('all');
+  const [selectedTaxonomyL3, setSelectedTaxonomyL3] = useState('all');
   const [selectedAccount, setSelectedAccount] = useState('all');
   const [keyword, setKeyword] = useState(routeParams.keyword || '');
   const [minPrice, setMinPrice] = useState('');
@@ -41,11 +42,15 @@ export function useCategoryCatalog() {
     const normalizedKeyword = (keyword || routeParams.keyword || '')
       .trim()
       .toLowerCase();
+    const categoryKeyword = Object.entries(GENERIC_CATEGORY_TERMS).find(([, terms]) =>
+      terms.includes(normalizedKeyword)
+    )?.[0];
     const result = products.filter((product) => {
       const searchable =
-        `${product.title} ${product.subtitle} ${product.brand} ${product.categoryName} ${CATEGORY_SEARCH_ALIASES[product.categoryId] ?? ''}`.toLowerCase();
-      if (normalizedKeyword && !searchable.includes(normalizedKeyword)) return false;
+        `${product.title} ${product.subtitle} ${product.brand} ${product.categoryName}`.toLowerCase();
+      if (normalizedKeyword && !searchable.includes(normalizedKeyword) && categoryKeyword !== product.categoryId) return false;
       if (selectedCategory !== 'all' && product.categoryId !== selectedCategory) return false;
+      if (selectedTaxonomyL3 !== 'all' && product.taxonomy?.l3 !== selectedTaxonomyL3) return false;
       if (selectedItemType !== 'all' && product.itemType !== selectedItemType) return false;
       if (selectedSupplier !== 'all' && product.supplierType !== selectedSupplier) return false;
       if (
@@ -71,7 +76,7 @@ export function useCategoryCatalog() {
       );
     });
   }, [
-    keyword, routeParams.keyword, selectedCategory, selectedItemType,
+    keyword, routeParams.keyword, selectedCategory, selectedTaxonomyL3, selectedItemType,
     selectedSupplier, selectedAccount, minPrice, maxPrice, inStockOnly,
     sortBy, products
   ]);
@@ -95,6 +100,7 @@ export function useCategoryCatalog() {
 
   const resetFilters = () => {
     setSelectedCategory('all');
+    setSelectedTaxonomyL3('all');
     setSelectedItemType('all');
     setSelectedSupplier('all');
     setSelectedAccount('all');
@@ -119,7 +125,7 @@ export function useCategoryCatalog() {
   };
 
   return {
-    ...mall, selectedCategory, setSelectedCategory, selectedItemType,
+    ...mall, selectedCategory, setSelectedCategory, selectedTaxonomyL3, setSelectedTaxonomyL3, selectedItemType,
     setSelectedItemType, selectedSupplier, setSelectedSupplier,
     selectedAccount, setSelectedAccount, keyword, setKeyword, minPrice,
     setMinPrice, maxPrice, setMaxPrice, inStockOnly, setInStockOnly,

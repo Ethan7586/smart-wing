@@ -52,6 +52,12 @@ export interface Product {
   categoryId: string;
   categoryName: string;
   subCategoryId?: string;
+  taxonomy?: {
+    l1: string | null;
+    l2: string | null;
+    l3: string | null;
+    status: string;
+  };
   brand: string;
   tags: string[];
   supplierId: string;

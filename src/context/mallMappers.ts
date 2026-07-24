@@ -35,6 +35,7 @@ export function mapApiProduct(product: ApiProduct): Product {
     priceWelfare: product.priceCents / 100,
     categoryId: category.id,
     categoryName: category.name,
+    taxonomy: product.taxonomy,
     brand: product.supplierName,
     tags: ['企业严选', '正品保障'],
     supplierId: `supplier-${product.supplierName}`,

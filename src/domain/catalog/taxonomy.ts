@@ -55,3 +55,16 @@ export const SMART_WING_TAXONOMY: TaxonomyNode[] = [
 export const CATEGORY_DISPLAY_NAMES = Object.fromEntries(
   SMART_WING_TAXONOMY.map(({ code, nameZh }) => [code, nameZh])
 );
+
+export const TAXONOMY_LEAF_NAMES: Record<string, string> = {
+  food_grain_rice: '大米杂粮', food_grain_oil: '食用油调味', food_snack_nuts: '坚果零食',
+  food_drink_coffee_tea: '咖啡茶饮', food_drink_dairy: '乳品饮料',
+  appliance_kitchen_cook: '烹饪电器', appliance_living_clean: '清洁电器', appliance_living_air: '空气与环境电器',
+  digital_computer_pc: '电脑整机', digital_computer_peripheral: '电脑外设', digital_mobile_accessory: '手机配件',
+  digital_audio_mobile: '手机数码', digital_audio_audio: '耳机音箱', digital_office_stationery: '办公文具',
+  home_furniture_bedding: '床品家纺', home_furniture_furniture: '家具灯具', home_kitchen_tableware: '餐厨水具', home_storage_organize: '收纳整理',
+  personal_beauty_skin: '护肤美妆', personal_wash_hair: '洗护用品', personal_wash_clean: '家庭清洁',
+  supermarket_office_paper: '纸品文具', supermarket_family_toys: '玩具母婴宠物', supermarket_outdoor_sports: '运动户外', supermarket_outdoor_auto: '汽车工具',
+  apparel_footwear_shoes: '鞋靴', apparel_bags_bag: '箱包', apparel_jewelry_fine: '珠宝首饰',
+  welfare_gift_festival: '节日礼盒', welfare_care_employee: '员工关怀', welfare_review_unclassified: '待审核商品',
+};
