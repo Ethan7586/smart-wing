@@ -2,8 +2,9 @@ import React from 'react';
 import { LockKeyhole } from 'lucide-react';
 import { useMall } from '../../context/MallContext';
 
-export function isMvpPreviewHost() {
-  return typeof window !== 'undefined' && /(^|\.)zhijian\.homes$/i.test(window.location.hostname);
+export function isMvpPreviewHost(initialHost = '') {
+  const host = initialHost || (typeof window !== 'undefined' ? window.location.hostname : '');
+  return /(^|\.)zhijian\.homes(?::\d+)?$/i.test(host);
 }
 
 export function MvpPreviewShell({ children }: { children: React.ReactNode }) {

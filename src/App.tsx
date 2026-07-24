@@ -35,9 +35,9 @@ import { BalancePage } from './screens/BalancePage';
 import { MvpConsolePage } from './screens/MvpConsolePage';
 import { ArchitecturePage } from './screens/ArchitecturePage';
 
-const AppContent: React.FC = () => {
+const AppContent: React.FC<{ initialHost?: string }> = ({ initialHost = '' }) => {
   const { currentPage, appMode } = useMall();
-  const isMvpPreview = isMvpPreviewHost();
+  const isMvpPreview = isMvpPreviewHost(initialHost);
 
   const renderPage = () => {
     switch (currentPage) {
@@ -120,10 +120,10 @@ const AppContent: React.FC = () => {
   );
 };
 
-export function App() {
+export function App({ initialHost = '' }: { initialHost?: string }) {
   return (
     <MallProvider>
-      <AppContent />
+      <AppContent initialHost={initialHost} />
     </MallProvider>
   );
 }
