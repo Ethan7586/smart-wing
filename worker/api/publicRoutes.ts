@@ -13,8 +13,16 @@ interface CatalogRow {
   id: string;
   sku_id: string;
   name: string;
+  name_en: string | null;
+  name_zh: string | null;
   subtitle: string | null;
+  subtitle_en: string | null;
+  subtitle_zh: string | null;
   category_code: string;
+  taxonomy_l1: string | null;
+  taxonomy_l2: string | null;
+  taxonomy_l3: string | null;
+  classification_status: string;
   cover_url: string | null;
   price_cents: number;
   market_price_cents: number | null;
@@ -141,8 +149,18 @@ export async function handleProducts(
       id: row.id,
       skuId: row.sku_id,
       name: row.name,
+      nameEn: row.name_en,
+      nameZh: row.name_zh,
       subtitle: row.subtitle,
+      subtitleEn: row.subtitle_en,
+      subtitleZh: row.subtitle_zh,
       categoryCode: row.category_code,
+      taxonomy: {
+        l1: row.taxonomy_l1,
+        l2: row.taxonomy_l2,
+        l3: row.taxonomy_l3,
+        status: row.classification_status,
+      },
       coverUrl: row.cover_url,
       priceCents: Number(row.price_cents),
       marketPriceCents:

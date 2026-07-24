@@ -7,8 +7,13 @@ export interface ApiProduct {
   id: string;
   skuId: string;
   name: string;
+  nameEn?: string | null;
+  nameZh?: string | null;
   subtitle: string | null;
+  subtitleEn?: string | null;
+  subtitleZh?: string | null;
   categoryCode: string;
+  taxonomy?: { l1: string | null; l2: string | null; l3: string | null; status: string };
   coverUrl: string | null;
   priceCents: number;
   marketPriceCents: number | null;
