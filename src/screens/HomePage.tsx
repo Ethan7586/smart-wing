@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import { useMall } from '../context/MallContext';
 import { CategoryMegaMenu } from '../components/common/CategoryMegaMenu';
 import { ProductCard } from '../components/common/ProductCard';
-import { MOCK_PRODUCTS, MOCK_ORDERS } from '../mock/data';
+import { MOCK_PRODUCTS } from '../mock/data';
 import {
   CreditCard,
   Utensils,
@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
-  const { user, currentMall, navigateTo } = useMall();
+  const { user, currentMall, navigateTo, orders } = useMall();
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
 
   const banners = [
@@ -62,7 +62,8 @@ export const HomePage: React.FC = () => {
   ];
 
   // Pending orders for user quick card
-  const pendingCount = MOCK_ORDERS.filter(o => o.status === 'pending_shipment' || o.status === 'pending_receipt').length;
+  const pendingCount = orders.filter(o => o.status === 'pending_shipment' || o.status === 'pending_receipt').length;
+  const afterSaleCount = orders.filter(o => o.status === 'after_sale').length;
 
   // Filter products for various sections
   const enterpriseExclusives = MOCK_PRODUCTS.filter(p => p.isEnterpriseExclusive).slice(0, 5);
@@ -79,7 +80,7 @@ export const HomePage: React.FC = () => {
       {/* 首屏：分类菜单 + 活动轮播图 + 用户福利账户卡片 */}
       <div className="max-w-[1280px] mx-auto px-4 pt-4 grid grid-cols-12 gap-4">
         {/* 左侧：多级分类菜单 (Col 3) */}
-        <div className="col-span-12 lg:col-span-3">
+        <div className="hidden lg:block lg:col-span-3">
           <CategoryMegaMenu isAlwaysOpen={true} />
         </div>
 
@@ -243,7 +244,7 @@ export const HomePage: React.FC = () => {
                 onClick={() => navigateTo('orders', { statusFilter: 'after_sale' })}
                 className="p-1.5 hover:bg-gray-50 rounded transition-colors cursor-pointer"
               >
-                <div className="font-bold text-gray-800">1</div>
+                <div className="font-bold text-gray-800">{afterSaleCount}</div>
                 <div className="text-[11px] text-gray-500 mt-0.5">售后记录</div>
               </button>
             </div>

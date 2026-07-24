@@ -12,6 +12,7 @@ import { HeaderBar } from './components/common/HeaderBar';
 import { QuickViewModal } from './components/common/QuickViewModal';
 import { ToastContainer } from './components/common/ToastContainer';
 import { Footer } from './components/common/Footer';
+import { MobileBottomNav } from './components/common/MobileBottomNav';
 
 // Pages
 import { HomePage } from './screens/HomePage';
@@ -62,7 +63,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA] text-gray-800 flex flex-col justify-between font-sans antialiased selection:bg-[#1F5EFF] selection:text-white">
+    <div className="min-h-screen bg-[#F5F7FA] text-gray-800 flex flex-col justify-between pb-16 md:pb-0 font-sans antialiased selection:bg-[#1F5EFF] selection:text-white">
       {/* 顶部企业导航栏 */}
       <HeaderBar />
 
@@ -76,6 +77,7 @@ const AppContent: React.FC = () => {
 
       {/* 全局通知 Toast */}
       <ToastContainer />
+      <MobileBottomNav />
 
       {/* 底部 Footer (带雍彻科技服务方标识) */}
       <Footer />

@@ -22,12 +22,10 @@ import {
 } from 'lucide-react';
 
 export const OrdersPage: React.FC = () => {
-  const { navigateTo, showToast } = useMall();
+  const { navigateTo, showToast, refreshUserData, orders, routeParams } = useMall();
 
-  const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>('all');
+  const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>(routeParams.statusFilter || 'all');
   const [searchKw, setSearchKw] = useState('');
-
-  const orders = mallService.getOrders();
 
   const statusTextMap: Record<string, string> = {
     pending_payment: '待付款',
@@ -63,8 +61,8 @@ export const OrdersPage: React.FC = () => {
 
   const handleConfirmReceipt = (orderId: string) => {
     mallService.updateOrderStatus(orderId, 'completed');
+    refreshUserData();
     showToast('已确认收货，感谢使用企业福利商城！', 'success');
-    window.location.reload();
   };
 
   return (

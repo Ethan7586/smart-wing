@@ -10,17 +10,18 @@
     "dev": "vinext dev",
     "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && vinext build",
     "start": "vinext start",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "lucide-react": "^0.546.0",
+    "motion": "^12.23.24",
     "next": "16.2.11",
     "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "motion": "^12.23.24"
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "1.37.1",
+    "@cloudflare/vite-plugin": "^1.47.0",
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",
@@ -31,8 +32,9 @@
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
     "vinext": "0.0.50",
-    "vite": "8.0.13",
-    "wrangler": "4.92.0"
+    "vite": "^8.1.5",
+    "vitest": "^4.1.10",
+    "wrangler": "^4.114.0"
   },
   "overrides": {
     "postcss": "8.5.22",

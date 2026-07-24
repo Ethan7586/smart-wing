@@ -6,7 +6,6 @@
 
 import React from 'react';
 import { useMall } from '../context/MallContext';
-import { MOCK_ORDERS } from '../mock/data';
 import {
   CreditCard,
   Utensils,
@@ -24,12 +23,12 @@ import {
 } from 'lucide-react';
 
 export const UserCenterPage: React.FC = () => {
-  const { user, currentMall, navigateTo } = useMall();
+  const { user, currentMall, navigateTo, orders } = useMall();
 
-  const pendingShipment = MOCK_ORDERS.filter(o => o.status === 'pending_shipment').length;
-  const pendingReceipt = MOCK_ORDERS.filter(o => o.status === 'pending_receipt').length;
-  const completed = MOCK_ORDERS.filter(o => o.status === 'completed').length;
-  const afterSale = MOCK_ORDERS.filter(o => o.status === 'after_sale').length;
+  const pendingShipment = orders.filter(o => o.status === 'pending_shipment').length;
+  const pendingReceipt = orders.filter(o => o.status === 'pending_receipt').length;
+  const completed = orders.filter(o => o.status === 'completed').length;
+  const afterSale = orders.filter(o => o.status === 'after_sale').length;
 
   return (
     <div className="max-w-[1280px] mx-auto px-4 py-4 space-y-6 font-sans">

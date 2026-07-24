@@ -4,10 +4,11 @@
  * 技术服务方：雍彻科技
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useMall } from '../context/MallContext';
 import { mallService } from '../services/mallService';
 import { DeliveryAddress } from '../types';
+import { calculatePaymentAllocation } from '../utils/finance';
 import {
   MapPin,
   Plus,
@@ -61,17 +62,28 @@ export const CheckoutPage: React.FC = () => {
     Math.min(totalGoodsAmount, user.welfareBalance)
   );
 
-  const remAfterWelfare = Math.max(0, totalGoodsAmount - (useWelfare ? welfareInput : 0));
+  const effectiveWelfareInput = useWelfare
+    ? Math.min(totalGoodsAmount, user.welfareBalance, Math.max(0, welfareInput))
+    : 0;
+  const remAfterWelfare = Math.max(0, totalGoodsAmount - effectiveWelfareInput);
 
   const [useMeal, setUseMeal] = useState(true);
   const [mealInput, setMealInput] = useState<number>(() =>
     Math.min(remAfterWelfare, user.mealBalance)
   );
 
-  const finalWechatTopUp = Math.max(
-    0,
-    totalGoodsAmount - (useWelfare ? welfareInput : 0) - (useMeal ? mealInput : 0)
+  useEffect(() => {
+    setMealInput(previous => Math.min(previous, remAfterWelfare, user.mealBalance));
+  }, [remAfterWelfare, user.mealBalance]);
+
+  const paymentAllocation = calculatePaymentAllocation(
+    totalGoodsAmount,
+    effectiveWelfareInput,
+    useMeal ? mealInput : 0,
+    user.welfareBalance,
+    user.mealBalance
   );
+  const finalWechatTopUp = paymentAllocation.external;
 
   // Invoice state
   const [invoiceType, setInvoiceType] = useState<'none' | 'personal' | 'company'>('company');
@@ -113,8 +125,8 @@ export const CheckoutPage: React.FC = () => {
       const result = mallService.submitCheckoutOrder({
         items: selectedItems,
         address: selectedAddr,
-        useWelfareAmount: useWelfare ? welfareInput : 0,
-        useMealAmount: useMeal ? mealInput : 0,
+        useWelfareAmount: paymentAllocation.welfare,
+        useMealAmount: paymentAllocation.meal,
         payMethod: finalWechatTopUp > 0 ? 'welfare_plus_wechat' : 'welfare_only',
         invoiceType,
         invoiceTitle,
@@ -123,7 +135,7 @@ export const CheckoutPage: React.FC = () => {
       });
 
       refreshUserData();
-      showToast('订单已成功提交并在后端生成多供应商拆单子订单！', 'success');
+      showToast('演示订单已生成，并按供应商拆分为多个子订单', 'success');
 
       navigateTo('payment-result', { parentOrderNo: result.parentOrderNo });
     } catch (e: any) {
@@ -273,7 +285,7 @@ export const CheckoutPage: React.FC = () => {
                 <input
                   type="number"
                   value={welfareInput}
-                  onChange={e => setWelfareInput(Math.min(totalGoodsAmount, Math.max(0, parseFloat(e.target.value) || 0)))}
+                  onChange={e => setWelfareInput(Math.min(totalGoodsAmount, user.welfareBalance, Math.max(0, parseFloat(e.target.value) || 0)))}
                   className="w-32 bg-white border border-blue-300 rounded px-2 py-1 text-xs font-bold text-[#1F5EFF]"
                 />
                 <button

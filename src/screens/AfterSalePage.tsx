@@ -18,21 +18,43 @@ import {
 } from 'lucide-react';
 
 export const AfterSalePage: React.FC = () => {
-  const { routeParams, navigateTo, showToast } = useMall();
+  const { routeParams, navigateTo, showToast, refreshUserData } = useMall();
 
   const orderId = routeParams.orderId || 'ord_001';
   const order = mallService.getOrderById(orderId) || mallService.getOrders()[0];
 
-  const [afterSaleType, setAfterSaleType] = useState<'refund_only' | 'return_refund' | 'exchange'>('return_refund');
+  const [afterSaleType, setAfterSaleType] = useState<'refund_only' | 'return_goods' | 'exchange'>('return_goods');
   const [reason, setReason] = useState('商品质量问题');
   const [description, setDescription] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmitAfterSale = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!order) {
+      showToast('未找到可申请售后的订单', 'error');
+      return;
+    }
+    mallService.applyAfterSale({
+      orderId: order.id,
+      type: afterSaleType,
+      reason,
+      description
+    });
+    refreshUserData();
     setSubmitted(true);
-    showToast('售后申请已成功提交，福利客服将在24小时内审核并原路退回福利卡余额！', 'success');
+    showToast('演示售后申请已提交，当前状态为待审核', 'success');
   };
+
+  if (!order) {
+    return (
+      <div className="max-w-[1024px] mx-auto px-4 py-12 text-center space-y-3">
+        <h2 className="text-base font-bold text-gray-800">当前商城暂无可申请售后的订单</h2>
+        <button onClick={() => navigateTo('orders')} className="bg-[#1F5EFF] text-white px-4 py-2 rounded text-xs font-bold">
+          返回订单列表
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[1024px] mx-auto px-4 py-4 space-y-4 font-sans text-xs">
@@ -91,7 +113,7 @@ export const AfterSalePage: React.FC = () => {
               <label className="block font-bold text-gray-800 mb-2">选择售后类型：</label>
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { id: 'return_refund', title: '退货退款', desc: '收到货需退回商品并归还福利扣减金额' },
+                  { id: 'return_goods', title: '退货退款', desc: '收到货需退回商品并归还福利扣减金额' },
                   { id: 'refund_only', title: '仅退款 (无需退货)', desc: '未收到货或协商一致直接退款' },
                   { id: 'exchange', title: '换货', desc: '商品质量问题申请更换同规格新品' }
                 ].map(type => (

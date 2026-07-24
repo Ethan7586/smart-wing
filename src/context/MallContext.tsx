@@ -61,6 +61,7 @@ interface MallContextType {
   malls: EnterpriseMall[];
   switchMall: (mallId: string) => void;
   refreshUserData: () => void;
+  orders: Order[];
   
   // Cart State
   cart: CartItem[];
@@ -99,6 +100,7 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentMall, setCurrentMall] = useState<EnterpriseMall>(() => mallService.getCurrentMall());
   const [malls] = useState<EnterpriseMall[]>(() => mallService.getMalls());
   const [cart, setCart] = useState<CartItem[]>(() => mallService.getCart());
+  const [orders, setOrders] = useState<Order[]>(() => mallService.getOrders());
   const [favorites, setFavorites] = useState<string[]>(() => mallService.getFavorites());
   const [addresses, setAddresses] = useState<DeliveryAddress[]>(() => mallService.getAddresses());
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -159,12 +161,20 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(mallService.getUserProfile());
     setCurrentMall(mallService.getCurrentMall());
     setCart(mallService.getCart());
+    setOrders(mallService.getOrders());
   };
 
   const switchMall = (mallId: string) => {
     const newMall = mallService.switchMall(mallId);
     setCurrentMall(newMall);
     setUser(mallService.getUserProfile());
+    setCart(mallService.getCart());
+    setOrders(mallService.getOrders());
+    setFavorites(mallService.getFavorites());
+    setAddresses(mallService.getAddresses());
+    setCurrentPage('home');
+    setRouteParams({});
+    window.location.hash = '#/home';
     showToast(`已切换至【${newMall.mallName}】`, 'info');
   };
 
@@ -220,6 +230,7 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         malls,
         switchMall,
         refreshUserData,
+        orders,
         cart,
         cartCount,
         addToCart: handleAddToCart,

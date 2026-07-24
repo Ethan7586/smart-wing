@@ -29,6 +29,7 @@ import {
   MOCK_AFTER_SALES,
   MOCK_ADDRESSES
 } from '../mock/data';
+import { calculatePaymentAllocation } from '../utils/finance';
 
 const STORAGE_KEYS = {
   USER: 'zhy_mall_user_profile',
@@ -54,9 +55,36 @@ class MallService {
   private currentMallId: string;
 
   constructor() {
-    // Load or initialize state
+    // 当前商城 ID 是全局选择；其余业务数据按商城命名空间隔离。
     this.currentMallId = this.loadFromStorage(STORAGE_KEYS.MALL_ID, MOCK_USER.currentMallId);
-    this.user = this.loadFromStorage(STORAGE_KEYS.USER, MOCK_USER);
+    this.user = this.createDefaultUser();
+    this.cart = [];
+    this.orders = [];
+    this.logs = [];
+    this.coupons = [];
+    this.afterSales = [];
+    this.addresses = [];
+    this.favorites = [];
+    this.loadMallState();
+  }
+
+  private getScopedKey(key: string, mallId = this.currentMallId): string {
+    return `${key}:${mallId}`;
+  }
+
+  private createDefaultUser(): UserProfile {
+    const mall = MOCK_ENTERPRISE_MALLS.find(item => item.id === this.currentMallId) || MOCK_ENTERPRISE_MALLS[0];
+    return {
+      ...MOCK_USER,
+      currentMallId: mall.id,
+      enterpriseId: mall.enterpriseId,
+      enterpriseName: mall.enterpriseName,
+      distributorId: mall.distributorId || MOCK_USER.distributorId
+    };
+  }
+
+  private createDefaultCart(): CartItem[] {
+    if (this.currentMallId !== MOCK_USER.currentMallId) return [];
     const defaultCart: CartItem[] = [
       {
         id: 'cart_01',
@@ -77,13 +105,42 @@ class MallService {
         distributorId: MOCK_USER.distributorId
       }
     ];
-    this.cart = this.loadFromStorage(STORAGE_KEYS.CART, defaultCart);
-    this.orders = this.loadFromStorage(STORAGE_KEYS.ORDERS, MOCK_ORDERS);
-    this.logs = this.loadFromStorage(STORAGE_KEYS.LOGS, MOCK_ACCOUNT_LOGS);
-    this.coupons = this.loadFromStorage(STORAGE_KEYS.COUPONS, MOCK_USER_COUPONS);
-    this.afterSales = this.loadFromStorage(STORAGE_KEYS.AFTER_SALES, MOCK_AFTER_SALES);
-    this.addresses = this.loadFromStorage(STORAGE_KEYS.ADDRESSES, MOCK_ADDRESSES);
-    this.favorites = this.loadFromStorage(STORAGE_KEYS.FAVORITES, ['p_101', 'p_201', 'p_701']);
+    return defaultCart;
+  }
+
+  private loadMallState(): void {
+    const defaultUser = this.createDefaultUser();
+    this.user = this.loadFromStorage(this.getScopedKey(STORAGE_KEYS.USER), defaultUser);
+    this.user = {
+      ...this.user,
+      currentMallId: defaultUser.currentMallId,
+      enterpriseId: defaultUser.enterpriseId,
+      enterpriseName: defaultUser.enterpriseName,
+      distributorId: defaultUser.distributorId
+    };
+    this.cart = this.loadFromStorage(this.getScopedKey(STORAGE_KEYS.CART), this.createDefaultCart());
+    this.orders = this.loadFromStorage(
+      this.getScopedKey(STORAGE_KEYS.ORDERS),
+      MOCK_ORDERS.filter(order => order.mallId === this.currentMallId)
+    );
+    this.logs = this.loadFromStorage(
+      this.getScopedKey(STORAGE_KEYS.LOGS),
+      this.currentMallId === MOCK_USER.currentMallId ? MOCK_ACCOUNT_LOGS : []
+    );
+    this.coupons = this.loadFromStorage(
+      this.getScopedKey(STORAGE_KEYS.COUPONS),
+      this.currentMallId === MOCK_USER.currentMallId ? MOCK_USER_COUPONS : []
+    );
+    this.afterSales = this.loadFromStorage(
+      this.getScopedKey(STORAGE_KEYS.AFTER_SALES),
+      this.currentMallId === MOCK_USER.currentMallId ? MOCK_AFTER_SALES : []
+    );
+    this.addresses = this.loadFromStorage(this.getScopedKey(STORAGE_KEYS.ADDRESSES), MOCK_ADDRESSES);
+    this.favorites = this.loadFromStorage(
+      this.getScopedKey(STORAGE_KEYS.FAVORITES),
+      this.currentMallId === MOCK_USER.currentMallId ? ['p_101', 'p_201', 'p_701'] : []
+    );
+    this.user.couponCount = this.coupons.filter(coupon => coupon.status === 'unused').length;
   }
 
   private loadFromStorage<T>(key: string, defaultValue: T): T {
@@ -114,12 +171,12 @@ class MallService {
   }
 
   public switchMall(mallId: string): EnterpriseMall {
+    const exists = MOCK_ENTERPRISE_MALLS.some(mall => mall.id === mallId);
+    if (!exists) throw new Error('商城不存在或无访问权限');
     this.currentMallId = mallId;
     this.saveToStorage(STORAGE_KEYS.MALL_ID, mallId);
+    this.loadMallState();
     const mall = this.getCurrentMall();
-    this.user.currentMallId = mall.id;
-    this.user.enterpriseId = mall.enterpriseId;
-    this.user.enterpriseName = mall.enterpriseName;
     this.saveUser();
     return mall;
   }
@@ -130,7 +187,7 @@ class MallService {
   }
 
   private saveUser(): void {
-    this.saveToStorage(STORAGE_KEYS.USER, this.user);
+    this.saveToStorage(this.getScopedKey(STORAGE_KEYS.USER), this.user);
   }
 
   // --- Product Search, Query & Filter ---
@@ -285,7 +342,7 @@ class MallService {
   }
 
   private saveCart(): void {
-    this.saveToStorage(STORAGE_KEYS.CART, this.cart);
+    this.saveToStorage(this.getScopedKey(STORAGE_KEYS.CART), this.cart);
   }
 
   // --- Favorites ---
@@ -299,7 +356,7 @@ class MallService {
     } else {
       this.favorites.push(productId);
     }
-    this.saveToStorage(STORAGE_KEYS.FAVORITES, this.favorites);
+    this.saveToStorage(this.getScopedKey(STORAGE_KEYS.FAVORITES), this.favorites);
     return this.favorites.includes(productId);
   }
 
@@ -317,7 +374,7 @@ class MallService {
       this.addresses.forEach(a => (a.isDefault = false));
     }
     this.addresses.unshift(newAddr);
-    this.saveToStorage(STORAGE_KEYS.ADDRESSES, this.addresses);
+    this.saveToStorage(this.getScopedKey(STORAGE_KEYS.ADDRESSES), this.addresses);
     return this.getAddresses();
   }
 
@@ -361,22 +418,23 @@ class MallService {
       totalGoodsAmount += item.product.priceWelfare * item.quantity;
     });
 
-    const welfareToDeduct = Math.min(
-      Math.max(0, params.useWelfareAmount),
+    const allocation = calculatePaymentAllocation(
+      totalGoodsAmount,
+      params.useWelfareAmount,
+      params.useMealAmount,
       this.user.welfareBalance,
-      totalGoodsAmount
+      this.user.mealBalance
     );
-    const remainingAfterWelfare = Math.max(0, totalGoodsAmount - welfareToDeduct);
-    const mealToDeduct = Math.min(
-      Math.max(0, params.useMealAmount),
-      this.user.mealBalance,
-      remainingAfterWelfare
-    );
+    const welfareToDeduct = allocation.welfare;
+    const mealToDeduct = allocation.meal;
 
     const subOrders: Order[] = [];
     let currentOrderSeq = 1;
+    let welfareAllocationRemaining = welfareToDeduct;
+    let mealAllocationRemaining = mealToDeduct;
+    const supplierGroups = Array.from(grouped.entries());
 
-    grouped.forEach((supplierItems, supplierId) => {
+    supplierGroups.forEach(([supplierId, supplierItems], groupIndex) => {
       const firstItem = supplierItems[0].product;
       const subOrderNo = `ORD${Date.now()}${String(currentOrderSeq).padStart(2, '0')}`;
       currentOrderSeq++;
@@ -387,9 +445,28 @@ class MallService {
       });
 
       // Pro-rate welfare and meal deduction for sub-orders
+      const isLastGroup = groupIndex === supplierGroups.length - 1;
       const ratio = totalGoodsAmount > 0 ? subTotal / totalGoodsAmount : 1;
-      const subWelfare = Math.min(subTotal, Math.round(welfareToDeduct * ratio * 100) / 100);
-      const subMeal = Math.min(subTotal - subWelfare, Math.round(mealToDeduct * ratio * 100) / 100);
+      const subWelfare = Math.min(
+        subTotal,
+        isLastGroup
+          ? welfareAllocationRemaining
+          : Math.round(welfareToDeduct * ratio * 100) / 100
+      );
+      welfareAllocationRemaining = Math.max(
+        0,
+        Math.round((welfareAllocationRemaining - subWelfare) * 100) / 100
+      );
+      const subMeal = Math.min(
+        subTotal - subWelfare,
+        isLastGroup
+          ? mealAllocationRemaining
+          : Math.round(mealToDeduct * ratio * 100) / 100
+      );
+      mealAllocationRemaining = Math.max(
+        0,
+        Math.round((mealAllocationRemaining - subMeal) * 100) / 100
+      );
       const subWechat = Math.max(0, subTotal - subWelfare - subMeal);
 
       const hasVirtualOrTicket = supplierItems.some(
@@ -512,9 +589,9 @@ class MallService {
 
     // Save updated states
     this.saveUser();
-    this.saveToStorage(STORAGE_KEYS.ORDERS, this.orders);
-    this.saveToStorage(STORAGE_KEYS.LOGS, this.logs);
-    this.saveToStorage(STORAGE_KEYS.COUPONS, this.coupons);
+    this.saveToStorage(this.getScopedKey(STORAGE_KEYS.ORDERS), this.orders);
+    this.saveToStorage(this.getScopedKey(STORAGE_KEYS.LOGS), this.logs);
+    this.saveToStorage(this.getScopedKey(STORAGE_KEYS.COUPONS), this.coupons);
 
     // Clear checked cart items
     this.clearSelectedCartItems();
@@ -531,7 +608,7 @@ class MallService {
     const order = this.orders.find(o => o.id === orderId || o.orderNo === orderId);
     if (order) {
       order.status = status;
-      this.saveToStorage(STORAGE_KEYS.ORDERS, this.orders);
+      this.saveToStorage(this.getScopedKey(STORAGE_KEYS.ORDERS), this.orders);
     }
     return this.getOrders();
   }
@@ -569,8 +646,8 @@ class MallService {
     order.status = 'after_sale';
     this.afterSales.unshift(newRecord);
 
-    this.saveToStorage(STORAGE_KEYS.ORDERS, this.orders);
-    this.saveToStorage(STORAGE_KEYS.AFTER_SALES, this.afterSales);
+    this.saveToStorage(this.getScopedKey(STORAGE_KEYS.ORDERS), this.orders);
+    this.saveToStorage(this.getScopedKey(STORAGE_KEYS.AFTER_SALES), this.afterSales);
 
     return newRecord;
   }
@@ -593,7 +670,7 @@ class MallService {
       cpn.status = 'used';
       this.user.couponCount = this.coupons.filter(c => c.status === 'unused').length;
       this.saveUser();
-      this.saveToStorage(STORAGE_KEYS.COUPONS, this.coupons);
+      this.saveToStorage(this.getScopedKey(STORAGE_KEYS.COUPONS), this.coupons);
     }
     return cpn;
   }

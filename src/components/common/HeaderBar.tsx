@@ -77,7 +77,7 @@ export const HeaderBar: React.FC = () => {
   return (
     <header className="w-full bg-white border-b border-gray-200 select-none sticky top-0 z-40 shadow-xs">
       {/* 1. 顶部公共服务栏 */}
-      <div className="bg-[#143A8F] text-white text-xs py-1.5 px-4">
+      <div className="hidden md:block bg-[#143A8F] text-white text-xs py-1.5 px-4">
         <div className="max-w-[1280px] mx-auto flex items-center justify-between">
           {/* 左侧：当前所属企业与商城切换 */}
           <div className="flex items-center gap-4">
@@ -180,7 +180,7 @@ export const HeaderBar: React.FC = () => {
       </div>
 
       {/* 2. 主 Logo、搜索框与福利余额区 */}
-      <div className="max-w-[1280px] mx-auto py-3.5 px-4 flex items-center justify-between gap-6">
+      <div className="max-w-[1280px] mx-auto py-3 px-3 md:py-3.5 md:px-4 flex items-center justify-between gap-3 md:gap-6">
         {/* Original Branding Logo */}
         <div
           onClick={() => navigateTo('home')}
@@ -189,7 +189,7 @@ export const HeaderBar: React.FC = () => {
           <div className="w-10 h-10 rounded-md bg-gradient-to-br from-[#1F5EFF] to-[#143A8F] flex items-center justify-center text-white shadow-md shadow-blue-500/10 group-hover:scale-105 transition-transform">
             <Sparkles className="w-6 h-6 text-yellow-300" />
           </div>
-          <div>
+          <div className="hidden sm:block">
             <div className="flex items-center gap-1.5">
               <span className="text-xl font-black tracking-tight text-gray-900 font-sans">
                 智慧翼
@@ -267,7 +267,7 @@ export const HeaderBar: React.FC = () => {
           )}
 
           {/* Hot search keyword tags */}
-          <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500 overflow-x-auto whitespace-nowrap">
+          <div className="hidden md:flex items-center gap-2 mt-1.5 text-xs text-gray-500 overflow-x-auto whitespace-nowrap">
             <span className="text-gray-400 text-[11px] font-medium flex items-center gap-0.5">
               <Flame className="w-3 h-3 text-orange-500" />
               热搜：
@@ -289,7 +289,7 @@ export const HeaderBar: React.FC = () => {
           {/* 福利卡余额 Pill */}
           <div
             onClick={() => navigateTo('balance', { accountTab: 'welfare' })}
-            className="bg-[#EAF1FF] hover:bg-blue-100 border border-blue-200 rounded-md p-2 flex items-center gap-2.5 cursor-pointer transition-colors"
+            className="hidden lg:flex bg-[#EAF1FF] hover:bg-blue-100 border border-blue-200 rounded-md p-2 items-center gap-2.5 cursor-pointer transition-colors"
           >
             <div className="w-8 h-8 rounded bg-[#1F5EFF] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
               <CreditCard className="w-4 h-4" />
@@ -305,7 +305,7 @@ export const HeaderBar: React.FC = () => {
           {/* 餐卡余额 Pill */}
           <div
             onClick={() => navigateTo('balance', { accountTab: 'meal' })}
-            className="bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-md p-2 flex items-center gap-2.5 cursor-pointer transition-colors"
+            className="hidden lg:flex bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-md p-2 items-center gap-2.5 cursor-pointer transition-colors"
           >
             <div className="w-8 h-8 rounded bg-[#FF7A00] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
               <Utensils className="w-4 h-4" />
@@ -324,7 +324,7 @@ export const HeaderBar: React.FC = () => {
             className="relative bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-md flex items-center gap-2 font-medium text-xs shadow-xs transition-colors cursor-pointer"
           >
             <ShoppingCart className="w-4 h-4 text-blue-300" />
-            <span>购物车</span>
+            <span className="hidden sm:inline">购物车</span>
             {cartCount > 0 && (
               <span className="bg-[#FF7A00] text-white font-bold text-[10px] px-1.5 py-0.2 rounded-full">
                 {cartCount}
@@ -335,7 +335,7 @@ export const HeaderBar: React.FC = () => {
       </div>
 
       {/* 3. 分类与快速频道导航 */}
-      <div className="bg-[#1F5EFF] text-white shadow-xs">
+      <div className="hidden md:block bg-[#1F5EFF] text-white shadow-xs">
         <div className="max-w-[1280px] mx-auto px-4 flex items-center justify-between text-xs font-semibold">
           {/* 左侧：全部商品分类标题栏 */}
           <div
