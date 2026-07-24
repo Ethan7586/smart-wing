@@ -14,7 +14,7 @@ import { ToastContainer } from './components/common/ToastContainer';
 import { Footer } from './components/common/Footer';
 import { MobileBottomNav } from './components/common/MobileBottomNav';
 import { MvpSessionBar } from './components/common/MvpSessionBar';
-import { TestPreviewGate } from './components/common/TestPreviewGate';
+import { isMvpPreviewHost, MvpPreviewShell } from './features/mvp/MvpPreviewShell';
 import { MobileFrame } from './components/mobile/MobileFrame';
 import { TabletFrame } from './components/mobile/TabletFrame';
 import { LaptopFrame } from './components/laptop/LaptopFrame';
@@ -37,6 +37,7 @@ import { ArchitecturePage } from './screens/ArchitecturePage';
 
 const AppContent: React.FC = () => {
   const { currentPage, appMode } = useMall();
+  const isMvpPreview = isMvpPreviewHost();
 
   const renderPage = () => {
     switch (currentPage) {
@@ -73,6 +74,16 @@ const AppContent: React.FC = () => {
     }
   };
 
+  if (isMvpPreview) {
+    return (
+      <MvpPreviewShell>
+        <MvpSessionBar />
+        <main className="w-full"><HomePage /></main>
+        <ToastContainer />
+      </MvpPreviewShell>
+    );
+  }
+
   if (appMode === 'mini-program' || appMode === 'android-app') {
     return <MobileFrame />;
   }
@@ -86,7 +97,7 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <TestPreviewGate><div className="min-h-screen bg-[#F5F7FA] text-gray-800 flex flex-col justify-between pb-16 md:pb-0 font-sans antialiased selection:bg-[#1F5EFF] selection:text-white">
+    <div className="min-h-screen bg-[#F5F7FA] text-gray-800 flex flex-col justify-between pb-16 md:pb-0 font-sans antialiased selection:bg-[#1F5EFF] selection:text-white">
       {/* 顶部企业导航栏 */}
       <HeaderBar />
       <MvpSessionBar />
@@ -105,7 +116,7 @@ const AppContent: React.FC = () => {
 
       {/* 底部 Footer (带雍彻科技服务方标识) */}
       <Footer />
-    </div></TestPreviewGate>
+    </div>
   );
 };
 

@@ -35,7 +35,7 @@ export const MvpSessionBar: React.FC = () => {
   return (
     <>
       <div
-        data-test-preview-allowed="true"
+        data-mvp-preview-allowed="true"
         className={`border-b text-xs py-2 px-4 ${
           sessionStatus === "authenticated"
             ? "bg-emerald-50 border-emerald-200 text-emerald-800"
@@ -70,7 +70,7 @@ export const MvpSessionBar: React.FC = () => {
       {showLogin && (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
           <form
-            data-test-preview-allowed="true"
+            data-mvp-preview-allowed="true"
             onSubmit={submit}
             className="w-full max-w-sm bg-white rounded-lg shadow-2xl border border-gray-200 p-6 space-y-4"
           >
