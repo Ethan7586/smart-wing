@@ -7,6 +7,7 @@ import type { Actor, WorkerEnv } from "./types";
 import {
   parseCreateAfterSaleInput,
   parseCreateOrderInput,
+  parseExecuteRefundInput,
   parseInternalPaymentInput,
 } from "./validation";
 
@@ -170,4 +171,50 @@ export async function handleInternalPayment(
     }
   );
   return json(response, { status: 201 });
+}
+
+export async function handleExecuteRefund(
+  request: Request,
+  env: WorkerEnv,
+  actor: Actor,
+  afterSaleId: string,
+  requestId: string
+): Promise<Response> {
+  if (request.method !== "POST") return methodNotAllowed(["POST"], requestId);
+  if (!can(actor, "finance:refund")) {
+    return apiError(403, "FORBIDDEN", "没有执行退款的权限", requestId);
+  }
+  const idempotencyKey = request.headers.get("idempotency-key");
+  if (!idempotencyKey || idempotencyKey.length > 120) {
+    return apiError(400, "IDEMPOTENCY_KEY_REQUIRED", "退款必须提供 Idempotency-Key", requestId);
+  }
+  const body = await readJsonBody(request);
+  if (!body.ok) return invalidBody(body.tooLarge, requestId);
+  const input = parseExecuteRefundInput(body.value);
+  if (!input) return apiError(422, "INVALID_REFUND_INPUT", "退款金额无效", requestId);
+  const response = await callRpc<Record<string, unknown>>(env, "api_execute_internal_refund", {
+    ...actorScope(actor),
+    p_operator_user_id: actor.userId,
+    p_after_sale_id: afterSaleId,
+    p_refund_cents: input.refundCents,
+    p_idempotency_key: idempotencyKey,
+    p_request_hash: await sha256(JSON.stringify({ afterSaleId, ...input })),
+    p_request_id: requestId,
+    p_user_agent: (request.headers.get("user-agent") ?? "").slice(0, 300),
+  });
+  return json(response, { status: 201 });
+}
+
+export async function handleFinanceReconciliation(
+  request: Request,
+  env: WorkerEnv,
+  actor: Actor,
+  requestId: string
+): Promise<Response> {
+  if (request.method !== "GET") return methodNotAllowed(["GET"], requestId);
+  if (!can(actor, "finance:reconcile")) {
+    return apiError(403, "FORBIDDEN", "没有查看财务对账的权限", requestId);
+  }
+  const report = await callRpc<Record<string, unknown>>(env, "api_finance_reconciliation", actorScope(actor));
+  return json({ report, requestId });
 }

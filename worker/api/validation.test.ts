@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   parseCreateAfterSaleInput,
   parseCreateOrderInput,
+  parseExecuteRefundInput,
   parseInternalPaymentInput,
 } from "./validation";
 
@@ -104,5 +105,13 @@ describe("parseInternalPaymentInput", () => {
     expect(
       parseInternalPaymentInput({ welfareCents: 10.5, mealCents: 0 })
     ).toBeNull();
+  });
+});
+
+describe("parseExecuteRefundInput", () => {
+  it("only accepts positive whole-cent refunds", () => {
+    expect(parseExecuteRefundInput({ refundCents: 500 })).toEqual({ refundCents: 500 });
+    expect(parseExecuteRefundInput({ refundCents: 0 })).toBeNull();
+    expect(parseExecuteRefundInput({ refundCents: 1.5 })).toBeNull();
   });
 });

@@ -9,6 +9,8 @@ import {
   handleAfterSales,
   handleCreateAfterSale,
   handleCreateOrder,
+  handleExecuteRefund,
+  handleFinanceReconciliation,
   handleInternalPayment,
   handleOrders,
 } from "./orderRoutes";
@@ -74,6 +76,13 @@ export async function routeApi(
         ? handleCreateOrder(request, env, actor, requestId)
         : handleOrders(request, env, actor, requestId);
     }
+    if (url.pathname === `${API_PREFIX}/finance/reconciliation`) {
+      return handleFinanceReconciliation(request, env, actor, requestId);
+    }
+    const refundMatch = url.pathname.match(/^\/api\/v1\/after-sales\/([^/]+)\/refund$/);
+    if (refundMatch) {
+      return handleExecuteRefund(request, env, actor, decodeURIComponent(refundMatch[1]), requestId);
+    }
     const paymentMatch = url.pathname.match(
       /^\/api\/v1\/orders\/([^/]+)\/payments\/internal$/
     );
@@ -109,6 +118,10 @@ export async function routeApi(
       ["ORDER_NOT_AFTER_SALE_ELIGIBLE", 409, "ORDER_NOT_AFTER_SALE_ELIGIBLE", "订单当前状态不可申请售后"],
       ["AFTER_SALE_AMOUNT_EXCEEDED", 422, "AFTER_SALE_AMOUNT_EXCEEDED", "售后申请金额超过订单实付金额"],
       ["AFTER_SALE_ALREADY_EXISTS", 409, "AFTER_SALE_ALREADY_EXISTS", "该订单已有处理中售后申请"],
+      ["AFTER_SALE_NOT_REFUNDABLE", 409, "AFTER_SALE_NOT_REFUNDABLE", "该售后当前不可退款"],
+      ["REFUND_AMOUNT_EXCEEDED", 422, "REFUND_AMOUNT_EXCEEDED", "退款金额超过可退金额"],
+      ["REFUND_CHANNEL_UNSUPPORTED", 422, "REFUND_CHANNEL_UNSUPPORTED", "订单含未接入退款通道，不能自动退款"],
+      ["IDEMPOTENCY_KEY_INVALID", 422, "IDEMPOTENCY_KEY_INVALID", "退款幂等键无效"],
     ] as const) {
       if (message.includes(needle)) return apiError(status, code, text, requestId);
     }

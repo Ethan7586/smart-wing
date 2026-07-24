@@ -27,6 +27,10 @@ export interface CreateAfterSaleInput {
   requestedAmountCents: number;
 }
 
+export interface ExecuteRefundInput {
+  refundCents: number;
+}
+
 export function parseCreateOrderInput(value: unknown): CreateOrderInput | null {
   if (!isRecord(value) || !Array.isArray(value.items) || !isRecord(value.recipient)) {
     return null;
@@ -129,6 +133,14 @@ export function parseCreateAfterSaleInput(
     type: type as CreateAfterSaleInput["type"],
     requestedAmountCents: requestedAmountCents as number,
   };
+}
+
+export function parseExecuteRefundInput(value: unknown): ExecuteRefundInput | null {
+  if (!isRecord(value) || !Number.isSafeInteger(value.refundCents)) {
+    return null;
+  }
+  const refundCents = value.refundCents as number;
+  return refundCents > 0 ? { refundCents } : null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
