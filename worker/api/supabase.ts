@@ -34,6 +34,7 @@ export async function callRpc<T>(
     throw new Error(`SUPABASE_RPC_FAILED:${functionName}:${response.status}:${detail}`);
   }
 
+  if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }
 

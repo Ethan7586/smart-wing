@@ -236,7 +236,7 @@ async function handleLogin(
   if (!actor) {
     return apiError(503, "DEMO_ACTOR_NOT_READY", "演示员工尚未初始化", requestId);
   }
-  await callRpc<null>(env, "api_clear_login_failures", { p_ip_hash: ipHash });
+  await callRpc<boolean>(env, "api_clear_login_failures", { p_ip_hash: ipHash });
   const cookie = await createSessionCookie(env, employeeNo, mallCode);
   return json(
     { authenticated: true, actor, requestId },
