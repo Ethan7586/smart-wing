@@ -7,6 +7,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useMall } from '../context/MallContext';
 import { mallService } from '../services/mallService';
+import { productionApi, ProductionApiError } from '../services/productionApi';
 import { DeliveryAddress } from '../types';
 import { calculatePaymentAllocation } from '../utils/finance';
 import {
@@ -30,8 +31,12 @@ export const CheckoutPage: React.FC = () => {
     addAddress,
     navigateTo,
     refreshUserData,
-    showToast
+    showToast,
+    sessionStatus,
+    refreshProductionData,
+    removeCartItem
   } = useMall();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selectedItems = useMemo(() => cart.filter(i => i.selected), [cart]);
 
@@ -114,32 +119,58 @@ export const CheckoutPage: React.FC = () => {
     setShowAddAddrModal(false);
   };
 
-  const handleSubmitOrder = () => {
+  const handleSubmitOrder = async () => {
     const selectedAddr = addresses.find(a => a.id === selectedAddrId);
     if (!selectedAddr) {
       showToast('请选择有效的收货地址', 'warning');
       return;
     }
 
+    if (sessionStatus !== 'authenticated') {
+      showToast('请先点击页面顶部“登录MVP”，再提交测试订单', 'warning');
+      return;
+    }
+    if (finalWechatTopUp > 0) {
+      showToast('尚未接入真实微信支付，请将福利卡与餐卡调整为全额抵扣', 'warning');
+      return;
+    }
+    if (selectedItems.some(item => !item.product.skuId)) {
+      showToast('购物车存在旧版演示商品，请清空后从最新商品目录重新加入', 'warning');
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      const result = mallService.submitCheckoutOrder({
-        items: selectedItems,
-        address: selectedAddr,
-        useWelfareAmount: paymentAllocation.welfare,
-        useMealAmount: paymentAllocation.meal,
-        payMethod: finalWechatTopUp > 0 ? 'welfare_plus_wechat' : 'welfare_only',
-        invoiceType,
-        invoiceTitle,
-        invoiceTaxNo,
-        userRemark
-      });
-
-      refreshUserData();
-      showToast('演示订单已生成，并按供应商拆分为多个子订单', 'success');
-
-      navigateTo('payment-result', { parentOrderNo: result.parentOrderNo });
-    } catch (e: any) {
-      showToast(`提交订单失败: ${e.message}`, 'error');
+      const idempotencyRoot = crypto.randomUUID();
+      const created = await productionApi.createOrder({
+        items: selectedItems.map(item => ({
+          skuId: item.product.skuId!,
+          quantity: item.quantity
+        })),
+        recipient: {
+          name: selectedAddr.name,
+          mobile: selectedAddr.phone,
+          province: selectedAddr.province,
+          city: selectedAddr.city,
+          district: selectedAddr.district,
+          address: selectedAddr.detail
+        }
+      }, `order-${idempotencyRoot}`);
+      await productionApi.payWithInternalAccounts(created.order.id, {
+        welfareCents: Math.round(paymentAllocation.welfare * 100),
+        mealCents: Math.round(paymentAllocation.meal * 100)
+      }, `payment-${idempotencyRoot}`);
+      selectedItems.forEach(item => removeCartItem(item.id));
+      await refreshProductionData();
+      showToast('订单已写入生产型数据库并完成福利账户支付', 'success');
+      navigateTo('orders');
+    } catch (error) {
+      const message = error instanceof ProductionApiError
+        ? error.message
+        : '服务暂时不可用';
+      showToast(`提交订单失败：${message}`, 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -433,10 +464,11 @@ export const CheckoutPage: React.FC = () => {
           </div>
 
           <button
-            onClick={handleSubmitOrder}
-            className="bg-[#1F5EFF] hover:bg-blue-700 text-white font-black px-8 py-3 rounded text-sm shadow-md transition-colors cursor-pointer flex items-center gap-2"
+            onClick={() => void handleSubmitOrder()}
+            disabled={isSubmitting}
+            className="bg-[#1F5EFF] disabled:bg-blue-300 hover:bg-blue-700 text-white font-black px-8 py-3 rounded text-sm shadow-md transition-colors cursor-pointer flex items-center gap-2"
           >
-            <span>立即提交订单</span>
+            <span>{isSubmitting ? '正在安全提交…' : '立即提交订单'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

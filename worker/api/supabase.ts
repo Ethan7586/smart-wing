@@ -30,9 +30,32 @@ export async function callRpc<T>(
   );
 
   if (!response.ok) {
-    const detail = (await response.text()).slice(0, MAX_ERROR_BODY);
+    const detail = await readLimitedText(response, MAX_ERROR_BODY);
     throw new Error(`SUPABASE_RPC_FAILED:${functionName}:${response.status}:${detail}`);
   }
 
   return (await response.json()) as T;
+}
+
+async function readLimitedText(response: Response, maximumBytes: number): Promise<string> {
+  if (!response.body) return "";
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let received = 0;
+  let output = "";
+  try {
+    while (received < maximumBytes) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const remaining = maximumBytes - received;
+      const chunk = value.subarray(0, remaining);
+      output += decoder.decode(chunk, { stream: true });
+      received += chunk.byteLength;
+      if (value.byteLength > remaining) break;
+    }
+    output += decoder.decode();
+    return output;
+  } finally {
+    await reader.cancel().catch(() => undefined);
+  }
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  parseCreateAfterSaleInput,
   parseCreateOrderInput,
   parseInternalPaymentInput,
 } from "./validation";
@@ -44,6 +45,43 @@ describe("parseCreateOrderInput", () => {
       parseCreateOrderInput({
         ...validInput,
         recipient: { ...validInput.recipient, mobile: "123" },
+      })
+    ).toBeNull();
+  });
+});
+
+describe("parseCreateAfterSaleInput", () => {
+  it("accepts a scoped after-sale request", () => {
+    expect(
+      parseCreateAfterSaleInput({
+        orderId: "order-1",
+        type: "return_refund",
+        reason: "商品外包装破损",
+        requestedAmountCents: 8900,
+      })
+    ).toEqual({
+      orderId: "order-1",
+      type: "return_refund",
+      reason: "商品外包装破损",
+      requestedAmountCents: 8900,
+    });
+  });
+
+  it("rejects unsupported types and invalid amounts", () => {
+    expect(
+      parseCreateAfterSaleInput({
+        orderId: "order-1",
+        type: "cash_refund",
+        reason: "商品外包装破损",
+        requestedAmountCents: 8900,
+      })
+    ).toBeNull();
+    expect(
+      parseCreateAfterSaleInput({
+        orderId: "order-1",
+        type: "refund_only",
+        reason: "破损",
+        requestedAmountCents: 0,
       })
     ).toBeNull();
   });

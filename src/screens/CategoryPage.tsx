@@ -7,7 +7,6 @@
 import React, { useState, useMemo } from 'react';
 import { useMall } from '../context/MallContext';
 import { ProductCard } from '../components/common/ProductCard';
-import { mallService } from '../services/mallService';
 import { MOCK_CATEGORIES } from '../mock/data';
 import { ProductItemType, Product } from '../types';
 import {
@@ -29,7 +28,7 @@ import {
 } from 'lucide-react';
 
 export const CategoryPage: React.FC = () => {
-  const { routeParams, navigateTo, addToCart } = useMall();
+  const { routeParams, navigateTo, addToCart, products } = useMall();
 
   // Local state for filters
   const [selectedCategory, setSelectedCategory] = useState<string>(routeParams.categoryId || 'all');
@@ -55,19 +54,35 @@ export const CategoryPage: React.FC = () => {
   const [currentPageNum, setCurrentPageNum] = useState<number>(1);
   const pageSize = 15;
 
-  // Filter products via mallService
   const filteredProducts = useMemo(() => {
-    return mallService.getProducts({
-      keyword: keyword || routeParams.keyword,
-      categoryId: selectedCategory,
-      itemType: selectedItemType,
-      supplierType: selectedSupplier,
-      accountType: selectedAccount,
-      minPrice: minPrice ? parseFloat(minPrice) : undefined,
-      maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
-      inStockOnly,
-      sortBy
+    const normalizedKeyword = (keyword || routeParams.keyword || '').trim().toLowerCase();
+    let result = products.filter((product) => {
+      if (
+        normalizedKeyword &&
+        !`${product.title} ${product.subtitle} ${product.brand} ${product.categoryName}`
+          .toLowerCase()
+          .includes(normalizedKeyword)
+      ) return false;
+      if (selectedCategory !== 'all' && product.categoryId !== selectedCategory) return false;
+      if (selectedItemType !== 'all' && product.itemType !== selectedItemType) return false;
+      if (selectedSupplier !== 'all' && product.supplierType !== selectedSupplier) return false;
+      if (
+        selectedAccount !== 'all' &&
+        !product.allowedAccounts.includes(selectedAccount as 'welfare' | 'meal' | 'wechat' | 'cash')
+      ) return false;
+      if (minPrice && product.priceWelfare < Number(minPrice)) return false;
+      if (maxPrice && product.priceWelfare > Number(maxPrice)) return false;
+      if (inStockOnly && product.stock <= 0) return false;
+      return true;
     });
+    result = [...result].sort((left, right) => {
+      if (sortBy === 'sales') return right.salesCount - left.salesCount;
+      if (sortBy === 'priceAsc') return left.priceWelfare - right.priceWelfare;
+      if (sortBy === 'priceDesc') return right.priceWelfare - left.priceWelfare;
+      if (sortBy === 'newest') return Number(Boolean(right.isNewArrival)) - Number(Boolean(left.isNewArrival));
+      return Number(Boolean(right.isEnterpriseExclusive)) - Number(Boolean(left.isEnterpriseExclusive));
+    });
+    return result;
   }, [
     keyword,
     routeParams.keyword,
@@ -78,7 +93,8 @@ export const CategoryPage: React.FC = () => {
     minPrice,
     maxPrice,
     inStockOnly,
-    sortBy
+    sortBy,
+    products
   ]);
 
   // Available brands derived from result set

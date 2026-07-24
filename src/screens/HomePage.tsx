@@ -8,7 +8,6 @@ import React, { useState } from 'react';
 import { useMall } from '../context/MallContext';
 import { CategoryMegaMenu } from '../components/common/CategoryMegaMenu';
 import { ProductCard } from '../components/common/ProductCard';
-import { MOCK_PRODUCTS } from '../mock/data';
 import {
   CreditCard,
   Utensils,
@@ -31,7 +30,7 @@ import {
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
-  const { user, currentMall, navigateTo, orders } = useMall();
+  const { user, currentMall, navigateTo, orders, products } = useMall();
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
 
   const banners = [
@@ -66,14 +65,14 @@ export const HomePage: React.FC = () => {
   const afterSaleCount = orders.filter(o => o.status === 'after_sale').length;
 
   // Filter products for various sections
-  const enterpriseExclusives = MOCK_PRODUCTS.filter(p => p.isEnterpriseExclusive).slice(0, 5);
-  const dailySpecials = MOCK_PRODUCTS.filter(p => p.isDailySpecial || p.priceMarket - p.priceWelfare > 50).slice(0, 5);
-  const hotRedeems = MOCK_PRODUCTS.filter(p => p.isHotRedeem).slice(0, 5);
-  const movieTickets = MOCK_PRODUCTS.filter(p => p.itemType === 'movie_ticket').slice(0, 4);
-  const virtualCoupons = MOCK_PRODUCTS.filter(p => p.itemType === 'virtual_coupon').slice(0, 4);
-  const nearbyStores = MOCK_PRODUCTS.filter(p => p.itemType === 'nearby_store' || p.itemType === 'life_service').slice(0, 4);
-  const foodGrains = MOCK_PRODUCTS.filter(p => p.categoryId === 'cat_food').slice(0, 5);
-  const appliances = MOCK_PRODUCTS.filter(p => p.categoryId === 'cat_appliance' || p.categoryId === 'cat_digital').slice(0, 5);
+  const enterpriseExclusives = products.filter(p => p.isEnterpriseExclusive).slice(0, 5);
+  const dailySpecials = products.filter(p => p.isDailySpecial || p.priceMarket - p.priceWelfare > 50).slice(0, 5);
+  const hotRedeems = products.filter(p => p.isHotRedeem || p.stock > 0).slice(0, 5);
+  const movieTickets = products.filter(p => p.itemType === 'movie_ticket').slice(0, 4);
+  const virtualCoupons = products.filter(p => p.itemType === 'virtual_coupon').slice(0, 4);
+  const nearbyStores = products.filter(p => p.itemType === 'nearby_store' || p.itemType === 'life_service').slice(0, 4);
+  const foodGrains = products.filter(p => p.categoryId === 'cat_food').slice(0, 5);
+  const appliances = products.filter(p => p.categoryId === 'cat_appliance' || p.categoryId === 'cat_digital').slice(0, 5);
 
   return (
     <div className="space-y-8 pb-8 font-sans">

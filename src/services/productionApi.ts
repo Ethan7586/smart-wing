@@ -1,8 +1,7 @@
 /**
  * 生产数据访问层。
  *
- * 现有页面暂时仍使用 mallService 的演示数据；完成企业身份认证后，
- * 页面只需改为调用此模块，不再直接接触 localStorage。
+ * 所有生产业务数据均通过同源服务端 API 访问，浏览器不接触数据库密钥。
  */
 export interface ApiProduct {
   id: string;
@@ -25,8 +24,72 @@ export interface ApiOrder {
   discountCents: number;
   payableCents: number;
   paidCents: number;
+  welfarePaidCents?: number;
+  mealPaidCents?: number;
   createdAt: string;
   updatedAt: string;
+  items?: Array<{
+    productId: string;
+    productTitle: string;
+    productImage: string | null;
+    priceCents: number;
+    quantity: number;
+    specs: Record<string, string>;
+    itemType: string;
+  }>;
+}
+
+export interface ApiAccount {
+  id: string;
+  type: "welfare" | "meal";
+  balanceCents: number;
+  status: string;
+  updatedAt: string;
+}
+
+export interface ApiAccountLedger {
+  id: string;
+  accountType: "welfare" | "meal";
+  direction: "credit" | "debit";
+  amountCents: number;
+  balanceAfterCents: number;
+  businessType: string;
+  businessId: string;
+  orderNo: string | null;
+  createdAt: string;
+}
+
+export interface ApiAfterSale {
+  id: string;
+  afterSaleNo: string;
+  orderId: string;
+  orderNo: string;
+  type: "refund_only" | "return_refund" | "exchange";
+  status: string;
+  reason: string;
+  requestedAmountCents: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiActor {
+  userId: string;
+  employeeNo: string;
+  roles: string[];
+  permissions: string[];
+}
+
+export interface ApiBootstrap {
+  actor: ApiActor;
+  scope: {
+    tenantId: string;
+    enterpriseId: string;
+    mallId: string;
+    mallCode: string;
+    mallName: string;
+    brandName: string;
+    enterpriseName: string;
+  };
 }
 
 export interface CreateOrderRequest {
@@ -90,6 +153,61 @@ async function apiFetch<T>(
 }
 
 export const productionApi = {
+  async getHealth(): Promise<{
+    status: string;
+    checks: {
+      database: string;
+      authentication: string;
+      piiEncryption: string;
+    };
+    database: { provider: string; region: string };
+  }> {
+    return apiFetch("/api/health");
+  },
+
+  async getSession(): Promise<{ authenticated: true; actor: ApiActor }> {
+    return apiFetch("/api/v1/auth/session");
+  },
+
+  async login(accessCode: string): Promise<{ authenticated: true; actor: ApiActor }> {
+    return apiFetch("/api/v1/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ accessCode }),
+    });
+  },
+
+  async logout(): Promise<{ authenticated: false }> {
+    return apiFetch("/api/v1/auth/logout", { method: "POST" });
+  },
+
+  async getBootstrap(): Promise<ApiBootstrap> {
+    return apiFetch("/api/v1/bootstrap");
+  },
+
+  async listAccounts(): Promise<{ items: ApiAccount[] }> {
+    return apiFetch("/api/v1/accounts");
+  },
+
+  async listAccountLedgers(): Promise<{ items: ApiAccountLedger[] }> {
+    return apiFetch("/api/v1/account-ledgers");
+  },
+
+  async listAfterSales(): Promise<{ items: ApiAfterSale[] }> {
+    return apiFetch("/api/v1/after-sales");
+  },
+
+  async createAfterSale(input: {
+    orderId: string;
+    type: ApiAfterSale["type"];
+    reason: string;
+    requestedAmountCents: number;
+  }): Promise<{ afterSale: ApiAfterSale }> {
+    return apiFetch("/api/v1/after-sales", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
   async listProducts(
     mallSlug: string,
     options: { category?: string; cursor?: number; limit?: number } = {}

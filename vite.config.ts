@@ -10,6 +10,7 @@ const { d1, r2 } = hostingConfig;
 
 const localBindingConfig = {
   main: "./worker/index.ts",
+  compatibility_date: "2026-07-24",
   compatibility_flags: ["nodejs_compat"],
   d1_databases: d1
     ? [

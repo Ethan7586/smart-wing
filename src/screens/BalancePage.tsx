@@ -6,7 +6,6 @@
 
 import React, { useState } from 'react';
 import { useMall } from '../context/MallContext';
-import { mallService } from '../services/mallService';
 import {
   CreditCard,
   Utensils,
@@ -21,17 +20,35 @@ import {
 } from 'lucide-react';
 
 export const BalancePage: React.FC = () => {
-  const { user, routeParams, navigateTo, showToast } = useMall();
+  const { user, routeParams, showToast, accountLogs } = useMall();
 
   const [activeAccountTab, setActiveAccountTab] = useState<'welfare' | 'meal'>(
     (routeParams.accountTab as any) || 'welfare'
   );
 
-  const logs = mallService.getAccountLogs();
-  const filteredLogs = logs.filter(l => l.accountType === activeAccountTab);
+  const filteredLogs = accountLogs.filter(l => l.accountType === activeAccountTab);
 
   const downloadStatement = () => {
-    showToast('已生成《企业福利账户年度对账单.pdf》下载任务，已同步至企业财务备查！', 'success');
+    const rows = filteredLogs.map((log) => [
+      log.time,
+      log.title,
+      log.orderNo ?? '',
+      log.amount.toFixed(2),
+      log.balanceAfter.toFixed(2),
+    ]);
+    const csv = [
+      ['交易时间', '业务描述', '关联单号', '变动金额', '变动后余额'],
+      ...rows,
+    ]
+      .map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(','))
+      .join('\r\n');
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `智慧翼-${activeAccountTab === 'welfare' ? '福利卡' : '餐卡'}账户流水.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    showToast('真实账户流水已导出为 CSV 对账文件', 'success');
   };
 
   return (
@@ -112,7 +129,7 @@ export const BalancePage: React.FC = () => {
             className="border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold px-3 py-1.5 rounded flex items-center gap-1 cursor-pointer"
           >
             <Download className="w-3.5 h-3.5 text-blue-600" />
-            导出合规对账单 (PDF/CSV)
+            导出账户流水 (CSV)
           </button>
         </div>
 

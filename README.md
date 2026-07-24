@@ -1,20 +1,24 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# 智慧翼企业福利商城
 
-# Run and deploy your AI Studio app
+雍彻科技（YONGCHE TECH）建设的企业福利商城生产型 MVP。
 
-This contains everything you need to run your app locally.
+当前版本具备受控登录、企业/商城/员工数据隔离、生产商品目录、福利卡与餐卡、主子订单、内部账户组合支付、账户流水、售后工单、审计日志和验收控制台。数据库部署在 Supabase 东京区域，浏览器不接触数据库管理密钥。
 
-View your app in AI Studio: https://ai.studio/apps/69aea686-28c3-4d7d-a601-2f1ea6b10d65
+## 本地运行
 
-## Run Locally
+```bash
+npm install
+npm run dev
+```
 
-**Prerequisites:**  Node.js
+服务端环境变量参考 `.env.example`。生产密钥只配置在托管平台，不提交到 Git。
 
+## 质量检查
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+```bash
+npm run lint
+npm test
+npm run build
+```
+
+完整边界、接口与验收说明见 `docs/生产型MVP开发说明.md`。

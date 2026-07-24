@@ -42,6 +42,7 @@ export interface NearbyStoreInfo {
 
 export interface Product {
   id: string;
+  skuId?: string;
   title: string;
   subtitle: string;
   images: string[];

@@ -5,6 +5,8 @@ export interface WorkerEnv {
   APP_ENV?: string;
   AUTH_MODE?: string;
   PII_ENCRYPTION_KEY?: string;
+  SESSION_SIGNING_KEY?: string;
+  DEMO_LOGIN_CODE?: string;
 }
 
 export interface Actor {

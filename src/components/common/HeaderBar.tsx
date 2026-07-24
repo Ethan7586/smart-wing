@@ -6,7 +6,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useMall, PageRoute } from '../../context/MallContext';
-import { MOCK_PRODUCTS } from '../../mock/data';
 import {
   Search,
   ShoppingCart,
@@ -35,7 +34,9 @@ export const HeaderBar: React.FC = () => {
     switchMall,
     cartCount,
     navigateTo,
-    currentPage
+    currentPage,
+    products,
+    sessionStatus
   } = useMall();
 
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -45,7 +46,7 @@ export const HeaderBar: React.FC = () => {
 
   // Search suggestion matches
   const suggestions = searchKeyword.trim()
-    ? MOCK_PRODUCTS.filter(
+    ? products.filter(
         p =>
           p.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
           p.categoryName.includes(searchKeyword) ||
@@ -168,6 +169,15 @@ export const HeaderBar: React.FC = () => {
             >
               个人中心
             </button>
+
+            {sessionStatus === 'authenticated' && (
+              <button
+                onClick={() => navigateTo('mvp-console')}
+                className="hover:text-white transition-colors cursor-pointer flex items-center gap-1 font-bold"
+              >
+                MVP验收台
+              </button>
+            )}
 
             <div className="h-3 w-[1px] bg-blue-400/40" />
 

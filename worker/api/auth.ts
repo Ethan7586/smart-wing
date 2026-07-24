@@ -1,5 +1,6 @@
 import type { Actor, WorkerEnv } from "./types";
 import { callRpc } from "./supabase";
+import { readSession } from "./session";
 
 /**
  * 生产环境默认拒绝匿名写入。
@@ -12,6 +13,14 @@ export async function resolveActor(
   request: Request,
   env: WorkerEnv
 ): Promise<Actor | null> {
+  const session = await readSession(request, env);
+  if (session) {
+    return callRpc<Actor | null>(env, "api_resolve_actor", {
+      p_employee_no: session.employeeNo,
+      p_mall_code: session.mallCode,
+    });
+  }
+
   if (env.APP_ENV !== "development" || env.AUTH_MODE !== "development") {
     return null;
   }

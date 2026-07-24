@@ -13,10 +13,19 @@ import {
   Order,
   UserCoupon,
   DeliveryAddress,
+  AccountLog,
   OrderStatus,
   ProductItemType
 } from '../types';
 import { mallService } from '../services/mallService';
+import {
+  productionApi,
+  ProductionApiError,
+  type ApiOrder,
+  type ApiProduct,
+} from '../services/productionApi';
+
+export type SessionStatus = 'checking' | 'guest' | 'authenticated';
 
 export type PageRoute =
   | 'home'
@@ -30,7 +39,8 @@ export type PageRoute =
   | 'order-detail'
   | 'after-sale'
   | 'coupons'
-  | 'balance';
+  | 'balance'
+  | 'mvp-console';
 
 export interface RouteParams {
   productId?: string;
@@ -62,6 +72,13 @@ interface MallContextType {
   switchMall: (mallId: string) => void;
   refreshUserData: () => void;
   orders: Order[];
+  products: Product[];
+  accountLogs: AccountLog[];
+  sessionStatus: SessionStatus;
+  sessionError: string | null;
+  login: (accessCode: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  refreshProductionData: () => Promise<void>;
   
   // Cart State
   cart: CartItem[];
@@ -101,10 +118,91 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [malls] = useState<EnterpriseMall[]>(() => mallService.getMalls());
   const [cart, setCart] = useState<CartItem[]>(() => mallService.getCart());
   const [orders, setOrders] = useState<Order[]>(() => mallService.getOrders());
+  const [products, setProducts] = useState<Product[]>(() => mallService.getProducts());
+  const [accountLogs, setAccountLogs] = useState<AccountLog[]>(() => mallService.getAccountLogs());
+  const [sessionStatus, setSessionStatus] = useState<SessionStatus>('checking');
+  const [sessionError, setSessionError] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<string[]>(() => mallService.getFavorites());
   const [addresses, setAddresses] = useState<DeliveryAddress[]>(() => mallService.getAddresses());
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+
+  const syncPublicCatalog = async () => {
+    try {
+      const response = await productionApi.listProducts('smart-wing-demo', { limit: 100 });
+      if (response.items.length > 0) {
+        setProducts(response.items.map(mapApiProduct));
+      }
+    } catch {
+      // 商品服务不可用时保留只读演示目录，页面仍可用于需求评审。
+    }
+  };
+
+  const refreshProductionData = async () => {
+    const [bootstrap, accounts, orderResult, ledgerResult] = await Promise.all([
+      productionApi.getBootstrap(),
+      productionApi.listAccounts(),
+      productionApi.listOrders(),
+      productionApi.listAccountLedgers(),
+    ]);
+    const welfare = accounts.items.find((account) => account.type === 'welfare');
+    const meal = accounts.items.find((account) => account.type === 'meal');
+    setUser((previous) => ({
+      ...previous,
+      id: bootstrap.actor.userId,
+      employeeId: bootstrap.actor.employeeNo,
+      enterpriseId: bootstrap.scope.enterpriseId,
+      enterpriseName: bootstrap.scope.enterpriseName,
+      currentMallId: bootstrap.scope.mallId,
+      welfareBalance: (welfare?.balanceCents ?? 0) / 100,
+      mealBalance: (meal?.balanceCents ?? 0) / 100,
+    }));
+    setCurrentMall((previous) => ({
+      ...previous,
+      id: bootstrap.scope.mallId,
+      enterpriseId: bootstrap.scope.enterpriseId,
+      enterpriseName: bootstrap.scope.enterpriseName,
+      mallName: bootstrap.scope.mallName,
+      logoText: bootstrap.scope.brandName,
+    }));
+    setOrders(orderResult.items.map((order) => mapApiOrder(order, bootstrap.scope)));
+    setAccountLogs(
+      ledgerResult.items.map((ledger) => ({
+        id: ledger.id,
+        accountType: ledger.accountType,
+        title:
+          ledger.businessType === 'order_payment'
+            ? '商城订单账户支付'
+            : ledger.businessType === 'refund'
+              ? '售后退款原路退回'
+              : '企业福利额度发放',
+        amount:
+          (ledger.direction === 'credit' ? 1 : -1) * ledger.amountCents / 100,
+        direction: ledger.direction === 'credit' ? 'in' : 'out',
+        orderNo: ledger.orderNo ?? undefined,
+        time: new Date(ledger.createdAt).toLocaleString('zh-CN', { hour12: false }),
+        balanceAfter: ledger.balanceAfterCents / 100,
+      }))
+    );
+  };
+
+  useEffect(() => {
+    let active = true;
+    void syncPublicCatalog();
+    void productionApi
+      .getSession()
+      .then(async () => {
+        if (!active) return;
+        setSessionStatus('authenticated');
+        await refreshProductionData();
+      })
+      .catch(() => {
+        if (active) setSessionStatus('guest');
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Sync hash routing for desktop forward/back support
   useEffect(() => {
@@ -158,13 +256,54 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const refreshUserData = () => {
+    if (sessionStatus === 'authenticated') {
+      void refreshProductionData().catch(() => {
+        showToast('账户数据同步失败，请稍后重试', 'error');
+      });
+      return;
+    }
     setUser(mallService.getUserProfile());
     setCurrentMall(mallService.getCurrentMall());
     setCart(mallService.getCart());
     setOrders(mallService.getOrders());
   };
 
+  const login = async (accessCode: string): Promise<boolean> => {
+    setSessionError(null);
+    try {
+      await productionApi.login(accessCode);
+      setSessionStatus('authenticated');
+      await refreshProductionData();
+      showToast('安全登录成功，已同步福利账户与订单', 'success');
+      return true;
+    } catch (error) {
+      const message =
+        error instanceof ProductionApiError
+          ? error.message
+          : '登录服务暂时不可用';
+      setSessionError(message);
+      return false;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await productionApi.logout();
+    } finally {
+      setSessionStatus('guest');
+      setSessionError(null);
+      setUser(mallService.getUserProfile());
+      setOrders(mallService.getOrders());
+      setAccountLogs(mallService.getAccountLogs());
+      showToast('已安全退出MVP会话', 'info');
+    }
+  };
+
   const switchMall = (mallId: string) => {
+    if (sessionStatus === 'authenticated' && mallId !== currentMall.id) {
+      showToast('当前账号未获得其他商城的数据权限', 'warning');
+      return;
+    }
     const newMall = mallService.switchMall(mallId);
     setCurrentMall(newMall);
     setUser(mallService.getUserProfile());
@@ -212,6 +351,16 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const handleAddAddress = (address: Omit<DeliveryAddress, 'id'>) => {
+    if (sessionStatus === 'authenticated') {
+      setAddresses((previous) => [
+        ...previous.map((item) =>
+          address.isDefault ? { ...item, isDefault: false } : item
+        ),
+        { ...address, id: `session-address-${crypto.randomUUID()}` },
+      ]);
+      showToast('地址仅保存在当前安全会话，提交订单时将加密入库', 'success');
+      return;
+    }
     const list = mallService.addAddress(address);
     setAddresses(list);
     showToast('新增收货地址成功', 'success');
@@ -231,6 +380,13 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         switchMall,
         refreshUserData,
         orders,
+        products,
+        accountLogs,
+        sessionStatus,
+        sessionError,
+        login,
+        logout,
+        refreshProductionData,
         cart,
         cartCount,
         addToCart: handleAddToCart,
@@ -253,6 +409,103 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </MallContext.Provider>
   );
 };
+
+function mapApiProduct(product: ApiProduct): Product {
+  const categoryMap: Record<string, { id: string; name: string }> = {
+    food: { id: 'cat_food', name: '食品饮料' },
+    appliance: { id: 'cat_appliance', name: '家用电器' },
+    digital: { id: 'cat_digital', name: '数码办公' },
+    'virtual-card': { id: 'cat_virtual', name: '虚拟卡券' },
+    movie: { id: 'cat_movie', name: '电影娱乐' },
+    life: { id: 'cat_life', name: '生活服务' },
+  };
+  const category = categoryMap[product.categoryCode] ?? {
+    id: 'cat_welfare_zone',
+    name: '企业福利专区',
+  };
+  const isVirtual = product.categoryCode === 'virtual-card';
+  return {
+    id: product.id,
+    skuId: product.skuId,
+    title: product.name,
+    subtitle: product.subtitle ?? '智慧翼企业福利严选商品',
+    images: [
+      product.coverUrl ??
+        'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600&auto=format&fit=crop&q=80',
+    ],
+    priceMarket: (product.marketPriceCents ?? product.priceCents) / 100,
+    priceMall: product.priceCents / 100,
+    priceWelfare: product.priceCents / 100,
+    categoryId: category.id,
+    categoryName: category.name,
+    brand: product.supplierName,
+    tags: ['企业严选', '正品保障'],
+    supplierId: `supplier-${product.supplierName}`,
+    supplierName: product.supplierName,
+    supplierType: product.supplierName.includes('央企') ? 'group_owned' : 'third_party',
+    itemType: isVirtual ? 'virtual_coupon' : 'physical',
+    allowedAccounts: isVirtual ? ['welfare', 'wechat'] : ['welfare', 'meal', 'wechat'],
+    stock: product.availableStock,
+    salesCount: 0,
+    rating: 5,
+    reviewCount: 0,
+    deliverySla: isVirtual ? '支付成功后即时发放' : '供应商履约时效为准',
+    isEnterpriseExclusive: true,
+    specs: [{ name: '标准规格', options: ['默认规格'] }],
+    descriptionDetailText: ['商品信息来自生产型商品目录，最终履约规则以供应商确认结果为准。'],
+  };
+}
+
+function mapApiOrder(
+  order: ApiOrder,
+  scope: { enterpriseId: string; enterpriseName: string; mallId: string; mallName: string }
+): Order {
+  const statusMap: Record<string, OrderStatus> = {
+    pending_payment: 'pending_payment',
+    paid: 'pending_shipment',
+    processing: 'pending_shipment',
+    shipped: 'pending_receipt',
+    completed: 'completed',
+    cancelled: 'completed',
+    refund_pending: 'after_sale',
+    refunded: 'after_sale',
+  };
+  return {
+    id: order.id,
+    orderNo: order.orderNo,
+    enterpriseId: scope.enterpriseId,
+    enterpriseName: scope.enterpriseName,
+    mallId: scope.mallId,
+    mallName: scope.mallName,
+    supplierId: 'multi-supplier',
+    supplierName: '供应商拆单汇总',
+    supplierType: 'third_party',
+    status: statusMap[order.status] ?? 'pending_payment',
+    createTime: order.createdAt,
+    items: (order.items ?? []).map((item) => ({
+      productId: item.productId,
+      productTitle: item.productTitle,
+      productImage:
+        item.productImage ??
+        'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=300&auto=format&fit=crop&q=80',
+      price: item.priceCents / 100,
+      quantity: item.quantity,
+      specText: Object.entries(item.specs ?? {})
+        .map(([key, value]) => `${key}：${value}`)
+        .join('；') || '标准规格',
+      itemType: item.itemType as ProductItemType,
+    })),
+    payment: {
+      totalGoodsAmount: order.goodsAmountCents / 100,
+      shippingFee: 0,
+      welfareDeducted: (order.welfarePaidCents ?? order.paidCents) / 100,
+      mealDeducted: (order.mealPaidCents ?? 0) / 100,
+      wechatPaid: 0,
+      finalPaidAmount: order.paidCents / 100,
+      payMethodText: order.paidCents > 0 ? '内部福利账户支付' : '待支付',
+    },
+  };
+}
 
 export const useMall = () => {
   const context = useContext(MallContext);

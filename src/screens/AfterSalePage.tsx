@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import { useMall } from '../context/MallContext';
-import { mallService } from '../services/mallService';
+import { productionApi, ProductionApiError } from '../services/productionApi';
 import {
   ShieldAlert,
   ArrowLeft,
@@ -18,31 +18,48 @@ import {
 } from 'lucide-react';
 
 export const AfterSalePage: React.FC = () => {
-  const { routeParams, navigateTo, showToast, refreshUserData } = useMall();
+  const { routeParams, navigateTo, showToast, refreshProductionData, orders, sessionStatus } = useMall();
 
-  const orderId = routeParams.orderId || 'ord_001';
-  const order = mallService.getOrderById(orderId) || mallService.getOrders()[0];
+  const orderId = routeParams.orderId;
+  const order = orders.find((item) => item.id === orderId) ?? orders[0];
 
   const [afterSaleType, setAfterSaleType] = useState<'refund_only' | 'return_goods' | 'exchange'>('return_goods');
   const [reason, setReason] = useState('商品质量问题');
   const [description, setDescription] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [afterSaleNo, setAfterSaleNo] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmitAfterSale = (e: React.FormEvent) => {
+  const handleSubmitAfterSale = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!order) {
       showToast('未找到可申请售后的订单', 'error');
       return;
     }
-    mallService.applyAfterSale({
-      orderId: order.id,
-      type: afterSaleType,
-      reason,
-      description
-    });
-    refreshUserData();
-    setSubmitted(true);
-    showToast('演示售后申请已提交，当前状态为待审核', 'success');
+    if (sessionStatus !== 'authenticated') {
+      showToast('请先使用MVP访问码登录后提交真实售后工单', 'warning');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const result = await productionApi.createAfterSale({
+        orderId: order.id,
+        type: afterSaleType === 'return_goods' ? 'return_refund' : afterSaleType,
+        reason: `${reason}：${description.trim()}`,
+        requestedAmountCents: Math.round(order.payment.finalPaidAmount * 100),
+      });
+      setAfterSaleNo(result.afterSale.afterSaleNo);
+      await refreshProductionData();
+      setSubmitted(true);
+      showToast('售后申请已写入生产数据库，当前状态为待审核', 'success');
+    } catch (error) {
+      showToast(
+        error instanceof ProductionApiError ? error.message : '售后服务暂时不可用',
+        'error'
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!order) {
@@ -71,7 +88,7 @@ export const AfterSalePage: React.FC = () => {
           <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto" />
           <h2 className="text-base font-bold text-gray-900">售后申请已成功录入</h2>
           <p className="text-gray-500">
-            服务工号：<strong className="font-mono text-gray-900">AS202607230008</strong> · 状态：专员审核中
+            服务工单：<strong className="font-mono text-gray-900">{afterSaleNo}</strong> · 状态：待审核
           </p>
           <div className="bg-blue-50 border border-blue-200 p-3 rounded text-blue-900 max-w-md mx-auto text-[11px]">
             退款须知：经合规确认后，抵扣的福利卡金额 (¥{order.payment.welfareDeducted.toFixed(2)}) 与餐卡金额 (¥{order.payment.mealDeducted.toFixed(2)}) 将在 1 个工作日内实时退回您的企业福利账户。
@@ -181,9 +198,10 @@ export const AfterSalePage: React.FC = () => {
               </button>
               <button
                 type="submit"
+                disabled={submitting}
                 className="px-6 py-2 bg-[#1F5EFF] text-white font-black rounded shadow-xs"
               >
-                确认提交售后工单
+                {submitting ? '正在安全提交…' : '确认提交售后工单'}
               </button>
             </div>
           </form>

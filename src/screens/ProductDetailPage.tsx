@@ -6,7 +6,6 @@
 
 import React, { useState } from 'react';
 import { useMall } from '../context/MallContext';
-import { mallService } from '../services/mallService';
 import { ProductCard } from '../components/common/ProductCard';
 import {
   ShoppingCart,
@@ -26,10 +25,10 @@ import {
 } from 'lucide-react';
 
 export const ProductDetailPage: React.FC = () => {
-  const { routeParams, navigateTo, addToCart, user, addresses, favorites, toggleFavorite, showToast, currentMall } = useMall();
+  const { routeParams, navigateTo, addToCart, user, addresses, favorites, toggleFavorite, showToast, currentMall, products } = useMall();
 
-  const productId = routeParams.productId || 'p_101';
-  const product = mallService.getProductById(productId) || mallService.getProducts()[0];
+  const productId = routeParams.productId || products[0]?.id;
+  const product = products.find((item) => item.id === productId) || products[0];
 
   const [selectedImgIndex, setSelectedImgIndex] = useState(0);
   const [selectedSpecs, setSelectedSpecs] = useState<Record<string, string>>(() => {
@@ -48,8 +47,8 @@ export const ProductDetailPage: React.FC = () => {
   const isFav = favorites.includes(product.id);
 
   // Similar products
-  const similarProducts = mallService
-    .getProducts({ categoryId: product.categoryId })
+  const similarProducts = products
+    .filter((item) => item.categoryId === product.categoryId)
     .filter(p => p.id !== product.id)
     .slice(0, 5);
 

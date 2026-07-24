@@ -20,6 +20,13 @@ export interface InternalPaymentInput {
   mealCents: number;
 }
 
+export interface CreateAfterSaleInput {
+  orderId: string;
+  type: "refund_only" | "return_refund" | "exchange";
+  reason: string;
+  requestedAmountCents: number;
+}
+
 export function parseCreateOrderInput(value: unknown): CreateOrderInput | null {
   if (!isRecord(value) || !Array.isArray(value.items) || !isRecord(value.recipient)) {
     return null;
@@ -96,6 +103,31 @@ export function parseInternalPaymentInput(
   return {
     welfareCents: welfareCents as number,
     mealCents: mealCents as number,
+  };
+}
+
+export function parseCreateAfterSaleInput(
+  value: unknown
+): CreateAfterSaleInput | null {
+  if (!isRecord(value)) return null;
+  const orderId = readRequiredString(value, "orderId", 100);
+  const reason = readRequiredString(value, "reason", 500);
+  const type = value.type;
+  const requestedAmountCents = value.requestedAmountCents;
+  if (
+    !orderId ||
+    !reason ||
+    !["refund_only", "return_refund", "exchange"].includes(String(type)) ||
+    !Number.isSafeInteger(requestedAmountCents) ||
+    (requestedAmountCents as number) <= 0
+  ) {
+    return null;
+  }
+  return {
+    orderId,
+    reason,
+    type: type as CreateAfterSaleInput["type"],
+    requestedAmountCents: requestedAmountCents as number,
   };
 }
 

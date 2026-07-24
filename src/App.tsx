@@ -13,6 +13,7 @@ import { QuickViewModal } from './components/common/QuickViewModal';
 import { ToastContainer } from './components/common/ToastContainer';
 import { Footer } from './components/common/Footer';
 import { MobileBottomNav } from './components/common/MobileBottomNav';
+import { MvpSessionBar } from './components/common/MvpSessionBar';
 
 // Pages
 import { HomePage } from './screens/HomePage';
@@ -27,6 +28,7 @@ import { OrderDetailPage } from './screens/OrderDetailPage';
 import { AfterSalePage } from './screens/AfterSalePage';
 import { CouponsPage } from './screens/CouponsPage';
 import { BalancePage } from './screens/BalancePage';
+import { MvpConsolePage } from './screens/MvpConsolePage';
 
 const AppContent: React.FC = () => {
   const { currentPage } = useMall();
@@ -57,6 +59,8 @@ const AppContent: React.FC = () => {
         return <CouponsPage />;
       case 'balance':
         return <BalancePage />;
+      case 'mvp-console':
+        return <MvpConsolePage />;
       default:
         return <HomePage />;
     }
@@ -66,6 +70,7 @@ const AppContent: React.FC = () => {
     <div className="min-h-screen bg-[#F5F7FA] text-gray-800 flex flex-col justify-between pb-16 md:pb-0 font-sans antialiased selection:bg-[#1F5EFF] selection:text-white">
       {/* 顶部企业导航栏 */}
       <HeaderBar />
+      <MvpSessionBar />
 
       {/* 主视图渲染区 */}
       <main className="flex-1 w-full">
