@@ -77,9 +77,11 @@ const AppContent: React.FC<{ initialHost?: string }> = ({ initialHost = '' }) =>
   if (isMvpPreview) {
     return (
       <MvpPreviewShell>
-        <MvpSessionBar />
-        <main className="w-full"><HomePage /></main>
+        <HeaderBar />
+        <main className="flex-1 w-full"><HomePage /></main>
         <ToastContainer />
+        <MobileBottomNav />
+        <Footer />
       </MvpPreviewShell>
     );
   }
