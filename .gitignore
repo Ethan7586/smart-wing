@@ -2,6 +2,7 @@ node_modules/
 .wrangler/
 dist/
 coverage/
+.codex-temp/
 *.tsbuildinfo
 .DS_Store
 *.log

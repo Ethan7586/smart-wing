@@ -14,6 +14,7 @@ export interface ApiProduct {
   marketPriceCents: number | null;
   availableStock: number;
   supplierName: string;
+  isTest: boolean;
 }
 
 export interface ApiOrder {

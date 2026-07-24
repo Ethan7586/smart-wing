@@ -20,6 +20,7 @@ interface CatalogRow {
   market_price_cents: number | null;
   available_stock: number;
   supplier_name: string;
+  is_test: boolean;
 }
 
 const DEFAULT_MALL_SLUG = "smart-wing-demo";
@@ -148,6 +149,7 @@ export async function handleProducts(
         row.market_price_cents === null ? null : Number(row.market_price_cents),
       availableStock: row.available_stock,
       supplierName: row.supplier_name,
+      isTest: row.is_test,
     })),
     pagination: {
       cursor,

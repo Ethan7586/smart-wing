@@ -68,6 +68,7 @@ export interface Product {
   isDailySpecial?: boolean;
   isHotRedeem?: boolean;
   isNewArrival?: boolean;
+  isTest?: boolean;
   specs?: ProductSpec[];
   params?: ProductParam[];
   descriptionHtml?: string;

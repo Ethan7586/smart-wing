@@ -156,6 +156,10 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const handleAddToCart = (product: Product, quantity = 1, selectedSpec: Record<string, string> = {}) => {
+    if (product.isTest) {
+      showToast('测试商品仅用于系统验证，不能加入购物车', 'warning');
+      return;
+    }
     const updatedCart = mallService.addToCart(product, quantity, selectedSpec);
     setCart(updatedCart);
     showToast(`已将“${product.title.slice(0, 16)}...”加入购物车`, 'success');

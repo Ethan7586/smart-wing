@@ -43,6 +43,7 @@ export function mapApiProduct(product: ApiProduct): Product {
     reviewCount: 0,
     deliverySla: isVirtual ? '支付成功后即时发放' : '供应商履约时效为准',
     isEnterpriseExclusive: true,
+    isTest: product.isTest,
     specs: [{ name: '标准规格', options: ['默认规格'] }],
     descriptionDetailText: ['商品信息来自生产型商品目录，最终履约规则以供应商确认结果为准。'],
   };

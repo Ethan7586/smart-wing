@@ -13,6 +13,9 @@
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "check:lines": "node scripts/check-line-budget.mjs",
+    "catalog:abo:prepare": "node scripts/abo/prepare-test-catalog.mjs --limit 5000",
+    "catalog:abo:import": "node scripts/abo/import-test-catalog.mjs",
+    "catalog:abo:purge": "node scripts/abo/purge-test-catalog.mjs",
     "quality": "npm run check:lines && npm run lint && npm test && npm run build"
   },
   "dependencies": {

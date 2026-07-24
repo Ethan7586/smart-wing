@@ -78,6 +78,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, compact = fal
           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shadow-xs ${getSupplierBadgeStyle()}`}>
             {product.supplierName}
           </span>
+          {product.isTest && (
+            <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
+              非商业测试
+            </span>
+          )}
           {getItemTypeBadge()}
         </div>
 
@@ -157,6 +162,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, compact = fal
 
         {/* 价格层级 */}
         <div className="pt-2 border-t border-gray-100">
+          {product.isTest ? (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-amber-700">测试数据 · 不提供购买</span>
+              <span className="rounded bg-amber-50 px-2 py-1 text-[10px] text-amber-700">
+                TEST
+              </span>
+            </div>
+          ) : (
+          <>
           <div className="flex items-baseline justify-between gap-1">
             <div className="flex items-baseline gap-1">
               <span className="text-xs text-[#FF7A00] font-black">企业福利价</span>
@@ -178,6 +192,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, compact = fal
             <span className="line-through">市场价 ¥{product.priceMarket.toFixed(2)}</span>
             <span>商城价 ¥{product.priceMall.toFixed(2)}</span>
           </div>
+          </>
+          )}
         </div>
       </div>
     </div>
