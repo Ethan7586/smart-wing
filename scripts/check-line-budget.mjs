@@ -12,7 +12,7 @@ const IGNORED_DIRECTORIES = new Set([
   'deliverables', 'tools'
 ]);
 const GENERATED_OR_IMMUTABLE = [
-  /^package-lock\.json$/,
+  /(^|\/)package-lock\.json$/,
   /^.*\.tsbuildinfo$/,
   /^supabase\/config\.toml$/,
   /^supabase\/migrations\/.+\.sql$/,
