@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
 import { AndroidStatusBar } from '../../components/mobile/AndroidStatusBar';
 import { AndroidBottomNav } from '../../components/mobile/AndroidBottomNav';
-import { MOCK_PRODUCTS, MOCK_CATEGORIES } from '../../adapters/frontendData';
 import {
   CreditCard,
   Utensils,
@@ -21,7 +20,15 @@ import {
 } from 'lucide-react';
 
 export const AndroidHomePage: React.FC = () => {
-  const { user, currentMall, setAndroidPage, addToCart, triggerPendingFeature } = useMall();
+  const {
+    user,
+    currentMall,
+    setAndroidPage,
+    addToCart,
+    triggerPendingFeature,
+    presentationProducts: MOCK_PRODUCTS,
+    presentationCategories: MOCK_CATEGORIES,
+  } = useMall();
   const [activeChip, setActiveChip] = useState('all');
   const [isLoading, setIsLoading] = useState(false);
   const [showNetworkRetrySnackbar, setShowNetworkRetrySnackbar] = useState(false);

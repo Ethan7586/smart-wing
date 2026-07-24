@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
-import { MOCK_CATEGORIES, MOCK_PRODUCTS } from '../../adapters/frontendData';
 import {
   Grid,
   Filter,
@@ -17,7 +16,15 @@ import {
 } from 'lucide-react';
 
 export const TabletCategoryPage: React.FC = () => {
-  const { setTabletPage, addToCart, cart, cartCount, triggerPendingFeature } = useMall();
+  const {
+    setTabletPage,
+    addToCart,
+    cart,
+    cartCount,
+    triggerPendingFeature,
+    presentationProducts: MOCK_PRODUCTS,
+    presentationCategories: MOCK_CATEGORIES,
+  } = useMall();
 
   const [selectedCatId, setSelectedCatId] = useState<string>('c_101');
   const [selectedBrand, setSelectedBrand] = useState<string>('all');

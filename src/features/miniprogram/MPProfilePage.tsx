@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 export const MPProfilePage: React.FC = () => {
-  const { user, currentMall, triggerPendingFeature } = useMall();
+  const { user, currentMall, triggerPendingFeature, setMpPage } = useMall();
 
   return (
     <div className="bg-[#F5F7FA] min-h-full flex flex-col font-sans text-gray-800 pb-16">
@@ -100,7 +100,7 @@ export const MPProfilePage: React.FC = () => {
               <span>我的福利订单</span>
             </h3>
             <button
-              onClick={() => triggerPendingFeature('微信小程序 订单列表', '查看全量历史企采订单。')}
+              onClick={() => setMpPage('orders')}
               className="text-[10px] text-gray-400 hover:text-[#1F5EFF] flex items-center"
             >
               <span>全部订单</span>

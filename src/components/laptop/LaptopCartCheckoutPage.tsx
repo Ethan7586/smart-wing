@@ -28,7 +28,9 @@ export const LaptopCartCheckoutPage: React.FC<LaptopCartCheckoutPageProps> = ({ 
     user,
     addresses,
     showToast,
-    navigateTo
+    navigateTo,
+    checkoutSelectedCart,
+    isSubmittingOrder,
   } = useMall();
 
   const [useWelfareDeduction, setUseWelfareDeduction] = useState<boolean>(true);
@@ -48,9 +50,10 @@ export const LaptopCartCheckoutPage: React.FC<LaptopCartCheckoutPageProps> = ({ 
   const totalDeduction = maxWelfareDeduction + maxMealDeduction;
   const gapPayment = Math.max(0, subtotal - totalDeduction);
 
-  const handleCheckout = () => {
-    showToast('企采订单提交成功！已自动扣减福利卡账户并开具电子专票', 'success');
-    onSelectTab('orders');
+  const handleCheckout = async () => {
+    if (await checkoutSelectedCart()) {
+      onSelectTab('orders');
+    }
   };
 
   return (
@@ -259,10 +262,11 @@ export const LaptopCartCheckoutPage: React.FC<LaptopCartCheckoutPageProps> = ({ 
               {/* 提交按钮 (必须不可被遮挡) */}
               <button
                 onClick={handleCheckout}
+                disabled={isSubmittingOrder}
                 className="w-full bg-[#1F5EFF] hover:bg-blue-700 text-white font-extrabold py-3 rounded-lg text-xs transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
               >
                 <Zap className="w-4 h-4 text-yellow-300" />
-                <span>提交企采订单并开票</span>
+                {isSubmittingOrder ? '安全提交中…' : '确认并提交真实订单'}
                 <ArrowRight className="w-4 h-4" />
               </button>
 

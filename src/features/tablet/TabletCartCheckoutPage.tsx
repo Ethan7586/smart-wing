@@ -24,7 +24,9 @@ export const TabletCartCheckoutPage: React.FC = () => {
     updateCartQuantity,
     toggleCartItemSelected,
     removeCartItem,
-    triggerPendingFeature
+    triggerPendingFeature,
+    checkoutSelectedCart,
+    isSubmittingOrder,
   } = useMall();
 
   const [useWelfareCard, setUseWelfareCard] = useState(true);
@@ -48,13 +50,10 @@ export const TabletCartCheckoutPage: React.FC = () => {
     remainingTotal -= mealDeduction;
   }
 
-  const handlePlaceOrder = () => {
-    triggerPendingFeature(
-      '平板福利订单提交完成',
-      `成功下发企采仓！已使用福利卡抵扣 ¥${welfareDeduction.toFixed(2)}，餐卡抵扣 ¥${mealDeduction.toFixed(2)}${
-        remainingTotal > 0 ? `，外部补差 ¥${remainingTotal.toFixed(2)}` : ''
-      }`
-    );
+  const handlePlaceOrder = async () => {
+    if (await checkoutSelectedCart()) {
+      setTabletPage('orders');
+    }
   };
 
   return (
@@ -258,14 +257,18 @@ export const TabletCartCheckoutPage: React.FC = () => {
 
           <button
             onClick={handlePlaceOrder}
-            disabled={selectedItems.length === 0}
+            disabled={selectedItems.length === 0 || isSubmittingOrder}
             className={`w-full font-black text-xs py-3.5 rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer min-h-[48px] ${
               selectedItems.length > 0
                 ? 'bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] hover:opacity-95 text-white'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
-            <span>提交企采订单 (福利冲抵 ¥{(welfareDeduction + mealDeduction).toFixed(2)})</span>
+            <span>
+              {isSubmittingOrder
+                ? '安全提交中…'
+                : `提交真实订单（福利冲抵 ¥${(welfareDeduction + mealDeduction).toFixed(2)}）`}
+            </span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

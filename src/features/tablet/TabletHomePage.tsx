@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
-import { MOCK_PRODUCTS, MOCK_CATEGORIES } from '../../adapters/frontendData';
 import {
   Search,
   Scan,
@@ -33,7 +32,9 @@ export const TabletHomePage: React.FC = () => {
     addToCart,
     cart,
     cartCount,
-    triggerPendingFeature
+    triggerPendingFeature,
+    presentationProducts: MOCK_PRODUCTS,
+    presentationCategories: MOCK_CATEGORIES,
   } = useMall();
 
   const [activeCategory, setActiveCategory] = useState<string>('all');

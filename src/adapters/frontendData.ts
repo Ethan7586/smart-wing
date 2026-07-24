@@ -64,7 +64,7 @@ function toParameters(product: Product): Record<string, string> {
   );
 }
 
-function toFrontendProduct(product: Product): FrontendProduct {
+export function toFrontendProduct(product: Product): FrontendProduct {
   const primaryImage = product.images[0] ?? '';
   return {
     ...product,
@@ -105,8 +105,12 @@ function statusText(status: OrderStatus): string {
   return labels[status];
 }
 
+export function toFrontendProducts(products: Product[]): FrontendProduct[] {
+  return products.map(toFrontendProduct);
+}
+
 export const MOCK_PRODUCTS: FrontendProduct[] =
-  SOURCE_PRODUCTS.map(toFrontendProduct);
+  toFrontendProducts(SOURCE_PRODUCTS);
 
 export const MOCK_CATEGORIES: FrontendCategory[] = SOURCE_CATEGORIES.map(
   (category) => ({
@@ -117,36 +121,45 @@ export const MOCK_CATEGORIES: FrontendCategory[] = SOURCE_CATEGORIES.map(
   })
 );
 
-export const MOCK_ORDERS: FrontendOrder[] = SOURCE_ORDERS.map((order) => ({
-  ...order,
-  orderId: order.id,
-  createdAt: order.createTime,
-  totalAmount: order.payment.finalPaidAmount,
-  welfareDeduction: order.payment.welfareDeducted,
-  statusText: statusText(order.status),
-  items: order.items.map((item) => {
-    const product =
-      MOCK_PRODUCTS.find((candidate) => candidate.id === item.productId) ??
-      MOCK_PRODUCTS[0];
-    return {
-      ...item,
-      product: {
-        ...product,
-        id: item.productId,
-        title: item.productTitle,
-        images: [item.productImage],
-        image: item.productImage,
-        imageUrl: item.productImage,
-        price: item.price,
-        priceMarket: item.price,
-        priceMall: item.price,
-        priceWelfare: item.price,
-        originalPrice: item.price,
-        welfarePrice: item.price,
-        marketPrice: item.price,
-        itemType: item.itemType,
-      },
-      priceAtPurchase: item.price,
-    };
-  }),
-}));
+export function toFrontendOrders(
+  orders: Order[],
+  products: FrontendProduct[]
+): FrontendOrder[] {
+  return orders.map((order) => ({
+    ...order,
+    orderId: order.id,
+    createdAt: order.createTime,
+    totalAmount: order.payment.finalPaidAmount,
+    welfareDeduction: order.payment.welfareDeducted,
+    statusText: statusText(order.status),
+    items: order.items.map((item) => {
+      const product =
+        products.find((candidate) => candidate.id === item.productId) ??
+        products[0] ??
+        MOCK_PRODUCTS[0];
+      return {
+        ...item,
+        product: {
+          ...product,
+          id: item.productId,
+          title: item.productTitle,
+          images: [item.productImage],
+          image: item.productImage,
+          imageUrl: item.productImage,
+          price: item.price,
+          priceMarket: item.price,
+          priceMall: item.price,
+          priceWelfare: item.price,
+          originalPrice: item.price,
+          welfarePrice: item.price,
+          marketPrice: item.price,
+          itemType: item.itemType,
+        },
+        priceAtPurchase: item.price,
+      };
+    }),
+  }));
+}
+
+export const MOCK_ORDERS: FrontendOrder[] =
+  toFrontendOrders(SOURCE_ORDERS, MOCK_PRODUCTS);

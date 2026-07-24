@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useMall, LaptopPage } from '../../context/MallContext';
-import { MOCK_ORDERS } from '../../adapters/frontendData';
 import {
   FileText,
   Search,
@@ -19,7 +18,12 @@ interface LaptopOrdersPageProps {
 }
 
 export const LaptopOrdersPage: React.FC<LaptopOrdersPageProps> = ({ onSelectTab }) => {
-  const { user, triggerPendingFeature, showToast } = useMall();
+  const {
+    user,
+    triggerPendingFeature,
+    showToast,
+    presentationOrders: MOCK_ORDERS,
+  } = useMall();
   const [activeStatus, setActiveStatus] = useState<string>('all');
 
   const filteredOrders = MOCK_ORDERS.filter(o => {

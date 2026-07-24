@@ -16,6 +16,7 @@ import { AndroidSearchPage } from '../../features/android/AndroidSearchPage';
 import { AndroidDetailPage } from '../../features/android/AndroidDetailPage';
 import { AndroidCheckoutPage } from '../../features/android/AndroidCheckoutPage';
 import { AndroidProfilePage } from '../../features/android/AndroidProfilePage';
+import { MobileOrdersPage } from './MobileOrdersPage';
 
 import { Smartphone, Maximize2, Minimize2, Sparkles, ExternalLink } from 'lucide-react';
 
@@ -33,6 +34,8 @@ export const MobileFrame: React.FC = () => {
         return <MPDetailPage />;
       case 'cart':
         return <MPCartPage />;
+      case 'orders':
+        return <MobileOrdersPage mode="mini-program" />;
       case 'profile':
         return <MPProfilePage />;
       default:
@@ -50,6 +53,8 @@ export const MobileFrame: React.FC = () => {
         return <AndroidDetailPage />;
       case 'checkout':
         return <AndroidCheckoutPage />;
+      case 'orders':
+        return <MobileOrdersPage mode="android-app" />;
       case 'profile':
         return <AndroidProfilePage />;
       default:

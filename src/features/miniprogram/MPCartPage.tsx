@@ -13,7 +13,9 @@ export const MPCartPage: React.FC = () => {
     toggleSelectAllCart,
     removeCartItem,
     setMpPage,
-    triggerPendingFeature
+    triggerPendingFeature,
+    checkoutSelectedCart,
+    isSubmittingOrder,
   } = useMall();
 
   const selectedItems = cart.filter(i => i.selected);
@@ -25,10 +27,11 @@ export const MPCartPage: React.FC = () => {
     0
   );
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (selectedItems.length === 0) return;
-    // Perform simulated checkout order creation
-    triggerPendingFeature('微信小程序 订单确认与扣款', `已选择 ${selectedItems.length} 件商品，总金额 ¥${totalPrice.toFixed(2)}。扣减福利卡余额后即刻扣款出库。`);
+    if (await checkoutSelectedCart()) {
+      setMpPage('profile');
+    }
   };
 
   return (
@@ -205,14 +208,14 @@ export const MPCartPage: React.FC = () => {
 
             <button
               onClick={handleCheckout}
-              disabled={selectedItems.length === 0}
+              disabled={selectedItems.length === 0 || isSubmittingOrder}
               className={`px-5 py-2.5 rounded-xl font-bold text-xs text-white shadow-md transition-all cursor-pointer ${
                 selectedItems.length > 0
                   ? 'bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] hover:bg-blue-700 shadow-blue-500/20'
                   : 'bg-gray-300 cursor-not-allowed'
               }`}
             >
-              去结算 (福利卡扣减)
+              {isSubmittingOrder ? '安全提交中…' : '去结算（真实账户扣减）'}
             </button>
           </div>
         </div>

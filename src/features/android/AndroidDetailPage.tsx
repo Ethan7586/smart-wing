@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
 import { AndroidStatusBar } from '../../components/mobile/AndroidStatusBar';
 import { AndroidBottomNav } from '../../components/mobile/AndroidBottomNav';
-import { MOCK_PRODUCTS } from '../../adapters/frontendData';
 import {
   Share2,
   Heart,
@@ -18,7 +17,14 @@ import {
 } from 'lucide-react';
 
 export const AndroidDetailPage: React.FC = () => {
-  const { mobileProductId, setAndroidPage, addToCart, cartCount, triggerPendingFeature } = useMall();
+  const {
+    mobileProductId,
+    setAndroidPage,
+    addToCart,
+    cartCount,
+    triggerPendingFeature,
+    presentationProducts: MOCK_PRODUCTS,
+  } = useMall();
   const [selectedSpec, setSelectedSpec] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
   const [showSpecBottomSheet, setShowSpecBottomSheet] = useState(false);

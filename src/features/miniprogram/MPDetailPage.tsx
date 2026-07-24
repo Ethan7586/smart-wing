@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
 import { WeChatCapsule } from '../../components/mobile/WeChatCapsule';
 import { WeChatTabBar } from '../../components/mobile/WeChatTabBar';
-import { MOCK_PRODUCTS } from '../../adapters/frontendData';
 import {
   Share2,
   Headphones,
@@ -17,7 +16,14 @@ import {
 } from 'lucide-react';
 
 export const MPDetailPage: React.FC = () => {
-  const { mobileProductId, setMpPage, addToCart, cartCount, triggerPendingFeature } = useMall();
+  const {
+    mobileProductId,
+    setMpPage,
+    addToCart,
+    cartCount,
+    triggerPendingFeature,
+    presentationProducts: MOCK_PRODUCTS,
+  } = useMall();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedSpec, setSelectedSpec] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);

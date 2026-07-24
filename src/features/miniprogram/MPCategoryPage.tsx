@@ -2,11 +2,15 @@ import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
 import { WeChatCapsule } from '../../components/mobile/WeChatCapsule';
 import { WeChatTabBar } from '../../components/mobile/WeChatTabBar';
-import { MOCK_CATEGORIES, MOCK_PRODUCTS } from '../../adapters/frontendData';
 import { Search, Plus, Filter, Tag, ArrowUpDown } from 'lucide-react';
 
 export const MPCategoryPage: React.FC = () => {
-  const { setMpPage, addToCart } = useMall();
+  const {
+    setMpPage,
+    addToCart,
+    presentationProducts: MOCK_PRODUCTS,
+    presentationCategories: MOCK_CATEGORIES,
+  } = useMall();
   const [activeCategoryId, setActiveCategoryId] = useState(MOCK_CATEGORIES[0].id);
   const [keyword, setKeyword] = useState('');
 

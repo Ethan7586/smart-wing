@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMall, LaptopPage } from '../../context/MallContext';
-import { MOCK_PRODUCTS } from '../../adapters/frontendData';
+import type { FrontendProduct } from '../../adapters/frontendData';
 import {
   Filter,
   ChevronDown,
@@ -20,7 +20,11 @@ interface LaptopCategoryPageProps {
 }
 
 export const LaptopCategoryPage: React.FC<LaptopCategoryPageProps> = ({ onSelectTab }) => {
-  const { addToCart, showToast } = useMall();
+  const {
+    addToCart,
+    showToast,
+    presentationProducts: MOCK_PRODUCTS,
+  } = useMall();
 
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [allowMealCardOnly, setAllowMealCardOnly] = useState<boolean>(false);

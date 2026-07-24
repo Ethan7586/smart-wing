@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useMall, LaptopPage } from '../../context/MallContext';
-import { MOCK_PRODUCTS } from '../../adapters/frontendData';
 import {
   ShoppingCart,
   Zap,
@@ -24,7 +23,12 @@ interface LaptopDetailPageProps {
 }
 
 export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab }) => {
-  const { user, addToCart, showToast } = useMall();
+  const {
+    user,
+    addToCart,
+    showToast,
+    presentationProducts: MOCK_PRODUCTS,
+  } = useMall();
 
   // Selected product (default to Lenovo ThinkPad or first product)
   const product = MOCK_PRODUCTS[0];

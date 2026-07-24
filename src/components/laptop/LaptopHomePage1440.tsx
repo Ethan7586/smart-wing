@@ -1,6 +1,5 @@
 import React from 'react';
 import { useMall, LaptopPage } from '../../context/MallContext';
-import { MOCK_PRODUCTS } from '../../adapters/frontendData';
 import {
   Sparkles,
   CreditCard,
@@ -28,7 +27,13 @@ interface LaptopHomePage1440Props {
 }
 
 export const LaptopHomePage1440: React.FC<LaptopHomePage1440Props> = ({ onSelectTab }) => {
-  const { user, addToCart, triggerPendingFeature, showToast } = useMall();
+  const {
+    user,
+    addToCart,
+    triggerPendingFeature,
+    showToast,
+    presentationProducts: MOCK_PRODUCTS,
+  } = useMall();
 
   // Categories list for left sidebar (extended for 1440)
   const categories = [

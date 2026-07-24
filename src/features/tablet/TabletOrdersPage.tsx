@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
-import { MOCK_ORDERS } from '../../adapters/frontendData';
 import {
   FileText,
   Clock,
@@ -20,7 +19,11 @@ import {
 } from 'lucide-react';
 
 export const TabletOrdersPage: React.FC = () => {
-  const { user, triggerPendingFeature } = useMall();
+  const {
+    user,
+    triggerPendingFeature,
+    presentationOrders: MOCK_ORDERS,
+  } = useMall();
 
   const [activeStatus, setActiveStatus] = useState<string>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string>(MOCK_ORDERS[0]?.id || 'ord_001');

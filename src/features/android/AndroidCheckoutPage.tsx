@@ -16,19 +16,26 @@ import {
 } from 'lucide-react';
 
 export const AndroidCheckoutPage: React.FC = () => {
-  const { cart, user, setAndroidPage, triggerPendingFeature } = useMall();
+  const {
+    cart,
+    user,
+    setAndroidPage,
+    triggerPendingFeature,
+    checkoutSelectedCart,
+    isSubmittingOrder,
+  } = useMall();
   const [selectedPayment, setSelectedPayment] = useState<'welfare' | 'meal' | 'wechat' | 'fingerprint'>('welfare');
 
   const selectedCartItems = cart.filter(c => c.selected);
   const totalPrice = selectedCartItems.reduce((sum, item) => sum + item.product.priceMall * item.quantity, 0);
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (selectedPayment === 'wechat') {
       triggerPendingFeature('Android 微信支付 SDK API', '调用 com.tencent.mm.opensdk.openapi.IWXAPI 调起原生 App 微信支付接口。');
     } else if (selectedPayment === 'fingerprint') {
       triggerPendingFeature('Android BiometricPrompt 生物识别支付', '调用 BiometricPrompt 生物特征库进行指纹/人脸 1.5s 极速快捷扣款。');
-    } else {
-      triggerPendingFeature('Android 福利卡/餐卡 扣款确认', `成功使用【${selectedPayment === 'welfare' ? '福利卡' : '餐卡'}】余额抵扣 ¥${totalPrice.toFixed(2)}，订单已下发仓储发货！`);
+    } else if (await checkoutSelectedCart()) {
+      setAndroidPage('profile');
     }
   };
 
@@ -214,9 +221,14 @@ export const AndroidCheckoutPage: React.FC = () => {
 
         <button
           onClick={handlePlaceOrder}
+          disabled={isSubmittingOrder}
           className="bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] hover:bg-blue-700 text-white font-bold text-xs px-6 py-3 rounded-2xl shadow-md cursor-pointer active:scale-98 transition-transform"
         >
-          {selectedPayment === 'fingerprint' ? '指纹快捷支付 (接口待接入)' : '确认并提交订单'}
+          {isSubmittingOrder
+            ? '安全提交中…'
+            : selectedPayment === 'fingerprint'
+              ? '指纹快捷支付（接口待接入）'
+              : '确认并提交真实订单'}
         </button>
       </div>
 

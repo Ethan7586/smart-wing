@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
-import { MOCK_PRODUCTS } from '../../adapters/frontendData';
 import {
   Heart,
   Share2,
@@ -20,7 +19,14 @@ import {
 } from 'lucide-react';
 
 export const TabletDetailPage: React.FC = () => {
-  const { mobileProductId, setTabletPage, addToCart, cartCount, triggerPendingFeature } = useMall();
+  const {
+    mobileProductId,
+    setTabletPage,
+    addToCart,
+    cartCount,
+    triggerPendingFeature,
+    presentationProducts: MOCK_PRODUCTS,
+  } = useMall();
 
   const product = MOCK_PRODUCTS.find(p => p.id === mobileProductId) || MOCK_PRODUCTS[0];
 

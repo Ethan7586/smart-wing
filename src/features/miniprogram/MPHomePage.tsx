@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
 import { WeChatCapsule } from '../../components/mobile/WeChatCapsule';
 import { WeChatTabBar } from '../../components/mobile/WeChatTabBar';
-import { MOCK_PRODUCTS } from '../../adapters/frontendData';
 import {
   CreditCard,
   Utensils,
@@ -23,7 +22,14 @@ import {
 } from 'lucide-react';
 
 export const MPHomePage: React.FC = () => {
-  const { user, currentMall, setMpPage, addToCart, triggerPendingFeature } = useMall();
+  const {
+    user,
+    currentMall,
+    setMpPage,
+    addToCart,
+    triggerPendingFeature,
+    presentationProducts: MOCK_PRODUCTS,
+  } = useMall();
   const [activeBanner, setActiveBanner] = useState(0);
   const [searchKeyword, setSearchKeyword] = useState('');
 

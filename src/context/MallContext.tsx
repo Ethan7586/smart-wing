@@ -4,7 +4,7 @@
  * 技术服务方：雍彻科技
  */
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import {
   UserProfile,
   EnterpriseMall,
@@ -24,13 +24,21 @@ import {
   type ApiOrder,
   type ApiProduct,
 } from '../services/productionApi';
+import {
+  MOCK_CATEGORIES,
+  toFrontendOrders,
+  toFrontendProducts,
+  type FrontendCategory,
+  type FrontendOrder,
+  type FrontendProduct,
+} from '../adapters/frontendData';
 
 export type SessionStatus = 'checking' | 'guest' | 'authenticated';
 
 export type ViewportMode = 'auto' | 'laptop-1366' | 'desktop-1440' | 'side-by-side';
 export type AppMode = 'pc' | 'mini-program' | 'android-app' | 'tablet-app' | 'laptop-web';
-export type MiniProgramPage = 'home' | 'category' | 'detail' | 'cart' | 'profile';
-export type AndroidAppPage = 'home' | 'search' | 'detail' | 'checkout' | 'profile';
+export type MiniProgramPage = 'home' | 'category' | 'detail' | 'cart' | 'orders' | 'profile';
+export type AndroidAppPage = 'home' | 'search' | 'detail' | 'checkout' | 'orders' | 'profile';
 export type TabletPage = 'home' | 'category' | 'detail' | 'cart' | 'orders' | 'profile';
 export type TabletOrientation = 'landscape' | 'portrait';
 export type LaptopPage = 'home-1366' | 'home-1440' | 'category' | 'detail' | 'cart' | 'orders';
@@ -108,12 +116,17 @@ interface MallContextType {
   refreshUserData: () => void;
   orders: Order[];
   products: Product[];
+  presentationProducts: FrontendProduct[];
+  presentationOrders: FrontendOrder[];
+  presentationCategories: FrontendCategory[];
   accountLogs: AccountLog[];
   sessionStatus: SessionStatus;
   sessionError: string | null;
   login: (accessCode: string) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshProductionData: () => Promise<void>;
+  isSubmittingOrder: boolean;
+  checkoutSelectedCart: () => Promise<boolean>;
   
   // Cart State
   cart: CartItem[];
@@ -177,10 +190,19 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [accountLogs, setAccountLogs] = useState<AccountLog[]>(() => mallService.getAccountLogs());
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>('checking');
   const [sessionError, setSessionError] = useState<string | null>(null);
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
   const [favorites, setFavorites] = useState<string[]>(() => mallService.getFavorites());
   const [addresses, setAddresses] = useState<DeliveryAddress[]>(() => mallService.getAddresses());
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const presentationProducts = useMemo(
+    () => toFrontendProducts(products),
+    [products]
+  );
+  const presentationOrders = useMemo(
+    () => toFrontendOrders(orders, presentationProducts),
+    [orders, presentationProducts]
+  );
 
   const setAppMode = (mode: AppMode) => {
     setAppModeState(mode);
@@ -459,6 +481,89 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     showToast('已从购物车移除该商品', 'info');
   };
 
+  const checkoutSelectedCart = async (): Promise<boolean> => {
+    const selectedItems = cart.filter((item) => item.selected);
+    const selectedAddress =
+      addresses.find((address) => address.isDefault) ?? addresses[0];
+    if (sessionStatus !== 'authenticated') {
+      showToast('请先登录生产型MVP账户，再提交订单', 'warning');
+      return false;
+    }
+    if (selectedItems.length === 0) {
+      showToast('请先选择需要结算的商品', 'warning');
+      return false;
+    }
+    if (!selectedAddress) {
+      showToast('请先设置有效的收货地址', 'warning');
+      return false;
+    }
+    if (selectedItems.some((item) => !item.product.skuId)) {
+      showToast('购物车存在演示商品，请从在线商品目录重新加入', 'warning');
+      return false;
+    }
+
+    const payableCents = selectedItems.reduce(
+      (sum, item) =>
+        sum + Math.round(item.product.priceWelfare * 100) * item.quantity,
+      0
+    );
+    const welfareCents = Math.min(
+      payableCents,
+      Math.round(user.welfareBalance * 100)
+    );
+    const mealCents = Math.min(
+      payableCents - welfareCents,
+      Math.round(user.mealBalance * 100)
+    );
+    if (welfareCents + mealCents !== payableCents) {
+      showToast('福利账户余额不足，外部支付接口尚未接入', 'warning');
+      return false;
+    }
+
+    setIsSubmittingOrder(true);
+    try {
+      const idempotencyRoot = crypto.randomUUID();
+      const created = await productionApi.createOrder(
+        {
+          items: selectedItems.map((item) => ({
+            skuId: item.product.skuId!,
+            quantity: item.quantity,
+          })),
+          recipient: {
+            name: selectedAddress.name,
+            mobile: selectedAddress.phone,
+            province: selectedAddress.province,
+            city: selectedAddress.city,
+            district: selectedAddress.district,
+            address: selectedAddress.detail,
+          },
+        },
+        `order-${idempotencyRoot}`
+      );
+      await productionApi.payWithInternalAccounts(
+        created.order.id,
+        { welfareCents, mealCents },
+        `payment-${idempotencyRoot}`
+      );
+      selectedItems.forEach((item) => {
+        mallService.removeCartItem(item.id);
+      });
+      setCart(mallService.getCart());
+      await refreshProductionData();
+      showToast('订单已安全写入数据库并完成福利账户支付', 'success');
+      return true;
+    } catch (error) {
+      const message =
+        error instanceof ProductionApiError
+          ? error.message
+          : '订单服务暂时不可用';
+      showToast(`订单提交失败：${message}`, 'error');
+      return false;
+    } finally {
+      setIsSubmittingOrder(false);
+    }
+  };
+
   const handleToggleFavorite = (productId: string) => {
     const isFav = mallService.toggleFavorite(productId);
     setFavorites(mallService.getFavorites());
@@ -515,12 +620,17 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         refreshUserData,
         orders,
         products,
+        presentationProducts,
+        presentationOrders,
+        presentationCategories: MOCK_CATEGORIES,
         accountLogs,
         sessionStatus,
         sessionError,
         login,
         logout,
         refreshProductionData,
+        isSubmittingOrder,
+        checkoutSelectedCart,
         cart,
         cartCount,
         addToCart: handleAddToCart,

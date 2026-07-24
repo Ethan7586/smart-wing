@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
 import { AndroidStatusBar } from '../../components/mobile/AndroidStatusBar';
 import { AndroidBottomNav } from '../../components/mobile/AndroidBottomNav';
-import { MOCK_PRODUCTS } from '../../adapters/frontendData';
 import {
   Search,
   SlidersHorizontal,
@@ -16,7 +15,12 @@ import {
 } from 'lucide-react';
 
 export const AndroidSearchPage: React.FC = () => {
-  const { setAndroidPage, addToCart, triggerPendingFeature } = useMall();
+  const {
+    setAndroidPage,
+    addToCart,
+    triggerPendingFeature,
+    presentationProducts: MOCK_PRODUCTS,
+  } = useMall();
   const [keyword, setKeyword] = useState('');
   const [searchHistory, setSearchHistory] = useState(['星巴克代金券', '五常大米', '戴森吹风机', '影音通兑']);
   const [showBottomSheet, setShowBottomSheet] = useState(false);

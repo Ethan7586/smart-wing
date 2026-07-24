@@ -115,10 +115,10 @@ export const AndroidProfilePage: React.FC = () => {
               <span>企采订单中心</span>
             </h3>
             <button
-              onClick={() => setAndroidPage('checkout')}
+              onClick={() => setAndroidPage('orders')}
               className="text-[10px] text-gray-400 hover:text-[#1F5EFF] flex items-center"
             >
-              <span>待发货结算</span>
+              <span>全部订单</span>
               <ChevronRight className="w-3 h-3" />
             </button>
           </div>
