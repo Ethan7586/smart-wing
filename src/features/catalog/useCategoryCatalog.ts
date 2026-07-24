@@ -2,6 +2,16 @@ import { useMemo, useState } from 'react';
 import { useMall } from '../../context/MallContext';
 import type { Product, ProductItemType } from '../../types';
 
+const CATEGORY_SEARCH_ALIASES: Record<string, string> = {
+  cat_food: '食品 饮料 粮油 零食 茶叶 咖啡 牛奶',
+  cat_appliance: '家电 空气净化器 吸尘器 冰箱 洗衣机 厨房电器',
+  cat_digital: '数码 办公 电脑 手机 键盘 鼠标 显示器',
+  cat_home: '家居 日用 家具 床品 厨具 灯具 收纳',
+  cat_personal: '个护 清洁 洗护 牙膏 美妆 纸品',
+  cat_supermarket: '商超 文具 母婴 玩具 宠物 运动 户外',
+  cat_welfare_zone: '企业福利 员工福利 福利专区',
+};
+
 export function useCategoryCatalog() {
   const mall = useMall();
   const { routeParams, products } = mall;
@@ -32,7 +42,7 @@ export function useCategoryCatalog() {
       .toLowerCase();
     const result = products.filter((product) => {
       const searchable =
-        `${product.title} ${product.subtitle} ${product.brand} ${product.categoryName}`.toLowerCase();
+        `${product.title} ${product.subtitle} ${product.brand} ${product.categoryName} ${CATEGORY_SEARCH_ALIASES[product.categoryId] ?? ''}`.toLowerCase();
       if (normalizedKeyword && !searchable.includes(normalizedKeyword)) return false;
       if (selectedCategory !== 'all' && product.categoryId !== selectedCategory) return false;
       if (selectedItemType !== 'all' && product.itemType !== selectedItemType) return false;
