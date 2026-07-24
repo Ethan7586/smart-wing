@@ -151,7 +151,7 @@ export const Footer: React.FC = () => {
             <span>·</span>
             <span className="font-bold text-white bg-blue-900/60 border border-blue-500/30 px-2 py-0.5 rounded flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-yellow-300" />
-              技术服务方：雍彻科技 (YONGCHE TECH)
+              技术服务方：雍彻科技 (SGSYEN TECH)
             </span>
           </div>
 

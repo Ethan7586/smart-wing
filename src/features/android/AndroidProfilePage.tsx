@@ -269,7 +269,7 @@ export const AndroidProfilePage: React.FC = () => {
           </div>
 
           <div className="text-[11px] text-gray-500 leading-relaxed pt-1 border-t border-gray-100">
-            <div>技术服务方：雍彻科技（YONGCHE TECH）</div>
+            <div>技术服务方：雍彻科技（SGSYEN TECH）</div>
             <div>系统架构：Material 3 Native B2B2C Enterprise Architecture</div>
           </div>
         </div>

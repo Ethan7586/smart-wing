@@ -13,7 +13,7 @@ export const ArchitecturePage: React.FC = () => (
   <div className="max-w-[1280px] mx-auto px-4 py-6 space-y-5 font-sans">
     <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
       <div>
-        <div className="text-xs font-bold text-[#1F5EFF]">YONGCHE TECH · SYSTEM BLUEPRINT</div>
+        <div className="text-xs font-bold text-[#1F5EFF]">SGSYEN TECH · SYSTEM BLUEPRINT</div>
         <h1 className="text-2xl font-black text-slate-900 mt-1">智慧翼企业福利商城架构图</h1>
         <p className="text-sm text-slate-500 mt-2">
           Canvas 实时绘制的生产型 MVP 全端架构；点击节点可查看职责。

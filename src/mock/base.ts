@@ -19,7 +19,7 @@ import {
 
 export const MOCK_SUPPLIERS: Supplier[] = [
   { id: 'sup_01', name: '京东供应链', type: 'third_party', code: 'JD-API' },
-  { id: 'sup_02', name: '平台自营仓', type: 'self_operated', code: 'YONGCHE-SELF' },
+  { id: 'sup_02', name: '平台自营仓', type: 'self_operated', code: 'SGSYEN-SELF' },
   { id: 'sup_03', name: '集团特选供应', type: 'group_owned', code: 'GROUP-SPECIAL' },
 ];
 

@@ -38,7 +38,7 @@ export const MobileTopBarSwitcher: React.FC = () => {
             <div className="text-[10px] text-blue-200 flex items-center gap-1">
               <span>SMART WING B2B2C</span>
               <span>·</span>
-              <span className="text-yellow-200">技术服务：雍彻科技（YONGCHE TECH）</span>
+              <span className="text-yellow-200">技术服务：雍彻科技（SGSYEN TECH）</span>
             </div>
           </div>
         </div>

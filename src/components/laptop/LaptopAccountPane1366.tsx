@@ -129,7 +129,7 @@ export const LaptopAccountPane1366: React.FC<{
                 全场商品均来自京东供应链及集团自营仓，支持自动对公打款开具增值税专用发票。
               </p>
               <div className="text-[9px] text-gray-400 pt-1 border-t border-gray-700">
-                技术服务：雍彻科技（YONGCHE TECH）
+                技术服务：雍彻科技（SGSYEN TECH）
               </div>
             </div>
           </div>
