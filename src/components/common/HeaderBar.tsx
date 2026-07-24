@@ -54,6 +54,7 @@ export const HeaderBar: React.FC = () => {
     { id: 'cat_digital', label: '数码办公' },
     { id: 'cat_home', label: '家居日用' },
     { id: 'cat_personal', label: '个护清洁' },
+    { id: 'cat_apparel', label: '服饰鞋包' },
     { id: 'cat_supermarket', label: '商超商品' },
   ].filter(item => products.some(product => product.categoryId === item.id));
   useEffect(() => {

@@ -35,6 +35,11 @@ export const SMART_WING_TAXONOMY: TaxonomyNode[] = [
     { code: 'supermarket_family', nameZh: '母婴玩具宠物', nameEn: 'Family, Toys & Pets' },
     { code: 'supermarket_outdoor', nameZh: '运动户外汽配', nameEn: 'Outdoor & Automotive' },
   ] },
+  { code: 'apparel', nameZh: '服饰鞋包', nameEn: 'Fashion & Accessories', children: [
+    { code: 'apparel_footwear', nameZh: '鞋靴服饰', nameEn: 'Footwear & Apparel' },
+    { code: 'apparel_bags', nameZh: '箱包配饰', nameEn: 'Bags & Accessories' },
+    { code: 'apparel_jewelry', nameZh: '珠宝饰品', nameEn: 'Jewelry' },
+  ] },
   { code: 'welfare', nameZh: '企业福利专区', nameEn: 'Enterprise Welfare', children: [
     { code: 'welfare_gift', nameZh: '节日礼赠', nameEn: 'Festival Gifts' },
     { code: 'welfare_care', nameZh: '员工关怀', nameEn: 'Employee Care' },

@@ -9,6 +9,7 @@ const CATEGORY_SEARCH_ALIASES: Record<string, string> = {
   cat_home: '家居 日用 家具 床品 厨具 灯具 收纳',
   cat_personal: '个护 清洁 洗护 牙膏 美妆 纸品',
   cat_supermarket: '商超 文具 母婴 玩具 宠物 运动 户外',
+  cat_apparel: '服饰 鞋靴 箱包 配饰 珠宝 首饰',
   cat_welfare_zone: '企业福利 员工福利 福利专区',
 };
 

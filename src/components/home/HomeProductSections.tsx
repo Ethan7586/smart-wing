@@ -14,6 +14,7 @@ export const HomeProductSections: React.FC = () => {
     { id: 'cat_digital', title: '数码办公', detail: '电脑外设 · 商务办公', tone: 'text-indigo-600', tag: '品质办公' },
     { id: 'cat_home', title: '家居日用', detail: '家纺厨具 · 收纳清洁', tone: 'text-amber-600', tag: '居家优选' },
     { id: 'cat_personal', title: '个护清洁', detail: '洗护美妆 · 日常清洁', tone: 'text-rose-600', tag: '健康关怀' },
+    { id: 'cat_apparel', title: '服饰鞋包', detail: '鞋靴服饰 · 箱包配饰', tone: 'text-fuchsia-600', tag: '品质穿搭' },
     { id: 'cat_supermarket', title: '商超商品', detail: '文具玩具 · 宠物户外', tone: 'text-cyan-600', tag: '生活好物' },
     { id: 'cat_welfare_zone', title: '企业福利专区', detail: '员工关怀 · 节日礼赠', tone: 'text-purple-600', tag: '企业专享' },
   ].filter(category => products.some(product => product.categoryId === category.id));

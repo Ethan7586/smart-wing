@@ -164,6 +164,17 @@ export const MOCK_CATEGORIES: Category[] = [
     ]
   },
   {
+    id: 'cat_apparel',
+    name: '服饰鞋包',
+    iconName: 'Shirt',
+    hotKeywords: ['通勤鞋靴', '品质箱包', '珠宝饰品', '运动户外'],
+    children: [
+      { id: 'sub_apparel_1', name: '鞋靴服饰', items: ['运动鞋', '商务鞋', '休闲服饰'] },
+      { id: 'sub_apparel_2', name: '箱包配饰', items: ['双肩包', '旅行箱', '帽子配饰'] },
+      { id: 'sub_apparel_3', name: '珠宝饰品', items: ['戒指', '项链', '耳饰'] },
+    ]
+  },
+  {
     id: 'cat_supermarket',
     name: '商超商品',
     iconName: 'ShoppingBag',

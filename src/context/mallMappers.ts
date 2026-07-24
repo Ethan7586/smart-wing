@@ -8,6 +8,7 @@ const CATEGORY_MAP: Record<string, { id: string; name: string }> = {
   home: { id: 'cat_home', name: '家居日用' },
   personal: { id: 'cat_personal', name: '个护清洁' },
   supermarket: { id: 'cat_supermarket', name: '商超商品' },
+  apparel: { id: 'cat_apparel', name: '服饰鞋包' },
   welfare: { id: 'cat_welfare_zone', name: '企业福利专区' },
   'virtual-card': { id: 'cat_virtual', name: '虚拟卡券' },
   movie: { id: 'cat_movie', name: '电影娱乐' },
