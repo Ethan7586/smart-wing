@@ -6,6 +6,7 @@
 ## 一句话目标
 
 在不重构主链路的前提下，把当前 MVP 从“演示级内测闭环”升级到“可审计的生产级闭环”：
+
 - 鉴权从“仅 permission 列表”升级为“会员状态 + scope + 角色权限”
 - 会话可吊销、会话状态可验证
 - 高敏感操作服务端强校验
@@ -20,6 +21,7 @@
 - 基线结论：P0 内测通过，主交易闭环可跑，但权限底座尚未完善。
 
 重点文件：
+
 - [P0验收清单](/C:/Users/Ethan/Desktop/01-Projects/03-client-and-contract-projects/02-pre-contract/Shop/smart wing/deliverables/P0-验收清单（zhudatuan.com-内测）.md)
 - [生产型MVP开发说明](/C:/Users/Ethan/Desktop/01-Projects/03-client-and-contract-projects/02-pre-contract/Shop/smart wing/docs/生产型MVP开发说明.md)
 - [路由总入口](/C:/Users/Ethan/Desktop/01-Projects/03-client-and-contract-projects/02-pre-contract/Shop/smart wing/worker/api/router.ts)
@@ -32,6 +34,7 @@
 - [冒烟脚本](/C:/Users/Ethan/Desktop/01-Projects/03-client-and-contract-projects/02-pre-contract/Shop/smart wing/scripts/verify-p0.mjs)
 
 可复用参考（成熟蓝本）：
+
 - [mvp-preview 会员权限设计](/C:/Users/Ethan/Desktop/01-Projects/03-client-and-contract-projects/02-pre-contract/Shop/mvp-preview/docs/membership-access-design.md)
 - [mvp-preview 授权核心](/C:/Users/Ethan/Desktop/01-Projects/03-client-and-contract-projects/02-pre-contract/Shop/mvp-preview/worker/api/authorizationCore.ts)
 - [mvp-preview 会员路由](/C:/Users/Ethan/Desktop/01-Projects/03-client-and-contract-projects/02-pre-contract/Shop/mvp-preview/worker/api/membershipRoutes.ts)
@@ -52,13 +55,16 @@
 ## 对接执行清单（直接接手就能做）
 
 ### 阶段0：准备（0.5 天）
+
 - 新建分支 `feat/authz-membership-bridge`
 - 拉取当前最新主干
 - 先跑基线：`npm run quality`（基线通过后再改）
 - 备份现有 `smart wing` 的 `supabase/migrations` 与 `worker/api`
 
 ### 阶段1：数据与 RPC（1 天）
+
 新增以下能力（保留现有表，不删旧模型）：
+
 - `members`（自然人）
 - `memberships`（身份关系 + 状态）
 - `roles / permissions / role_permissions`
@@ -67,37 +73,46 @@
 - `audit_events`（权限操作与关键变更）
 
 新增/修订 RPC：
+
 - 鉴权解析、管理权限校验、角色授予/回收、成员状态变更、审计写入
 
 ### 阶段2：Worker 鉴权内核（1 天）
+
 在 Worker 侧建立/引入统一鉴权：
+
 - 新增 `authorizationCore.ts`
 - `authorize(actor, permission, scope)`：必须同时校验权限+scope+状态
 - `can(actor, permission)` 兼容旧接口时仍调用 `authorize`
 - `resolveActor` 补 sessionId 回传与状态检查
 
 建议改造文件：
+
 - [smart wing/worker/api/auth.ts](/C:/Users/Ethan/Desktop/01-Projects/03-client-and-contract-projects/02-pre-contract/Shop/smart wing/worker/api/auth.ts)
 - [smart wing/worker/api/types.ts](/C:/Users/Ethan/Desktop/01-Projects/03-client-and-contract-projects/02-pre-contract/Shop/smart wing/worker/api/types.ts)
 
 ### 阶段3：路由逐步加权（1~2 天）
+
 优先级从高到低：
+
 1. `handleCreateOrder / handleInternalPayment / handleFinanceReconciliation`
 2. `handleAfterSales / handleCreateAfterSale / handleExecuteRefund`
 3. `handleCart / handleAddresses / handleAccountLedgers`
 4. 补 `admin/membership` 管理接口（列表、状态、授权）
 
 ### 阶段4：会话与审计闭环（0.5 天）
+
 - 每次请求返回 401/403 语义统一；
 - 会话失效/吊销触发后端拒绝；
 - 高敏感动作（`role`、`refund`、`finance`）写入 `audit_logs` 并关联 `requestId`。
 
 ### 阶段5：前端同步（1 天）
+
 - 权限态展示（按钮显示/不可点）可做增强，不作为安全边界；
 - 会话错误码文案统一；
 - `MvpSessionBar` 与登录态提示与后端 401/403 对齐。
 
 ### 阶段6：验收与发布前检查（0.5 天）
+
 - `npm run quality`
 - `npm run verify:p0`
 - 增加单测：
@@ -130,6 +145,7 @@
 - `GET /api/v1/finance/reconciliation`
 
 对应路由实现：
+
 - [worker/api/router.ts](/C:/Users/Ethan/Desktop/01-Projects/03-client-and-contract-projects/02-pre-contract/Shop/smart wing/worker/api/router.ts)
 
 ---
@@ -141,6 +157,7 @@
 > 每做完一个里程碑，提交：`git diff`、执行命令结果、数据库变更记录、测试截图。
 
 推荐命令顺序：
+
 ```bash
 cd "C:/Users/Ethan/Desktop/01-Projects/03-client-and-contract-projects/02-pre-contract/Shop/smart wing"
 cp .env.example .env
@@ -162,4 +179,3 @@ npm run quality
 
 `smart wing` 结构已足够稳定，可直接向“RBAC+scope+审计”的方向改造。  
 请按上面阶段推进，不要改前后端主链路业务逻辑，只增强安全和权限边界，即可快速到 9.0+ 质检水平。
-

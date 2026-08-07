@@ -7,7 +7,7 @@ Type=simple
 User=www-data
 Group=www-data
 WorkingDirectory=/var/www/zhudatuan
-ExecStart=/usr/bin/npm run start
+ExecStart=/usr/bin/node --env-file=/var/www/zhudatuan/.env.production node_modules/vinext/dist/cli.js start
 Restart=on-failure
 RestartSec=10
 Environment=NODE_ENV=production
@@ -15,6 +15,9 @@ Environment=PORT=3000
 # 生产环境必须禁用开发模式
 Environment=APP_ENV=production
 Environment=AUTH_MODE=production
+# SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / SESSION_SIGNING_KEY /
+# PII_ENCRYPTION_KEY / DEMO_LOGIN_CODE come from .env.production above
+# (created from .env.example on the server, never committed to git).
 
 # 资源限制
 LimitAS=2G

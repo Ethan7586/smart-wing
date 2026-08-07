@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { UserProfile, EnterpriseMall, Product, CartItem, Order, UserCoupon, DeliveryAddress, AccountLog, OrderStatus } from '../types';
+import { UserProfile, EnterpriseMall, Product, CartItem, Order, DeliveryAddress, AccountLog } from '../types';
 import { mallService } from '../services/mallService';
 import { productionApi, ProductionApiError } from '../services/productionApi';
 import { MOCK_CATEGORIES, toFrontendOrders, toFrontendProducts } from '../adapters/frontendData';
@@ -38,15 +38,12 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCart(nextCart);
   }, [products]);
   const refreshServerAddresses = useCallback(async () => setAddresses((await productionApi.listAddresses()).items), []);
-
   const removeToast = useCallback((id: string) => setToasts((prev) => prev.filter((t) => t.id !== id)), []);
   const showToast = useCallback(
     (text: string, type: 'success' | 'info' | 'error' | 'warning' = 'success') => {
       const id = `toast_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`;
       setToasts((prev) => [...prev, { id, text, type }]);
-      setTimeout(() => {
-        removeToast(id);
-      }, 3500);
+      setTimeout(() => removeToast(id), 3500);
     },
     [removeToast]
   );

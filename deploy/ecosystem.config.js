@@ -3,8 +3,13 @@ module.exports = {
     {
       name: 'zhudatuan',
       cwd: '/var/www/zhudatuan',
-      script: 'npm',
-      args: 'run start',
+      script: 'node_modules/vinext/dist/cli.js',
+      args: 'start',
+      // SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / SESSION_SIGNING_KEY /
+      // PII_ENCRYPTION_KEY / DEMO_LOGIN_CODE must NOT live in this file (it's
+      // committed to git). They're loaded from .env.production on the server
+      // via --env-file; create that file from .env.example before first start.
+      node_args: ['--env-file=.env.production'],
       interpreter: '/usr/bin/node',
       env: {
         NODE_ENV: 'production',
