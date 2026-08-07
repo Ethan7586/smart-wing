@@ -39,14 +39,17 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [products]);
   const refreshServerAddresses = useCallback(async () => setAddresses((await productionApi.listAddresses()).items), []);
 
-  const showToast = (text: string, type: 'success' | 'info' | 'error' | 'warning' = 'success') => {
-    const id = `toast_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`;
-    setToasts((prev) => [...prev, { id, text, type }]);
-    setTimeout(() => {
-      removeToast(id);
-    }, 3500);
-  };
-  const removeToast = (id: string) => setToasts((prev) => prev.filter((t) => t.id !== id));
+  const removeToast = useCallback((id: string) => setToasts((prev) => prev.filter((t) => t.id !== id)), []);
+  const showToast = useCallback(
+    (text: string, type: 'success' | 'info' | 'error' | 'warning' = 'success') => {
+      const id = `toast_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`;
+      setToasts((prev) => [...prev, { id, text, type }]);
+      setTimeout(() => {
+        removeToast(id);
+      }, 3500);
+    },
+    [removeToast]
+  );
 
   const { refreshProductionData } = useProductionSync({
     setProducts,

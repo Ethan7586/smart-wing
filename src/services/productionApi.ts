@@ -162,6 +162,10 @@ async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers,
     credentials: 'same-origin',
   });
+  const isJson = (response.headers.get('content-type') ?? '').includes('application/json');
+  if (!isJson) {
+    throw new ProductionApiError(response.ok ? '服务响应格式异常' : `服务请求失败（${response.status}）`, response.status, 'NON_JSON_RESPONSE');
+  }
   const body = (await response.json()) as T | ErrorEnvelope;
   if (!response.ok) {
     const error = (body as ErrorEnvelope).error;

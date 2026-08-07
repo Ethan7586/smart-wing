@@ -16,15 +16,15 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
   const requestId = request.headers.get('cf-ray') ?? crypto.randomUUID();
 
   try {
-    if (url.pathname === '/api/health') return handleHealth(request, env, requestId);
+    if (url.pathname === '/api/health') return await handleHealth(request, env, requestId);
     if (url.pathname === `${API_PREFIX}/products`) {
-      return handleProducts(request, env, requestId);
+      return await handleProducts(request, env, requestId);
     }
     if (url.pathname === `${API_PREFIX}/auth/login`) {
-      return handleLogin(request, env, requestId);
+      return await handleLogin(request, env, requestId);
     }
     if (url.pathname === `${API_PREFIX}/auth/logout`) {
-      return handleLogout(request, requestId);
+      return await handleLogout(request, requestId);
     }
 
     const actor = await resolveActor(request, env);
@@ -32,47 +32,47 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
       return apiError(401, 'AUTHENTICATION_REQUIRED', '生产身份认证尚未配置，服务端已拒绝匿名业务操作', requestId);
     }
     if (url.pathname === `${API_PREFIX}/bootstrap`) {
-      return handleBootstrap(request, env, actor, requestId);
+      return await handleBootstrap(request, env, actor, requestId);
     }
     if (url.pathname === `${API_PREFIX}/auth/session`) {
       return json({ authenticated: true, actor, requestId });
     }
     if (url.pathname === `${API_PREFIX}/accounts`) {
-      return handleAccounts(request, env, actor, requestId);
+      return await handleAccounts(request, env, actor, requestId);
     }
     if (url.pathname === `${API_PREFIX}/cart`) {
-      return handleCart(request, env, actor, requestId);
+      return await handleCart(request, env, actor, requestId);
     }
     if (url.pathname === `${API_PREFIX}/addresses`) {
-      return handleAddresses(request, env, actor, requestId);
+      return await handleAddresses(request, env, actor, requestId);
     }
     const addressMatch = url.pathname.match(/^\/api\/v1\/addresses\/([^/]+)$/);
     if (addressMatch) {
-      return handleDeleteAddress(request, env, actor, decodeURIComponent(addressMatch[1]), requestId);
+      return await handleDeleteAddress(request, env, actor, decodeURIComponent(addressMatch[1]), requestId);
     }
     const cartItemMatch = url.pathname.match(/^\/api\/v1\/cart\/([^/]+)$/);
     if (cartItemMatch) {
-      return handleDeleteCartItem(request, env, actor, decodeURIComponent(cartItemMatch[1]), requestId);
+      return await handleDeleteCartItem(request, env, actor, decodeURIComponent(cartItemMatch[1]), requestId);
     }
     if (url.pathname === `${API_PREFIX}/account-ledgers`) {
-      return handleAccountLedgers(request, env, actor, requestId);
+      return await handleAccountLedgers(request, env, actor, requestId);
     }
     if (url.pathname === `${API_PREFIX}/after-sales`) {
-      return request.method === 'POST' ? handleCreateAfterSale(request, env, actor, requestId) : handleAfterSales(request, env, actor, requestId);
+      return request.method === 'POST' ? await handleCreateAfterSale(request, env, actor, requestId) : await handleAfterSales(request, env, actor, requestId);
     }
     if (url.pathname === `${API_PREFIX}/orders`) {
-      return request.method === 'POST' ? handleCreateOrder(request, env, actor, requestId) : handleOrders(request, env, actor, requestId);
+      return request.method === 'POST' ? await handleCreateOrder(request, env, actor, requestId) : await handleOrders(request, env, actor, requestId);
     }
     if (url.pathname === `${API_PREFIX}/finance/reconciliation`) {
-      return handleFinanceReconciliation(request, env, actor, requestId);
+      return await handleFinanceReconciliation(request, env, actor, requestId);
     }
     const refundMatch = url.pathname.match(/^\/api\/v1\/after-sales\/([^/]+)\/refund$/);
     if (refundMatch) {
-      return handleExecuteRefund(request, env, actor, decodeURIComponent(refundMatch[1]), requestId);
+      return await handleExecuteRefund(request, env, actor, decodeURIComponent(refundMatch[1]), requestId);
     }
     const paymentMatch = url.pathname.match(/^\/api\/v1\/orders\/([^/]+)\/payments\/internal$/);
     if (paymentMatch) {
-      return handleInternalPayment(request, env, actor, decodeURIComponent(paymentMatch[1]), requestId);
+      return await handleInternalPayment(request, env, actor, decodeURIComponent(paymentMatch[1]), requestId);
     }
     return apiError(404, 'API_NOT_FOUND', '接口不存在', requestId);
   } catch (error) {
