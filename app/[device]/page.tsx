@@ -12,4 +12,3 @@ import App from '../../src/App';
 export default function DevicePage() {
   return <App />;
 }
-

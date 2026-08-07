@@ -65,4 +65,3 @@ describe('multi-device frontend data adapter', () => {
     expect(adapted.items[0].product.id).toBe(products[0].id);
   });
 });
-

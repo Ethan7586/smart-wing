@@ -2,18 +2,14 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useMall } from '../../context/MallContext';
 import { productionApi, ProductionApiError } from '../../services/productionApi';
 import { calculatePaymentAllocation } from '../../utils/finance';
+import { getOutOfStockActionHint } from '../../utils/inventory';
 
 export function useCheckoutModel() {
   const mall = useMall();
-  const {
-    cart, user, addresses, addAddress, navigateTo, showToast, sessionStatus,
-    refreshProductionData, removeCartItem
-  } = mall;
+  const { cart, user, addresses, addAddress, navigateTo, showToast, sessionStatus, refreshProductionData, removeCartItem } = mall;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const selectedItems = useMemo(() => cart.filter((item) => item.selected), [cart]);
-  const [selectedAddrId, setSelectedAddrId] = useState(
-    addresses.find((address) => address.isDefault)?.id || addresses[0]?.id || ''
-  );
+  const [selectedAddrId, setSelectedAddrId] = useState(addresses.find((address) => address.isDefault)?.id || addresses[0]?.id || '');
   const [showAddAddrModal, setShowAddAddrModal] = useState(false);
   const [newAddrForm, setNewAddrForm] = useState({
     name: user.name,
@@ -23,47 +19,51 @@ export function useCheckoutModel() {
     district: '西城区',
     detail: '',
     isDefault: false,
-    tag: '公司'
+    tag: '公司',
   });
-  const totalGoodsAmount = useMemo(
-    () =>
-      selectedItems.reduce(
-        (total, item) => total + item.product.priceWelfare * item.quantity,
-        0
-      ),
-    [selectedItems]
-  );
+  const totalGoodsAmount = useMemo(() => selectedItems.reduce((total, item) => total + item.product.priceWelfare * item.quantity, 0), [selectedItems]);
+  const invalidItems = useMemo(() => selectedItems.filter((item) => item.product.stock <= 0 || item.quantity > item.product.stock), [selectedItems]);
   const [useWelfare, setUseWelfare] = useState(true);
-  const [welfareInput, setWelfareInput] = useState(() =>
-    Math.min(totalGoodsAmount, user.welfareBalance)
-  );
-  const effectiveWelfareInput = useWelfare
-    ? Math.min(totalGoodsAmount, user.welfareBalance, Math.max(0, welfareInput))
-    : 0;
+  const [welfareInput, setWelfareInput] = useState(() => Math.min(totalGoodsAmount, user.welfareBalance));
+  const effectiveWelfareInput = useWelfare ? Math.min(totalGoodsAmount, user.welfareBalance, Math.max(0, welfareInput)) : 0;
   const remAfterWelfare = Math.max(0, totalGoodsAmount - effectiveWelfareInput);
   const [useMeal, setUseMeal] = useState(true);
-  const [mealInput, setMealInput] = useState(() =>
-    Math.min(remAfterWelfare, user.mealBalance)
-  );
+  const [mealInput, setMealInput] = useState(() => Math.min(remAfterWelfare, user.mealBalance));
   useEffect(() => {
-    setMealInput((previous) =>
-      Math.min(previous, remAfterWelfare, user.mealBalance)
-    );
+    const fallback = addresses.find((address) => address.isDefault)?.id || addresses[0]?.id || '';
+    if (!addresses.length || selectedAddrId === fallback) return;
+    if (!addresses.some((address) => address.id === selectedAddrId)) setSelectedAddrId(fallback);
+  }, [addresses, selectedAddrId]);
+  useEffect(() => {
+    setMealInput((previous) => Math.min(previous, remAfterWelfare, user.mealBalance));
   }, [remAfterWelfare, user.mealBalance]);
-  const paymentAllocation = calculatePaymentAllocation(
-    totalGoodsAmount,
-    effectiveWelfareInput,
-    useMeal ? mealInput : 0,
-    user.welfareBalance,
-    user.mealBalance
-  );
+  const paymentAllocation = calculatePaymentAllocation(totalGoodsAmount, effectiveWelfareInput, useMeal ? mealInput : 0, user.welfareBalance, user.mealBalance);
   const finalWechatTopUp = paymentAllocation.external;
-  const [invoiceType, setInvoiceType] = useState<'none' | 'personal' | 'company'>(
-    'company'
-  );
+  const [invoiceType, setInvoiceType] = useState<'none' | 'personal' | 'company'>('company');
   const [invoiceTitle, setInvoiceTitle] = useState(user.enterpriseName);
   const [invoiceTaxNo, setInvoiceTaxNo] = useState('91110000100011889X');
   const [userRemark, setUserRemark] = useState('');
+  const submitBlocker = useMemo(() => {
+    if (selectedItems.length === 0) {
+      return '请先返回购物车选择要结算的商品';
+    }
+    if (!selectedAddrId) {
+      return '请先选择或新增收货地址';
+    }
+    if (selectedItems.some((item) => item.product.stock <= 0 || item.quantity > item.product.stock)) {
+      return `${getOutOfStockActionHint(invalidItems.length)}请先返回购物车修正后再提交`;
+    }
+    if (selectedItems.some((item) => !item.product.skuId)) {
+      return '检测到旧版演示商品，请清空后从最新商品目录重新加入';
+    }
+    if (sessionStatus !== 'authenticated') {
+      return '请先点击页面顶部“登录MVP”，再提交测试订单';
+    }
+    if (finalWechatTopUp > 0) {
+      return '当前演示环境仅支持内部账户先支付，请先将福利卡/餐卡金额调至可全额支付。';
+    }
+    return '';
+  }, [finalWechatTopUp, invalidItems.length, selectedAddrId, selectedItems, sessionStatus]);
   const groupedItems = useMemo(() => {
     const groups = new Map<string, typeof selectedItems>();
     selectedItems.forEach((item) => {
@@ -76,8 +76,12 @@ export function useCheckoutModel() {
 
   const handleAddNewAddress = (event: FormEvent) => {
     event.preventDefault();
-    if (!newAddrForm.detail) {
+    if (!newAddrForm.name || !newAddrForm.phone || !newAddrForm.province || !newAddrForm.city || !newAddrForm.district || !newAddrForm.detail) {
       showToast('请填写详细收货地址', 'warning');
+      return;
+    }
+    if (!/^1\d{10}$/.test(newAddrForm.phone)) {
+      showToast('请输入真实的大陆手机号', 'warning');
       return;
     }
     addAddress(newAddrForm);
@@ -85,23 +89,13 @@ export function useCheckoutModel() {
   };
 
   const handleSubmitOrder = async () => {
-    const selectedAddress = addresses.find(
-      (address) => address.id === selectedAddrId
-    );
+    if (submitBlocker) {
+      showToast(submitBlocker, 'warning');
+      return;
+    }
+    const selectedAddress = addresses.find((address) => address.id === selectedAddrId);
     if (!selectedAddress) {
       showToast('请选择有效的收货地址', 'warning');
-      return;
-    }
-    if (sessionStatus !== 'authenticated') {
-      showToast('请先点击页面顶部“登录MVP”，再提交测试订单', 'warning');
-      return;
-    }
-    if (finalWechatTopUp > 0) {
-      showToast('尚未接入真实微信支付，请将福利卡与餐卡调整为全额抵扣', 'warning');
-      return;
-    }
-    if (selectedItems.some((item) => !item.product.skuId)) {
-      showToast('购物车存在旧版演示商品，请清空后从最新商品目录重新加入', 'warning');
       return;
     }
     setIsSubmitting(true);
@@ -111,7 +105,7 @@ export function useCheckoutModel() {
         {
           items: selectedItems.map((item) => ({
             skuId: item.product.skuId!,
-            quantity: item.quantity
+            quantity: item.quantity,
           })),
           recipient: {
             name: selectedAddress.name,
@@ -119,8 +113,8 @@ export function useCheckoutModel() {
             province: selectedAddress.province,
             city: selectedAddress.city,
             district: selectedAddress.district,
-            address: selectedAddress.detail
-          }
+            address: selectedAddress.detail,
+          },
         },
         `order-${idempotencyRoot}`
       );
@@ -128,17 +122,16 @@ export function useCheckoutModel() {
         created.order.id,
         {
           welfareCents: Math.round(paymentAllocation.welfare * 100),
-          mealCents: Math.round(paymentAllocation.meal * 100)
+          mealCents: Math.round(paymentAllocation.meal * 100),
         },
         `payment-${idempotencyRoot}`
       );
-      selectedItems.forEach((item) => removeCartItem(item.id));
+      await Promise.all(selectedItems.map((item) => removeCartItem(item.id)));
       await refreshProductionData();
       showToast('订单已写入生产型数据库并完成福利账户支付', 'success');
       navigateTo('orders');
     } catch (error) {
-      const message =
-        error instanceof ProductionApiError ? error.message : '服务暂时不可用';
+      const message = error instanceof ProductionApiError ? error.message : '服务暂时不可用';
       showToast(`提交订单失败：${message}`, 'error');
     } finally {
       setIsSubmitting(false);
@@ -146,13 +139,40 @@ export function useCheckoutModel() {
   };
 
   return {
-    ...mall, isSubmitting, selectedItems, selectedAddrId, setSelectedAddrId,
-    showAddAddrModal, setShowAddAddrModal, newAddrForm, setNewAddrForm,
-    totalGoodsAmount, useWelfare, setUseWelfare, welfareInput, setWelfareInput,
-    remAfterWelfare, useMeal, setUseMeal, mealInput, setMealInput,
-    paymentAllocation, finalWechatTopUp, invoiceType, setInvoiceType,
-    invoiceTitle, setInvoiceTitle, invoiceTaxNo, setInvoiceTaxNo, userRemark,
-    setUserRemark, groupedItems, handleAddNewAddress, handleSubmitOrder
+    ...mall,
+    isSubmitting,
+    selectedItems,
+    selectedAddrId,
+    setSelectedAddrId,
+    showAddAddrModal,
+    setShowAddAddrModal,
+    newAddrForm,
+    setNewAddrForm,
+    totalGoodsAmount,
+    useWelfare,
+    setUseWelfare,
+    welfareInput,
+    setWelfareInput,
+    remAfterWelfare,
+    useMeal,
+    setUseMeal,
+    mealInput,
+    setMealInput,
+    paymentAllocation,
+    finalWechatTopUp,
+    invoiceType,
+    setInvoiceType,
+    invoiceTitle,
+    setInvoiceTitle,
+    invoiceTaxNo,
+    setInvoiceTaxNo,
+    userRemark,
+    setUserRemark,
+    invalidItems,
+    groupedItems,
+    submitBlocker,
+    handleAddNewAddress,
+    handleSubmitOrder,
   };
 }
 

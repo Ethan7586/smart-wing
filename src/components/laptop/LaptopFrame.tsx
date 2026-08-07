@@ -48,9 +48,7 @@ export const LaptopFrame: React.FC = () => {
       <LaptopHeader activeTab={laptopPage} onSelectTab={handleSelectTab} />
 
       {/* 3. 笔记本端核心 6 页面视图渲染区 */}
-      <main className="flex-1 w-full overflow-x-hidden">
-        {renderLaptopContent()}
-      </main>
+      <main className="flex-1 w-full overflow-x-hidden">{renderLaptopContent()}</main>
 
       {/* 4. 快速预览 Modal 与 Toast 提示框 */}
       <QuickViewModal />

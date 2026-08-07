@@ -29,10 +29,7 @@ export const WeChatCapsule: React.FC<WeChatCapsuleProps> = ({ title, showBack, o
         {/* 左侧：企业切换或返回按钮 */}
         <div className="flex items-center gap-2 max-w-[200px]">
           {showBack ? (
-            <button
-              onClick={onBack}
-              className="text-white hover:text-yellow-300 transition-colors p-1 flex items-center gap-0.5 text-xs font-medium cursor-pointer"
-            >
+            <button onClick={onBack} className="text-white hover:text-yellow-300 transition-colors p-1 flex items-center gap-0.5 text-xs font-medium cursor-pointer">
               <span>‹</span>
               <span>返回</span>
             </button>
@@ -50,21 +47,15 @@ export const WeChatCapsule: React.FC<WeChatCapsuleProps> = ({ title, showBack, o
               {/* 企业切换 Popover */}
               {showMallDropdown && (
                 <div className="absolute left-0 top-full mt-1.5 w-52 bg-white text-gray-800 rounded-xl shadow-xl border border-gray-100 p-1.5 z-50 text-xs animate-in fade-in duration-150">
-                  <div className="text-[10px] text-gray-400 font-bold px-2.5 py-1 uppercase tracking-wider">
-                    切换所属企采空间
-                  </div>
-                  {malls.map(m => (
+                  <div className="text-[10px] text-gray-400 font-bold px-2.5 py-1 uppercase tracking-wider">切换所属企采空间</div>
+                  {malls.map((m) => (
                     <button
                       key={m.id}
                       onClick={() => {
                         switchMall(m.id);
                         setShowMallDropdown(false);
                       }}
-                      className={`w-full text-left px-2.5 py-2 rounded-lg transition-colors flex items-center justify-between ${
-                        m.id === currentMall.id
-                          ? 'bg-blue-50 text-[#1F5EFF] font-bold'
-                          : 'hover:bg-gray-50 text-gray-700'
-                      }`}
+                      className={`w-full text-left px-2.5 py-2 rounded-lg transition-colors flex items-center justify-between ${m.id === currentMall.id ? 'bg-blue-50 text-[#1F5EFF] font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
                     >
                       <span className="truncate">{m.mallName}</span>
                       {m.id === currentMall.id && <span className="w-1.5 h-1.5 rounded-full bg-[#1F5EFF]" />}
@@ -77,11 +68,7 @@ export const WeChatCapsule: React.FC<WeChatCapsuleProps> = ({ title, showBack, o
         </div>
 
         {/* 中间：页面标题 (有 title 时显示) */}
-        {title && (
-          <div className="font-bold text-sm tracking-tight truncate max-w-[120px] text-center">
-            {title}
-          </div>
-        )}
+        {title && <div className="font-bold text-sm tracking-tight truncate max-w-[120px] text-center">{title}</div>}
 
         {/* 右侧：高保真微信小程序原生胶囊组件 (Capsule) */}
         <div className="flex items-center bg-black/20 backdrop-blur-sm border border-white/25 rounded-full px-2 py-1 text-white gap-2 flex-shrink-0">
@@ -93,11 +80,7 @@ export const WeChatCapsule: React.FC<WeChatCapsuleProps> = ({ title, showBack, o
             <MoreHorizontal className="w-4 h-4" />
           </button>
           <div className="w-[1px] h-3 bg-white/30" />
-          <button
-            onClick={() => triggerPendingFeature('微信小程序胶囊关闭/挂起', '模拟退出小程序回到微信聊天列表。')}
-            className="hover:text-[#FF7A00] transition-colors cursor-pointer"
-            title="关闭小程序"
-          >
+          <button onClick={() => triggerPendingFeature('微信小程序胶囊关闭/挂起', '模拟退出小程序回到微信聊天列表。')} className="hover:text-[#FF7A00] transition-colors cursor-pointer" title="关闭小程序">
             <Circle className="w-3.5 h-3.5 fill-current opacity-90" />
           </button>
         </div>

@@ -10,10 +10,7 @@ export const PendingInterfaceModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-100 font-sans text-gray-800 relative">
-        <button
-          onClick={closePendingFeatureModal}
-          className="absolute right-3.5 top-3.5 text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
-        >
+        <button onClick={closePendingFeatureModal} className="absolute right-3.5 top-3.5 text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-gray-100 transition-colors cursor-pointer">
           <X className="w-5 h-5" />
         </button>
 
@@ -23,12 +20,8 @@ export const PendingInterfaceModal: React.FC = () => {
           </div>
 
           <div>
-            <span className="inline-block bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1">
-              原生 SDK 接口扩展
-            </span>
-            <h3 className="text-base font-black text-gray-900">
-              {pendingFeature.featureName} · 接口待接入
-            </h3>
+            <span className="inline-block bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1">原生 SDK 接口扩展</span>
+            <h3 className="text-base font-black text-gray-900">{pendingFeature.featureName} · 接口待接入</h3>
           </div>
 
           <p className="text-xs text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-xl border border-gray-200/80">
@@ -37,10 +30,7 @@ export const PendingInterfaceModal: React.FC = () => {
           </p>
 
           <div className="w-full pt-2 flex items-center gap-2">
-            <button
-              onClick={closePendingFeatureModal}
-              className="w-full bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer"
-            >
+            <button onClick={closePendingFeatureModal} className="w-full bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer">
               已知晓 (高保真交互预览)
             </button>
           </div>

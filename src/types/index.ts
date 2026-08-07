@@ -5,13 +5,13 @@
 
 export type WelfareAccountType = 'welfare' | 'meal' | 'wechat' | 'cash';
 
-export type ProductItemType = 
-  | 'physical'        // 实物商品
-  | 'virtual_coupon'  // 虚拟卡券
-  | 'movie_ticket'    // 电影票
-  | 'supermarket'     // 商超商品
-  | 'life_service'    // 生活服务
-  | 'nearby_store';   // 附近门店核销
+export type ProductItemType =
+  | 'physical' // 实物商品
+  | 'virtual_coupon' // 虚拟卡券
+  | 'movie_ticket' // 电影票
+  | 'supermarket' // 商超商品
+  | 'life_service' // 生活服务
+  | 'nearby_store'; // 附近门店核销
 
 export type SupplierType = 'third_party' | 'self_operated' | 'group_owned';
 
@@ -80,7 +80,7 @@ export interface Product {
   descriptionHtml?: string;
   descriptionDetailText?: string[];
   nearbyStoreInfo?: NearbyStoreInfo;
-  
+
   // 预留分销商字段
   distributorId?: string;
 }
@@ -104,7 +104,7 @@ export interface CartItem {
   quantity: number;
   selectedSpec: Record<string, string>;
   selected: boolean;
-  
+
   // 预留分销商字段
   distributorId?: string;
 }
@@ -128,12 +128,12 @@ export interface InvoiceInfo {
   email?: string;
 }
 
-export type OrderStatus = 
-  | 'pending_payment'   // 待付款
-  | 'pending_shipment'  // 待发货
-  | 'pending_receipt'   // 待收货
-  | 'completed'         // 已完成
-  | 'after_sale';       // 售后中
+export type OrderStatus =
+  | 'pending_payment' // 待付款
+  | 'pending_shipment' // 待发货
+  | 'pending_receipt' // 待收货
+  | 'completed' // 已完成
+  | 'after_sale'; // 售后中
 
 export interface OrderItem {
   productId: string;
@@ -150,8 +150,8 @@ export interface OrderPaymentDetail {
   totalGoodsAmount: number;
   shippingFee: number;
   welfareDeducted: number; // 福利卡扣减
-  mealDeducted: number;    // 餐卡扣减
-  wechatPaid: number;      // 微信支付/补差
+  mealDeducted: number; // 餐卡扣减
+  wechatPaid: number; // 微信支付/补差
   finalPaidAmount: number;
   payMethodText: string;
   paidAt?: string;
@@ -178,7 +178,7 @@ export interface Order {
   trackingNo?: string;
   expressCompany?: string;
   verificationCode?: string; // 虚拟核销码/兑换码
-  
+
   // 预留分销商字段
   distributorId?: string;
 }
@@ -210,7 +210,7 @@ export interface UserCoupon {
   storeAddress?: string;
   usageRules: string[];
   sourceOrderNo?: string;
-  
+
   // 预留分销商字段
   distributorId?: string;
 }
@@ -228,7 +228,7 @@ export interface AfterSaleRecord {
   refundAmount: number;
   description: string;
   items: OrderItem[];
-  
+
   // 预留分销商字段
   distributorId?: string;
 }
@@ -241,7 +241,7 @@ export interface EnterpriseMall {
   logoText: string;
   badge: string;
   welcomeBanner: string;
-  
+
   // 预留分销商字段
   distributorId?: string;
 }
@@ -260,7 +260,7 @@ export interface UserProfile {
   welfareBalance: number;
   mealBalance: number;
   couponCount: number;
-  
+
   // 预留分销商字段
   distributorId?: string;
 }

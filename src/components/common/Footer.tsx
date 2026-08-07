@@ -6,16 +6,7 @@
 
 import React from 'react';
 import { useMall } from '../../context/MallContext';
-import {
-  ShieldCheck,
-  Truck,
-  CreditCard,
-  Headphones,
-  Award,
-  Building2,
-  Lock,
-  Sparkles
-} from 'lucide-react';
+import { ShieldCheck, Truck, CreditCard, Headphones, Award, Building2, Lock, Sparkles } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const { currentMall, navigateTo } = useMall();
@@ -70,51 +61,77 @@ export const Footer: React.FC = () => {
       {/* 2. 底部栏目链接 */}
       <div className="max-w-[1280px] mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-5 gap-8">
         <div>
-          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[#1F5EFF] pl-2">
-            关于商城
-          </div>
+          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[#1F5EFF] pl-2">关于商城</div>
           <ul className="space-y-2 text-gray-400">
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>商城简介</li>
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>企业福利解决方案</li>
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('architecture')}>系统 Canvas 架构图</li>
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>供应商入驻标准</li>
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>分销服务商政策 (distributorId)</li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>
+              商城简介
+            </li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>
+              企业福利解决方案
+            </li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('architecture')}>
+              系统 Canvas 架构图
+            </li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>
+              供应商入驻标准
+            </li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>
+              分销服务商政策 (distributorId)
+            </li>
           </ul>
         </div>
 
         <div>
-          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[#1F5EFF] pl-2">
-            福利与账户
-          </div>
+          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[#1F5EFF] pl-2">福利与账户</div>
           <ul className="space-y-2 text-gray-400">
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('balance', { accountTab: 'welfare' })}>福利卡充值与规则</li>
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('balance', { accountTab: 'meal' })}>餐卡使用规则与补差</li>
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('coupons')}>电子卡券与核销指南</li>
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('balance')}>账户交易日志查询</li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('balance', { accountTab: 'welfare' })}>
+              福利卡充值与规则
+            </li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('balance', { accountTab: 'meal' })}>
+              餐卡使用规则与补差
+            </li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('coupons')}>
+              电子卡券与核销指南
+            </li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('balance')}>
+              账户交易日志查询
+            </li>
           </ul>
         </div>
 
         <div>
-          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[#1F5EFF] pl-2">
-            购物与配送
-          </div>
+          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[#1F5EFF] pl-2">购物与配送</div>
           <ul className="space-y-2 text-gray-400">
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('orders')}>订单查询与跟踪</li>
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('cart')}>合并结算与供应商拆单</li>
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>发票开具（企业/个人）</li>
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>配送时效与运费说明</li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('orders')}>
+              订单查询与跟踪
+            </li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('cart')}>
+              合并结算与供应商拆单
+            </li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>
+              发票开具（企业/个人）
+            </li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>
+              配送时效与运费说明
+            </li>
           </ul>
         </div>
 
         <div>
-          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[#1F5EFF] pl-2">
-            售后与保障
-          </div>
+          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[#1F5EFF] pl-2">售后与保障</div>
           <ul className="space-y-2 text-gray-400">
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('orders', { statusFilter: 'after_sale' })}>退换货流程与申请</li>
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>虚拟卡券挂失与补发</li>
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>线下门店核销维权</li>
-            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>隐私保护与合规承诺</li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('orders', { statusFilter: 'after_sale' })}>
+              退换货流程与申请
+            </li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>
+              虚拟卡券挂失与补发
+            </li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>
+              线下门店核销维权
+            </li>
+            <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>
+              隐私保护与合规承诺
+            </li>
           </ul>
         </div>
 
@@ -126,7 +143,8 @@ export const Footer: React.FC = () => {
               <span>{currentMall.enterpriseName}</span>
             </div>
             <p className="text-[11px] text-gray-400 leading-relaxed">
-              本商城由【{currentMall.enterpriseName}】统一授权搭建，专为集团员工提供全品类福利兑换与特惠商品采购服务。
+              本商城由【{currentMall.enterpriseName}
+              】统一授权搭建，专为集团员工提供全品类福利兑换与特惠商品采购服务。
             </p>
           </div>
 
@@ -155,13 +173,9 @@ export const Footer: React.FC = () => {
             </span>
           </div>
 
-          <div>
-            © 2026 智慧翼 Enterprise Welfare Mall. All Rights Reserved. 技术服务：雍彻科技
-          </div>
+          <div>© 2026 智慧翼 Enterprise Welfare Mall. All Rights Reserved. 技术服务：雍彻科技</div>
 
-          <div className="text-gray-600 text-[10px]">
-            免责声明：本原型由【雍彻科技】设计构建，商品数据与福利账户余额均为模拟展示。支持拓展 distributorId 多分销商及供应链接口接入。
-          </div>
+          <div className="text-gray-600 text-[10px]">免责声明：本原型由【雍彻科技】设计构建，商品数据与福利账户余额均为模拟展示。支持拓展 distributorId 多分销商及供应链接口接入。</div>
         </div>
       </div>
     </footer>

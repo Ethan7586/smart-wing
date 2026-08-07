@@ -5,31 +5,31 @@
  * 所有业务记录都必须携带 tenant_id，商城数据同时携带 mall_id。
  */
 export const TABLES = {
-  tenants: "tenants",
-  enterprises: "enterprises",
-  malls: "malls",
-  departments: "departments",
-  users: "users",
-  roles: "roles",
-  permissions: "permissions",
-  userRoles: "user_roles",
-  suppliers: "suppliers",
-  products: "products",
-  skus: "skus",
-  inventory: "inventory",
-  welfareAccounts: "welfare_accounts",
-  accountLedgers: "account_ledgers",
-  carts: "carts",
-  cartItems: "cart_items",
-  orders: "orders",
-  subOrders: "sub_orders",
-  orderItems: "order_items",
-  payments: "payments",
-  paymentAllocations: "payment_allocations",
-  refunds: "refunds",
-  afterSales: "after_sales",
-  auditLogs: "audit_logs",
-  idempotencyKeys: "idempotency_keys",
+  tenants: 'tenants',
+  enterprises: 'enterprises',
+  malls: 'malls',
+  departments: 'departments',
+  users: 'users',
+  roles: 'roles',
+  permissions: 'permissions',
+  userRoles: 'user_roles',
+  suppliers: 'suppliers',
+  products: 'products',
+  skus: 'skus',
+  inventory: 'inventory',
+  welfareAccounts: 'welfare_accounts',
+  accountLedgers: 'account_ledgers',
+  carts: 'carts',
+  cartItems: 'cart_items',
+  orders: 'orders',
+  subOrders: 'sub_orders',
+  orderItems: 'order_items',
+  payments: 'payments',
+  paymentAllocations: 'payment_allocations',
+  refunds: 'refunds',
+  afterSales: 'after_sales',
+  auditLogs: 'audit_logs',
+  idempotencyKeys: 'idempotency_keys',
 } as const;
 
 export type MoneyCents = number;
@@ -58,4 +58,3 @@ export interface ProductListRow {
   availableStock: number;
   supplierName: string;
 }
-

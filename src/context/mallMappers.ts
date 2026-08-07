@@ -16,8 +16,7 @@ const CATEGORY_MAP: Record<string, { id: string; name: string }> = {
   life: { id: 'cat_life', name: '生活服务' },
 };
 
-const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600&auto=format&fit=crop&q=80';
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600&auto=format&fit=crop&q=80';
 
 export function mapApiProduct(product: ApiProduct): Product {
   const taxonomy = product.taxonomy;
@@ -58,10 +57,7 @@ export function mapApiProduct(product: ApiProduct): Product {
   };
 }
 
-export function mapApiOrder(
-  order: ApiOrder,
-  scope: { enterpriseId: string; enterpriseName: string; mallId: string; mallName: string }
-): Order {
+export function mapApiOrder(order: ApiOrder, scope: { enterpriseId: string; enterpriseName: string; mallId: string; mallName: string }): Order {
   const statusMap: Record<string, OrderStatus> = {
     pending_payment: 'pending_payment',
     paid: 'pending_shipment',

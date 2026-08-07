@@ -7,15 +7,7 @@
 import React, { useState } from 'react';
 import { useMall } from '../context/MallContext';
 import { productionApi, ProductionApiError } from '../services/productionApi';
-import {
-  ShieldAlert,
-  ArrowLeft,
-  CheckCircle2,
-  AlertCircle,
-  FileText,
-  Upload,
-  RefreshCw
-} from 'lucide-react';
+import { ShieldAlert, ArrowLeft, CheckCircle2, AlertCircle, FileText, Upload, RefreshCw } from 'lucide-react';
 
 export const AfterSalePage: React.FC = () => {
   const { routeParams, navigateTo, showToast, refreshProductionData, orders, sessionStatus } = useMall();
@@ -53,10 +45,7 @@ export const AfterSalePage: React.FC = () => {
       setSubmitted(true);
       showToast('售后申请已写入生产数据库，当前状态为待审核', 'success');
     } catch (error) {
-      showToast(
-        error instanceof ProductionApiError ? error.message : '售后服务暂时不可用',
-        'error'
-      );
+      showToast(error instanceof ProductionApiError ? error.message : '售后服务暂时不可用', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -76,10 +65,7 @@ export const AfterSalePage: React.FC = () => {
   return (
     <div className="max-w-[1024px] mx-auto px-4 py-4 space-y-4 font-sans text-xs">
       {/* 面包屑 */}
-      <button
-        onClick={() => navigateTo('orders')}
-        className="flex items-center gap-1 text-gray-600 hover:text-[#1F5EFF] font-bold"
-      >
+      <button onClick={() => navigateTo('orders')} className="flex items-center gap-1 text-gray-600 hover:text-[#1F5EFF] font-bold">
         <ArrowLeft className="w-4 h-4" /> 返回我的订单列表
       </button>
 
@@ -91,12 +77,10 @@ export const AfterSalePage: React.FC = () => {
             服务工单：<strong className="font-mono text-gray-900">{afterSaleNo}</strong> · 状态：待审核
           </p>
           <div className="bg-blue-50 border border-blue-200 p-3 rounded text-blue-900 max-w-md mx-auto text-[11px]">
-            退款须知：经合规确认后，抵扣的福利卡金额 (¥{order.payment.welfareDeducted.toFixed(2)}) 与餐卡金额 (¥{order.payment.mealDeducted.toFixed(2)}) 将在 1 个工作日内实时退回您的企业福利账户。
+            退款须知：经合规确认后，抵扣的福利卡金额 (¥{order.payment.welfareDeducted.toFixed(2)}) 与餐卡金额 (¥
+            {order.payment.mealDeducted.toFixed(2)}) 将在 1 个工作日内实时退回您的企业福利账户。
           </div>
-          <button
-            onClick={() => navigateTo('orders')}
-            className="bg-[#1F5EFF] text-white font-bold px-6 py-2 rounded"
-          >
+          <button onClick={() => navigateTo('orders')} className="bg-[#1F5EFF] text-white font-bold px-6 py-2 rounded">
             返回我的订单
           </button>
         </div>
@@ -110,7 +94,7 @@ export const AfterSalePage: React.FC = () => {
           {/* 关联商品概览 */}
           <div className="bg-gray-50 p-4 rounded border border-gray-200 space-y-2">
             <div className="font-bold text-gray-700 mb-2">服务对象商品：</div>
-            {order.items.map(item => (
+            {order.items.map((item) => (
               <div key={item.productId} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <img src={item.productImage} alt="" className="w-10 h-10 rounded object-cover" />
@@ -119,7 +103,9 @@ export const AfterSalePage: React.FC = () => {
                     <div className="text-gray-400 text-[11px]">{item.specText}</div>
                   </div>
                 </div>
-                <div className="font-bold text-gray-900">¥{item.price.toFixed(2)} × {item.quantity}</div>
+                <div className="font-bold text-gray-900">
+                  ¥{item.price.toFixed(2)} × {item.quantity}
+                </div>
               </div>
             ))}
           </div>
@@ -130,18 +116,22 @@ export const AfterSalePage: React.FC = () => {
               <label className="block font-bold text-gray-800 mb-2">选择售后类型：</label>
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { id: 'return_goods', title: '退货退款', desc: '收到货需退回商品并归还福利扣减金额' },
-                  { id: 'refund_only', title: '仅退款 (无需退货)', desc: '未收到货或协商一致直接退款' },
-                  { id: 'exchange', title: '换货', desc: '商品质量问题申请更换同规格新品' }
-                ].map(type => (
+                  {
+                    id: 'return_goods',
+                    title: '退货退款',
+                    desc: '收到货需退回商品并归还福利扣减金额',
+                  },
+                  {
+                    id: 'refund_only',
+                    title: '仅退款 (无需退货)',
+                    desc: '未收到货或协商一致直接退款',
+                  },
+                  { id: 'exchange', title: '换货', desc: '商品质量问题申请更换同规格新品' },
+                ].map((type) => (
                   <div
                     key={type.id}
                     onClick={() => setAfterSaleType(type.id as any)}
-                    className={`p-3 rounded border cursor-pointer transition-all ${
-                      afterSaleType === type.id
-                        ? 'border-[#1F5EFF] bg-blue-50/60 font-bold text-[#1F5EFF]'
-                        : 'border-gray-200 text-gray-700 hover:border-gray-300'
-                    }`}
+                    className={`p-3 rounded border cursor-pointer transition-all ${afterSaleType === type.id ? 'border-[#1F5EFF] bg-blue-50/60 font-bold text-[#1F5EFF]' : 'border-gray-200 text-gray-700 hover:border-gray-300'}`}
                   >
                     <div className="font-bold">{type.title}</div>
                     <div className="text-[10px] text-gray-400 font-normal mt-0.5">{type.desc}</div>
@@ -153,11 +143,7 @@ export const AfterSalePage: React.FC = () => {
             {/* 原因选择 */}
             <div>
               <label className="block font-bold text-gray-800 mb-1">申请原因：</label>
-              <select
-                value={reason}
-                onChange={e => setReason(e.target.value)}
-                className="w-full border border-gray-300 rounded p-2 bg-gray-50 text-xs"
-              >
+              <select value={reason} onChange={(e) => setReason(e.target.value)} className="w-full border border-gray-300 rounded p-2 bg-gray-50 text-xs">
                 <option value="商品质量问题">商品质量问题 / 破损</option>
                 <option value="发错商品/配件不全">发错商品 / 规格与描述不符</option>
                 <option value="7天无理由退货">7天无理由退货 (保障期内)</option>
@@ -172,7 +158,7 @@ export const AfterSalePage: React.FC = () => {
                 rows={3}
                 required
                 value={description}
-                onChange={e => setDescription(e.target.value)}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="请详细说明遇到的问题，便于专员快速审核..."
                 className="w-full border border-gray-300 rounded p-2 bg-gray-50 text-xs"
               />
@@ -189,18 +175,10 @@ export const AfterSalePage: React.FC = () => {
 
             {/* 提交按钮 */}
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-              <button
-                type="button"
-                onClick={() => navigateTo('orders')}
-                className="px-5 py-2 border rounded font-bold text-gray-600"
-              >
+              <button type="button" onClick={() => navigateTo('orders')} className="px-5 py-2 border rounded font-bold text-gray-600">
                 取消
               </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="px-6 py-2 bg-[#1F5EFF] text-white font-black rounded shadow-xs"
-              >
+              <button type="submit" disabled={submitting} className="px-6 py-2 bg-[#1F5EFF] text-white font-black rounded shadow-xs">
                 {submitting ? '正在安全提交…' : '确认提交售后工单'}
               </button>
             </div>

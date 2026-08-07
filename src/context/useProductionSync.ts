@@ -1,12 +1,6 @@
 import { useEffect } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import type {
-  AccountLog,
-  EnterpriseMall,
-  Order,
-  Product,
-  UserProfile,
-} from '../types';
+import type { AccountLog, EnterpriseMall, Order, Product, UserProfile } from '../types';
 import { productionApi, type ApiProduct } from '../services/productionApi';
 import { mapApiOrder, mapApiProduct } from './mallMappers';
 import type { SessionStatus } from './MallContext.types';
@@ -40,12 +34,7 @@ async function loadCompleteCatalog(): Promise<ApiProduct[]> {
 
 export function useProductionSync(setters: ProductionSyncSetters) {
   const refreshProductionData = async () => {
-    const [bootstrap, accounts, orderResult, ledgerResult] = await Promise.all([
-      productionApi.getBootstrap(),
-      productionApi.listAccounts(),
-      productionApi.listOrders(),
-      productionApi.listAccountLedgers(),
-    ]);
+    const [bootstrap, accounts, orderResult, ledgerResult] = await Promise.all([productionApi.getBootstrap(), productionApi.listAccounts(), productionApi.listOrders(), productionApi.listAccountLedgers()]);
     const welfare = accounts.items.find((account) => account.type === 'welfare');
     const meal = accounts.items.find((account) => account.type === 'meal');
     setters.setUser((previous) => ({
@@ -66,23 +55,13 @@ export function useProductionSync(setters: ProductionSyncSetters) {
       mallName: bootstrap.scope.mallName,
       logoText: bootstrap.scope.brandName,
     }));
-    setters.setOrders(
-      orderResult.items.map((order) => mapApiOrder(order, bootstrap.scope))
-    );
+    setters.setOrders(orderResult.items.map((order) => mapApiOrder(order, bootstrap.scope)));
     setters.setAccountLogs(
       ledgerResult.items.map((ledger) => ({
         id: ledger.id,
         accountType: ledger.accountType,
-        title:
-          ledger.businessType === 'order_payment'
-            ? '商城订单账户支付'
-            : ledger.businessType === 'refund'
-              ? '售后退款原路退回'
-              : '企业福利额度发放',
-        amount:
-          (ledger.direction === 'credit' ? 1 : -1) *
-          ledger.amountCents /
-          100,
+        title: ledger.businessType === 'order_payment' ? '商城订单账户支付' : ledger.businessType === 'refund' ? '售后退款原路退回' : '企业福利额度发放',
+        amount: ((ledger.direction === 'credit' ? 1 : -1) * ledger.amountCents) / 100,
         direction: ledger.direction === 'credit' ? 'in' : 'out',
         orderNo: ledger.orderNo ?? undefined,
         time: new Date(ledger.createdAt).toLocaleString('zh-CN', {

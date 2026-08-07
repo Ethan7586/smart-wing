@@ -8,12 +8,7 @@ class MallService extends MallOrders {
     return [...this.afterSales];
   }
 
-  public applyAfterSale(params: {
-    orderId: string;
-    type: 'refund_only' | 'return_goods' | 'exchange';
-    reason: string;
-    description: string;
-  }): AfterSaleRecord {
+  public applyAfterSale(params: { orderId: string; type: 'refund_only' | 'return_goods' | 'exchange'; reason: string; description: string }): AfterSaleRecord {
     const order = this.getOrderById(params.orderId);
     if (!order) throw new Error('Order not found');
 
@@ -30,7 +25,7 @@ class MallService extends MallOrders {
       refundAmount: order.payment.finalPaidAmount,
       description: params.description,
       items: order.items,
-      distributorId: this.user.distributorId
+      distributorId: this.user.distributorId,
     };
 
     order.status = 'after_sale';
@@ -45,20 +40,20 @@ class MallService extends MallOrders {
   // --- Accounts & Transaction Logs ---
   public getAccountLogs(type?: 'welfare' | 'meal' | 'all'): AccountLog[] {
     if (!type || type === 'all') return [...this.logs];
-    return this.logs.filter(l => l.accountType === type);
+    return this.logs.filter((l) => l.accountType === type);
   }
 
   // --- Coupons ---
   public getUserCoupons(status?: 'unused' | 'used' | 'expired' | 'all'): UserCoupon[] {
     if (!status || status === 'all') return [...this.coupons];
-    return this.coupons.filter(c => c.status === status);
+    return this.coupons.filter((c) => c.status === status);
   }
 
   public simulateVerifyCoupon(couponId: string): UserCoupon | undefined {
-    const cpn = this.coupons.find(c => c.id === couponId);
+    const cpn = this.coupons.find((c) => c.id === couponId);
     if (cpn && cpn.status === 'unused') {
       cpn.status = 'used';
-      this.user.couponCount = this.coupons.filter(c => c.status === 'unused').length;
+      this.user.couponCount = this.coupons.filter((c) => c.status === 'unused').length;
       this.saveUser();
       this.saveToStorage(this.getScopedKey(STORAGE_KEYS.COUPONS), this.coupons);
     }

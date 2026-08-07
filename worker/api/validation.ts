@@ -22,7 +22,7 @@ export interface InternalPaymentInput {
 
 export interface CreateAfterSaleInput {
   orderId: string;
-  type: "refund_only" | "return_refund" | "exchange";
+  type: 'refund_only' | 'return_refund' | 'exchange';
   reason: string;
   requestedAmountCents: number;
 }
@@ -43,16 +43,7 @@ export function parseCreateOrderInput(value: unknown): CreateOrderInput | null {
   const items: OrderItemInput[] = [];
   const seen = new Set<string>();
   for (const item of value.items) {
-    if (
-      !isRecord(item) ||
-      typeof item.skuId !== "string" ||
-      item.skuId.length < 1 ||
-      item.skuId.length > 100 ||
-      !Number.isInteger(item.quantity) ||
-      (item.quantity as number) < 1 ||
-      (item.quantity as number) > 99 ||
-      seen.has(item.skuId)
-    ) {
+    if (!isRecord(item) || typeof item.skuId !== 'string' || item.skuId.length < 1 || item.skuId.length > 100 || !Number.isInteger(item.quantity) || (item.quantity as number) < 1 || (item.quantity as number) > 99 || seen.has(item.skuId)) {
       return null;
     }
     seen.add(item.skuId);
@@ -60,12 +51,12 @@ export function parseCreateOrderInput(value: unknown): CreateOrderInput | null {
   }
 
   const recipient = value.recipient;
-  const name = readRequiredString(recipient, "name", 50);
-  const mobile = readRequiredString(recipient, "mobile", 50);
-  const province = readRequiredString(recipient, "province", 50);
-  const city = readRequiredString(recipient, "city", 50);
-  const district = readRequiredString(recipient, "district", 50);
-  const address = readRequiredString(recipient, "address", 200);
+  const name = readRequiredString(recipient, 'name', 50);
+  const mobile = readRequiredString(recipient, 'mobile', 50);
+  const province = readRequiredString(recipient, 'province', 50);
+  const city = readRequiredString(recipient, 'city', 50);
+  const district = readRequiredString(recipient, 'district', 50);
+  const address = readRequiredString(recipient, 'address', 200);
   if (!name || !mobile || !province || !city || !district || !address) {
     return null;
   }
@@ -87,21 +78,13 @@ export function parseCreateOrderInput(value: unknown): CreateOrderInput | null {
   };
 }
 
-export function parseInternalPaymentInput(
-  value: unknown
-): InternalPaymentInput | null {
+export function parseInternalPaymentInput(value: unknown): InternalPaymentInput | null {
   if (!isRecord(value)) {
     return null;
   }
   const welfareCents = value.welfareCents;
   const mealCents = value.mealCents;
-  if (
-    !Number.isSafeInteger(welfareCents) ||
-    !Number.isSafeInteger(mealCents) ||
-    (welfareCents as number) < 0 ||
-    (mealCents as number) < 0 ||
-    (welfareCents as number) + (mealCents as number) <= 0
-  ) {
+  if (!Number.isSafeInteger(welfareCents) || !Number.isSafeInteger(mealCents) || (welfareCents as number) < 0 || (mealCents as number) < 0 || (welfareCents as number) + (mealCents as number) <= 0) {
     return null;
   }
   return {
@@ -110,27 +93,19 @@ export function parseInternalPaymentInput(
   };
 }
 
-export function parseCreateAfterSaleInput(
-  value: unknown
-): CreateAfterSaleInput | null {
+export function parseCreateAfterSaleInput(value: unknown): CreateAfterSaleInput | null {
   if (!isRecord(value)) return null;
-  const orderId = readRequiredString(value, "orderId", 100);
-  const reason = readRequiredString(value, "reason", 500);
+  const orderId = readRequiredString(value, 'orderId', 100);
+  const reason = readRequiredString(value, 'reason', 500);
   const type = value.type;
   const requestedAmountCents = value.requestedAmountCents;
-  if (
-    !orderId ||
-    !reason ||
-    !["refund_only", "return_refund", "exchange"].includes(String(type)) ||
-    !Number.isSafeInteger(requestedAmountCents) ||
-    (requestedAmountCents as number) <= 0
-  ) {
+  if (!orderId || !reason || !['refund_only', 'return_refund', 'exchange'].includes(String(type)) || !Number.isSafeInteger(requestedAmountCents) || (requestedAmountCents as number) <= 0) {
     return null;
   }
   return {
     orderId,
     reason,
-    type: type as CreateAfterSaleInput["type"],
+    type: type as CreateAfterSaleInput['type'],
     requestedAmountCents: requestedAmountCents as number,
   };
 }
@@ -144,20 +119,14 @@ export function parseExecuteRefundInput(value: unknown): ExecuteRefundInput | nu
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function readRequiredString(
-  record: Record<string, unknown>,
-  key: string,
-  maxLength: number
-): string | null {
+function readRequiredString(record: Record<string, unknown>, key: string, maxLength: number): string | null {
   const value = record[key];
-  if (typeof value !== "string") {
+  if (typeof value !== 'string') {
     return null;
   }
   const normalized = value.trim();
-  return normalized.length > 0 && normalized.length <= maxLength
-    ? normalized
-    : null;
+  return normalized.length > 0 && normalized.length <= maxLength ? normalized : null;
 }

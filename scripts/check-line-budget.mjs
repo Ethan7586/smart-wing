@@ -3,22 +3,9 @@ import { extname, join, relative, sep } from 'node:path';
 
 const ROOT = process.cwd();
 const LIMIT = 299;
-const SOURCE_EXTENSIONS = new Set([
-  '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.css', '.md', '.json',
-  '.toml', '.yml', '.yaml', '.sql'
-]);
-const IGNORED_DIRECTORIES = new Set([
-  '.git', '.next', '.open-next', '.wrangler', 'dist', 'node_modules',
-  'deliverables', 'tools'
-]);
-const GENERATED_OR_IMMUTABLE = [
-  /(^|\/)package-lock\.json$/,
-  /^.*\.tsbuildinfo$/,
-  /^supabase\/config\.toml$/,
-  /^supabase\/migrations\/.+\.sql$/,
-  /^supabase\/\.temp\//,
-  /^drizzle\/.+\.sql$/
-];
+const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.css', '.md', '.json', '.toml', '.yml', '.yaml', '.sql']);
+const IGNORED_DIRECTORIES = new Set(['.git', '.next', '.open-next', '.wrangler', 'dist', 'node_modules', 'deliverables', 'tools']);
+const GENERATED_OR_IMMUTABLE = [/(^|\/)package-lock\.json$/, /^.*\.tsbuildinfo$/, /^supabase\/config\.toml$/, /^supabase\/migrations\/.+\.sql$/, /^supabase\/\.temp\//, /^drizzle\/.+\.sql$/];
 
 function normalized(path) {
   return relative(ROOT, path).split(sep).join('/');
@@ -54,7 +41,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(
-  `行数门禁通过：所有可维护源码不超过 ${LIMIT} 行；` +
-  '锁文件、生成配置和已应用数据库迁移按不可变制品管理。'
-);
+console.log(`行数门禁通过：所有可维护源码不超过 ${LIMIT} 行；` + '锁文件、生成配置和已应用数据库迁移按不可变制品管理。');

@@ -1,38 +1,14 @@
 import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
-import {
-  ShoppingCart,
-  Trash2,
-  MapPin,
-  CreditCard,
-  Utensils,
-  FileText,
-  ShieldCheck,
-  ChevronRight,
-  CheckCircle2,
-  Lock,
-  ArrowRight,
-  Building2,
-  Wallet
-} from 'lucide-react';
+import { ShoppingCart, Trash2, MapPin, CreditCard, Utensils, FileText, ShieldCheck, ChevronRight, CheckCircle2, Lock, ArrowRight, Building2, Wallet } from 'lucide-react';
 
 export const TabletCartCheckoutPage: React.FC = () => {
-  const {
-    cart,
-    user,
-    setTabletPage,
-    updateCartQuantity,
-    toggleCartItemSelected,
-    removeCartItem,
-    triggerPendingFeature,
-    checkoutSelectedCart,
-    isSubmittingOrder,
-  } = useMall();
+  const { cart, user, setTabletPage, updateCartQuantity, toggleCartItemSelected, removeCartItem, triggerPendingFeature, checkoutSelectedCart, isSubmittingOrder } = useMall();
 
   const [useWelfareCard, setUseWelfareCard] = useState(true);
   const [useMealCard, setUseMealCard] = useState(true);
 
-  const selectedItems = cart.filter(c => c.selected);
+  const selectedItems = cart.filter((c) => c.selected);
   const subtotal = selectedItems.reduce((sum, item) => sum + item.product.priceMall * item.quantity, 0);
 
   // Deductions calculation logic
@@ -72,13 +48,9 @@ export const TabletCartCheckoutPage: React.FC = () => {
             <div>
               <div className="text-xs font-bold text-gray-900 flex items-center gap-2">
                 <span>张伟 (员工工号 80219)</span>
-                <span className="bg-blue-100 text-[#1F5EFF] text-[9px] font-black px-1.5 py-0.2 rounded">
-                  公司总部
-                </span>
+                <span className="bg-blue-100 text-[#1F5EFF] text-[9px] font-black px-1.5 py-0.2 rounded">公司总部</span>
               </div>
-              <div className="text-xs text-gray-500 mt-0.5">
-                北京市朝阳区中国建筑大厦 12F 企采仓发货口
-              </div>
+              <div className="text-xs text-gray-500 mt-0.5">北京市朝阳区中国建筑大厦 12F 企采仓发货口</div>
             </div>
           </div>
           <ChevronRight className="w-4 h-4 text-gray-400" />
@@ -98,63 +70,38 @@ export const TabletCartCheckoutPage: React.FC = () => {
             <div className="text-center py-12 text-gray-400 text-xs space-y-2">
               <ShoppingCart className="w-10 h-10 text-gray-300 mx-auto" />
               <div>购物车暂无商品</div>
-              <button
-                onClick={() => setTabletPage('home')}
-                className="bg-[#1F5EFF] text-white font-bold text-xs px-4 py-2 rounded-xl mt-2 cursor-pointer"
-              >
+              <button onClick={() => setTabletPage('home')} className="bg-[#1F5EFF] text-white font-bold text-xs px-4 py-2 rounded-xl mt-2 cursor-pointer">
                 去挑选福利
               </button>
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {cart.map(item => (
+              {cart.map((item) => (
                 <div key={item.id} className="py-3 flex items-center gap-3 text-xs">
                   {/* Select Checkbox */}
-                  <input
-                    type="checkbox"
-                    checked={item.selected}
-                    onChange={() => toggleCartItemSelected(item.id)}
-                    className="w-4 h-4 rounded text-[#1F5EFF] border-gray-300 cursor-pointer"
-                  />
+                  <input type="checkbox" checked={item.selected} onChange={() => toggleCartItemSelected(item.id)} className="w-4 h-4 rounded text-[#1F5EFF] border-gray-300 cursor-pointer" />
 
-                  <img
-                    src={item.product.images[0]}
-                    alt={item.product.title}
-                    className="w-16 h-16 object-cover rounded-2xl border border-gray-100 flex-shrink-0"
-                  />
+                  <img src={item.product.images[0]} alt={item.product.title} className="w-16 h-16 object-cover rounded-2xl border border-gray-100 flex-shrink-0" />
 
                   <div className="flex-1 overflow-hidden space-y-1">
                     <div className="font-bold text-gray-900 truncate">{item.product.title}</div>
-                    <div className="text-[10px] text-gray-400">
-                      {item.product.itemType === 'virtual_coupon' ? '虚拟兑换券' : '实物包邮'}
-                    </div>
-                    <div className="font-mono font-bold text-[#E5484D] text-xs">
-                      ¥{item.product.priceMall}
-                    </div>
+                    <div className="text-[10px] text-gray-400">{item.product.itemType === 'virtual_coupon' ? '虚拟兑换券' : '实物包邮'}</div>
+                    <div className="font-mono font-bold text-[#E5484D] text-xs">¥{item.product.priceMall}</div>
                   </div>
 
                   {/* Quantity Modifier */}
                   <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
-                    <button
-                      onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
-                      className="px-2.5 py-1 bg-gray-100 font-bold text-gray-700 hover:bg-gray-200 min-h-[36px]"
-                    >
+                    <button onClick={() => updateCartQuantity(item.id, item.quantity - 1)} className="px-2.5 py-1 bg-gray-100 font-bold text-gray-700 hover:bg-gray-200 min-h-[36px]">
                       -
                     </button>
                     <span className="px-3 py-1 font-mono font-bold text-xs">{item.quantity}</span>
-                    <button
-                      onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
-                      className="px-2.5 py-1 bg-gray-100 font-bold text-gray-700 hover:bg-gray-200 min-h-[36px]"
-                    >
+                    <button onClick={() => updateCartQuantity(item.id, item.quantity + 1)} className="px-2.5 py-1 bg-gray-100 font-bold text-gray-700 hover:bg-gray-200 min-h-[36px]">
                       +
                     </button>
                   </div>
 
                   {/* Trash */}
-                  <button
-                    onClick={() => removeCartItem(item.id)}
-                    className="p-1.5 text-gray-400 hover:text-red-500 cursor-pointer min-h-[36px]"
-                  >
+                  <button onClick={() => removeCartItem(item.id)} className="p-1.5 text-gray-400 hover:text-red-500 cursor-pointer min-h-[36px]">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -169,9 +116,7 @@ export const TabletCartCheckoutPage: React.FC = () => {
         <div className="space-y-4">
           <div className="text-sm font-black text-gray-900 border-b border-gray-100 pb-2 flex items-center justify-between">
             <span>企采计算与抵扣汇总</span>
-            <span className="text-[10px] bg-blue-50 text-[#1F5EFF] font-bold px-2 py-0.5 rounded">
-              Split View
-            </span>
+            <span className="text-[10px] bg-blue-50 text-[#1F5EFF] font-bold px-2 py-0.5 rounded">Split View</span>
           </div>
 
           {/* Pricing Breakdown Card */}
@@ -188,15 +133,8 @@ export const TabletCartCheckoutPage: React.FC = () => {
                 <span>福利卡余额抵扣</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-mono font-bold text-amber-600">
-                  -¥{welfareDeduction.toFixed(2)}
-                </span>
-                <input
-                  type="checkbox"
-                  checked={useWelfareCard}
-                  onChange={(e) => setUseWelfareCard(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#1F5EFF] cursor-pointer"
-                />
+                <span className="font-mono font-bold text-amber-600">-¥{welfareDeduction.toFixed(2)}</span>
+                <input type="checkbox" checked={useWelfareCard} onChange={(e) => setUseWelfareCard(e.target.checked)} className="w-4 h-4 rounded text-[#1F5EFF] cursor-pointer" />
               </div>
             </div>
 
@@ -207,15 +145,8 @@ export const TabletCartCheckoutPage: React.FC = () => {
                 <span>餐卡余额冲抵</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-mono font-bold text-amber-600">
-                  -¥{mealDeduction.toFixed(2)}
-                </span>
-                <input
-                  type="checkbox"
-                  checked={useMealCard}
-                  onChange={(e) => setUseMealCard(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#1F5EFF] cursor-pointer"
-                />
+                <span className="font-mono font-bold text-amber-600">-¥{mealDeduction.toFixed(2)}</span>
+                <input type="checkbox" checked={useMealCard} onChange={(e) => setUseMealCard(e.target.checked)} className="w-4 h-4 rounded text-[#1F5EFF] cursor-pointer" />
               </div>
             </div>
 
@@ -240,9 +171,7 @@ export const TabletCartCheckoutPage: React.FC = () => {
               </span>
               <span className="text-[10px] text-blue-600 font-bold">专票包邮</span>
             </div>
-            <div className="font-bold text-gray-900 text-xs">
-              中国建筑集团有限公司 (增值税专用发票)
-            </div>
+            <div className="font-bold text-gray-900 text-xs">中国建筑集团有限公司 (增值税专用发票)</div>
           </div>
         </div>
 
@@ -250,25 +179,17 @@ export const TabletCartCheckoutPage: React.FC = () => {
         <div className="space-y-3 border-t border-gray-200 pt-3">
           <div className="flex items-baseline justify-between">
             <span className="text-xs font-bold text-gray-600">实际需补差额</span>
-            <span className="text-2xl font-black font-mono text-[#E5484D]">
-              ¥{remainingTotal.toFixed(2)}
-            </span>
+            <span className="text-2xl font-black font-mono text-[#E5484D]">¥{remainingTotal.toFixed(2)}</span>
           </div>
 
           <button
             onClick={handlePlaceOrder}
             disabled={selectedItems.length === 0 || isSubmittingOrder}
             className={`w-full font-black text-xs py-3.5 rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer min-h-[48px] ${
-              selectedItems.length > 0
-                ? 'bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] hover:opacity-95 text-white'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              selectedItems.length > 0 ? 'bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] hover:opacity-95 text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
-            <span>
-              {isSubmittingOrder
-                ? '安全提交中…'
-                : `提交真实订单（福利冲抵 ¥${(welfareDeduction + mealDeduction).toFixed(2)}）`}
-            </span>
+            <span>{isSubmittingOrder ? '安全提交中…' : `提交真实订单（福利冲抵 ¥${(welfareDeduction + mealDeduction).toFixed(2)}）`}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

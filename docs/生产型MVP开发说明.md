@@ -55,21 +55,21 @@
 
 ### 2.4 已实现的 API
 
-| 方法 | 地址 | 用途 |
-|---|---|---|
-| GET | `/api/health` | 数据库、认证和加密配置健康检查 |
-| GET | `/api/v1/products` | 按商城、分类分页查询商品和实时可售库存 |
-| POST | `/api/v1/auth/login` | 使用阶段访问码建立安全验收会话 |
-| POST | `/api/v1/auth/logout` | 销毁验收会话 |
-| GET | `/api/v1/auth/session` | 查询当前会话状态 |
-| GET | `/api/v1/bootstrap` | 返回当前员工、权限和商城范围 |
-| GET | `/api/v1/accounts` | 查询本人福利卡、餐卡余额 |
-| GET | `/api/v1/account-ledgers` | 查询本人真实账户流水 |
-| GET | `/api/v1/orders` | 查询本人订单 |
-| POST | `/api/v1/orders` | 加密收货信息、预占库存、创建主子订单 |
-| POST | `/api/v1/orders/{id}/payments/internal` | 福利卡和餐卡组合支付 |
-| GET | `/api/v1/after-sales` | 查询本人售后工单 |
-| POST | `/api/v1/after-sales` | 提交本人订单售后申请 |
+| 方法 | 地址                                    | 用途                                   |
+| ---- | --------------------------------------- | -------------------------------------- |
+| GET  | `/api/health`                           | 数据库、认证和加密配置健康检查         |
+| GET  | `/api/v1/products`                      | 按商城、分类分页查询商品和实时可售库存 |
+| POST | `/api/v1/auth/login`                    | 使用阶段访问码建立安全验收会话         |
+| POST | `/api/v1/auth/logout`                   | 销毁验收会话                           |
+| GET  | `/api/v1/auth/session`                  | 查询当前会话状态                       |
+| GET  | `/api/v1/bootstrap`                     | 返回当前员工、权限和商城范围           |
+| GET  | `/api/v1/accounts`                      | 查询本人福利卡、餐卡余额               |
+| GET  | `/api/v1/account-ledgers`               | 查询本人真实账户流水                   |
+| GET  | `/api/v1/orders`                        | 查询本人订单                           |
+| POST | `/api/v1/orders`                        | 加密收货信息、预占库存、创建主子订单   |
+| POST | `/api/v1/orders/{id}/payments/internal` | 福利卡和餐卡组合支付                   |
+| GET  | `/api/v1/after-sales`                   | 查询本人售后工单                       |
+| POST | `/api/v1/after-sales`                   | 提交本人订单售后申请                   |
 
 正式环境的业务接口默认拒绝匿名请求。开发身份头仅在 `APP_ENV=development` 且 `AUTH_MODE=development` 两项同时成立时启用。
 

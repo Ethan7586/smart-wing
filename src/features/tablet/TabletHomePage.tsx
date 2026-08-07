@@ -5,7 +5,5 @@ import { TabletPortraitHome } from './TabletPortraitHome';
 
 export const TabletHomePage: React.FC = () => {
   const { tabletOrientation } = useMall();
-  return tabletOrientation === 'portrait'
-    ? <TabletPortraitHome />
-    : <TabletLandscapeHome />;
+  return tabletOrientation === 'portrait' ? <TabletPortraitHome /> : <TabletLandscapeHome />;
 };

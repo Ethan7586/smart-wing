@@ -1,34 +1,11 @@
 import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
-import {
-  Heart,
-  Share2,
-  ShieldCheck,
-  Truck,
-  CreditCard,
-  Utensils,
-  MapPin,
-  ShoppingCart,
-  SlidersHorizontal,
-  CheckCircle2,
-  Headphones,
-  Building2,
-  Info,
-  ChevronRight,
-  Sparkles
-} from 'lucide-react';
+import { Heart, Share2, ShieldCheck, Truck, CreditCard, Utensils, MapPin, ShoppingCart, SlidersHorizontal, CheckCircle2, Headphones, Building2, Info, ChevronRight, Sparkles } from 'lucide-react';
 
 export const TabletDetailPage: React.FC = () => {
-  const {
-    mobileProductId,
-    setTabletPage,
-    addToCart,
-    cartCount,
-    triggerPendingFeature,
-    presentationProducts: MOCK_PRODUCTS,
-  } = useMall();
+  const { mobileProductId, setTabletPage, addToCart, cartCount, triggerPendingFeature, presentationProducts: MOCK_PRODUCTS } = useMall();
 
-  const product = MOCK_PRODUCTS.find(p => p.id === mobileProductId) || MOCK_PRODUCTS[0];
+  const product = MOCK_PRODUCTS.find((p) => p.id === mobileProductId) || MOCK_PRODUCTS[0];
 
   const [selectedSpec, setSelectedSpec] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
@@ -48,10 +25,7 @@ export const TabletDetailPage: React.FC = () => {
           <img src={product.imageUrl} alt={product.title} className="w-full h-full object-cover" />
 
           <div className="absolute top-3 right-3 flex items-center gap-2">
-            <button
-              onClick={() => setIsFav(!isFav)}
-              className="w-10 h-10 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-xs cursor-pointer hover:bg-black/60 transition-colors"
-            >
+            <button onClick={() => setIsFav(!isFav)} className="w-10 h-10 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-xs cursor-pointer hover:bg-black/60 transition-colors">
               <Heart className={`w-5 h-5 ${isFav ? 'fill-red-500 text-red-500' : ''}`} />
             </button>
             <button
@@ -86,9 +60,7 @@ export const TabletDetailPage: React.FC = () => {
             <span className="text-[10px] text-gray-400 font-normal">编号: {product.id}</span>
           </h3>
 
-          <p className="text-gray-600 leading-relaxed">
-            {product.description || '智慧翼企业福利商城为企业员工提供一站式福利兑换与全额扣减服务。'}
-          </p>
+          <p className="text-gray-600 leading-relaxed">{product.description || '智慧翼企业福利商城为企业员工提供一站式福利兑换与全额扣减服务。'}</p>
 
           {product.parameters && (
             <div className="divide-y divide-gray-200 border-t border-gray-200 pt-2 space-y-1.5">
@@ -109,9 +81,7 @@ export const TabletDetailPage: React.FC = () => {
           {/* Price Banner Container */}
           <div className="bg-gradient-to-r from-[#143A8F] to-[#1F5EFF] text-white p-4 rounded-3xl shadow-sm flex items-center justify-between">
             <div>
-              <div className="text-[10px] text-blue-200 uppercase font-black tracking-wider">
-                企采专享内购价
-              </div>
+              <div className="text-[10px] text-blue-200 uppercase font-black tracking-wider">企采专享内购价</div>
               <div className="flex items-baseline gap-1.5 font-mono mt-0.5">
                 <span className="text-xs font-bold">¥</span>
                 <span className="text-3xl font-black">{product.price}</span>
@@ -131,9 +101,7 @@ export const TabletDetailPage: React.FC = () => {
             <p className="text-xs text-gray-500">{product.subtitle}</p>
 
             <div className="flex items-center gap-2 pt-2 text-xs">
-              <span className="bg-blue-50 text-[#1F5EFF] font-bold px-2.5 py-1 rounded-lg">
-                {product.itemType === 'virtual_coupon' ? '虚拟兑换券' : '实物直邮仓'}
-              </span>
+              <span className="bg-blue-50 text-[#1F5EFF] font-bold px-2.5 py-1 rounded-lg">{product.itemType === 'virtual_coupon' ? '虚拟兑换券' : '实物直邮仓'}</span>
               <span className="text-gray-400">品牌: {product.brand || '智慧翼精选'}</span>
               <span className="text-gray-400">库存: {product.stockCount} 件</span>
             </div>
@@ -151,16 +119,14 @@ export const TabletDetailPage: React.FC = () => {
                 <div key={specKey} className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-700">{specKey}</label>
                   <div className="flex items-center gap-2 flex-wrap">
-                    {specValues.map(val => {
+                    {specValues.map((val) => {
                       const isSelected = selectedSpec[specKey] === val || (!selectedSpec[specKey] && specValues[0] === val);
                       return (
                         <button
                           key={val}
-                          onClick={() => setSelectedSpec(prev => ({ ...prev, [specKey]: val }))}
+                          onClick={() => setSelectedSpec((prev) => ({ ...prev, [specKey]: val }))}
                           className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer min-h-[40px] ${
-                            isSelected
-                              ? 'border-[#1F5EFF] bg-blue-50 text-[#1F5EFF] shadow-2xs'
-                              : 'border-gray-200 text-gray-700 bg-gray-50 hover:bg-gray-100'
+                            isSelected ? 'border-[#1F5EFF] bg-blue-50 text-[#1F5EFF] shadow-2xs' : 'border-gray-200 text-gray-700 bg-gray-50 hover:bg-gray-100'
                           }`}
                         >
                           {val}
@@ -175,17 +141,11 @@ export const TabletDetailPage: React.FC = () => {
               <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                 <span className="text-xs font-bold text-gray-700">兑换数量</span>
                 <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3.5 py-1.5 bg-gray-100 font-black text-gray-700 hover:bg-gray-200 min-h-[40px]"
-                  >
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3.5 py-1.5 bg-gray-100 font-black text-gray-700 hover:bg-gray-200 min-h-[40px]">
                     -
                   </button>
                   <span className="px-5 py-1.5 font-mono font-bold text-xs">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="px-3.5 py-1.5 bg-gray-100 font-black text-gray-700 hover:bg-gray-200 min-h-[40px]"
-                  >
+                  <button onClick={() => setQuantity(quantity + 1)} className="px-3.5 py-1.5 bg-gray-100 font-black text-gray-700 hover:bg-gray-200 min-h-[40px]">
                     +
                   </button>
                 </div>
@@ -211,25 +171,16 @@ export const TabletDetailPage: React.FC = () => {
 
         {/* Action Buttons Bar */}
         <div className="bg-white rounded-3xl p-3 shadow-md border border-gray-200 flex items-center gap-3">
-          <button
-            onClick={() => triggerPendingFeature('平板客服', '调起企业专属 1 对 1 客服通道。')}
-            className="p-3 text-gray-500 hover:text-gray-800 text-xs flex flex-col items-center cursor-pointer min-h-[44px]"
-          >
+          <button onClick={() => triggerPendingFeature('平板客服', '调起企业专属 1 对 1 客服通道。')} className="p-3 text-gray-500 hover:text-gray-800 text-xs flex flex-col items-center cursor-pointer min-h-[44px]">
             <Headphones className="w-5 h-5 text-[#1F5EFF]" />
             <span className="text-[10px]">客服</span>
           </button>
 
-          <button
-            onClick={() => addToCart(product, quantity, selectedSpec)}
-            className="flex-1 bg-blue-50 hover:bg-blue-100 text-[#1F5EFF] font-black text-xs py-3 rounded-2xl transition-colors cursor-pointer min-h-[48px]"
-          >
+          <button onClick={() => addToCart(product, quantity, selectedSpec)} className="flex-1 bg-blue-50 hover:bg-blue-100 text-[#1F5EFF] font-black text-xs py-3 rounded-2xl transition-colors cursor-pointer min-h-[48px]">
             加入购物车 ({cartCount})
           </button>
 
-          <button
-            onClick={handleBuyNow}
-            className="flex-1 bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] hover:opacity-95 text-white font-black text-xs py-3 rounded-2xl shadow-md transition-all cursor-pointer min-h-[48px]"
-          >
+          <button onClick={handleBuyNow} className="flex-1 bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] hover:opacity-95 text-white font-black text-xs py-3 rounded-2xl shadow-md transition-all cursor-pointer min-h-[48px]">
             福利卡全额兑换
           </button>
         </div>

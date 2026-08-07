@@ -15,25 +15,27 @@ import { Footer } from './components/common/Footer';
 import { MobileBottomNav } from './components/common/MobileBottomNav';
 import { MvpSessionBar } from './components/common/MvpSessionBar';
 import { isMvpPreviewHost, MvpPreviewShell } from './features/mvp/MvpPreviewShell';
-import { MobileFrame } from './components/mobile/MobileFrame';
-import { TabletFrame } from './components/mobile/TabletFrame';
-import { LaptopFrame } from './components/laptop/LaptopFrame';
-
-// Pages
 import { HomePage } from './screens/HomePage';
-import { CategoryPage } from './screens/CategoryPage';
-import { ProductDetailPage } from './screens/ProductDetailPage';
-import { CartPage } from './screens/CartPage';
-import { CheckoutPage } from './screens/CheckoutPage';
-import { PaymentResultPage } from './screens/PaymentResultPage';
-import { UserCenterPage } from './screens/UserCenterPage';
-import { OrdersPage } from './screens/OrdersPage';
-import { OrderDetailPage } from './screens/OrderDetailPage';
-import { AfterSalePage } from './screens/AfterSalePage';
-import { CouponsPage } from './screens/CouponsPage';
-import { BalancePage } from './screens/BalancePage';
-import { MvpConsolePage } from './screens/MvpConsolePage';
-import { ArchitecturePage } from './screens/ArchitecturePage';
+
+const MobileFrame = React.lazy(() => import('./components/mobile/MobileFrame').then(({ MobileFrame }) => ({ default: MobileFrame })));
+const TabletFrame = React.lazy(() => import('./components/mobile/TabletFrame').then(({ TabletFrame }) => ({ default: TabletFrame })));
+const LaptopFrame = React.lazy(() => import('./components/laptop/LaptopFrame').then(({ LaptopFrame }) => ({ default: LaptopFrame })));
+const CategoryPage = React.lazy(() => import('./screens/CategoryPage').then(({ CategoryPage }) => ({ default: CategoryPage })));
+const ProductDetailPage = React.lazy(() => import('./screens/ProductDetailPage').then(({ ProductDetailPage }) => ({ default: ProductDetailPage })));
+const CartPage = React.lazy(() => import('./screens/CartPage').then(({ CartPage }) => ({ default: CartPage })));
+const CheckoutPage = React.lazy(() => import('./screens/CheckoutPage').then(({ CheckoutPage }) => ({ default: CheckoutPage })));
+const PaymentResultPage = React.lazy(() => import('./screens/PaymentResultPage').then(({ PaymentResultPage }) => ({ default: PaymentResultPage })));
+const UserCenterPage = React.lazy(() => import('./screens/UserCenterPage').then(({ UserCenterPage }) => ({ default: UserCenterPage })));
+const OrdersPage = React.lazy(() => import('./screens/OrdersPage').then(({ OrdersPage }) => ({ default: OrdersPage })));
+const OrderDetailPage = React.lazy(() => import('./screens/OrderDetailPage').then(({ OrderDetailPage }) => ({ default: OrderDetailPage })));
+const AfterSalePage = React.lazy(() => import('./screens/AfterSalePage').then(({ AfterSalePage }) => ({ default: AfterSalePage })));
+const CouponsPage = React.lazy(() => import('./screens/CouponsPage').then(({ CouponsPage }) => ({ default: CouponsPage })));
+const BalancePage = React.lazy(() => import('./screens/BalancePage').then(({ BalancePage }) => ({ default: BalancePage })));
+const MvpConsolePage = React.lazy(() => import('./screens/MvpConsolePage').then(({ MvpConsolePage }) => ({ default: MvpConsolePage })));
+const MvpDeliveryPage = React.lazy(() => import('./screens/MvpDeliveryPage').then(({ MvpDeliveryPage }) => ({ default: MvpDeliveryPage })));
+const ArchitecturePage = React.lazy(() => import('./screens/ArchitecturePage').then(({ ArchitecturePage }) => ({ default: ArchitecturePage })));
+
+const PageLoadingFallback = () => <div className="min-h-[360px] bg-[#F5F7FA]" aria-busy="true" aria-label="正在加载页面" />;
 
 const AppContent: React.FC<{ initialHost?: string }> = ({ initialHost = '' }) => {
   const { currentPage, appMode } = useMall();
@@ -67,6 +69,8 @@ const AppContent: React.FC<{ initialHost?: string }> = ({ initialHost = '' }) =>
         return <BalancePage />;
       case 'mvp-console':
         return <MvpConsolePage />;
+      case 'mvp-delivery':
+        return <MvpDeliveryPage />;
       case 'architecture':
         return <ArchitecturePage />;
       default:
@@ -78,7 +82,9 @@ const AppContent: React.FC<{ initialHost?: string }> = ({ initialHost = '' }) =>
     return (
       <MvpPreviewShell>
         <HeaderBar />
-        <main className="flex-1 w-full"><HomePage /></main>
+        <main className="flex-1 w-full">
+          <HomePage />
+        </main>
         <ToastContainer />
         <MobileBottomNav />
         <Footer />
@@ -87,15 +93,27 @@ const AppContent: React.FC<{ initialHost?: string }> = ({ initialHost = '' }) =>
   }
 
   if (appMode === 'mini-program' || appMode === 'android-app') {
-    return <MobileFrame />;
+    return (
+      <React.Suspense fallback={<PageLoadingFallback />}>
+        <MobileFrame />
+      </React.Suspense>
+    );
   }
 
   if (appMode === 'tablet-app') {
-    return <TabletFrame />;
+    return (
+      <React.Suspense fallback={<PageLoadingFallback />}>
+        <TabletFrame />
+      </React.Suspense>
+    );
   }
 
   if (appMode === 'laptop-web') {
-    return <LaptopFrame />;
+    return (
+      <React.Suspense fallback={<PageLoadingFallback />}>
+        <LaptopFrame />
+      </React.Suspense>
+    );
   }
 
   return (
@@ -106,7 +124,7 @@ const AppContent: React.FC<{ initialHost?: string }> = ({ initialHost = '' }) =>
 
       {/* 主视图渲染区 */}
       <main className="flex-1 w-full">
-        {renderPage()}
+        <React.Suspense fallback={<PageLoadingFallback />}>{renderPage()}</React.Suspense>
       </main>
 
       {/* 快速预览 Modal */}

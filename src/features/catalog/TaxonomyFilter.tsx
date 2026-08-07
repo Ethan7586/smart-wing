@@ -9,13 +9,14 @@ type TaxonomyFilterProps = {
   options: TaxonomyOption[];
   selected: string;
   onSelect: (code: string) => void;
+  title?: string;
 };
 
-export function TaxonomyFilter({ options, selected, onSelect }: TaxonomyFilterProps) {
+export function TaxonomyFilter({ options, selected, onSelect, title }: TaxonomyFilterProps) {
   if (options.length === 0) return null;
   return (
     <div className="flex items-start gap-4 pb-2.5 border-b border-gray-100">
-      <span className="w-20 font-bold text-gray-700 flex-shrink-0 pt-1">细分类目：</span>
+      <span className="w-20 font-bold text-gray-700 flex-shrink-0 pt-1">{title || '细分类目'}：</span>
       <div className="flex-1 flex flex-wrap gap-1.5">
         <button onClick={() => onSelect('all')} className={chipClass(selected === 'all')}>
           全部细类
@@ -31,7 +32,5 @@ export function TaxonomyFilter({ options, selected, onSelect }: TaxonomyFilterPr
 }
 
 function chipClass(isActive: boolean) {
-  return `px-2.5 py-1 rounded cursor-pointer ${
-    isActive ? 'bg-[#143A8F] text-white font-bold' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-  }`;
+  return `px-2.5 py-1 rounded cursor-pointer ${isActive ? 'bg-[#143A8F] text-white font-bold' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`;
 }

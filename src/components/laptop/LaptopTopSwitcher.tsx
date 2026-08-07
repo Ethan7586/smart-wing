@@ -1,24 +1,9 @@
 import React from 'react';
 import { useMall, AppMode, LaptopPage } from '../../context/MallContext';
-import {
-  Monitor,
-  Laptop,
-  Smartphone,
-  AppWindow,
-  Tablet,
-  Sparkles,
-  Layers,
-  Maximize2
-} from 'lucide-react';
+import { Monitor, Laptop, Smartphone, AppWindow, Tablet, Sparkles, Layers, Maximize2 } from 'lucide-react';
 
 export const LaptopTopSwitcher: React.FC = () => {
-  const {
-    appMode,
-    setAppMode,
-    laptopPage,
-    setLaptopPage,
-    setTabletOrientation
-  } = useMall();
+  const { appMode, setAppMode, laptopPage, setLaptopPage, setTabletOrientation } = useMall();
 
   const handleSwitchMode = (mode: AppMode) => {
     setAppMode(mode);
@@ -30,7 +15,7 @@ export const LaptopTopSwitcher: React.FC = () => {
     { id: 'category', name: '3. 分类与搜索', desc: '多维筛选+折叠' },
     { id: 'detail', name: '4. 商品详情页', desc: '1366两栏首屏' },
     { id: 'cart', name: '5. 购物车与结算', desc: '紧凑结算+不遮挡' },
-    { id: 'orders', name: '6. 订单中心', desc: '高密度无冗余' }
+    { id: 'orders', name: '6. 订单中心', desc: '高密度无冗余' },
   ];
 
   return (
@@ -44,9 +29,7 @@ export const LaptopTopSwitcher: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-black text-sm tracking-tight text-white">智慧翼企业福利商城</span>
-              <span className="text-[10px] bg-blue-500/30 text-blue-200 border border-blue-400/40 font-bold px-1.5 py-0.2 rounded">
-                13/14" Laptop 专版
-              </span>
+              <span className="text-[10px] bg-blue-500/30 text-blue-200 border border-blue-400/40 font-bold px-1.5 py-0.2 rounded">13/14" Laptop 专版</span>
             </div>
             <div className="text-[10px] text-blue-200 flex items-center gap-1">
               <span>SMART WING B2B2C</span>
@@ -73,9 +56,7 @@ export const LaptopTopSwitcher: React.FC = () => {
               setLaptopPage('home-1366');
             }}
             className={`px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer text-[11px] ${
-              appMode === 'laptop-web' && laptopPage === 'home-1366'
-                ? 'bg-[#1F5EFF] text-white shadow-sm'
-                : 'text-blue-200 hover:text-white hover:bg-white/10'
+              appMode === 'laptop-web' && laptopPage === 'home-1366' ? 'bg-[#1F5EFF] text-white shadow-sm' : 'text-blue-200 hover:text-white hover:bg-white/10'
             }`}
           >
             <Laptop className="w-3.5 h-3.5 text-cyan-300" />
@@ -88,9 +69,7 @@ export const LaptopTopSwitcher: React.FC = () => {
               setLaptopPage('home-1440');
             }}
             className={`px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer text-[11px] ${
-              appMode === 'laptop-web' && laptopPage === 'home-1440'
-                ? 'bg-[#1F5EFF] text-white shadow-sm'
-                : 'text-blue-200 hover:text-white hover:bg-white/10'
+              appMode === 'laptop-web' && laptopPage === 'home-1440' ? 'bg-[#1F5EFF] text-white shadow-sm' : 'text-blue-200 hover:text-white hover:bg-white/10'
             }`}
           >
             <Laptop className="w-3.5 h-3.5 text-blue-300" />
@@ -146,14 +125,12 @@ export const LaptopTopSwitcher: React.FC = () => {
             <Layers className="w-3 h-3 text-yellow-300" />
             <span>笔记本 6 页面:</span>
           </span>
-          {laptopPages.map(p => (
+          {laptopPages.map((p) => (
             <button
               key={p.id}
               onClick={() => setLaptopPage(p.id)}
               className={`px-2 py-1 rounded text-[11px] font-bold transition-all cursor-pointer flex-shrink-0 flex items-center gap-1 ${
-                laptopPage === p.id
-                  ? 'bg-yellow-400 text-gray-900 shadow-sm scale-105'
-                  : 'bg-white/10 text-blue-100 hover:bg-white/20'
+                laptopPage === p.id ? 'bg-yellow-400 text-gray-900 shadow-sm scale-105' : 'bg-white/10 text-blue-100 hover:bg-white/20'
               }`}
               title={p.desc}
             >

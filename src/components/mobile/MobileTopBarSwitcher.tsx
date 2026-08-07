@@ -3,18 +3,7 @@ import { useMall, AppMode } from '../../context/MallContext';
 import { Monitor, Laptop, Smartphone, AppWindow, Tablet, ShieldCheck, ExternalLink, Sparkles } from 'lucide-react';
 
 export const MobileTopBarSwitcher: React.FC = () => {
-  const {
-    appMode,
-    setAppMode,
-    mpPage,
-    setMpPage,
-    androidPage,
-    setAndroidPage,
-    tabletPage,
-    setTabletPage,
-    tabletOrientation,
-    setTabletOrientation
-  } = useMall();
+  const { appMode, setAppMode, mpPage, setMpPage, androidPage, setAndroidPage, tabletPage, setTabletPage, tabletOrientation, setTabletOrientation } = useMall();
 
   const handleSwitchMode = (mode: AppMode) => {
     setAppMode(mode);
@@ -31,9 +20,7 @@ export const MobileTopBarSwitcher: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-black text-sm tracking-tight text-white">智慧翼企业福利商城</span>
-              <span className="text-[10px] bg-yellow-400 text-gray-900 font-bold px-1.5 py-0.2 rounded">
-                全平台4端协同
-              </span>
+              <span className="text-[10px] bg-yellow-400 text-gray-900 font-bold px-1.5 py-0.2 rounded">全平台4端协同</span>
             </div>
             <div className="text-[10px] text-blue-200 flex items-center gap-1">
               <span>SMART WING B2B2C</span>
@@ -47,11 +34,7 @@ export const MobileTopBarSwitcher: React.FC = () => {
         <div className="flex items-center gap-1 bg-blue-950/80 p-1 rounded-xl border border-blue-800/80 flex-wrap justify-center">
           <button
             onClick={() => handleSwitchMode('pc')}
-            className={`px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer text-[11px] ${
-              appMode === 'pc'
-                ? 'bg-[#1F5EFF] text-white shadow-sm'
-                : 'text-blue-200 hover:text-white hover:bg-white/10'
-            }`}
+            className={`px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer text-[11px] ${appMode === 'pc' ? 'bg-[#1F5EFF] text-white shadow-sm' : 'text-blue-200 hover:text-white hover:bg-white/10'}`}
           >
             <Monitor className="w-3.5 h-3.5" />
             <span>PC 集团大屏</span>
@@ -60,9 +43,7 @@ export const MobileTopBarSwitcher: React.FC = () => {
           <button
             onClick={() => handleSwitchMode('laptop-web')}
             className={`px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer text-[11px] ${
-              appMode === 'laptop-web'
-                ? 'bg-cyan-600 text-white shadow-sm'
-                : 'text-blue-200 hover:text-white hover:bg-white/10'
+              appMode === 'laptop-web' ? 'bg-cyan-600 text-white shadow-sm' : 'text-blue-200 hover:text-white hover:bg-white/10'
             }`}
           >
             <Laptop className="w-3.5 h-3.5 text-cyan-300" />
@@ -72,9 +53,7 @@ export const MobileTopBarSwitcher: React.FC = () => {
           <button
             onClick={() => handleSwitchMode('mini-program')}
             className={`px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer text-[11px] ${
-              appMode === 'mini-program'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'text-blue-200 hover:text-white hover:bg-white/10'
+              appMode === 'mini-program' ? 'bg-emerald-600 text-white shadow-sm' : 'text-blue-200 hover:text-white hover:bg-white/10'
             }`}
           >
             <Smartphone className="w-3.5 h-3.5 text-emerald-300" />
@@ -84,9 +63,7 @@ export const MobileTopBarSwitcher: React.FC = () => {
           <button
             onClick={() => handleSwitchMode('android-app')}
             className={`px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer text-[11px] ${
-              appMode === 'android-app'
-                ? 'bg-amber-600 text-white shadow-sm'
-                : 'text-blue-200 hover:text-white hover:bg-white/10'
+              appMode === 'android-app' ? 'bg-amber-600 text-white shadow-sm' : 'text-blue-200 hover:text-white hover:bg-white/10'
             }`}
           >
             <AppWindow className="w-3.5 h-3.5 text-amber-300" />
@@ -96,9 +73,7 @@ export const MobileTopBarSwitcher: React.FC = () => {
           <button
             onClick={() => handleSwitchMode('tablet-app')}
             className={`px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer text-[11px] ${
-              appMode === 'tablet-app'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-blue-200 hover:text-white hover:bg-white/10'
+              appMode === 'tablet-app' ? 'bg-purple-600 text-white shadow-sm' : 'text-blue-200 hover:text-white hover:bg-white/10'
             }`}
           >
             <Tablet className="w-3.5 h-3.5 text-purple-300" />
@@ -115,15 +90,9 @@ export const MobileTopBarSwitcher: React.FC = () => {
               { id: 'category', name: '分类' },
               { id: 'detail', name: '详情' },
               { id: 'cart', name: '购物车' },
-              { id: 'profile', name: '我的' }
-            ].map(p => (
-              <button
-                key={p.id}
-                onClick={() => setMpPage(p.id as any)}
-                className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors ${
-                  mpPage === p.id ? 'bg-emerald-500 text-white font-bold' : 'hover:bg-white/10'
-                }`}
-              >
+              { id: 'profile', name: '我的' },
+            ].map((p) => (
+              <button key={p.id} onClick={() => setMpPage(p.id as any)} className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors ${mpPage === p.id ? 'bg-emerald-500 text-white font-bold' : 'hover:bg-white/10'}`}>
                 {p.name}
               </button>
             ))}
@@ -138,15 +107,9 @@ export const MobileTopBarSwitcher: React.FC = () => {
               { id: 'search', name: '搜索' },
               { id: 'detail', name: '详情' },
               { id: 'checkout', name: '结算' },
-              { id: 'profile', name: '个人' }
-            ].map(p => (
-              <button
-                key={p.id}
-                onClick={() => setAndroidPage(p.id as any)}
-                className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors ${
-                  androidPage === p.id ? 'bg-amber-500 text-white font-bold' : 'hover:bg-white/10'
-                }`}
-              >
+              { id: 'profile', name: '个人' },
+            ].map((p) => (
+              <button key={p.id} onClick={() => setAndroidPage(p.id as any)} className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors ${androidPage === p.id ? 'bg-amber-500 text-white font-bold' : 'hover:bg-white/10'}`}>
                 {p.name}
               </button>
             ))}
@@ -157,19 +120,16 @@ export const MobileTopBarSwitcher: React.FC = () => {
           <div className="hidden xl:flex items-center gap-1 text-[11px] text-blue-200">
             <span className="text-gray-300 font-medium">平板 6 页面：</span>
             {[
-              { id: 'home', name: tabletOrientation === 'landscape' ? '1. 横屏首页' : '2. 竖屏首页' },
+              {
+                id: 'home',
+                name: tabletOrientation === 'landscape' ? '1. 横屏首页' : '2. 竖屏首页',
+              },
               { id: 'category', name: '3. 分类(双栏)' },
               { id: 'detail', name: '4. 详情(双栏)' },
               { id: 'cart', name: '5. 购物车&结算' },
-              { id: 'orders', name: '6. 订单中心(Master-Detail)' }
-            ].map(p => (
-              <button
-                key={p.id}
-                onClick={() => setTabletPage(p.id as any)}
-                className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors ${
-                  tabletPage === p.id ? 'bg-purple-500 text-white font-bold' : 'hover:bg-white/10'
-                }`}
-              >
+              { id: 'orders', name: '6. 订单中心(Master-Detail)' },
+            ].map((p) => (
+              <button key={p.id} onClick={() => setTabletPage(p.id as any)} className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors ${tabletPage === p.id ? 'bg-purple-500 text-white font-bold' : 'hover:bg-white/10'}`}>
                 {p.name}
               </button>
             ))}

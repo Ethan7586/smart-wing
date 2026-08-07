@@ -33,7 +33,7 @@ describe('MallService demo safeguards', () => {
     vi.resetModules();
     Object.defineProperty(globalThis, 'localStorage', {
       configurable: true,
-      value: new MemoryStorage()
+      value: new MemoryStorage(),
     });
   });
 
@@ -61,40 +61,28 @@ describe('MallService demo safeguards', () => {
       address: mallService.getAddresses()[0],
       useWelfareAmount: total,
       useMealAmount: total,
-      payMethod: 'welfare_only'
+      payMethod: 'welfare_only',
     });
     const after = mallService.getUserProfile();
-    const deducted =
-      before.welfareBalance - after.welfareBalance +
-      before.mealBalance - after.mealBalance;
+    const deducted = before.welfareBalance - after.welfareBalance + before.mealBalance - after.mealBalance;
 
     expect(deducted).toBe(total);
-    expect(result.subOrders[0].payment.welfareDeducted + result.subOrders[0].payment.mealDeducted)
-      .toBeLessThanOrEqual(total);
+    expect(result.subOrders[0].payment.welfareDeducted + result.subOrders[0].payment.mealDeducted).toBeLessThanOrEqual(total);
   });
 
   it('keeps split-order payment allocations equal to the parent payment', async () => {
     const { mallService } = await import('./mallService');
     const items = mallService.getCart();
-    const total = items.reduce(
-      (sum, item) => sum + item.product.priceWelfare * item.quantity,
-      0
-    );
+    const total = items.reduce((sum, item) => sum + item.product.priceWelfare * item.quantity, 0);
 
     const result = mallService.submitCheckoutOrder({
       items,
       address: mallService.getAddresses()[0],
       useWelfareAmount: total * 0.55,
       useMealAmount: total * 0.25,
-      payMethod: 'welfare_plus_wechat'
+      payMethod: 'welfare_plus_wechat',
     });
-    const allocated = result.subOrders.reduce(
-      (sum, order) => sum +
-        order.payment.welfareDeducted +
-        order.payment.mealDeducted +
-        order.payment.wechatPaid,
-      0
-    );
+    const allocated = result.subOrders.reduce((sum, order) => sum + order.payment.welfareDeducted + order.payment.mealDeducted + order.payment.wechatPaid, 0);
 
     expect(allocated).toBeCloseTo(total, 2);
   });

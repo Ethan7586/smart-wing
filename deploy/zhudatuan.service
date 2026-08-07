@@ -1,0 +1,25 @@
+[Unit]
+Description=zhudatuan.com - Smart Wing Welfare Mall
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/zhudatuan
+ExecStart=/usr/bin/npm run start
+Restart=on-failure
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=PORT=3000
+# 生产环境必须禁用开发模式
+Environment=APP_ENV=production
+Environment=AUTH_MODE=production
+
+# 资源限制
+LimitAS=2G
+LimitRSS=1G
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

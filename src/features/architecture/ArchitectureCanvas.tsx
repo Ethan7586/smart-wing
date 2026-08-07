@@ -1,9 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  ARCHITECTURE_LINKS,
-  ARCHITECTURE_NODES,
-  type ArchitectureNode
-} from './architectureModel';
+import { ARCHITECTURE_LINKS, ARCHITECTURE_NODES, type ArchitectureNode } from './architectureModel';
 
 const WIDTH = 1200;
 const HEIGHT = 690;
@@ -11,24 +7,15 @@ const LAYER_COLORS = {
   client: ['#EAF1FF', '#1F5EFF'],
   edge: ['#E8F8F1', '#18A058'],
   service: ['#FFF4E8', '#FF7A00'],
-  data: ['#F3EDFF', '#7C3AED']
+  data: ['#F3EDFF', '#7C3AED'],
 } as const;
 
-function roundedRect(
-  context: CanvasRenderingContext2D,
-  node: ArchitectureNode,
-  radius = 12
-) {
+function roundedRect(context: CanvasRenderingContext2D, node: ArchitectureNode, radius = 12) {
   context.beginPath();
   context.roundRect(node.x, node.y, node.width, node.height, radius);
 }
 
-function drawArrow(
-  context: CanvasRenderingContext2D,
-  from: ArchitectureNode,
-  to: ArchitectureNode,
-  label?: string
-) {
+function drawArrow(context: CanvasRenderingContext2D, from: ArchitectureNode, to: ArchitectureNode, label?: string) {
   const startX = from.x + from.width / 2;
   const startY = from.y + from.height;
   const endX = to.x + to.width / 2;
@@ -55,12 +42,7 @@ function drawArrow(
   }
 }
 
-function drawLayerLabel(
-  context: CanvasRenderingContext2D,
-  title: string,
-  y: number,
-  color: string
-) {
+function drawLayerLabel(context: CanvasRenderingContext2D, title: string, y: number, color: string) {
   context.fillStyle = color;
   context.font = '700 12px sans-serif';
   context.textAlign = 'left';
@@ -137,23 +119,12 @@ export const ArchitectureCanvas: React.FC = () => {
     const bounds = canvas.getBoundingClientRect();
     const x = ((event.clientX - bounds.left) / bounds.width) * WIDTH;
     const y = ((event.clientY - bounds.top) / bounds.height) * HEIGHT;
-    setSelected(
-      ARCHITECTURE_NODES.find(
-        (node) =>
-          x >= node.x && x <= node.x + node.width &&
-          y >= node.y && y <= node.y + node.height
-      ) ?? null
-    );
+    setSelected(ARCHITECTURE_NODES.find((node) => x >= node.x && x <= node.x + node.width && y >= node.y && y <= node.y + node.height) ?? null);
   };
 
   return (
     <div ref={hostRef} className="w-full overflow-x-auto rounded-xl border border-slate-200 bg-slate-50">
-      <canvas
-        ref={canvasRef}
-        onClick={selectNode}
-        className="block cursor-pointer"
-        aria-label="智慧翼企业福利商城系统架构图"
-      />
+      <canvas ref={canvasRef} onClick={selectNode} className="block cursor-pointer" aria-label="智慧翼企业福利商城系统架构图" />
       {selected && (
         <div className="sticky left-0 bottom-0 border-t border-slate-200 bg-white/95 px-4 py-3 text-xs text-slate-600">
           <strong className="text-slate-900">{selected.title}</strong>

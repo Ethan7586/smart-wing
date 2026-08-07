@@ -1,20 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react';
-import type {
-  AccountLog,
-  CartItem,
-  DeliveryAddress,
-  EnterpriseMall,
-  Order,
-  OrderStatus,
-  Product,
-  ProductItemType,
-  UserProfile,
-} from '../types';
-import type {
-  FrontendCategory,
-  FrontendOrder,
-  FrontendProduct,
-} from '../adapters/frontendData';
+import type { AccountLog, CartItem, DeliveryAddress, EnterpriseMall, Order, OrderStatus, Product, ProductItemType, UserProfile } from '../types';
+import type { FrontendCategory, FrontendOrder, FrontendProduct } from '../adapters/frontendData';
 
 export type SessionStatus = 'checking' | 'guest' | 'authenticated';
 export type ViewportMode = 'auto' | 'laptop-1366' | 'desktop-1440' | 'side-by-side';
@@ -31,21 +17,7 @@ export interface PendingFeatureInfo {
   desc?: string;
 }
 
-export type PageRoute =
-  | 'home'
-  | 'category'
-  | 'detail'
-  | 'cart'
-  | 'checkout'
-  | 'payment-result'
-  | 'user-center'
-  | 'orders'
-  | 'order-detail'
-  | 'after-sale'
-  | 'coupons'
-  | 'balance'
-  | 'mvp-console'
-  | 'architecture';
+export type PageRoute = 'home' | 'category' | 'detail' | 'cart' | 'checkout' | 'payment-result' | 'user-center' | 'orders' | 'order-detail' | 'after-sale' | 'coupons' | 'balance' | 'mvp-console' | 'mvp-delivery' | 'architecture';
 
 export interface RouteParams {
   productId?: string;
@@ -111,7 +83,7 @@ export interface MallContextType {
   updateCartQuantity: (cartItemId: string, quantity: number) => void;
   toggleCartItemSelected: (cartItemId: string) => void;
   toggleSelectAllCart: (selected: boolean) => void;
-  removeCartItem: (cartItemId: string) => void;
+  removeCartItem: (cartItemId: string) => Promise<void>;
   favorites: string[];
   toggleFavorite: (productId: string) => void;
   addresses: DeliveryAddress[];

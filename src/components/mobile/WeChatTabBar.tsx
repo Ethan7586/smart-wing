@@ -10,12 +10,12 @@ export const WeChatTabBar: React.FC = () => {
     { id: 'category', label: '分类', icon: LayoutGrid },
     { id: 'detail', label: '企业福利', icon: Gift },
     { id: 'cart', label: '购物车', icon: ShoppingCart },
-    { id: 'profile', label: '我的', icon: User }
+    { id: 'profile', label: '我的', icon: User },
   ];
 
   return (
     <div className="bg-white border-t border-gray-200/80 sticky bottom-0 z-40 px-2 py-1.5 flex items-center justify-around select-none shadow-lg font-sans">
-      {tabs.map(tab => {
+      {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = mpPage === tab.id;
 
@@ -23,9 +23,7 @@ export const WeChatTabBar: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setMpPage(tab.id)}
-            className={`flex flex-col items-center justify-center flex-1 py-1 relative cursor-pointer transition-colors ${
-              isActive ? 'text-[#1F5EFF]' : 'text-gray-500 hover:text-gray-800'
-            }`}
+            className={`flex flex-col items-center justify-center flex-1 py-1 relative cursor-pointer transition-colors ${isActive ? 'text-[#1F5EFF]' : 'text-gray-500 hover:text-gray-800'}`}
           >
             <div className="relative">
               <Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110 stroke-[2.5]' : 'stroke-2'}`} />
@@ -35,12 +33,8 @@ export const WeChatTabBar: React.FC = () => {
                 </span>
               )}
             </div>
-            <span className={`text-[10px] mt-0.5 tracking-tight ${isActive ? 'font-bold' : 'font-normal'}`}>
-              {tab.label}
-            </span>
-            {isActive && (
-              <span className="w-1 h-1 bg-[#1F5EFF] rounded-full mt-0.5 animate-pulse" />
-            )}
+            <span className={`text-[10px] mt-0.5 tracking-tight ${isActive ? 'font-bold' : 'font-normal'}`}>{tab.label}</span>
+            {isActive && <span className="w-1 h-1 bg-[#1F5EFF] rounded-full mt-0.5 animate-pulse" />}
           </button>
         );
       })}

@@ -1,23 +1,5 @@
-import type {
-  AccountLog,
-  AfterSaleRecord,
-  CartItem,
-  DeliveryAddress,
-  EnterpriseMall,
-  Order,
-  UserCoupon,
-  UserProfile,
-} from '../types';
-import {
-  MOCK_ACCOUNT_LOGS,
-  MOCK_ADDRESSES,
-  MOCK_AFTER_SALES,
-  MOCK_ENTERPRISE_MALLS,
-  MOCK_ORDERS,
-  MOCK_PRODUCTS,
-  MOCK_USER,
-  MOCK_USER_COUPONS,
-} from '../mock/data';
+import type { AccountLog, AfterSaleRecord, CartItem, DeliveryAddress, EnterpriseMall, Order, UserCoupon, UserProfile } from '../types';
+import { MOCK_ACCOUNT_LOGS, MOCK_ADDRESSES, MOCK_AFTER_SALES, MOCK_ENTERPRISE_MALLS, MOCK_ORDERS, MOCK_PRODUCTS, MOCK_USER, MOCK_USER_COUPONS } from '../mock/data';
 
 export const STORAGE_KEYS = {
   USER: 'zhy_mall_user_profile',
@@ -28,7 +10,7 @@ export const STORAGE_KEYS = {
   AFTER_SALES: 'zhy_mall_after_sales',
   ADDRESSES: 'zhy_mall_addresses',
   FAVORITES: 'zhy_mall_favorites',
-  MALL_ID: 'zhy_mall_current_id'
+  MALL_ID: 'zhy_mall_current_id',
 };
 
 export class MallState {
@@ -61,13 +43,13 @@ export class MallState {
   }
 
   protected createDefaultUser(): UserProfile {
-    const mall = MOCK_ENTERPRISE_MALLS.find(item => item.id === this.currentMallId) || MOCK_ENTERPRISE_MALLS[0];
+    const mall = MOCK_ENTERPRISE_MALLS.find((item) => item.id === this.currentMallId) || MOCK_ENTERPRISE_MALLS[0];
     return {
       ...MOCK_USER,
       currentMallId: mall.id,
       enterpriseId: mall.enterpriseId,
       enterpriseName: mall.enterpriseName,
-      distributorId: mall.distributorId || MOCK_USER.distributorId
+      distributorId: mall.distributorId || MOCK_USER.distributorId,
     };
   }
 
@@ -79,19 +61,19 @@ export class MallState {
         productId: 'p_101',
         product: MOCK_PRODUCTS[0],
         quantity: 1,
-        selectedSpec: { '规格重量': '10kg/袋' },
+        selectedSpec: { 规格重量: '10kg/袋' },
         selected: true,
-        distributorId: MOCK_USER.distributorId
+        distributorId: MOCK_USER.distributorId,
       },
       {
         id: 'cart_02',
         productId: 'p_701',
         product: MOCK_PRODUCTS[14], // 星巴克100元电子卡
         quantity: 2,
-        selectedSpec: { '卡面金额': '100元电子卡' },
+        selectedSpec: { 卡面金额: '100元电子卡' },
         selected: true,
-        distributorId: MOCK_USER.distributorId
-      }
+        distributorId: MOCK_USER.distributorId,
+      },
     ];
     return defaultCart;
   }
@@ -104,31 +86,19 @@ export class MallState {
       currentMallId: defaultUser.currentMallId,
       enterpriseId: defaultUser.enterpriseId,
       enterpriseName: defaultUser.enterpriseName,
-      distributorId: defaultUser.distributorId
+      distributorId: defaultUser.distributorId,
     };
     this.cart = this.loadFromStorage(this.getScopedKey(STORAGE_KEYS.CART), this.createDefaultCart());
     this.orders = this.loadFromStorage(
       this.getScopedKey(STORAGE_KEYS.ORDERS),
-      MOCK_ORDERS.filter(order => order.mallId === this.currentMallId)
+      MOCK_ORDERS.filter((order) => order.mallId === this.currentMallId)
     );
-    this.logs = this.loadFromStorage(
-      this.getScopedKey(STORAGE_KEYS.LOGS),
-      this.currentMallId === MOCK_USER.currentMallId ? MOCK_ACCOUNT_LOGS : []
-    );
-    this.coupons = this.loadFromStorage(
-      this.getScopedKey(STORAGE_KEYS.COUPONS),
-      this.currentMallId === MOCK_USER.currentMallId ? MOCK_USER_COUPONS : []
-    );
-    this.afterSales = this.loadFromStorage(
-      this.getScopedKey(STORAGE_KEYS.AFTER_SALES),
-      this.currentMallId === MOCK_USER.currentMallId ? MOCK_AFTER_SALES : []
-    );
+    this.logs = this.loadFromStorage(this.getScopedKey(STORAGE_KEYS.LOGS), this.currentMallId === MOCK_USER.currentMallId ? MOCK_ACCOUNT_LOGS : []);
+    this.coupons = this.loadFromStorage(this.getScopedKey(STORAGE_KEYS.COUPONS), this.currentMallId === MOCK_USER.currentMallId ? MOCK_USER_COUPONS : []);
+    this.afterSales = this.loadFromStorage(this.getScopedKey(STORAGE_KEYS.AFTER_SALES), this.currentMallId === MOCK_USER.currentMallId ? MOCK_AFTER_SALES : []);
     this.addresses = this.loadFromStorage(this.getScopedKey(STORAGE_KEYS.ADDRESSES), MOCK_ADDRESSES);
-    this.favorites = this.loadFromStorage(
-      this.getScopedKey(STORAGE_KEYS.FAVORITES),
-      this.currentMallId === MOCK_USER.currentMallId ? ['p_101', 'p_201', 'p_701'] : []
-    );
-    this.user.couponCount = this.coupons.filter(coupon => coupon.status === 'unused').length;
+    this.favorites = this.loadFromStorage(this.getScopedKey(STORAGE_KEYS.FAVORITES), this.currentMallId === MOCK_USER.currentMallId ? ['p_101', 'p_201', 'p_701'] : []);
+    this.user.couponCount = this.coupons.filter((coupon) => coupon.status === 'unused').length;
   }
 
   protected loadFromStorage<T>(key: string, defaultValue: T): T {
@@ -154,12 +124,12 @@ export class MallState {
   }
 
   public getCurrentMall(): EnterpriseMall {
-    const mall = MOCK_ENTERPRISE_MALLS.find(m => m.id === this.currentMallId);
+    const mall = MOCK_ENTERPRISE_MALLS.find((m) => m.id === this.currentMallId);
     return mall || MOCK_ENTERPRISE_MALLS[0];
   }
 
   public switchMall(mallId: string): EnterpriseMall {
-    const exists = MOCK_ENTERPRISE_MALLS.some(mall => mall.id === mallId);
+    const exists = MOCK_ENTERPRISE_MALLS.some((mall) => mall.id === mallId);
     if (!exists) throw new Error('商城不存在或无访问权限');
     this.currentMallId = mallId;
     this.saveToStorage(STORAGE_KEYS.MALL_ID, mallId);

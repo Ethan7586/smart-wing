@@ -1,35 +1,14 @@
 import React, { useState } from 'react';
 import { LaptopBreadcrumb } from './LaptopBreadcrumb';
 import { useMall, LaptopPage } from '../../context/MallContext';
-import {
-  ShoppingCart,
-  Zap,
-  CreditCard,
-  Gift,
-  ShieldCheck,
-  Truck,
-  CheckCircle2,
-  FileText,
-  Star,
-  MapPin,
-  Minus,
-  Plus,
-  Building,
-  Heart,
-  Share2
-} from 'lucide-react';
+import { ShoppingCart, Zap, CreditCard, Gift, ShieldCheck, Truck, CheckCircle2, FileText, Star, MapPin, Minus, Plus, Building, Heart, Share2 } from 'lucide-react';
 
 interface LaptopDetailPageProps {
   onSelectTab: (tab: LaptopPage) => void;
 }
 
 export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab }) => {
-  const {
-    user,
-    addToCart,
-    showToast,
-    presentationProducts: MOCK_PRODUCTS,
-  } = useMall();
+  const { user, addToCart, showToast, presentationProducts: MOCK_PRODUCTS } = useMall();
 
   // Selected product (default to Lenovo ThinkPad or first product)
   const product = MOCK_PRODUCTS[0];
@@ -55,22 +34,13 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
         <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-2xs grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-3">
             <div className="w-full h-[300px] bg-gray-50 rounded-lg border border-gray-200 p-4 flex items-center justify-center relative overflow-hidden">
-              <span className="absolute top-2 left-2 bg-[#E5484D] text-white text-[10px] font-black px-2 py-0.5 rounded shadow-2xs">
-                企业特惠补贴 20%
-              </span>
-              <img
-                src={product.image}
-                alt={product.title}
-                className="max-h-full max-w-full object-contain"
-              />
+              <span className="absolute top-2 left-2 bg-[#E5484D] text-white text-[10px] font-black px-2 py-0.5 rounded shadow-2xs">企业特惠补贴 20%</span>
+              <img src={product.image} alt={product.title} className="max-h-full max-w-full object-contain" />
             </div>
 
             <div className="flex items-center gap-2 overflow-x-auto pb-1">
               {[product.image, product.image, product.image].map((img, i) => (
-                <div
-                  key={i}
-                  className="w-14 h-14 rounded border-2 border-[#1F5EFF] bg-gray-50 p-1 flex-shrink-0 cursor-pointer"
-                >
+                <div key={i} className="w-14 h-14 rounded border-2 border-[#1F5EFF] bg-gray-50 p-1 flex-shrink-0 cursor-pointer">
                   <img src={img} alt="thumb" className="w-full h-full object-contain" />
                 </div>
               ))}
@@ -95,36 +65,26 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
           <div className="space-y-3 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="bg-[#143A8F] text-white font-bold text-[10px] px-1.5 py-0.2 rounded">
-                  {product.supplierName || '京东自营'}
-                </span>
-                <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.2 rounded">
-                  企业福利卡通用
-                </span>
+                <span className="bg-[#143A8F] text-white font-bold text-[10px] px-1.5 py-0.2 rounded">{product.supplierName || '京东自营'}</span>
+                <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.2 rounded">企业福利卡通用</span>
               </div>
 
-              <h1 className="text-base sm:text-lg font-black text-gray-900 leading-snug">
-                {product.title}
-              </h1>
-              <p className="text-xs text-gray-500 mt-1">
-                高性能企业办公标配，支持福利卡全额扣减与对公专票直开。
-              </p>
+              <h1 className="text-base sm:text-lg font-black text-gray-900 leading-snug">{product.title}</h1>
+              <p className="text-xs text-gray-500 mt-1">高性能企业办公标配，支持福利卡全额扣减与对公专票直开。</p>
 
               <div className="bg-gradient-to-r from-red-50 via-orange-50 to-blue-50 border border-red-200/80 rounded-lg p-3 mt-3 space-y-1">
                 <div className="flex items-baseline gap-2">
                   <span className="text-xs font-bold text-[#E5484D]">企采福利价:</span>
-                  <span className="text-2xl font-black text-[#E5484D]">
-                    ¥{product.welfarePrice.toFixed(2)}
-                  </span>
-                  <span className="text-xs text-gray-400 line-through">
-                    官网原价 ¥{product.marketPrice.toFixed(2)}
-                  </span>
+                  <span className="text-2xl font-black text-[#E5484D]">¥{product.welfarePrice.toFixed(2)}</span>
+                  <span className="text-xs text-gray-400 line-through">官网原价 ¥{product.marketPrice.toFixed(2)}</span>
                 </div>
 
                 <div className="text-[11px] text-gray-700 flex items-center gap-3 pt-1 border-t border-red-100">
                   <span className="flex items-center gap-1">
                     <CreditCard className="w-3.5 h-3.5 text-[#1F5EFF]" />
-                    <span>福利卡余额可扣: <strong className="text-[#143A8F]">¥{user.welfareBalance.toFixed(2)}</strong></span>
+                    <span>
+                      福利卡余额可扣: <strong className="text-[#143A8F]">¥{user.welfareBalance.toFixed(2)}</strong>
+                    </span>
                   </span>
                   {product.allowMealCard && (
                     <span className="flex items-center gap-1 text-emerald-700">
@@ -138,19 +98,11 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
               <div className="mt-3 space-y-2 text-xs">
                 <div className="font-bold text-gray-800">选择规格配置:</div>
                 <div className="flex flex-wrap gap-2">
-                  {[
-                    'i7-13700H / 32G / 1TB',
-                    'i5-13500H / 16G / 512G',
-                    'i9-13900H / 64G / 2TB'
-                  ].map(spec => (
+                  {['i7-13700H / 32G / 1TB', 'i5-13500H / 16G / 512G', 'i9-13900H / 64G / 2TB'].map((spec) => (
                     <button
                       key={spec}
                       onClick={() => setSelectedSpec(spec)}
-                      className={`px-3 py-1.5 rounded border text-xs font-bold transition-all cursor-pointer ${
-                        selectedSpec === spec
-                          ? 'border-[#1F5EFF] bg-blue-50 text-[#1F5EFF]'
-                          : 'border-gray-200 text-gray-700 hover:border-gray-300'
-                      }`}
+                      className={`px-3 py-1.5 rounded border text-xs font-bold transition-all cursor-pointer ${selectedSpec === spec ? 'border-[#1F5EFF] bg-blue-50 text-[#1F5EFF]' : 'border-gray-200 text-gray-700 hover:border-gray-300'}`}
                     >
                       {spec}
                     </button>
@@ -167,17 +119,11 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
               <div className="mt-3 flex items-center gap-3 text-xs">
                 <span className="font-bold text-gray-800">购买数量:</span>
                 <div className="flex items-center border border-gray-300 rounded overflow-hidden">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-2 py-1 bg-gray-100 hover:bg-gray-200 cursor-pointer"
-                  >
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-2 py-1 bg-gray-100 hover:bg-gray-200 cursor-pointer">
                     <Minus className="w-3 h-3" />
                   </button>
                   <span className="px-3 font-bold text-gray-800">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="px-2 py-1 bg-gray-100 hover:bg-gray-200 cursor-pointer"
-                  >
+                  <button onClick={() => setQuantity(quantity + 1)} className="px-2 py-1 bg-gray-100 hover:bg-gray-200 cursor-pointer">
                     <Plus className="w-3 h-3" />
                   </button>
                 </div>
@@ -193,10 +139,7 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
                 <span>加入购物车</span>
               </button>
 
-              <button
-                onClick={handleBuyNow}
-                className="flex-1 bg-[#1F5EFF] hover:bg-blue-700 text-white font-black py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-xs transition-colors cursor-pointer shadow-sm"
-              >
+              <button onClick={handleBuyNow} className="flex-1 bg-[#1F5EFF] hover:bg-blue-700 text-white font-black py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-xs transition-colors cursor-pointer shadow-sm">
                 <Zap className="w-4 h-4 text-yellow-300" />
                 <span>福利卡全额购买</span>
               </button>
@@ -210,16 +153,12 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
               { id: 'detail', name: '商品详情' },
               { id: 'spec', name: '规格参数' },
               { id: 'reviews', name: '企采评价 (99%好评)' },
-              { id: 'aftersale', name: '售后与专票规则' }
-            ].map(tab => (
+              { id: 'aftersale', name: '售后与专票规则' },
+            ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-5 py-2.5 transition-colors cursor-pointer border-b-2 ${
-                  activeTab === tab.id
-                    ? 'border-[#1F5EFF] bg-white text-[#1F5EFF]'
-                    : 'border-transparent hover:text-black'
-                }`}
+                className={`px-5 py-2.5 transition-colors cursor-pointer border-b-2 ${activeTab === tab.id ? 'border-[#1F5EFF] bg-white text-[#1F5EFF]' : 'border-transparent hover:text-black'}`}
               >
                 {tab.name}
               </button>
@@ -229,9 +168,7 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
           <div className="p-4 text-xs text-gray-700 leading-relaxed">
             {activeTab === 'detail' && (
               <div className="space-y-3">
-                <p>
-                  本商品为国家电网及央国企定制采购标配产品，经过集团质量检测认证，保障办公与日常使用体验。
-                </p>
+                <p>本商品为国家电网及央国企定制采购标配产品，经过集团质量检测认证，保障办公与日常使用体验。</p>
                 <div className="grid grid-cols-2 gap-3 bg-gray-50 p-3 rounded border border-gray-200">
                   <div>
                     <strong>品牌：</strong>联想/戴尔官方授权
@@ -272,9 +209,7 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
               <div className="space-y-2">
                 <div className="p-2 bg-blue-50/50 rounded border border-blue-100">
                   <div className="font-bold text-gray-800">李** (华北分部)：</div>
-                  <p className="text-gray-600 mt-0.5">
-                    直接用福利卡额度下的单，第二天京东就送到了，发票自动合并上传集团财务，非常方便！
-                  </p>
+                  <p className="text-gray-600 mt-0.5">直接用福利卡额度下的单，第二天京东就送到了，发票自动合并上传集团财务，非常方便！</p>
                 </div>
               </div>
             )}

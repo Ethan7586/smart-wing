@@ -7,18 +7,7 @@
 import React from 'react';
 import { useMall } from '../context/MallContext';
 import { mallService } from '../services/mallService';
-import {
-  CheckCircle2,
-  Package,
-  CreditCard,
-  Ticket,
-  ChevronRight,
-  ArrowLeft,
-  Building2,
-  QrCode,
-  Copy,
-  Receipt
-} from 'lucide-react';
+import { CheckCircle2, Package, CreditCard, Ticket, ChevronRight, ArrowLeft, Building2, QrCode, Copy, Receipt } from 'lucide-react';
 
 export const PaymentResultPage: React.FC = () => {
   const { routeParams, navigateTo, user, showToast } = useMall();
@@ -26,7 +15,7 @@ export const PaymentResultPage: React.FC = () => {
   const parentOrderNo = routeParams.parentOrderNo || 'PORD202607230001';
 
   // Find orders matching this parent order
-  const orders = mallService.getOrders().filter(o => o.parentOrderNo === parentOrderNo || o.orderNo === parentOrderNo);
+  const orders = mallService.getOrders().filter((o) => o.parentOrderNo === parentOrderNo || o.orderNo === parentOrderNo);
 
   const totalDeductedWelfare = orders.reduce((sum, o) => sum + o.payment.welfareDeducted, 0);
   const totalDeductedMeal = orders.reduce((sum, o) => sum + o.payment.mealDeducted, 0);
@@ -46,13 +35,9 @@ export const PaymentResultPage: React.FC = () => {
           <CheckCircle2 className="w-10 h-10" />
         </div>
 
-        <h1 className="text-xl font-black text-gray-900">
-          福利采购订单提交成功！
-        </h1>
+        <h1 className="text-xl font-black text-gray-900">福利采购订单提交成功！</h1>
 
-        <p className="text-xs text-gray-500 max-w-md mx-auto">
-          系统已自动扣减您的企业福利卡/餐卡余额，并根据商品所属供应商自动完成多仓库拆单排单发货。
-        </p>
+        <p className="text-xs text-gray-500 max-w-md mx-auto">系统已自动扣减您的企业福利卡/餐卡余额，并根据商品所属供应商自动完成多仓库拆单排单发货。</p>
 
         {/* 核心金钱扣减卡片 */}
         <div className="bg-gray-50 border border-gray-200 rounded-md p-4 max-w-xl mx-auto grid grid-cols-3 gap-2 text-xs">
@@ -66,29 +51,18 @@ export const PaymentResultPage: React.FC = () => {
           </div>
           <div>
             <div className="text-[#FF7A00] font-bold">餐卡/微信补差</div>
-            <div className="text-base font-black text-[#FF7A00] mt-0.5">
-              ¥{(totalDeductedMeal + totalWechatPaid).toFixed(2)}
-            </div>
+            <div className="text-base font-black text-[#FF7A00] mt-0.5">¥{(totalDeductedMeal + totalWechatPaid).toFixed(2)}</div>
           </div>
         </div>
 
         <div className="flex items-center justify-center gap-3 pt-4">
-          <button
-            onClick={() => navigateTo('orders')}
-            className="bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold text-xs px-6 py-2.5 rounded shadow-xs cursor-pointer transition-colors"
-          >
+          <button onClick={() => navigateTo('orders')} className="bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold text-xs px-6 py-2.5 rounded shadow-xs cursor-pointer transition-colors">
             查看我的订单
           </button>
-          <button
-            onClick={() => navigateTo('coupons')}
-            className="bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 font-bold text-xs px-6 py-2.5 rounded cursor-pointer transition-colors"
-          >
+          <button onClick={() => navigateTo('coupons')} className="bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 font-bold text-xs px-6 py-2.5 rounded cursor-pointer transition-colors">
             进入我的卡券包
           </button>
-          <button
-            onClick={() => navigateTo('home')}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs px-6 py-2.5 rounded cursor-pointer transition-colors"
-          >
+          <button onClick={() => navigateTo('home')} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs px-6 py-2.5 rounded cursor-pointer transition-colors">
             返回商城首页
           </button>
         </div>
@@ -106,26 +80,24 @@ export const PaymentResultPage: React.FC = () => {
             <div key={sub.id} className="border border-gray-200 rounded-md p-4 text-xs space-y-3 bg-gray-50/50">
               <div className="flex items-center justify-between border-b border-gray-200 pb-2">
                 <div className="flex items-center gap-2">
-                  <span className="bg-[#1F5EFF] text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
-                    子订单 {idx + 1}
-                  </span>
+                  <span className="bg-[#1F5EFF] text-white text-[10px] font-bold px-1.5 py-0.5 rounded">子订单 {idx + 1}</span>
                   <span className="font-bold text-gray-900">{sub.supplierName}</span>
                   <span className="text-gray-400 font-mono">({sub.orderNo})</span>
                 </div>
-                <span className="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded">
-                  已接收 · 排单准备发货
-                </span>
+                <span className="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded">已接收 · 排单准备发货</span>
               </div>
 
               {/* 商品项 */}
               <div className="space-y-2">
-                {sub.items.map(item => (
+                {sub.items.map((item) => (
                   <div key={item.productId} className="flex items-center justify-between bg-white p-2.5 rounded border border-gray-200">
                     <div className="flex items-center gap-3">
                       <img src={item.productImage} alt="" className="w-10 h-10 rounded object-cover" />
                       <div>
                         <div className="font-bold text-gray-800">{item.productTitle}</div>
-                        <div className="text-[11px] text-gray-400">{item.specText} × {item.quantity}</div>
+                        <div className="text-[11px] text-gray-400">
+                          {item.specText} × {item.quantity}
+                        </div>
                       </div>
                     </div>
 
@@ -143,16 +115,11 @@ export const PaymentResultPage: React.FC = () => {
                     <QrCode className="w-5 h-5 text-amber-600 flex-shrink-0" />
                     <div>
                       <div className="font-bold">电子核销码/卡密已生成：</div>
-                      <div className="font-mono text-sm font-black text-amber-700 tracking-wider">
-                        {sub.verificationCode}
-                      </div>
+                      <div className="font-mono text-sm font-black text-amber-700 tracking-wider">{sub.verificationCode}</div>
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => copyToClipboard(sub.verificationCode!)}
-                    className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3 py-1.5 rounded flex items-center gap-1 cursor-pointer"
-                  >
+                  <button onClick={() => copyToClipboard(sub.verificationCode!)} className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3 py-1.5 rounded flex items-center gap-1 cursor-pointer">
                     <Copy className="w-3.5 h-3.5" /> 复制核销码
                   </button>
                 </div>

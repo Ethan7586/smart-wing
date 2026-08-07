@@ -1,7 +1,7 @@
-import { json, methodNotAllowed } from "./http";
-import { actorScope } from "./routerSupport";
-import { callRpc } from "./supabase";
-import type { Actor, WorkerEnv } from "./types";
+import { json, methodNotAllowed } from './http';
+import { actorScope } from './routerSupport';
+import { callRpc } from './supabase';
+import type { Actor, WorkerEnv } from './types';
 
 interface BootstrapRow {
   mallName: string;
@@ -17,18 +17,9 @@ interface AccountRow {
   updated_at: string;
 }
 
-export async function handleBootstrap(
-  request: Request,
-  env: WorkerEnv,
-  actor: Actor,
-  requestId: string
-): Promise<Response> {
-  if (request.method !== "GET") return methodNotAllowed(["GET"], requestId);
-  const scope = await callRpc<BootstrapRow | null>(
-    env,
-    "api_bootstrap",
-    actorScope(actor)
-  );
+export async function handleBootstrap(request: Request, env: WorkerEnv, actor: Actor, requestId: string): Promise<Response> {
+  if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
+  const scope = await callRpc<BootstrapRow | null>(env, 'api_bootstrap', actorScope(actor));
   return json({
     actor: {
       userId: actor.userId,
@@ -41,26 +32,17 @@ export async function handleBootstrap(
       enterpriseId: actor.enterpriseId,
       mallId: actor.mallId,
       mallCode: actor.mallCode,
-      mallName: scope?.mallName ?? "",
-      brandName: scope?.brandName ?? "",
-      enterpriseName: scope?.enterpriseName ?? "",
+      mallName: scope?.mallName ?? '',
+      brandName: scope?.brandName ?? '',
+      enterpriseName: scope?.enterpriseName ?? '',
     },
     requestId,
   });
 }
 
-export async function handleAccounts(
-  request: Request,
-  env: WorkerEnv,
-  actor: Actor,
-  requestId: string
-): Promise<Response> {
-  if (request.method !== "GET") return methodNotAllowed(["GET"], requestId);
-  const rows = await callRpc<AccountRow[]>(
-    env,
-    "api_accounts",
-    actorScope(actor, true)
-  );
+export async function handleAccounts(request: Request, env: WorkerEnv, actor: Actor, requestId: string): Promise<Response> {
+  if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
+  const rows = await callRpc<AccountRow[]>(env, 'api_accounts', actorScope(actor, true));
   return json({
     items: rows.map((row) => ({
       id: row.id,
@@ -73,17 +55,8 @@ export async function handleAccounts(
   });
 }
 
-export async function handleAccountLedgers(
-  request: Request,
-  env: WorkerEnv,
-  actor: Actor,
-  requestId: string
-): Promise<Response> {
-  if (request.method !== "GET") return methodNotAllowed(["GET"], requestId);
-  const rows = await callRpc<Array<Record<string, unknown>>>(
-    env,
-    "api_account_ledgers",
-    actorScope(actor, true)
-  );
+export async function handleAccountLedgers(request: Request, env: WorkerEnv, actor: Actor, requestId: string): Promise<Response> {
+  if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
+  const rows = await callRpc<Array<Record<string, unknown>>>(env, 'api_account_ledgers', actorScope(actor, true));
   return json({ items: rows, requestId });
 }

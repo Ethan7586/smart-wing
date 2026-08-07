@@ -6,12 +6,10 @@ export const MOCK_PRODUCTS_C: Product[] = [
     id: 'p_801',
     title: '【商超通兑】盒马鲜生 500元电子礼品卡/储值卡 盒马APP绑定使用',
     subtitle: '线上App及线下盒马门店通用，支持买生鲜、烘焙、零食',
-    images: [
-      'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 500.00,
-    priceMall: 490.00,
-    priceWelfare: 450.00,
+    images: ['https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 500.0,
+    priceMall: 490.0,
+    priceWelfare: 450.0,
     categoryId: 'cat_supermarket',
     categoryName: '商超商品',
     brand: '盒马鲜生',
@@ -28,10 +26,8 @@ export const MOCK_PRODUCTS_C: Product[] = [
     deliverySla: '即时发码',
     isEnterpriseExclusive: true,
     isHotRedeem: true,
-    specs: [
-      { name: '面额选择', options: ['200元电子卡', '500元电子卡', '1000元电子卡'] }
-    ],
-    distributorId: 'DIST-001-GW'
+    specs: [{ name: '面额选择', options: ['200元电子卡', '500元电子卡', '1000元电子卡'] }],
+    distributorId: 'DIST-001-GW',
   },
 
   // 19. 永辉超市电子礼品卡300元 (Supermarket)
@@ -39,12 +35,10 @@ export const MOCK_PRODUCTS_C: Product[] = [
     id: 'p_802',
     title: '永辉超市 300元电子购物卡 全国永辉门店及永辉生活APP通用',
     subtitle: '不限品类，餐卡余额直接兑换，线下扫码直接抵扣现金',
-    images: [
-      'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 300.00,
-    priceMall: 295.00,
-    priceWelfare: 270.00,
+    images: ['https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 300.0,
+    priceMall: 295.0,
+    priceWelfare: 270.0,
     categoryId: 'cat_supermarket',
     categoryName: '商超商品',
     brand: '永辉超市',
@@ -59,7 +53,7 @@ export const MOCK_PRODUCTS_C: Product[] = [
     rating: 4.9,
     reviewCount: 4500,
     deliverySla: '即时发码',
-    distributorId: 'DIST-001-GW'
+    distributorId: 'DIST-001-GW',
   },
 
   // 20. 途虎养车 精细洗车+全车检查 (Nearby Store)
@@ -67,12 +61,10 @@ export const MOCK_PRODUCTS_C: Product[] = [
     id: 'p_901',
     title: '【附近门店】途虎养车 标准精致洗车服务 + 18项全车整车安全检测券',
     subtitle: '全国3000+途虎工场店通用，凭二维码到店即洗，含轮胎与刹车检测',
-    images: [
-      'https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 65.00,
-    priceMall: 45.00,
-    priceWelfare: 29.00,
+    images: ['https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 65.0,
+    priceMall: 45.0,
+    priceWelfare: 29.0,
     categoryId: 'cat_nearby',
     categoryName: '附近门店',
     brand: '途虎养车',
@@ -92,9 +84,9 @@ export const MOCK_PRODUCTS_C: Product[] = [
       address: '北京市西城区太平桥大街105号',
       distance: '0.8km',
       businessHours: '08:30 - 19:30',
-      phone: '010-88392011'
+      phone: '010-88392011',
     },
-    distributorId: 'DIST-001-GW'
+    distributorId: 'DIST-001-GW',
   },
 
   // 21. 58到家 3小时家庭深度保洁 (Life Service)
@@ -102,12 +94,10 @@ export const MOCK_PRODUCTS_C: Product[] = [
     id: 'p_902',
     title: '【生活服务】58到家 3小时全屋家庭深度保洁兑换券 预约上门',
     subtitle: '专业保洁师自带专业清洁工具套组，全屋除尘抹擦，不满意免费重打扫',
-    images: [
-      'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 180.00,
-    priceMall: 140.00,
-    priceWelfare: 105.00,
+    images: ['https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 180.0,
+    priceMall: 140.0,
+    priceWelfare: 105.0,
     categoryId: 'cat_nearby',
     categoryName: '生活服务',
     brand: '58到家',
@@ -122,7 +112,7 @@ export const MOCK_PRODUCTS_C: Product[] = [
     rating: 4.86,
     reviewCount: 920,
     deliverySla: '兑换码在线预约',
-    distributorId: 'DIST-001-GW'
+    distributorId: 'DIST-001-GW',
   },
 
   // 22. 好利来/味多美100元蛋糕烘焙券 (Nearby Store)
@@ -130,12 +120,10 @@ export const MOCK_PRODUCTS_C: Product[] = [
     id: 'p_903',
     title: '【附近门店】好利来 (Holiland) 100元全场烘焙蛋糕通兑券',
     subtitle: '适用于面包、半熟芝士、生日蛋糕，线下门店扫码即可核销抵扣',
-    images: [
-      'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 100.00,
-    priceMall: 95.00,
-    priceWelfare: 82.00,
+    images: ['https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 100.0,
+    priceMall: 95.0,
+    priceWelfare: 82.0,
     categoryId: 'cat_nearby',
     categoryName: '附近门店',
     brand: '好利来',
@@ -155,9 +143,9 @@ export const MOCK_PRODUCTS_C: Product[] = [
       address: '北京市西城区金城坊街2号B1楼',
       distance: '0.3km',
       businessHours: '09:00 - 21:30',
-      phone: '010-66221188'
+      phone: '010-66221188',
     },
-    distributorId: 'DIST-001-GW'
+    distributorId: 'DIST-001-GW',
   },
 
   // 23. 企业端午粽礼盒 (Enterprise Welfare Zone)
@@ -165,12 +153,10 @@ export const MOCK_PRODUCTS_C: Product[] = [
     id: 'p_w01',
     title: '【企业福利专享】五芳斋 臻品情系端午粽子礼盒 1.8kg (12粽4鸭蛋)',
     subtitle: '大肉粽/蛋黄细沙/高汤粽，国企团购大客户专属定制礼盒包装',
-    images: [
-      'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 228.00,
-    priceMall: 168.00,
-    priceWelfare: 128.00,
+    images: ['https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 228.0,
+    priceMall: 168.0,
+    priceWelfare: 128.0,
     categoryId: 'cat_welfare_zone',
     categoryName: '企业福利专区',
     brand: '五芳斋',
@@ -187,7 +173,7 @@ export const MOCK_PRODUCTS_C: Product[] = [
     deliverySla: '批量地址与单件派送均可',
     isEnterpriseExclusive: true,
     isHotRedeem: true,
-    distributorId: 'DIST-001-GW'
+    distributorId: 'DIST-001-GW',
   },
 
   // 24. 中秋月饼尊享礼盒 (Enterprise Welfare Zone)
@@ -195,12 +181,10 @@ export const MOCK_PRODUCTS_C: Product[] = [
     id: 'p_w02',
     title: '【企业福利专享】美心 (MX) 双黄白莲蓉月饼礼盒 740g 港式经典',
     subtitle: '100%香港制造，莲蓉细腻，咸蛋黄流油，央企中秋关怀优选',
-    images: [
-      'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 338.00,
-    priceMall: 288.00,
-    priceWelfare: 228.00,
+    images: ['https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 338.0,
+    priceMall: 288.0,
+    priceWelfare: 228.0,
     categoryId: 'cat_welfare_zone',
     categoryName: '企业福利专区',
     brand: '美心 MX',
@@ -216,7 +200,7 @@ export const MOCK_PRODUCTS_C: Product[] = [
     reviewCount: 3400,
     deliverySla: '专人冷链派送',
     isEnterpriseExclusive: true,
-    distributorId: 'DIST-001-GW'
+    distributorId: 'DIST-001-GW',
   },
 
   // 25. 瑞幸咖啡10张饮品通兑券 (Virtual Voucher)
@@ -224,12 +208,10 @@ export const MOCK_PRODUCTS_C: Product[] = [
     id: 'p_704',
     title: '【办公提神】瑞幸咖啡 (luckin coffee) 29元饮品券*10张 套券',
     subtitle: '生椰拿铁/生酪拿铁/厚乳拿铁通用，支持App及小程序点单自由核销',
-    images: [
-      'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 290.00,
-    priceMall: 180.00,
-    priceWelfare: 135.00,
+    images: ['https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 290.0,
+    priceMall: 180.0,
+    priceWelfare: 135.0,
     categoryId: 'cat_virtual',
     categoryName: '虚拟卡券',
     brand: '瑞幸咖啡',
@@ -245,7 +227,6 @@ export const MOCK_PRODUCTS_C: Product[] = [
     reviewCount: 11000,
     deliverySla: '即时发码',
     isDailySpecial: true,
-    distributorId: 'DIST-001-GW'
+    distributorId: 'DIST-001-GW',
   },
-
 ];

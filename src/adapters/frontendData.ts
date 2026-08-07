@@ -1,15 +1,5 @@
-import {
-  MOCK_CATEGORIES as SOURCE_CATEGORIES,
-  MOCK_ORDERS as SOURCE_ORDERS,
-  MOCK_PRODUCTS as SOURCE_PRODUCTS,
-} from '../mock/data';
-import type {
-  Category,
-  Order,
-  OrderItem,
-  OrderStatus,
-  Product,
-} from '../types';
+import { MOCK_CATEGORIES as SOURCE_CATEGORIES, MOCK_ORDERS as SOURCE_ORDERS, MOCK_PRODUCTS as SOURCE_PRODUCTS } from '../mock/data';
+import type { Category, Order, OrderItem, OrderStatus, Product } from '../types';
 
 export type FrontendProduct = Product & {
   imageUrl: string;
@@ -53,15 +43,11 @@ export type FrontendOrder = Omit<Order, 'items' | 'status'> & {
 };
 
 function toSpecOptions(product: Product): Record<string, string[]> {
-  return Object.fromEntries(
-    (product.specs ?? []).map((spec) => [spec.name, spec.options])
-  );
+  return Object.fromEntries((product.specs ?? []).map((spec) => [spec.name, spec.options]));
 }
 
 function toParameters(product: Product): Record<string, string> {
-  return Object.fromEntries(
-    (product.params ?? []).map((parameter) => [parameter.key, parameter.value])
-  );
+  return Object.fromEntries((product.params ?? []).map((parameter) => [parameter.key, parameter.value]));
 }
 
 export function toFrontendProduct(product: Product): FrontendProduct {
@@ -73,15 +59,9 @@ export function toFrontendProduct(product: Product): FrontendProduct {
     gallery: product.images.slice(1),
     price: product.priceWelfare,
     originalPrice: product.priceMarket,
-    enterpriseSubsidyAmount: Math.max(
-      0,
-      Number((product.priceMarket - product.priceWelfare).toFixed(2))
-    ),
+    enterpriseSubsidyAmount: Math.max(0, Number((product.priceMarket - product.priceWelfare).toFixed(2))),
     stockCount: product.stock,
-    description:
-      product.descriptionDetailText?.join(' ') ??
-      product.subtitle ??
-      '智慧翼企业福利商城严选商品。',
+    description: product.descriptionDetailText?.join(' ') ?? product.subtitle ?? '智慧翼企业福利商城严选商品。',
     parameters: toParameters(product),
     specOptions: toSpecOptions(product),
     allowMealCard: product.allowedAccounts.includes('meal'),
@@ -109,22 +89,16 @@ export function toFrontendProducts(products: Product[]): FrontendProduct[] {
   return products.map(toFrontendProduct);
 }
 
-export const MOCK_PRODUCTS: FrontendProduct[] =
-  toFrontendProducts(SOURCE_PRODUCTS);
+export const MOCK_PRODUCTS: FrontendProduct[] = toFrontendProducts(SOURCE_PRODUCTS);
 
-export const MOCK_CATEGORIES: FrontendCategory[] = SOURCE_CATEGORIES.map(
-  (category) => ({
-    ...category,
-    icon: category.iconName,
-    description: category.hotKeywords.join(' · '),
-    subCategories: category.children ?? [],
-  })
-);
+export const MOCK_CATEGORIES: FrontendCategory[] = SOURCE_CATEGORIES.map((category) => ({
+  ...category,
+  icon: category.iconName,
+  description: category.hotKeywords.join(' · '),
+  subCategories: category.children ?? [],
+}));
 
-export function toFrontendOrders(
-  orders: Order[],
-  products: FrontendProduct[]
-): FrontendOrder[] {
+export function toFrontendOrders(orders: Order[], products: FrontendProduct[]): FrontendOrder[] {
   return orders.map((order) => ({
     ...order,
     orderId: order.id,
@@ -133,10 +107,7 @@ export function toFrontendOrders(
     welfareDeduction: order.payment.welfareDeducted,
     statusText: statusText(order.status),
     items: order.items.map((item) => {
-      const product =
-        products.find((candidate) => candidate.id === item.productId) ??
-        products[0] ??
-        MOCK_PRODUCTS[0];
+      const product = products.find((candidate) => candidate.id === item.productId) ?? products[0] ?? MOCK_PRODUCTS[0];
       return {
         ...item,
         product: {
@@ -161,5 +132,4 @@ export function toFrontendOrders(
   }));
 }
 
-export const MOCK_ORDERS: FrontendOrder[] =
-  toFrontendOrders(SOURCE_ORDERS, MOCK_PRODUCTS);
+export const MOCK_ORDERS: FrontendOrder[] = toFrontendOrders(SOURCE_ORDERS, MOCK_PRODUCTS);

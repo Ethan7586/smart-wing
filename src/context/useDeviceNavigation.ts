@@ -1,16 +1,5 @@
 import { useEffect, useState } from 'react';
-import type {
-  AndroidAppPage,
-  AppMode,
-  LaptopPage,
-  MiniProgramPage,
-  PageRoute,
-  PendingFeatureInfo,
-  RouteParams,
-  TabletOrientation,
-  TabletPage,
-  ViewportMode,
-} from './MallContext.types';
+import type { AndroidAppPage, AppMode, LaptopPage, MiniProgramPage, PageRoute, PendingFeatureInfo, RouteParams, TabletOrientation, TabletPage, ViewportMode } from './MallContext.types';
 
 function modeFromPath(path: string): AppMode {
   if (path.startsWith('/mini-program')) return 'mini-program';
@@ -27,9 +16,7 @@ function pageFromLocation(): PageRoute {
 }
 
 export function useDeviceNavigation() {
-  const [appMode, setAppModeState] = useState<AppMode>(() =>
-    typeof window === 'undefined' ? 'pc' : modeFromPath(window.location.pathname)
-  );
+  const [appMode, setAppModeState] = useState<AppMode>(() => (typeof window === 'undefined' ? 'pc' : modeFromPath(window.location.pathname)));
   const [viewportMode, setViewportMode] = useState<ViewportMode>('auto');
   const [mpPage, setMpPageState] = useState<MiniProgramPage>('home');
   const [androidPage, setAndroidPageState] = useState<AndroidAppPage>('home');
@@ -41,9 +28,7 @@ export function useDeviceNavigation() {
     isOpen: false,
     featureName: '',
   });
-  const [currentPage, setCurrentPage] = useState<PageRoute>(() =>
-    typeof window === 'undefined' ? 'home' : pageFromLocation()
-  );
+  const [currentPage, setCurrentPage] = useState<PageRoute>(() => (typeof window === 'undefined' ? 'home' : pageFromLocation()));
   const [routeParams, setRouteParams] = useState<RouteParams>({});
 
   const setAppMode = (mode: AppMode) => {
@@ -81,10 +66,8 @@ export function useDeviceNavigation() {
     if (productId) setMobileProductId(productId);
     scrollTop();
   };
-  const triggerPendingFeature = (featureName: string, desc?: string) =>
-    setPendingFeature({ isOpen: true, featureName, desc });
-  const closePendingFeatureModal = () =>
-    setPendingFeature((previous) => ({ ...previous, isOpen: false }));
+  const triggerPendingFeature = (featureName: string, desc?: string) => setPendingFeature({ isOpen: true, featureName, desc });
+  const closePendingFeatureModal = () => setPendingFeature((previous) => ({ ...previous, isOpen: false }));
 
   const navigateTo = (page: PageRoute, params: RouteParams = {}) => {
     setCurrentPage(page);

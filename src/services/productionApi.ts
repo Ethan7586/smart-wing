@@ -47,7 +47,7 @@ export interface ApiOrder {
 
 export interface ApiAccount {
   id: string;
-  type: "welfare" | "meal";
+  type: 'welfare' | 'meal';
   balanceCents: number;
   status: string;
   updatedAt: string;
@@ -55,8 +55,8 @@ export interface ApiAccount {
 
 export interface ApiAccountLedger {
   id: string;
-  accountType: "welfare" | "meal";
-  direction: "credit" | "debit";
+  accountType: 'welfare' | 'meal';
+  direction: 'credit' | 'debit';
   amountCents: number;
   balanceAfterCents: number;
   businessType: string;
@@ -65,12 +65,32 @@ export interface ApiAccountLedger {
   createdAt: string;
 }
 
+export interface ApiCartItem {
+  id: string;
+  skuId: string;
+  productId: string;
+  quantity: number;
+  selected: boolean;
+  updatedAt: string;
+}
+export interface ApiDeliveryAddress {
+  id: string;
+  name: string;
+  phone: string;
+  province: string;
+  city: string;
+  district: string;
+  detail: string;
+  tag?: string;
+  isDefault: boolean;
+}
+
 export interface ApiAfterSale {
   id: string;
   afterSaleNo: string;
   orderId: string;
   orderNo: string;
-  type: "refund_only" | "return_refund" | "exchange";
+  type: 'refund_only' | 'return_refund' | 'exchange';
   status: string;
   reason: string;
   requestedAmountCents: number;
@@ -126,34 +146,26 @@ export class ProductionApiError extends Error {
     readonly requestId?: string
   ) {
     super(message);
-    this.name = "ProductionApiError";
+    this.name = 'ProductionApiError';
   }
 }
 
-async function apiFetch<T>(
-  path: string,
-  init: RequestInit = {}
-): Promise<T> {
+async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
-  headers.set("accept", "application/json");
+  headers.set('accept', 'application/json');
   if (init.body) {
-    headers.set("content-type", "application/json");
+    headers.set('content-type', 'application/json');
   }
 
   const response = await fetch(path, {
     ...init,
     headers,
-    credentials: "same-origin",
+    credentials: 'same-origin',
   });
   const body = (await response.json()) as T | ErrorEnvelope;
   if (!response.ok) {
     const error = (body as ErrorEnvelope).error;
-    throw new ProductionApiError(
-      error?.message ?? "服务请求失败",
-      response.status,
-      error?.code ?? "UNKNOWN_API_ERROR",
-      error?.requestId
-    );
+    throw new ProductionApiError(error?.message ?? '服务请求失败', response.status, error?.code ?? 'UNKNOWN_API_ERROR', error?.requestId);
   }
   return body as T;
 }
@@ -168,74 +180,84 @@ export const productionApi = {
     };
     database: { provider: string; region: string };
   }> {
-    return apiFetch("/api/health");
+    return apiFetch('/api/health');
   },
 
   async getSession(): Promise<{ authenticated: true; actor: ApiActor }> {
-    return apiFetch("/api/v1/auth/session");
+    return apiFetch('/api/v1/auth/session');
   },
 
   async login(accessCode: string): Promise<{ authenticated: true; actor: ApiActor }> {
-    return apiFetch("/api/v1/auth/login", {
-      method: "POST",
+    return apiFetch('/api/v1/auth/login', {
+      method: 'POST',
       body: JSON.stringify({ accessCode }),
     });
   },
 
   async logout(): Promise<{ authenticated: false }> {
-    return apiFetch("/api/v1/auth/logout", { method: "POST" });
+    return apiFetch('/api/v1/auth/logout', { method: 'POST' });
   },
 
   async getBootstrap(): Promise<ApiBootstrap> {
-    return apiFetch("/api/v1/bootstrap");
+    return apiFetch('/api/v1/bootstrap');
   },
 
   async listAccounts(): Promise<{ items: ApiAccount[] }> {
-    return apiFetch("/api/v1/accounts");
+    return apiFetch('/api/v1/accounts');
   },
 
   async listAccountLedgers(): Promise<{ items: ApiAccountLedger[] }> {
-    return apiFetch("/api/v1/account-ledgers");
+    return apiFetch('/api/v1/account-ledgers');
   },
 
   async listAfterSales(): Promise<{ items: ApiAfterSale[] }> {
-    return apiFetch("/api/v1/after-sales");
+    return apiFetch('/api/v1/after-sales');
   },
 
-  async createAfterSale(input: {
-    orderId: string;
-    type: ApiAfterSale["type"];
-    reason: string;
-    requestedAmountCents: number;
-  }): Promise<{ afterSale: ApiAfterSale }> {
-    return apiFetch("/api/v1/after-sales", {
-      method: "POST",
+  async createAfterSale(input: { orderId: string; type: ApiAfterSale['type']; reason: string; requestedAmountCents: number }): Promise<{ afterSale: ApiAfterSale }> {
+    return apiFetch('/api/v1/after-sales', {
+      method: 'POST',
       body: JSON.stringify(input),
     });
   },
 
-  async listProducts(
-    mallSlug: string,
-    options: { category?: string; cursor?: number; limit?: number } = {}
-  ): Promise<{ items: ApiProduct[]; pagination: { nextCursor: number | null } }> {
+  async listProducts(mallSlug: string, options: { category?: string; cursor?: number; limit?: number } = {}): Promise<{ items: ApiProduct[]; pagination: { nextCursor: number | null } }> {
     const query = new URLSearchParams({ mall: mallSlug });
-    if (options.category) query.set("category", options.category);
-    if (options.cursor !== undefined) query.set("cursor", String(options.cursor));
-    if (options.limit !== undefined) query.set("limit", String(options.limit));
+    if (options.category) query.set('category', options.category);
+    if (options.cursor !== undefined) query.set('cursor', String(options.cursor));
+    if (options.limit !== undefined) query.set('limit', String(options.limit));
     return apiFetch(`/api/v1/products?${query.toString()}`);
   },
 
   async listOrders(): Promise<{ items: ApiOrder[] }> {
-    return apiFetch("/api/v1/orders");
+    return apiFetch('/api/v1/orders');
   },
 
-  async createOrder(
-    input: CreateOrderRequest,
-    idempotencyKey: string
-  ): Promise<{ order: ApiOrder }> {
-    return apiFetch("/api/v1/orders", {
-      method: "POST",
-      headers: { "Idempotency-Key": idempotencyKey },
+  async listCart(): Promise<{ items: ApiCartItem[] }> {
+    return apiFetch('/api/v1/cart');
+  },
+
+  async upsertCartItem(input: { skuId: string; quantity: number; selected: boolean }): Promise<{ item: ApiCartItem }> {
+    return apiFetch('/api/v1/cart', { method: 'PUT', body: JSON.stringify(input) });
+  },
+
+  async deleteCartItem(cartItemId: string): Promise<{ removed: true }> {
+    return apiFetch(`/api/v1/cart/${encodeURIComponent(cartItemId)}`, { method: 'DELETE' });
+  },
+  async listAddresses(): Promise<{ items: ApiDeliveryAddress[] }> {
+    return apiFetch('/api/v1/addresses');
+  },
+  async upsertAddress(input: ApiDeliveryAddress): Promise<{ id: string }> {
+    return apiFetch('/api/v1/addresses', { method: 'PUT', body: JSON.stringify(input) });
+  },
+  async deleteAddress(addressId: string): Promise<{ removed: true }> {
+    return apiFetch(`/api/v1/addresses/${encodeURIComponent(addressId)}`, { method: 'DELETE' });
+  },
+
+  async createOrder(input: CreateOrderRequest, idempotencyKey: string): Promise<{ order: ApiOrder }> {
+    return apiFetch('/api/v1/orders', {
+      method: 'POST',
+      headers: { 'Idempotency-Key': idempotencyKey },
       body: JSON.stringify(input),
     });
   },
@@ -252,13 +274,10 @@ export const productionApi = {
       completedAt: string;
     };
   }> {
-    return apiFetch(
-      `/api/v1/orders/${encodeURIComponent(orderId)}/payments/internal`,
-      {
-        method: "POST",
-        headers: { "Idempotency-Key": idempotencyKey },
-        body: JSON.stringify(allocation),
-      }
-    );
+    return apiFetch(`/api/v1/orders/${encodeURIComponent(orderId)}/payments/internal`, {
+      method: 'POST',
+      headers: { 'Idempotency-Key': idempotencyKey },
+      body: JSON.stringify(allocation),
+    });
   },
 };

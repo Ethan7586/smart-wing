@@ -11,11 +11,7 @@ interface ProductDetailTabsProps {
   setActiveTab: React.Dispatch<React.SetStateAction<DetailTab>>;
 }
 
-export const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({
-  product,
-  activeTab,
-  setActiveTab
-}) => {
+export const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({ product, activeTab, setActiveTab }) => {
   const { currentMall } = useMall();
   return (
     <>
@@ -26,8 +22,8 @@ export const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({
             { id: 'detail', label: '商品详情与介绍', icon: FileText },
             { id: 'params', label: '规格参数', icon: Building2 },
             { id: 'reviews', label: `累计评价 (${product.reviewCount})`, icon: MessageSquare },
-            { id: 'aftersale', label: '国企售后与履约承诺', icon: ShieldCheck }
-          ].map(tab => {
+            { id: 'aftersale', label: '国企售后与履约承诺', icon: ShieldCheck },
+          ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
@@ -35,9 +31,7 @@ export const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex-1 py-3 px-4 flex items-center justify-center gap-2 border-b-2 cursor-pointer transition-colors ${
-                  isActive
-                    ? 'border-[#1F5EFF] bg-white text-[#1F5EFF]'
-                    : 'border-transparent text-gray-600 hover:bg-gray-100'
+                  isActive ? 'border-[#1F5EFF] bg-white text-[#1F5EFF]' : 'border-transparent text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -52,9 +46,7 @@ export const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({
             <div className="space-y-6">
               <div className="bg-blue-50/50 p-4 rounded border border-blue-100 text-gray-700">
                 <h4 className="font-bold text-gray-900 mb-1">【{currentMall.enterpriseName} 福利采购选品说明】</h4>
-                <p>
-                  本商品已通过央企/国企商品合规集采认证，正品保证。使用福利卡或餐卡付款享受官方协议价，并开具对公增值税发票。
-                </p>
+                <p>本商品已通过央企/国企商品合规集采认证，正品保证。使用福利卡或餐卡付款享受官方协议价，并开具对公增值税发票。</p>
               </div>
 
               {product.descriptionDetailText && (
@@ -68,17 +60,10 @@ export const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({
               )}
 
               <div className="space-y-4 pt-4">
-                <div className="font-bold text-sm text-gray-900 border-l-4 border-[#1F5EFF] pl-2">
-                  实物图赏与包装细节
-                </div>
+                <div className="font-bold text-sm text-gray-900 border-l-4 border-[#1F5EFF] pl-2">实物图赏与包装细节</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {product.images.map((img, idx) => (
-                    <img
-                      key={idx}
-                      src={img}
-                      alt=""
-                      className="w-full rounded border border-gray-200 object-cover"
-                    />
+                    <img key={idx} src={img} alt="" className="w-full rounded border border-gray-200 object-cover" />
                   ))}
                 </div>
               </div>
@@ -87,9 +72,7 @@ export const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({
 
           {activeTab === 'params' && (
             <div className="space-y-4">
-              <h4 className="font-bold text-sm text-gray-900 border-l-4 border-[#1F5EFF] pl-2">
-                详细规格参数清单
-              </h4>
+              <h4 className="font-bold text-sm text-gray-900 border-l-4 border-[#1F5EFF] pl-2">详细规格参数清单</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 bg-gray-50 p-4 rounded border border-gray-200">
                 <div className="flex justify-between py-1 border-b border-gray-200">
                   <span className="text-gray-500">商品名称</span>
@@ -135,8 +118,18 @@ export const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({
               {/* Sample Reviews */}
               <div className="divide-y divide-gray-100">
                 {[
-                  { name: '李*平 (国家电网员工)', date: '2026-07-20', text: '福利卡直接全额抵扣，第二天就顺丰寄到了，品质非常高，感谢单位好福利！', star: 5 },
-                  { name: '王* (中航工业员工)', date: '2026-07-18', text: '包装完好无损，正品验货没问题，餐卡余额正好花掉，物超所值。', star: 5 }
+                  {
+                    name: '李*平 (国家电网员工)',
+                    date: '2026-07-20',
+                    text: '福利卡直接全额抵扣，第二天就顺丰寄到了，品质非常高，感谢单位好福利！',
+                    star: 5,
+                  },
+                  {
+                    name: '王* (中航工业员工)',
+                    date: '2026-07-18',
+                    text: '包装完好无损，正品验货没问题，餐卡余额正好花掉，物超所值。',
+                    star: 5,
+                  },
                 ].map((rev, i) => (
                   <div key={i} className="py-3 space-y-1">
                     <div className="flex items-center justify-between text-xs">
@@ -157,20 +150,24 @@ export const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({
 
           {activeTab === 'aftersale' && (
             <div className="space-y-3">
-              <h4 className="font-bold text-sm text-gray-900 border-l-4 border-[#1F5EFF] pl-2">
-                国企采买售后服务保障
-              </h4>
+              <h4 className="font-bold text-sm text-gray-900 border-l-4 border-[#1F5EFF] pl-2">国企采买售后服务保障</h4>
               <ul className="list-disc pl-5 space-y-2 text-gray-700">
-                <li><strong>开具正规发票：</strong>订单完成后可在线申请开具增值税普通/专用发票，支持个人与企业抬头。</li>
-                <li><strong>无忧退换：</strong>7天无理由退换货（虚拟卡券及已核销商品除外）。</li>
-                <li><strong>福利余额原路退回：</strong>若发生退款，福利卡或餐卡扣减部分将原路实时退回您的个人账户。</li>
+                <li>
+                  <strong>开具正规发票：</strong>
+                  订单完成后可在线申请开具增值税普通/专用发票，支持个人与企业抬头。
+                </li>
+                <li>
+                  <strong>无忧退换：</strong>7天无理由退换货（虚拟卡券及已核销商品除外）。
+                </li>
+                <li>
+                  <strong>福利余额原路退回：</strong>
+                  若发生退款，福利卡或餐卡扣减部分将原路实时退回您的个人账户。
+                </li>
               </ul>
             </div>
           )}
         </div>
       </div>
-
-
     </>
   );
 };

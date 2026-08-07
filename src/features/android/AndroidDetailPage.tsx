@@ -2,35 +2,16 @@ import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
 import { AndroidStatusBar } from '../../components/mobile/AndroidStatusBar';
 import { AndroidBottomNav } from '../../components/mobile/AndroidBottomNav';
-import {
-  Share2,
-  Heart,
-  ShoppingCart,
-  ShieldCheck,
-  Truck,
-  CheckCircle2,
-  CreditCard,
-  X,
-  ChevronRight,
-  Headphones,
-  SlidersHorizontal
-} from 'lucide-react';
+import { Share2, Heart, ShoppingCart, ShieldCheck, Truck, CheckCircle2, CreditCard, X, ChevronRight, Headphones, SlidersHorizontal } from 'lucide-react';
 
 export const AndroidDetailPage: React.FC = () => {
-  const {
-    mobileProductId,
-    setAndroidPage,
-    addToCart,
-    cartCount,
-    triggerPendingFeature,
-    presentationProducts: MOCK_PRODUCTS,
-  } = useMall();
+  const { mobileProductId, setAndroidPage, addToCart, cartCount, triggerPendingFeature, presentationProducts: MOCK_PRODUCTS } = useMall();
   const [selectedSpec, setSelectedSpec] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
   const [showSpecBottomSheet, setShowSpecBottomSheet] = useState(false);
   const [isFav, setIsFav] = useState(false);
 
-  const product = MOCK_PRODUCTS.find(p => p.id === mobileProductId) || MOCK_PRODUCTS[0];
+  const product = MOCK_PRODUCTS.find((p) => p.id === mobileProductId) || MOCK_PRODUCTS[0];
 
   const handleBuyNow = () => {
     addToCart(product, quantity, selectedSpec);
@@ -39,25 +20,14 @@ export const AndroidDetailPage: React.FC = () => {
 
   return (
     <div className="bg-[#F5F7FA] min-h-full flex flex-col font-sans text-gray-800 relative pb-16">
-      <AndroidStatusBar
-        title="商品详情"
-        showBack={true}
-        onBack={() => setAndroidPage('home')}
-      />
+      <AndroidStatusBar title="商品详情" showBack={true} onBack={() => setAndroidPage('home')} />
 
       {/* Main Image Header */}
       <div className="relative bg-white aspect-square w-full">
-        <img
-          src={product.imageUrl}
-          alt={product.title}
-          className="w-full h-full object-cover"
-        />
+        <img src={product.imageUrl} alt={product.title} className="w-full h-full object-cover" />
 
         <div className="absolute top-3 right-3 flex items-center gap-2">
-          <button
-            onClick={() => setIsFav(!isFav)}
-            className="w-9 h-9 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-xs cursor-pointer"
-          >
+          <button onClick={() => setIsFav(!isFav)} className="w-9 h-9 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-xs cursor-pointer">
             <Heart className={`w-5 h-5 ${isFav ? 'fill-red-500 text-red-500' : ''}`} />
           </button>
           <button
@@ -96,9 +66,7 @@ export const AndroidDetailPage: React.FC = () => {
           <p className="text-xs text-gray-500">{product.subtitle}</p>
 
           <div className="flex items-center gap-2 pt-1 text-[10px]">
-            <span className="bg-blue-50 text-[#1F5EFF] font-bold px-2 py-0.5 rounded-md">
-              {product.itemType === 'virtual_coupon' ? '虚拟卡券码' : '实物直邮'}
-            </span>
+            <span className="bg-blue-50 text-[#1F5EFF] font-bold px-2 py-0.5 rounded-md">{product.itemType === 'virtual_coupon' ? '虚拟卡券码' : '实物直邮'}</span>
             <span className="text-gray-400">品牌: {product.brand || '智慧翼精选'}</span>
             <span className="text-gray-400">库存: {product.stockCount}</span>
           </div>
@@ -114,7 +82,9 @@ export const AndroidDetailPage: React.FC = () => {
             <span>选择规格与兑换数量</span>
           </div>
           <span className="text-gray-400 text-[10px] flex items-center">
-            <span>{Object.values(selectedSpec)[0] || '默认规格'} / x{quantity}</span>
+            <span>
+              {Object.values(selectedSpec)[0] || '默认规格'} / x{quantity}
+            </span>
             <ChevronRight className="w-4 h-4 ml-1" />
           </span>
         </div>
@@ -137,12 +107,8 @@ export const AndroidDetailPage: React.FC = () => {
 
         {/* Product Details Description */}
         <div className="bg-white rounded-3xl p-4 shadow-2xs border border-gray-100 space-y-2 text-xs">
-          <h3 className="font-bold text-gray-900 border-l-2 border-[#1F5EFF] pl-2">
-            图文详情与企采说明
-          </h3>
-          <p className="text-gray-600 leading-relaxed">
-            {product.description || '智慧翼企业福利商城为企业员工提供一站式福利兑换服务。'}
-          </p>
+          <h3 className="font-bold text-gray-900 border-l-2 border-[#1F5EFF] pl-2">图文详情与企采说明</h3>
+          <p className="text-gray-600 leading-relaxed">{product.description || '智慧翼企业福利商城为企业员工提供一站式福利兑换服务。'}</p>
 
           {product.parameters && (
             <div className="bg-gray-50 rounded-2xl p-3 space-y-1.5 text-xs text-gray-700 mt-2">
@@ -170,50 +136,40 @@ export const AndroidDetailPage: React.FC = () => {
               </button>
             </div>
 
-            {product.specOptions && Object.entries(product.specOptions).map(([specKey, specValues]) => (
-              <div key={specKey} className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">{specKey}</label>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {specValues.map(val => (
-                    <button
-                      key={val}
-                      onClick={() => setSelectedSpec(prev => ({ ...prev, [specKey]: val }))}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
-                        selectedSpec[specKey] === val || (!selectedSpec[specKey] && specValues[0] === val)
-                          ? 'border-[#1F5EFF] bg-blue-50 text-[#1F5EFF]'
-                          : 'border-gray-200 text-gray-700 bg-gray-50'
-                      }`}
-                    >
-                      {val}
-                    </button>
-                  ))}
+            {product.specOptions &&
+              Object.entries(product.specOptions).map(([specKey, specValues]) => (
+                <div key={specKey} className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-700">{specKey}</label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {specValues.map((val) => (
+                      <button
+                        key={val}
+                        onClick={() => setSelectedSpec((prev) => ({ ...prev, [specKey]: val }))}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
+                          selectedSpec[specKey] === val || (!selectedSpec[specKey] && specValues[0] === val) ? 'border-[#1F5EFF] bg-blue-50 text-[#1F5EFF]' : 'border-gray-200 text-gray-700 bg-gray-50'
+                        }`}
+                      >
+                        {val}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
 
             <div className="flex items-center justify-between pt-2 border-t border-gray-100">
               <span className="text-xs font-bold text-gray-700">兑换数量</span>
               <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-3 py-1 bg-gray-100 font-bold text-gray-700"
-                >
+                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-1 bg-gray-100 font-bold text-gray-700">
                   -
                 </button>
                 <span className="px-4 py-1 font-mono font-bold">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="px-3 py-1 bg-gray-100 font-bold text-gray-700"
-                >
+                <button onClick={() => setQuantity(quantity + 1)} className="px-3 py-1 bg-gray-100 font-bold text-gray-700">
                   +
                 </button>
               </div>
             </div>
 
-            <button
-              onClick={() => setShowSpecBottomSheet(false)}
-              className="w-full bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-2xl shadow-md cursor-pointer"
-            >
+            <button onClick={() => setShowSpecBottomSheet(false)} className="w-full bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-2xl shadow-md cursor-pointer">
               确定规格配置
             </button>
           </div>
@@ -222,38 +178,22 @@ export const AndroidDetailPage: React.FC = () => {
 
       {/* Fixed Bottom Action Bar */}
       <div className="fixed bottom-12 left-0 right-0 max-w-[430px] mx-auto bg-white border-t border-gray-200 p-2 z-40 flex items-center gap-2 shadow-2xl">
-        <button
-          onClick={() => triggerPendingFeature('Android 在线客服系统', '调起内置 WebRTC / 客服即时通讯通道。')}
-          className="p-2 text-gray-500 hover:text-gray-800 text-[10px] flex flex-col items-center cursor-pointer"
-        >
+        <button onClick={() => triggerPendingFeature('Android 在线客服系统', '调起内置 WebRTC / 客服即时通讯通道。')} className="p-2 text-gray-500 hover:text-gray-800 text-[10px] flex flex-col items-center cursor-pointer">
           <Headphones className="w-4 h-4" />
           <span>客服</span>
         </button>
 
-        <button
-          onClick={() => setAndroidPage('checkout')}
-          className="p-2 text-gray-500 hover:text-gray-800 text-[10px] flex flex-col items-center relative cursor-pointer"
-        >
+        <button onClick={() => setAndroidPage('checkout')} className="p-2 text-gray-500 hover:text-gray-800 text-[10px] flex flex-col items-center relative cursor-pointer">
           <ShoppingCart className="w-4 h-4" />
           <span>购物车</span>
-          {cartCount > 0 && (
-            <span className="absolute top-0 right-1 bg-[#E5484D] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
-              {cartCount}
-            </span>
-          )}
+          {cartCount > 0 && <span className="absolute top-0 right-1 bg-[#E5484D] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">{cartCount}</span>}
         </button>
 
-        <button
-          onClick={() => addToCart(product, quantity, selectedSpec)}
-          className="flex-1 bg-[#EAF1FF] text-[#1F5EFF] font-bold text-xs py-2.5 rounded-2xl cursor-pointer"
-        >
+        <button onClick={() => addToCart(product, quantity, selectedSpec)} className="flex-1 bg-[#EAF1FF] text-[#1F5EFF] font-bold text-xs py-2.5 rounded-2xl cursor-pointer">
           加购物车
         </button>
 
-        <button
-          onClick={handleBuyNow}
-          className="flex-1 bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] text-white font-bold text-xs py-2.5 rounded-2xl shadow-md cursor-pointer"
-        >
+        <button onClick={handleBuyNow} className="flex-1 bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] text-white font-bold text-xs py-2.5 rounded-2xl shadow-md cursor-pointer">
           福利卡直接兑换
         </button>
       </div>

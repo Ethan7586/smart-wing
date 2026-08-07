@@ -6,46 +6,26 @@
 
 import React from 'react';
 import { useMall } from '../context/MallContext';
-import {
-  CreditCard,
-  Utensils,
-  Package,
-  MapPin,
-  Heart,
-  Ticket,
-  Headphones,
-  ChevronRight,
-  Building2,
-  Clock,
-  Truck,
-  ShieldAlert,
-  ArrowRight
-} from 'lucide-react';
+import { CreditCard, Utensils, Package, MapPin, Heart, Ticket, Headphones, ChevronRight, Building2, Clock, Truck, ShieldAlert, ArrowRight } from 'lucide-react';
 
 export const UserCenterPage: React.FC = () => {
   const { user, currentMall, navigateTo, orders } = useMall();
 
-  const pendingShipment = orders.filter(o => o.status === 'pending_shipment').length;
-  const pendingReceipt = orders.filter(o => o.status === 'pending_receipt').length;
-  const completed = orders.filter(o => o.status === 'completed').length;
-  const afterSale = orders.filter(o => o.status === 'after_sale').length;
+  const pendingShipment = orders.filter((o) => o.status === 'pending_shipment').length;
+  const pendingReceipt = orders.filter((o) => o.status === 'pending_receipt').length;
+  const completed = orders.filter((o) => o.status === 'completed').length;
+  const afterSale = orders.filter((o) => o.status === 'after_sale').length;
 
   return (
     <div className="max-w-[1280px] mx-auto px-4 py-4 space-y-6 font-sans">
       {/* 1. 员工个人名片 Header */}
       <div className="bg-gradient-to-r from-[#143A8F] via-[#1F5EFF] to-blue-800 text-white rounded-md p-6 shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <img
-            src={user.avatar}
-            alt={user.name}
-            className="w-16 h-16 rounded-full object-cover border-2 border-white/40 shadow-sm"
-          />
+          <img src={user.avatar} alt={user.name} className="w-16 h-16 rounded-full object-cover border-2 border-white/40 shadow-sm" />
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-black">{user.name}</h1>
-              <span className="bg-white/20 text-yellow-300 text-xs px-2 py-0.5 rounded font-bold border border-white/20">
-                {user.jobTitle}
-              </span>
+              <span className="bg-white/20 text-yellow-300 text-xs px-2 py-0.5 rounded font-bold border border-white/20">{user.jobTitle}</span>
             </div>
             <p className="text-xs text-blue-100 flex items-center gap-1">
               <Building2 className="w-3.5 h-3.5" /> {user.enterpriseName} · 部门：{user.department}
@@ -58,25 +38,15 @@ export const UserCenterPage: React.FC = () => {
 
         {/* 双账户快捷面板 */}
         <div className="flex items-center gap-4 text-xs">
-          <div
-            onClick={() => navigateTo('balance', { accountTab: 'welfare' })}
-            className="bg-white/10 hover:bg-white/20 p-3 rounded-md border border-white/20 cursor-pointer transition-colors text-center min-w-[140px]"
-          >
+          <div onClick={() => navigateTo('balance', { accountTab: 'welfare' })} className="bg-white/10 hover:bg-white/20 p-3 rounded-md border border-white/20 cursor-pointer transition-colors text-center min-w-[140px]">
             <div className="text-blue-100 font-medium">福利卡账户余额</div>
-            <div className="text-xl font-black mt-1 font-mono text-white">
-              ¥{user.welfareBalance.toFixed(2)}
-            </div>
+            <div className="text-xl font-black mt-1 font-mono text-white">¥{user.welfareBalance.toFixed(2)}</div>
             <div className="text-[10px] text-yellow-300 mt-1">点击查看流水 &gt;</div>
           </div>
 
-          <div
-            onClick={() => navigateTo('balance', { accountTab: 'meal' })}
-            className="bg-white/10 hover:bg-white/20 p-3 rounded-md border border-white/20 cursor-pointer transition-colors text-center min-w-[140px]"
-          >
+          <div onClick={() => navigateTo('balance', { accountTab: 'meal' })} className="bg-white/10 hover:bg-white/20 p-3 rounded-md border border-white/20 cursor-pointer transition-colors text-center min-w-[140px]">
             <div className="text-orange-200 font-medium">餐卡专享余额</div>
-            <div className="text-xl font-black mt-1 font-mono text-orange-300">
-              ¥{user.mealBalance.toFixed(2)}
-            </div>
+            <div className="text-xl font-black mt-1 font-mono text-orange-300">¥{user.mealBalance.toFixed(2)}</div>
             <div className="text-[10px] text-orange-200 mt-1">点击查看流水 &gt;</div>
           </div>
         </div>
@@ -86,55 +56,37 @@ export const UserCenterPage: React.FC = () => {
       <div className="bg-white border border-gray-200 rounded-md p-5 shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-gray-100 pb-3 text-xs">
           <span className="font-bold text-sm text-gray-900">我的福利采购订单</span>
-          <button
-            onClick={() => navigateTo('orders')}
-            className="text-[#1F5EFF] font-bold hover:underline flex items-center gap-0.5"
-          >
+          <button onClick={() => navigateTo('orders')} className="text-[#1F5EFF] font-bold hover:underline flex items-center gap-0.5">
             查看全部订单 <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
         <div className="grid grid-cols-5 gap-2 text-center text-xs">
-          <button
-            onClick={() => navigateTo('orders', { statusFilter: 'pending_payment' })}
-            className="p-3 hover:bg-gray-50 rounded transition-colors cursor-pointer space-y-1"
-          >
+          <button onClick={() => navigateTo('orders', { statusFilter: 'pending_payment' })} className="p-3 hover:bg-gray-50 rounded transition-colors cursor-pointer space-y-1">
             <Clock className="w-6 h-6 text-gray-400 mx-auto" />
             <div className="font-bold text-gray-800">待付款</div>
             <div className="text-[11px] text-gray-400">0 单</div>
           </button>
 
-          <button
-            onClick={() => navigateTo('orders', { statusFilter: 'pending_shipment' })}
-            className="p-3 hover:bg-gray-50 rounded transition-colors cursor-pointer space-y-1"
-          >
+          <button onClick={() => navigateTo('orders', { statusFilter: 'pending_shipment' })} className="p-3 hover:bg-gray-50 rounded transition-colors cursor-pointer space-y-1">
             <Package className="w-6 h-6 text-[#1F5EFF] mx-auto" />
             <div className="font-bold text-blue-600">待发货/排单</div>
             <div className="text-[11px] text-gray-500 font-bold">{pendingShipment} 单</div>
           </button>
 
-          <button
-            onClick={() => navigateTo('orders', { statusFilter: 'pending_receipt' })}
-            className="p-3 hover:bg-gray-50 rounded transition-colors cursor-pointer space-y-1"
-          >
+          <button onClick={() => navigateTo('orders', { statusFilter: 'pending_receipt' })} className="p-3 hover:bg-gray-50 rounded transition-colors cursor-pointer space-y-1">
             <Truck className="w-6 h-6 text-green-600 mx-auto" />
             <div className="font-bold text-green-700">待收货</div>
             <div className="text-[11px] text-gray-500 font-bold">{pendingReceipt} 单</div>
           </button>
 
-          <button
-            onClick={() => navigateTo('orders', { statusFilter: 'completed' })}
-            className="p-3 hover:bg-gray-50 rounded transition-colors cursor-pointer space-y-1"
-          >
+          <button onClick={() => navigateTo('orders', { statusFilter: 'completed' })} className="p-3 hover:bg-gray-50 rounded transition-colors cursor-pointer space-y-1">
             <Package className="w-6 h-6 text-gray-600 mx-auto" />
             <div className="font-bold text-gray-800">已完成</div>
             <div className="text-[11px] text-gray-400">{completed} 单</div>
           </button>
 
-          <button
-            onClick={() => navigateTo('orders', { statusFilter: 'after_sale' })}
-            className="p-3 hover:bg-gray-50 rounded transition-colors cursor-pointer space-y-1"
-          >
+          <button onClick={() => navigateTo('orders', { statusFilter: 'after_sale' })} className="p-3 hover:bg-gray-50 rounded transition-colors cursor-pointer space-y-1">
             <ShieldAlert className="w-6 h-6 text-orange-500 mx-auto" />
             <div className="font-bold text-orange-600">售后/退款</div>
             <div className="text-[11px] text-orange-600 font-bold">{afterSale} 单</div>
@@ -144,10 +96,7 @@ export const UserCenterPage: React.FC = () => {
 
       {/* 3. 功能管理卡片网格 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-        <div
-          onClick={() => navigateTo('coupons')}
-          className="bg-white border border-gray-200 rounded-md p-4 shadow-xs hover:border-orange-300 cursor-pointer transition-all flex items-center justify-between"
-        >
+        <div onClick={() => navigateTo('coupons')} className="bg-white border border-gray-200 rounded-md p-4 shadow-xs hover:border-orange-300 cursor-pointer transition-all flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded bg-orange-50 text-[#FF7A00] flex items-center justify-center font-bold">
               <Ticket className="w-5 h-5" />
@@ -162,10 +111,7 @@ export const UserCenterPage: React.FC = () => {
           <ChevronRight className="w-4 h-4 text-gray-400" />
         </div>
 
-        <div
-          onClick={() => navigateTo('balance')}
-          className="bg-white border border-gray-200 rounded-md p-4 shadow-xs hover:border-blue-300 cursor-pointer transition-all flex items-center justify-between"
-        >
+        <div onClick={() => navigateTo('balance')} className="bg-white border border-gray-200 rounded-md p-4 shadow-xs hover:border-blue-300 cursor-pointer transition-all flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded bg-blue-50 text-[#1F5EFF] flex items-center justify-center font-bold">
               <CreditCard className="w-5 h-5" />
@@ -178,10 +124,7 @@ export const UserCenterPage: React.FC = () => {
           <ChevronRight className="w-4 h-4 text-gray-400" />
         </div>
 
-        <div
-          onClick={() => navigateTo('category')}
-          className="bg-white border border-gray-200 rounded-md p-4 shadow-xs hover:border-pink-300 cursor-pointer transition-all flex items-center justify-between"
-        >
+        <div onClick={() => navigateTo('category')} className="bg-white border border-gray-200 rounded-md p-4 shadow-xs hover:border-pink-300 cursor-pointer transition-all flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded bg-pink-50 text-pink-600 flex items-center justify-center font-bold">
               <Heart className="w-5 h-5" />

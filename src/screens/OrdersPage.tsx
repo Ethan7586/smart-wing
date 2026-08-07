@@ -8,18 +8,7 @@ import React, { useState, useMemo } from 'react';
 import { useMall } from '../context/MallContext';
 import { mallService } from '../services/mallService';
 import { OrderStatus } from '../types';
-import {
-  Package,
-  Search,
-  Truck,
-  QrCode,
-  ChevronRight,
-  ExternalLink,
-  ShieldCheck,
-  RefreshCw,
-  Clock,
-  CheckCircle2
-} from 'lucide-react';
+import { Package, Search, Truck, QrCode, ChevronRight, Clock, Headphones } from 'lucide-react';
 
 export const OrdersPage: React.FC = () => {
   const { navigateTo, showToast, refreshUserData, orders, routeParams } = useMall();
@@ -32,11 +21,18 @@ export const OrdersPage: React.FC = () => {
     pending_shipment: '待发货 / 仓库配货中',
     pending_receipt: '已发货 / 待收货',
     completed: '已完成',
-    after_sale: '售后维权处理中'
+    after_sale: '售后维权处理中',
+  };
+  const statusEta: Record<OrderStatus, string> = {
+    pending_payment: '待付款超时将自动释放库存',
+    pending_shipment: '提交后 24 小时内排单',
+    pending_receipt: '预计 24-72 小时送达',
+    completed: '已完成签收',
+    after_sale: '工单处理中，通常 4-8 小时',
   };
 
   const filteredOrders = useMemo(() => {
-    return orders.filter(order => {
+    return orders.filter((order) => {
       // 状态过滤
       if (activeTab !== 'all' && order.status !== activeTab) {
         return false;
@@ -46,7 +42,7 @@ export const OrdersPage: React.FC = () => {
       if (searchKw.trim()) {
         const kw = searchKw.trim().toLowerCase();
         const matchNo = order.orderNo.toLowerCase().includes(kw);
-        const matchTitle = order.items.some(i => i.productTitle.toLowerCase().includes(kw));
+        const matchTitle = order.items.some((i) => i.productTitle.toLowerCase().includes(kw));
         return matchNo || matchTitle;
       }
 
@@ -76,18 +72,14 @@ export const OrdersPage: React.FC = () => {
             { id: 'pending_shipment', label: '待发货/排单' },
             { id: 'pending_receipt', label: '待收货' },
             { id: 'completed', label: '已完成' },
-            { id: 'after_sale', label: '售后/退款' }
-          ].map(tab => {
+            { id: 'after_sale', label: '售后/退款' },
+          ].map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-2 rounded transition-colors cursor-pointer whitespace-nowrap ${
-                  isActive
-                    ? 'bg-[#1F5EFF] text-white font-black'
-                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`px-4 py-2 rounded transition-colors cursor-pointer whitespace-nowrap ${isActive ? 'bg-[#1F5EFF] text-white font-black' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
               >
                 {tab.label}
               </button>
@@ -97,13 +89,7 @@ export const OrdersPage: React.FC = () => {
 
         {/* 检索框 */}
         <div className="relative min-w-[220px]">
-          <input
-            type="text"
-            placeholder="搜索订单号或商品名称..."
-            value={searchKw}
-            onChange={e => setSearchKw(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded bg-gray-50 text-xs focus:outline-none"
-          />
+          <input type="text" placeholder="搜索订单号或商品名称..." value={searchKw} onChange={(e) => setSearchKw(e.target.value)} className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded bg-gray-50 text-xs focus:outline-none" />
           <Search className="w-4 h-4 text-gray-400 absolute left-2.5 top-2" />
         </div>
       </div>
@@ -117,11 +103,8 @@ export const OrdersPage: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredOrders.map(order => (
-            <div
-              key={order.id}
-              className="bg-white border border-gray-200 rounded-md shadow-xs overflow-hidden text-xs"
-            >
+          {filteredOrders.map((order) => (
+            <div key={order.id} className="bg-white border border-gray-200 rounded-md shadow-xs overflow-hidden text-xs">
               {/* 订单 Header */}
               <div className="bg-gray-50 border-b border-gray-200 px-4 py-2.5 flex items-center justify-between text-gray-600">
                 <div className="flex items-center gap-3">
@@ -129,9 +112,7 @@ export const OrdersPage: React.FC = () => {
                   <span>·</span>
                   <span className="font-mono">订单号：{order.orderNo}</span>
                   <span>·</span>
-                  <span className="bg-blue-100 text-[#1F5EFF] font-bold px-1.5 py-0.2 rounded text-[10px]">
-                    {order.supplierName}
-                  </span>
+                  <span className="bg-blue-100 text-[#1F5EFF] font-bold px-1.5 py-0.2 rounded text-[10px]">{order.supplierName}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -140,38 +121,33 @@ export const OrdersPage: React.FC = () => {
                       order.status === 'completed'
                         ? 'bg-gray-100 text-gray-700'
                         : order.status === 'pending_shipment'
-                        ? 'bg-blue-100 text-blue-800'
-                        : order.status === 'pending_receipt'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-orange-100 text-orange-800'
+                          ? 'bg-blue-100 text-blue-800'
+                          : order.status === 'pending_receipt'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-orange-100 text-orange-800'
                     }`}
                   >
                     {statusTextMap[order.status] || order.status}
                   </span>
                 </div>
+
+                <div className="flex items-center gap-1 text-[10px] text-gray-400">
+                  <Clock className="w-3 h-3" />
+                  <span>预计：{statusEta[order.status] || '平台处理中'}</span>
+                </div>
               </div>
 
               {/* 订单内商品 */}
               <div className="p-4 space-y-3">
-                {order.items.map(item => (
+                {order.items.map((item) => (
                   <div key={item.productId} className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <img
-                        src={item.productImage}
-                        alt=""
-                        className="w-16 h-16 rounded object-cover border border-gray-200 cursor-pointer"
-                        onClick={() => navigateTo('order-detail', { orderId: order.id })}
-                      />
+                      <img src={item.productImage} alt="" className="w-16 h-16 rounded object-cover border border-gray-200 cursor-pointer" onClick={() => navigateTo('order-detail', { orderId: order.id })} />
                       <div className="space-y-1">
-                        <div
-                          onClick={() => navigateTo('order-detail', { orderId: order.id })}
-                          className="font-bold text-gray-900 hover:text-[#1F5EFF] cursor-pointer"
-                        >
+                        <div onClick={() => navigateTo('order-detail', { orderId: order.id })} className="font-bold text-gray-900 hover:text-[#1F5EFF] cursor-pointer">
                           {item.productTitle}
                         </div>
-                        <div className="text-gray-400 text-[11px]">
-                          规格：{item.specText}
-                        </div>
+                        <div className="text-gray-400 text-[11px]">规格：{item.specText}</div>
                       </div>
                     </div>
 
@@ -191,10 +167,7 @@ export const OrdersPage: React.FC = () => {
                         承运物流：<strong>{order.expressCompany}</strong> (运单号: <strong className="font-mono">{order.trackingNo}</strong>)
                       </span>
                     </div>
-                    <button
-                      onClick={() => navigateTo('order-detail', { orderId: order.id })}
-                      className="text-[#1F5EFF] font-bold hover:underline cursor-pointer"
-                    >
+                    <button onClick={() => navigateTo('order-detail', { orderId: order.id })} className="text-[#1F5EFF] font-bold hover:underline cursor-pointer">
                       查看物流轨迹 &gt;
                     </button>
                   </div>
@@ -205,13 +178,11 @@ export const OrdersPage: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <QrCode className="w-4 h-4 text-amber-600" />
                       <span>
-                        电子核销码：<strong className="font-mono font-black text-amber-800 text-sm">{order.verificationCode}</strong>
+                        电子核销码：
+                        <strong className="font-mono font-black text-amber-800 text-sm">{order.verificationCode}</strong>
                       </span>
                     </div>
-                    <button
-                      onClick={() => copyCode(order.verificationCode!)}
-                      className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] px-2.5 py-1 rounded cursor-pointer"
-                    >
+                    <button onClick={() => copyCode(order.verificationCode!)} className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] px-2.5 py-1 rounded cursor-pointer">
                       复制核销码
                     </button>
                   </div>
@@ -224,34 +195,40 @@ export const OrdersPage: React.FC = () => {
                   <span>
                     实付总额: <strong className="text-gray-900 text-sm font-black">¥{order.payment.finalPaidAmount.toFixed(2)}</strong>
                   </span>
-                  <span>(福利卡扣: ¥{order.payment.welfareDeducted.toFixed(2)} | 餐卡扣: ¥{order.payment.mealDeducted.toFixed(2)})</span>
+                  <span>
+                    (福利卡扣: ¥{order.payment.welfareDeducted.toFixed(2)} | 餐卡扣: ¥{order.payment.mealDeducted.toFixed(2)})
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => navigateTo('order-detail', { orderId: order.id })}
-                    className="border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold px-3 py-1.5 rounded cursor-pointer"
-                  >
+                  <button onClick={() => navigateTo('order-detail', { orderId: order.id })} className="border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold px-3 py-1.5 rounded cursor-pointer">
                     订单详情
                   </button>
 
                   {order.status === 'pending_receipt' && (
-                    <button
-                      onClick={() => handleConfirmReceipt(order.id)}
-                      className="bg-green-600 hover:bg-green-700 text-white font-bold px-3 py-1.5 rounded cursor-pointer"
-                    >
+                    <button onClick={() => handleConfirmReceipt(order.id)} className="bg-green-600 hover:bg-green-700 text-white font-bold px-3 py-1.5 rounded cursor-pointer">
                       确认收货
                     </button>
                   )}
 
                   {order.status === 'completed' && (
-                    <button
-                      onClick={() => navigateTo('after-sale', { orderId: order.id })}
-                      className="border border-orange-300 text-orange-700 hover:bg-orange-50 font-bold px-3 py-1.5 rounded cursor-pointer"
-                    >
+                    <button onClick={() => navigateTo('after-sale', { orderId: order.id })} className="border border-orange-300 text-orange-700 hover:bg-orange-50 font-bold px-3 py-1.5 rounded cursor-pointer">
                       申请售后
                     </button>
                   )}
+
+                  {order.status === 'pending_shipment' && (
+                    <button onClick={() => showToast(`订单 ${order.orderNo} 已提交催单，客服将于1个工作日内联系商家`, 'info')} className="border border-blue-300 text-blue-700 hover:bg-blue-50 font-bold px-3 py-1.5 rounded cursor-pointer">
+                      催单
+                    </button>
+                  )}
+
+                  {order.status !== 'completed' && order.status !== 'after_sale' && order.status !== 'pending_receipt' ? (
+                    <button onClick={() => showToast('客服工单将由专员在 24h 内回访，联系电话：010-6666-9999', 'info')} className="border border-gray-300 text-gray-700 hover:bg-gray-100 font-bold px-3 py-1.5 rounded cursor-pointer">
+                      <Headphones className="w-3.5 h-3.5 inline-block mr-1" />
+                      联系客服
+                    </button>
+                  ) : null}
                 </div>
               </div>
             </div>

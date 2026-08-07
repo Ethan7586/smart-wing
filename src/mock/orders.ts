@@ -20,24 +20,24 @@ export const MOCK_ORDERS: Order[] = [
         productId: 'p_201',
         productTitle: '戴森 (Dyson) V12 Detect Slim Total Clean 无线手持吸尘器',
         productImage: 'https://images.unsplash.com/photo-1558317374-067fb5f30001?w=600&auto=format&fit=crop&q=80',
-        price: 3299.00,
+        price: 3299.0,
         quantity: 1,
         specText: '金色款',
-        itemType: 'physical'
-      }
+        itemType: 'physical',
+      },
     ],
     address: MOCK_ADDRESSES[0],
     payment: {
-      totalGoodsAmount: 3299.00,
+      totalGoodsAmount: 3299.0,
       shippingFee: 0,
-      welfareDeducted: 3000.00,
+      welfareDeducted: 3000.0,
       mealDeducted: 0,
-      wechatPaid: 299.00,
-      finalPaidAmount: 3299.00,
-      payMethodText: '福利卡余额 (¥3000) + 微信补差 (¥299)'
+      wechatPaid: 299.0,
+      finalPaidAmount: 3299.0,
+      payMethodText: '福利卡余额 (¥3000) + 微信补差 (¥299)',
     },
     userRemark: '请发京东快递，送达前电话联系',
-    distributorId: 'DIST-001-GW'
+    distributorId: 'DIST-001-GW',
   },
 
   // 2. 待发货订单
@@ -58,33 +58,33 @@ export const MOCK_ORDERS: Order[] = [
         productId: 'p_101',
         productTitle: '【集团专享】柴火大院 核心产区五常有机大米 10kg/袋 附有机认证',
         productImage: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80',
-        price: 98.00,
+        price: 98.0,
         quantity: 2,
         specText: '10kg/袋',
-        itemType: 'physical'
+        itemType: 'physical',
       },
       {
         productId: 'p_103',
         productTitle: '三只松鼠 坚果礼盒 坚果大礼包 1580g/袋',
         productImage: 'https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=600&auto=format&fit=crop&q=80',
-        price: 108.00,
+        price: 108.0,
         quantity: 1,
         specText: '1580g纯坚果款',
-        itemType: 'physical'
-      }
+        itemType: 'physical',
+      },
     ],
     address: MOCK_ADDRESSES[0],
     payment: {
-      totalGoodsAmount: 304.00,
+      totalGoodsAmount: 304.0,
       shippingFee: 0,
-      welfareDeducted: 200.00,
-      mealDeducted: 104.00,
+      welfareDeducted: 200.0,
+      mealDeducted: 104.0,
       wechatPaid: 0,
-      finalPaidAmount: 304.00,
+      finalPaidAmount: 304.0,
       payMethodText: '福利卡 (¥200) + 餐卡 (¥104)',
-      paidAt: '2026-07-22 18:21:05'
+      paidAt: '2026-07-22 18:21:05',
     },
-    distributorId: 'DIST-001-GW'
+    distributorId: 'DIST-001-GW',
   },
 
   // 3. 待收货订单
@@ -105,26 +105,26 @@ export const MOCK_ORDERS: Order[] = [
         productId: 'p_402',
         productTitle: '膳魔师 (THERMOS) 316L不锈钢保温杯 500ml 哑光黑',
         productImage: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&auto=format&fit=crop&q=80',
-        price: 139.00,
+        price: 139.0,
         quantity: 1,
         specText: '哑光黑',
-        itemType: 'physical'
-      }
+        itemType: 'physical',
+      },
     ],
     address: MOCK_ADDRESSES[1],
     payment: {
-      totalGoodsAmount: 139.00,
+      totalGoodsAmount: 139.0,
       shippingFee: 0,
-      welfareDeducted: 139.00,
+      welfareDeducted: 139.0,
       mealDeducted: 0,
       wechatPaid: 0,
-      finalPaidAmount: 139.00,
+      finalPaidAmount: 139.0,
       payMethodText: '福利卡余额全额抵扣',
-      paidAt: '2026-07-21 10:16:00'
+      paidAt: '2026-07-21 10:16:00',
     },
     expressCompany: '顺丰速运',
     trackingNo: 'SF1409281029388',
-    distributorId: 'DIST-001-GW'
+    distributorId: 'DIST-001-GW',
   },
 
   // 4. 已完成订单 (虚拟卡券/电影票已发码)
@@ -145,25 +145,25 @@ export const MOCK_ORDERS: Order[] = [
         productId: 'p_601',
         productTitle: '【全国通用】猫眼/淘票票 电影票通兑券',
         productImage: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600&auto=format&fit=crop&q=80',
-        price: 35.00,
+        price: 35.0,
         quantity: 2,
         specText: '单人通兑券2张',
         itemType: 'movie_ticket',
-        verificationCode: 'MOVIE-8891-9021-3312'
-      }
+        verificationCode: 'MOVIE-8891-9021-3312',
+      },
     ],
     payment: {
-      totalGoodsAmount: 70.00,
+      totalGoodsAmount: 70.0,
       shippingFee: 0,
-      welfareDeducted: 70.00,
+      welfareDeducted: 70.0,
       mealDeducted: 0,
       wechatPaid: 0,
-      finalPaidAmount: 70.00,
+      finalPaidAmount: 70.0,
       payMethodText: '福利卡余额抵扣',
-      paidAt: '2026-07-20 14:02:11'
+      paidAt: '2026-07-20 14:02:11',
     },
     verificationCode: 'MOVIE-8891-9021-3312',
-    distributorId: 'DIST-001-GW'
+    distributorId: 'DIST-001-GW',
   },
 
   // 5. 售后中订单
@@ -184,23 +184,23 @@ export const MOCK_ORDERS: Order[] = [
         productId: 'p_202',
         productTitle: '九阳 (Joyoung) 5.5L大容量可视空气炸锅',
         productImage: 'https://images.unsplash.com/photo-1585515320310-259814833e62?w=600&auto=format&fit=crop&q=80',
-        price: 219.00,
+        price: 219.0,
         quantity: 1,
         specText: '5.5L可视款',
-        itemType: 'physical'
-      }
+        itemType: 'physical',
+      },
     ],
     address: MOCK_ADDRESSES[0],
     payment: {
-      totalGoodsAmount: 219.00,
+      totalGoodsAmount: 219.0,
       shippingFee: 0,
-      welfareDeducted: 219.00,
+      welfareDeducted: 219.0,
       mealDeducted: 0,
       wechatPaid: 0,
-      finalPaidAmount: 219.00,
+      finalPaidAmount: 219.0,
       payMethodText: '福利卡余额全额抵扣',
-      paidAt: '2026-07-18 09:12:45'
+      paidAt: '2026-07-18 09:12:45',
     },
-    distributorId: 'DIST-001-GW'
-  }
+    distributorId: 'DIST-001-GW',
+  },
 ];

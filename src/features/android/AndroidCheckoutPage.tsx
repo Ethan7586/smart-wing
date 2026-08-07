@@ -2,31 +2,13 @@ import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
 import { AndroidStatusBar } from '../../components/mobile/AndroidStatusBar';
 import { AndroidBottomNav } from '../../components/mobile/AndroidBottomNav';
-import {
-  MapPin,
-  CreditCard,
-  Fingerprint,
-  FileText,
-  ShieldCheck,
-  ChevronRight,
-  CheckCircle2,
-  Lock,
-  Utensils,
-  Wallet
-} from 'lucide-react';
+import { MapPin, CreditCard, Fingerprint, FileText, ShieldCheck, ChevronRight, CheckCircle2, Lock, Utensils, Wallet } from 'lucide-react';
 
 export const AndroidCheckoutPage: React.FC = () => {
-  const {
-    cart,
-    user,
-    setAndroidPage,
-    triggerPendingFeature,
-    checkoutSelectedCart,
-    isSubmittingOrder,
-  } = useMall();
+  const { cart, user, setAndroidPage, triggerPendingFeature, checkoutSelectedCart, isSubmittingOrder } = useMall();
   const [selectedPayment, setSelectedPayment] = useState<'welfare' | 'meal' | 'wechat' | 'fingerprint'>('welfare');
 
-  const selectedCartItems = cart.filter(c => c.selected);
+  const selectedCartItems = cart.filter((c) => c.selected);
   const totalPrice = selectedCartItems.reduce((sum, item) => sum + item.product.priceMall * item.quantity, 0);
 
   const handlePlaceOrder = async () => {
@@ -41,11 +23,7 @@ export const AndroidCheckoutPage: React.FC = () => {
 
   return (
     <div className="bg-[#F5F7FA] min-h-full flex flex-col font-sans text-gray-800 relative pb-16">
-      <AndroidStatusBar
-        title="确认福利订单"
-        showBack={true}
-        onBack={() => setAndroidPage('home')}
-      />
+      <AndroidStatusBar title="确认福利订单" showBack={true} onBack={() => setAndroidPage('home')} />
 
       <div className="p-3 space-y-3 flex-1 overflow-y-auto">
         {/* Delivery Address Card */}
@@ -60,13 +38,9 @@ export const AndroidCheckoutPage: React.FC = () => {
             <div>
               <div className="text-xs font-bold text-gray-900 flex items-center gap-2">
                 <span>张伟 (员工编号 80219)</span>
-                <span className="text-[9px] bg-blue-100 text-[#1F5EFF] font-bold px-1.5 py-0.2 rounded">
-                  公司默认
-                </span>
+                <span className="text-[9px] bg-blue-100 text-[#1F5EFF] font-bold px-1.5 py-0.2 rounded">公司默认</span>
               </div>
-              <div className="text-[11px] text-gray-500 mt-0.5">
-                北京市朝阳区中国建筑大厦 12F 企采物流中心
-              </div>
+              <div className="text-[11px] text-gray-500 mt-0.5">北京市朝阳区中国建筑大厦 12F 企采物流中心</div>
             </div>
           </div>
           <ChevronRight className="w-4 h-4 text-gray-400" />
@@ -80,20 +54,14 @@ export const AndroidCheckoutPage: React.FC = () => {
           </div>
 
           <div className="space-y-2.5">
-            {selectedCartItems.map(item => (
+            {selectedCartItems.map((item) => (
               <div key={item.id} className="flex items-center gap-2.5 text-xs">
-                <img
-                  src={item.product.images[0]}
-                  alt={item.product.title}
-                  className="w-12 h-12 object-cover rounded-xl flex-shrink-0 border border-gray-100"
-                />
+                <img src={item.product.images[0]} alt={item.product.title} className="w-12 h-12 object-cover rounded-xl flex-shrink-0 border border-gray-100" />
                 <div className="flex-1 overflow-hidden">
                   <div className="font-bold text-gray-900 truncate">{item.product.title}</div>
                   <div className="text-[10px] text-gray-400">数量 x{item.quantity}</div>
                 </div>
-                <div className="font-mono font-bold text-[#E5484D] text-right">
-                  ¥{(item.product.priceMall * item.quantity).toFixed(2)}
-                </div>
+                <div className="font-mono font-bold text-[#E5484D] text-right">¥{(item.product.priceMall * item.quantity).toFixed(2)}</div>
               </div>
             ))}
           </div>
@@ -101,27 +69,21 @@ export const AndroidCheckoutPage: React.FC = () => {
 
         {/* Payment Methods Choice (Includes 接口待接入 tags) */}
         <div className="bg-white rounded-3xl p-3.5 shadow-2xs border border-gray-100 space-y-3">
-          <div className="text-xs font-black text-gray-900 border-b border-gray-100 pb-2">
-            支付扣款方式选择
-          </div>
+          <div className="text-xs font-black text-gray-900 border-b border-gray-100 pb-2">支付扣款方式选择</div>
 
           <div className="space-y-2 text-xs">
             {/* Welfare Card (Default) */}
             <div
               onClick={() => setSelectedPayment('welfare')}
               className={`p-3 rounded-2xl border flex items-center justify-between cursor-pointer transition-colors ${
-                selectedPayment === 'welfare'
-                  ? 'border-[#1F5EFF] bg-blue-50/70 text-[#1F5EFF]'
-                  : 'border-gray-200 text-gray-700 bg-white'
+                selectedPayment === 'welfare' ? 'border-[#1F5EFF] bg-blue-50/70 text-[#1F5EFF]' : 'border-gray-200 text-gray-700 bg-white'
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <CreditCard className="w-5 h-5 text-[#1F5EFF]" />
                 <div>
                   <div className="font-bold">福利卡全额抵扣</div>
-                  <div className="text-[10px] text-gray-500">
-                    可用余额: ¥{user.welfareBalance.toFixed(2)}
-                  </div>
+                  <div className="text-[10px] text-gray-500">可用余额: ¥{user.welfareBalance.toFixed(2)}</div>
                 </div>
               </div>
               <CheckCircle2 className={`w-5 h-5 ${selectedPayment === 'welfare' ? 'text-[#1F5EFF]' : 'text-gray-300'}`} />
@@ -131,18 +93,14 @@ export const AndroidCheckoutPage: React.FC = () => {
             <div
               onClick={() => setSelectedPayment('meal')}
               className={`p-3 rounded-2xl border flex items-center justify-between cursor-pointer transition-colors ${
-                selectedPayment === 'meal'
-                  ? 'border-[#FF7A00] bg-orange-50/70 text-[#FF7A00]'
-                  : 'border-gray-200 text-gray-700 bg-white'
+                selectedPayment === 'meal' ? 'border-[#FF7A00] bg-orange-50/70 text-[#FF7A00]' : 'border-gray-200 text-gray-700 bg-white'
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <Utensils className="w-5 h-5 text-[#FF7A00]" />
                 <div>
                   <div className="font-bold">餐卡专享扣减</div>
-                  <div className="text-[10px] text-gray-500">
-                    可用余额: ¥{user.mealBalance.toFixed(2)}
-                  </div>
+                  <div className="text-[10px] text-gray-500">可用余额: ¥{user.mealBalance.toFixed(2)}</div>
                 </div>
               </div>
               <CheckCircle2 className={`w-5 h-5 ${selectedPayment === 'meal' ? 'text-[#FF7A00]' : 'text-gray-300'}`} />
@@ -152,9 +110,7 @@ export const AndroidCheckoutPage: React.FC = () => {
             <div
               onClick={() => setSelectedPayment('wechat')}
               className={`p-3 rounded-2xl border flex items-center justify-between cursor-pointer transition-colors ${
-                selectedPayment === 'wechat'
-                  ? 'border-emerald-600 bg-emerald-50/70 text-emerald-700'
-                  : 'border-gray-200 text-gray-700 bg-white'
+                selectedPayment === 'wechat' ? 'border-emerald-600 bg-emerald-50/70 text-emerald-700' : 'border-gray-200 text-gray-700 bg-white'
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -162,9 +118,7 @@ export const AndroidCheckoutPage: React.FC = () => {
                 <div>
                   <div className="font-bold flex items-center gap-1.5">
                     <span>微信支付</span>
-                    <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-bold">
-                      接口待接入
-                    </span>
+                    <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-bold">接口待接入</span>
                   </div>
                   <div className="text-[10px] text-gray-500">如福利卡余额不足时差额补足</div>
                 </div>
@@ -176,9 +130,7 @@ export const AndroidCheckoutPage: React.FC = () => {
             <div
               onClick={() => setSelectedPayment('fingerprint')}
               className={`p-3 rounded-2xl border flex items-center justify-between cursor-pointer transition-colors ${
-                selectedPayment === 'fingerprint'
-                  ? 'border-purple-600 bg-purple-50/70 text-purple-700'
-                  : 'border-gray-200 text-gray-700 bg-white'
+                selectedPayment === 'fingerprint' ? 'border-purple-600 bg-purple-50/70 text-purple-700' : 'border-gray-200 text-gray-700 bg-white'
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -186,9 +138,7 @@ export const AndroidCheckoutPage: React.FC = () => {
                 <div>
                   <div className="font-bold flex items-center gap-1.5">
                     <span>指纹 / FaceID 生物识别免密扣款</span>
-                    <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-bold">
-                      接口待接入
-                    </span>
+                    <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-bold">接口待接入</span>
                   </div>
                   <div className="text-[10px] text-gray-500">Android Biometric API 授权</div>
                 </div>
@@ -214,9 +164,7 @@ export const AndroidCheckoutPage: React.FC = () => {
       <div className="fixed bottom-12 left-0 right-0 max-w-[430px] mx-auto bg-white border-t border-gray-200 p-3 z-40 flex items-center justify-between shadow-2xl">
         <div>
           <div className="text-[10px] text-gray-500">应扣付总额</div>
-          <div className="text-base font-black text-[#E5484D] font-mono">
-            ¥{totalPrice.toFixed(2)}
-          </div>
+          <div className="text-base font-black text-[#E5484D] font-mono">¥{totalPrice.toFixed(2)}</div>
         </div>
 
         <button
@@ -224,11 +172,7 @@ export const AndroidCheckoutPage: React.FC = () => {
           disabled={isSubmittingOrder}
           className="bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] hover:bg-blue-700 text-white font-bold text-xs px-6 py-3 rounded-2xl shadow-md cursor-pointer active:scale-98 transition-transform"
         >
-          {isSubmittingOrder
-            ? '安全提交中…'
-            : selectedPayment === 'fingerprint'
-              ? '指纹快捷支付（接口待接入）'
-              : '确认并提交真实订单'}
+          {isSubmittingOrder ? '安全提交中…' : selectedPayment === 'fingerprint' ? '指纹快捷支付（接口待接入）' : '确认并提交真实订单'}
         </button>
       </div>
 

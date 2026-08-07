@@ -6,46 +6,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { HeaderEnterpriseBar } from './HeaderEnterpriseBar';
 import { useMall, PageRoute } from '../../context/MallContext';
-import {
-  Search,
-  ShoppingCart,
-  CreditCard,
-  Utensils,
-  Building2,
-  ChevronDown,
-  Headphones,
-  User,
-  Heart,
-  Wallet,
-  Sparkles,
-  ShieldCheck,
-  Menu,
-  ChevronRight,
-  Flame
-} from 'lucide-react';
+import { Search, ShoppingCart, CreditCard, Utensils, Building2, ChevronDown, Headphones, User, Heart, Wallet, Sparkles, ShieldCheck, Menu, ChevronRight, Flame } from 'lucide-react';
 export const HeaderBar: React.FC = () => {
-  const {
-    user,
-    currentMall,
-    malls,
-    switchMall,
-    cartCount,
-    navigateTo,
-    currentPage,
-    products,
-    sessionStatus
-  } = useMall();
+  const { user, currentMall, malls, switchMall, cartCount, navigateTo, currentPage, products, sessionStatus } = useMall();
   const [searchKeyword, setSearchKeyword] = useState('');
   const [showSearchSuggest, setShowSearchSuggest] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   // Search suggestion matches
   const suggestions = searchKeyword.trim()
-    ? products.filter(
-        p =>
-          p.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-          p.categoryName.includes(searchKeyword) ||
-          p.brand.toLowerCase().includes(searchKeyword.toLowerCase())
-      ).slice(0, 6)
+    ? products.filter((p) => p.title.toLowerCase().includes(searchKeyword.toLowerCase()) || p.categoryName.includes(searchKeyword) || p.brand.toLowerCase().includes(searchKeyword.toLowerCase())).slice(0, 6)
     : [];
   const catalogNavigation = [
     { id: 'cat_welfare_zone', label: '企业福利专区', icon: true },
@@ -56,13 +25,10 @@ export const HeaderBar: React.FC = () => {
     { id: 'cat_personal', label: '个护清洁' },
     { id: 'cat_apparel', label: '服饰鞋包' },
     { id: 'cat_supermarket', label: '商超商品' },
-  ].filter(item => products.some(product => product.categoryId === item.id));
+  ].filter((item) => products.some((product) => product.categoryId === item.id));
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        searchContainerRef.current &&
-        !searchContainerRef.current.contains(e.target as Node)
-      ) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
         setShowSearchSuggest(false);
       }
     };
@@ -79,21 +45,14 @@ export const HeaderBar: React.FC = () => {
     <header className="w-full bg-white border-b border-gray-200 select-none sticky top-0 z-40 shadow-xs">
       <HeaderEnterpriseBar />
       <div className="max-w-[1280px] mx-auto py-3 px-3 md:py-3.5 md:px-4 flex items-center justify-between gap-3 md:gap-6">
-        <div
-          onClick={() => navigateTo('home')}
-          className="flex items-center gap-3 cursor-pointer group"
-        >
+        <div onClick={() => navigateTo('home')} className="flex items-center gap-3 cursor-pointer group">
           <div className="w-10 h-10 rounded-md bg-gradient-to-br from-[#1F5EFF] to-[#143A8F] flex items-center justify-center text-white shadow-md shadow-blue-500/10 group-hover:scale-105 transition-transform">
             <Sparkles className="w-6 h-6 text-yellow-300" />
           </div>
           <div className="hidden sm:block">
             <div className="flex items-center gap-1.5">
-              <span className="text-xl font-black tracking-tight text-gray-900 font-sans">
-                智慧翼
-              </span>
-              <span className="text-xs bg-[#EAF1FF] text-[#1F5EFF] font-bold px-1.5 py-0.5 rounded border border-blue-200">
-                福利商城
-              </span>
+              <span className="text-xl font-black tracking-tight text-gray-900 font-sans">智慧翼</span>
+              <span className="text-xs bg-[#EAF1FF] text-[#1F5EFF] font-bold px-1.5 py-0.5 rounded border border-blue-200">福利商城</span>
             </div>
             <div className="text-[11px] text-gray-400 font-normal tracking-wide flex items-center gap-1">
               <span>{currentMall.logoText}</span>
@@ -108,21 +67,18 @@ export const HeaderBar: React.FC = () => {
               <input
                 type="text"
                 value={searchKeyword}
-                onChange={e => {
+                onChange={(e) => {
                   setSearchKeyword(e.target.value);
                   setShowSearchSuggest(true);
                 }}
                 onFocus={() => setShowSearchSuggest(true)}
-                onKeyDown={e => e.key === 'Enter' && handleSearchSubmit()}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
                 placeholder="搜索福利卡可兑商品、米面粮油、影音卡券、附近门店..."
                 className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border-2 border-[#1F5EFF] rounded-l-md focus:outline-none focus:bg-white text-gray-900 placeholder-gray-400"
               />
               <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
-            <button
-              onClick={() => handleSearchSubmit()}
-              className="bg-[#1F5EFF] hover:bg-blue-700 text-white font-medium text-sm px-6 py-2.5 rounded-r-md transition-colors flex items-center gap-1.5 cursor-pointer"
-            >
+            <button onClick={() => handleSearchSubmit()} className="bg-[#1F5EFF] hover:bg-blue-700 text-white font-medium text-sm px-6 py-2.5 rounded-r-md transition-colors flex items-center gap-1.5 cursor-pointer">
               <span>搜索</span>
             </button>
           </div>
@@ -132,7 +88,7 @@ export const HeaderBar: React.FC = () => {
                 <span>匹配商城推荐商品</span>
                 <span className="text-blue-600">回车快速搜索</span>
               </div>
-              {suggestions.map(p => (
+              {suggestions.map((p) => (
                 <div
                   key={p.id}
                   onClick={() => {
@@ -142,11 +98,7 @@ export const HeaderBar: React.FC = () => {
                   className="p-2.5 hover:bg-blue-50/80 cursor-pointer flex items-center justify-between gap-3 text-xs transition-colors"
                 >
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <img
-                      src={p.images[0]}
-                      alt={p.title}
-                      className="w-8 h-8 rounded object-cover flex-shrink-0"
-                    />
+                    <img src={p.images[0]} alt={p.title} className="w-8 h-8 rounded object-cover flex-shrink-0" />
                     <span className="font-medium text-gray-800 truncate">{p.title}</span>
                   </div>
                   <div className="text-right flex-shrink-0">
@@ -162,66 +114,42 @@ export const HeaderBar: React.FC = () => {
               <Flame className="w-3 h-3 text-orange-500" />
               热搜：
             </span>
-            {hotKeywords.map(kw => (
-              <button
-                key={kw}
-                onClick={() => handleSearchSubmit(kw)}
-                className="hover:text-[#1F5EFF] transition-colors text-[11px] text-gray-600 cursor-pointer"
-              >
+            {hotKeywords.map((kw) => (
+              <button key={kw} onClick={() => handleSearchSubmit(kw)} className="hover:text-[#1F5EFF] transition-colors text-[11px] text-gray-600 cursor-pointer">
                 {kw}
               </button>
             ))}
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div
-            onClick={() => navigateTo('balance', { accountTab: 'welfare' })}
-            className="hidden lg:flex bg-[#EAF1FF] hover:bg-blue-100 border border-blue-200 rounded-md p-2 items-center gap-2.5 cursor-pointer transition-colors"
-          >
+          <div onClick={() => navigateTo('balance', { accountTab: 'welfare' })} className="hidden lg:flex bg-[#EAF1FF] hover:bg-blue-100 border border-blue-200 rounded-md p-2 items-center gap-2.5 cursor-pointer transition-colors">
             <div className="w-8 h-8 rounded bg-[#1F5EFF] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
               <CreditCard className="w-4 h-4" />
             </div>
             <div>
               <div className="text-[10px] text-blue-700 font-medium leading-none">福利卡余额</div>
-              <div className="text-sm font-black text-[#1F5EFF] mt-0.5">
-                ¥{user.welfareBalance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
-              </div>
+              <div className="text-sm font-black text-[#1F5EFF] mt-0.5">¥{user.welfareBalance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</div>
             </div>
           </div>
-          <div
-            onClick={() => navigateTo('balance', { accountTab: 'meal' })}
-            className="hidden lg:flex bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-md p-2 items-center gap-2.5 cursor-pointer transition-colors"
-          >
+          <div onClick={() => navigateTo('balance', { accountTab: 'meal' })} className="hidden lg:flex bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-md p-2 items-center gap-2.5 cursor-pointer transition-colors">
             <div className="w-8 h-8 rounded bg-[#FF7A00] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
               <Utensils className="w-4 h-4" />
             </div>
             <div>
               <div className="text-[10px] text-orange-700 font-medium leading-none">餐卡余额</div>
-              <div className="text-sm font-black text-[#FF7A00] mt-0.5">
-                ¥{user.mealBalance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
-              </div>
+              <div className="text-sm font-black text-[#FF7A00] mt-0.5">¥{user.mealBalance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</div>
             </div>
           </div>
-          <button
-            onClick={() => navigateTo('cart')}
-            className="relative bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-md flex items-center gap-2 font-medium text-xs shadow-xs transition-colors cursor-pointer"
-          >
+          <button onClick={() => navigateTo('cart')} className="relative bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-md flex items-center gap-2 font-medium text-xs shadow-xs transition-colors cursor-pointer">
             <ShoppingCart className="w-4 h-4 text-blue-300" />
             <span className="hidden sm:inline">购物车</span>
-            {cartCount > 0 && (
-              <span className="bg-[#FF7A00] text-white font-bold text-[10px] px-1.5 py-0.2 rounded-full">
-                {cartCount}
-              </span>
-            )}
+            {cartCount > 0 && <span className="bg-[#FF7A00] text-white font-bold text-[10px] px-1.5 py-0.2 rounded-full">{cartCount}</span>}
           </button>
         </div>
       </div>
       <div className="hidden md:block bg-[#1F5EFF] text-white shadow-xs">
         <div className="max-w-[1280px] mx-auto px-4 flex items-center justify-between text-xs font-semibold">
-          <div
-            onClick={() => navigateTo('category')}
-            className="w-56 bg-[#143A8F] py-2.5 px-4 flex items-center justify-between cursor-pointer hover:bg-blue-900 transition-colors"
-          >
+          <div onClick={() => navigateTo('category')} className="w-56 bg-[#143A8F] py-2.5 px-4 flex items-center justify-between cursor-pointer hover:bg-blue-900 transition-colors">
             <div className="flex items-center gap-2">
               <Menu className="w-4 h-4 text-yellow-300" />
               <span className="tracking-wide text-sm">全部商品分类</span>
@@ -229,20 +157,11 @@ export const HeaderBar: React.FC = () => {
             <ChevronRight className="w-4 h-4 text-blue-300" />
           </div>
           <div className="flex-1 flex items-center gap-1 ml-4 py-1.5 overflow-x-auto">
-            <button
-              onClick={() => navigateTo('home')}
-              className={`px-3 py-1.5 rounded transition-colors cursor-pointer ${
-                currentPage === 'home' ? 'bg-white/20 text-white font-bold' : 'hover:bg-white/10 text-blue-50'
-              }`}
-            >
+            <button onClick={() => navigateTo('home')} className={`px-3 py-1.5 rounded transition-colors cursor-pointer ${currentPage === 'home' ? 'bg-white/20 text-white font-bold' : 'hover:bg-white/10 text-blue-50'}`}>
               首页
             </button>
-            {catalogNavigation.map(item => (
-              <button
-                key={item.id}
-                onClick={() => navigateTo('category', { categoryId: item.id })}
-                className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer flex items-center gap-1 whitespace-nowrap"
-              >
+            {catalogNavigation.map((item) => (
+              <button key={item.id} onClick={() => navigateTo('category', { categoryId: item.id })} className="px-3 py-1.5 rounded hover:bg-white/10 text-blue-50 transition-colors cursor-pointer flex items-center gap-1 whitespace-nowrap">
                 {item.icon && <Sparkles className="w-3.5 h-3.5 text-yellow-300" />}
                 <span>{item.label}</span>
               </button>

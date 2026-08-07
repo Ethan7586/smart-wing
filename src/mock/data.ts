@@ -8,9 +8,4 @@ export * from './base';
 export * from './orders';
 export * from './accounts';
 
-export const MOCK_PRODUCTS: Product[] = [
-  ...MOCK_PRODUCTS_A,
-  ...MOCK_PRODUCTS_B,
-  ...MOCK_PRODUCTS_C,
-  ...MOCK_PRODUCTS_D,
-];
+export const MOCK_PRODUCTS: Product[] = [...MOCK_PRODUCTS_A, ...MOCK_PRODUCTS_B, ...MOCK_PRODUCTS_C, ...MOCK_PRODUCTS_D];

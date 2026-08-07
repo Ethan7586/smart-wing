@@ -5,11 +5,7 @@ export interface CheckoutResult {
   selectedItems: CartItem[];
 }
 
-export async function checkoutSelectedCartRequest(
-  cart: CartItem[],
-  addresses: DeliveryAddress[],
-  user: UserProfile
-): Promise<CheckoutResult> {
+export async function checkoutSelectedCartRequest(cart: CartItem[], addresses: DeliveryAddress[], user: UserProfile): Promise<CheckoutResult> {
   const selectedItems = cart.filter((item) => item.selected);
   const address = addresses.find((item) => item.isDefault) ?? addresses[0];
   if (!selectedItems.length) throw new Error('请先选择需要结算的商品');
@@ -18,19 +14,9 @@ export async function checkoutSelectedCartRequest(
     throw new Error('购物车存在演示商品，请从在线商品目录重新加入');
   }
 
-  const payableCents = selectedItems.reduce(
-    (sum, item) =>
-      sum + Math.round(item.product.priceWelfare * 100) * item.quantity,
-    0
-  );
-  const welfareCents = Math.min(
-    payableCents,
-    Math.round(user.welfareBalance * 100)
-  );
-  const mealCents = Math.min(
-    payableCents - welfareCents,
-    Math.round(user.mealBalance * 100)
-  );
+  const payableCents = selectedItems.reduce((sum, item) => sum + Math.round(item.product.priceWelfare * 100) * item.quantity, 0);
+  const welfareCents = Math.min(payableCents, Math.round(user.welfareBalance * 100));
+  const mealCents = Math.min(payableCents - welfareCents, Math.round(user.mealBalance * 100));
   if (welfareCents + mealCents !== payableCents) {
     throw new Error('福利账户余额不足，外部支付接口尚未接入');
   }
@@ -53,10 +39,6 @@ export async function checkoutSelectedCartRequest(
     },
     `order-${requestId}`
   );
-  await productionApi.payWithInternalAccounts(
-    created.order.id,
-    { welfareCents, mealCents },
-    `payment-${requestId}`
-  );
+  await productionApi.payWithInternalAccounts(created.order.id, { welfareCents, mealCents }, `payment-${requestId}`);
   return { selectedItems };
 }

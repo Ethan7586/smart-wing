@@ -13,11 +13,7 @@ import { TabletOrdersPage } from '../../features/tablet/TabletOrdersPage';
 import { Tablet, Maximize2, Minimize2, RotateCw, Sparkles, Monitor } from 'lucide-react';
 
 export const TabletFrame: React.FC = () => {
-  const {
-    tabletPage,
-    tabletOrientation,
-    setTabletOrientation
-  } = useMall();
+  const { tabletPage, tabletOrientation, setTabletOrientation } = useMall();
 
   const [deviceModel, setDeviceModel] = useState<'android_1280_800' | 'ipad_1180_820'>('android_1280_800');
   const [isFrameMode, setIsFrameMode] = useState(true);
@@ -71,21 +67,13 @@ export const TabletFrame: React.FC = () => {
             <span>设计规格:</span>
             <button
               onClick={() => setDeviceModel('android_1280_800')}
-              className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
-                deviceModel === 'android_1280_800'
-                  ? 'bg-blue-600 text-white font-bold'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-              }`}
+              className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${deviceModel === 'android_1280_800' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
             >
               Android平板 ({isLandscape ? '1280×800' : '800×1280'})
             </button>
             <button
               onClick={() => setDeviceModel('ipad_1180_820')}
-              className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
-                deviceModel === 'ipad_1180_820'
-                  ? 'bg-blue-600 text-white font-bold'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-              }`}
+              className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${deviceModel === 'ipad_1180_820' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
             >
               iPad 参照 ({isLandscape ? '1180×820' : '820×1180'})
             </button>
@@ -104,10 +92,7 @@ export const TabletFrame: React.FC = () => {
           </button>
 
           {/* Canvas Mode Toggle */}
-          <button
-            onClick={() => setIsFrameMode(!isFrameMode)}
-            className="bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-3 py-1 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer font-medium"
-          >
+          <button onClick={() => setIsFrameMode(!isFrameMode)} className="bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-3 py-1 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer font-medium">
             {isFrameMode ? (
               <>
                 <Maximize2 className="w-3.5 h-3.5 text-blue-400" />
@@ -141,16 +126,12 @@ export const TabletFrame: React.FC = () => {
                   /* Landscape Layout: Left Rail + Right Content */
                   <div className="w-full h-full flex overflow-hidden">
                     <TabletNavRail />
-                    <div className="flex-1 h-full overflow-hidden">
-                      {renderTabletContent()}
-                    </div>
+                    <div className="flex-1 h-full overflow-hidden">{renderTabletContent()}</div>
                   </div>
                 ) : (
                   /* Portrait Layout: Content + Bottom Nav Rail */
                   <div className="w-full h-full flex flex-col overflow-hidden">
-                    <div className="flex-1 overflow-hidden">
-                      {renderTabletContent()}
-                    </div>
+                    <div className="flex-1 overflow-hidden">{renderTabletContent()}</div>
                     <TabletNavRail />
                   </div>
                 )}
@@ -163,15 +144,11 @@ export const TabletFrame: React.FC = () => {
             {isLandscape ? (
               <div className="w-full h-full flex overflow-hidden min-h-[750px]">
                 <TabletNavRail />
-                <div className="flex-1 h-full overflow-hidden">
-                  {renderTabletContent()}
-                </div>
+                <div className="flex-1 h-full overflow-hidden">{renderTabletContent()}</div>
               </div>
             ) : (
               <div className="w-full h-full flex flex-col overflow-hidden min-h-[900px]">
-                <div className="flex-1 overflow-hidden">
-                  {renderTabletContent()}
-                </div>
+                <div className="flex-1 overflow-hidden">{renderTabletContent()}</div>
                 <TabletNavRail />
               </div>
             )}

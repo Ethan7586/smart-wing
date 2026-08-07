@@ -11,14 +11,7 @@ interface AndroidStatusBarProps {
   onRefresh?: () => void;
 }
 
-export const AndroidStatusBar: React.FC<AndroidStatusBarProps> = ({
-  title,
-  showBack,
-  onBack,
-  onSearch,
-  isLoading,
-  onRefresh
-}) => {
+export const AndroidStatusBar: React.FC<AndroidStatusBarProps> = ({ title, showBack, onBack, onSearch, isLoading, onRefresh }) => {
   const { currentMall, malls, switchMall, cartCount, setAndroidPage } = useMall();
   const [showMallDropdown, setShowMallDropdown] = React.useState(false);
 
@@ -40,10 +33,7 @@ export const AndroidStatusBar: React.FC<AndroidStatusBarProps> = ({
         {/* 左侧：返回键 或 企业切换 */}
         <div className="flex items-center gap-2">
           {showBack ? (
-            <button
-              onClick={onBack}
-              className="p-1.5 hover:bg-white/10 rounded-full transition-colors cursor-pointer text-white"
-            >
+            <button onClick={onBack} className="p-1.5 hover:bg-white/10 rounded-full transition-colors cursor-pointer text-white">
               <ArrowLeft className="w-5 h-5" />
             </button>
           ) : (
@@ -60,21 +50,15 @@ export const AndroidStatusBar: React.FC<AndroidStatusBarProps> = ({
               {/* 企业切换 Popover */}
               {showMallDropdown && (
                 <div className="absolute left-0 top-full mt-1.5 w-52 bg-white text-gray-800 rounded-xl shadow-xl border border-gray-100 p-1.5 z-50 text-xs">
-                  <div className="text-[10px] text-gray-400 font-bold px-2.5 py-1 uppercase tracking-wider">
-                    切换企业福利空间
-                  </div>
-                  {malls.map(m => (
+                  <div className="text-[10px] text-gray-400 font-bold px-2.5 py-1 uppercase tracking-wider">切换企业福利空间</div>
+                  {malls.map((m) => (
                     <button
                       key={m.id}
                       onClick={() => {
                         switchMall(m.id);
                         setShowMallDropdown(false);
                       }}
-                      className={`w-full text-left px-2.5 py-2 rounded-lg transition-colors flex items-center justify-between ${
-                        m.id === currentMall.id
-                          ? 'bg-blue-50 text-[#1F5EFF] font-bold'
-                          : 'hover:bg-gray-50 text-gray-700'
-                      }`}
+                      className={`w-full text-left px-2.5 py-2 rounded-lg transition-colors flex items-center justify-between ${m.id === currentMall.id ? 'bg-blue-50 text-[#1F5EFF] font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
                     >
                       <span className="truncate">{m.mallName}</span>
                       {m.id === currentMall.id && <span className="w-1.5 h-1.5 rounded-full bg-[#1F5EFF]" />}
@@ -85,46 +69,24 @@ export const AndroidStatusBar: React.FC<AndroidStatusBarProps> = ({
             </div>
           )}
 
-          {title && (
-            <h1 className="text-sm font-bold text-white tracking-tight truncate max-w-[150px]">
-              {title}
-            </h1>
-          )}
+          {title && <h1 className="text-sm font-bold text-white tracking-tight truncate max-w-[150px]">{title}</h1>}
         </div>
 
         {/* 右侧：搜索、购物车、刷新 */}
         <div className="flex items-center gap-1">
           {onRefresh && (
-            <button
-              onClick={onRefresh}
-              className={`p-1.5 hover:bg-white/10 rounded-full transition-colors text-white cursor-pointer ${
-                isLoading ? 'animate-spin text-yellow-300' : ''
-              }`}
-              title="模拟网络刷新"
-            >
+            <button onClick={onRefresh} className={`p-1.5 hover:bg-white/10 rounded-full transition-colors text-white cursor-pointer ${isLoading ? 'animate-spin text-yellow-300' : ''}`} title="模拟网络刷新">
               <RefreshCw className="w-4 h-4" />
             </button>
           )}
 
-          <button
-            onClick={() => onSearch ? onSearch() : setAndroidPage('search')}
-            className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-white cursor-pointer"
-            title="搜索"
-          >
+          <button onClick={() => (onSearch ? onSearch() : setAndroidPage('search'))} className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-white cursor-pointer" title="搜索">
             <Search className="w-4.5 h-4.5" />
           </button>
 
-          <button
-            onClick={() => setAndroidPage('checkout')}
-            className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-white relative cursor-pointer"
-            title="购物车/结算"
-          >
+          <button onClick={() => setAndroidPage('checkout')} className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-white relative cursor-pointer" title="购物车/结算">
             <ShoppingBag className="w-4.5 h-4.5 text-yellow-300" />
-            {cartCount > 0 && (
-              <span className="absolute top-0 right-0 bg-[#E5484D] text-white font-bold text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center">
-                {cartCount}
-              </span>
-            )}
+            {cartCount > 0 && <span className="absolute top-0 right-0 bg-[#E5484D] text-white font-bold text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center">{cartCount}</span>}
           </button>
         </div>
       </div>

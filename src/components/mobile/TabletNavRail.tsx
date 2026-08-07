@@ -1,29 +1,9 @@
 import React from 'react';
 import { useMall, TabletPage } from '../../context/MallContext';
-import {
-  Home,
-  Grid,
-  Gift,
-  ShoppingCart,
-  FileText,
-  User,
-  Building2,
-  ChevronRight,
-  ShieldCheck,
-  RotateCw
-} from 'lucide-react';
+import { Home, Grid, Gift, ShoppingCart, FileText, User, Building2, ChevronRight, ShieldCheck, RotateCw } from 'lucide-react';
 
 export const TabletNavRail: React.FC = () => {
-  const {
-    tabletPage,
-    setTabletPage,
-    tabletOrientation,
-    setTabletOrientation,
-    cartCount,
-    user,
-    currentMall,
-    triggerPendingFeature
-  } = useMall();
+  const { tabletPage, setTabletPage, tabletOrientation, setTabletOrientation, cartCount, user, currentMall, triggerPendingFeature } = useMall();
 
   const navItems: { key: TabletPage; label: string; icon: React.ReactNode }[] = [
     { key: 'home', label: '首页', icon: <Home className="w-5 h-5" /> },
@@ -45,18 +25,12 @@ export const TabletNavRail: React.FC = () => {
               key={item.key}
               onClick={() => setTabletPage(item.key)}
               className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer relative min-h-[44px] min-w-[56px] justify-center ${
-                isActive
-                  ? 'text-[#1F5EFF] bg-blue-50 font-bold'
-                  : 'text-gray-500 hover:text-gray-900 font-medium'
+                isActive ? 'text-[#1F5EFF] bg-blue-50 font-bold' : 'text-gray-500 hover:text-gray-900 font-medium'
               }`}
             >
               <div className="relative">
                 {item.icon}
-                {item.key === 'cart' && cartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2 bg-[#E5484D] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full min-w-[16px] text-center">
-                    {cartCount}
-                  </span>
-                )}
+                {item.key === 'cart' && cartCount > 0 && <span className="absolute -top-1.5 -right-2 bg-[#E5484D] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full min-w-[16px] text-center">{cartCount}</span>}
               </div>
               <span className="text-[11px] leading-none">{item.label}</span>
             </button>
@@ -72,16 +46,10 @@ export const TabletNavRail: React.FC = () => {
       {/* Top Header & Enterprise Info */}
       <div className="space-y-4">
         <div className="flex items-center gap-2.5 px-2 py-1 border-b border-blue-800/60 pb-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#1F5EFF] to-blue-400 flex items-center justify-center font-black text-white shadow-sm">
-            翼
-          </div>
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#1F5EFF] to-blue-400 flex items-center justify-center font-black text-white shadow-sm">翼</div>
           <div className="overflow-hidden">
-            <div className="text-xs font-black tracking-wide text-white truncate">
-              智慧翼企业福利
-            </div>
-            <div className="text-[10px] text-blue-200 truncate">
-              Tablet App 专属版
-            </div>
+            <div className="text-xs font-black tracking-wide text-white truncate">智慧翼企业福利</div>
+            <div className="text-[10px] text-blue-200 truncate">Tablet App 专属版</div>
           </div>
         </div>
 
@@ -94,18 +62,12 @@ export const TabletNavRail: React.FC = () => {
                 key={item.key}
                 onClick={() => setTabletPage(item.key)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all cursor-pointer text-xs min-h-[44px] ${
-                  isActive
-                    ? 'bg-white text-[#143A8F] font-bold shadow-md transform translate-x-1'
-                    : 'text-blue-100 hover:bg-white/10 font-medium'
+                  isActive ? 'bg-white text-[#143A8F] font-bold shadow-md transform translate-x-1' : 'text-blue-100 hover:bg-white/10 font-medium'
                 }`}
               >
                 <div className="relative">
                   {item.icon}
-                  {item.key === 'cart' && cartCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-[#E5484D] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                      {cartCount}
-                    </span>
-                  )}
+                  {item.key === 'cart' && cartCount > 0 && <span className="absolute -top-2 -right-2 bg-[#E5484D] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{cartCount}</span>}
                 </div>
                 <span className="text-xs">{item.label}</span>
               </button>
@@ -117,20 +79,11 @@ export const TabletNavRail: React.FC = () => {
       {/* Bottom User Card & Orientation Switcher */}
       <div className="space-y-2 pt-3 border-t border-blue-800/60">
         {/* User Mini Card */}
-        <div
-          onClick={() => setTabletPage('profile')}
-          className="p-2.5 rounded-2xl bg-white/10 hover:bg-white/15 transition-colors cursor-pointer flex items-center gap-2.5 border border-white/10"
-        >
-          <img
-            src={user.avatar}
-            alt={user.name}
-            className="w-8 h-8 rounded-xl object-cover border border-white/30"
-          />
+        <div onClick={() => setTabletPage('profile')} className="p-2.5 rounded-2xl bg-white/10 hover:bg-white/15 transition-colors cursor-pointer flex items-center gap-2.5 border border-white/10">
+          <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-xl object-cover border border-white/30" />
           <div className="overflow-hidden flex-1">
             <div className="text-xs font-bold text-white truncate">{user.name}</div>
-            <div className="text-[10px] text-yellow-300 font-mono truncate">
-              福利卡 ¥{user.welfareBalance.toFixed(0)}
-            </div>
+            <div className="text-[10px] text-yellow-300 font-mono truncate">福利卡 ¥{user.welfareBalance.toFixed(0)}</div>
           </div>
           <ChevronRight className="w-3.5 h-3.5 text-blue-200" />
         </div>

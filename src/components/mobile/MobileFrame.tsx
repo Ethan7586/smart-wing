@@ -72,9 +72,7 @@ export const MobileFrame: React.FC = () => {
       {/* Frame / Display Control Toolbar */}
       <div className="bg-gray-900/90 border-b border-gray-800 px-4 py-2 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
         <div className="flex items-center gap-2">
-          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-            isMP ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-          }`}>
+          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${isMP ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}`}>
             {isMP ? '微信小程序 独立高保真入口' : 'Android App Material 3 原生体验入口'}
           </span>
           <span className="text-gray-400">
@@ -84,10 +82,7 @@ export const MobileFrame: React.FC = () => {
 
         {/* View Mode Toggle */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsFrameMode(!isFrameMode)}
-            className="bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-3 py-1 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer font-medium"
-          >
+          <button onClick={() => setIsFrameMode(!isFrameMode)} className="bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-3 py-1 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer font-medium">
             {isFrameMode ? (
               <>
                 <Maximize2 className="w-3.5 h-3.5 text-blue-400" />
@@ -112,7 +107,7 @@ export const MobileFrame: React.FC = () => {
             <div
               style={{
                 width: isMP ? '390px' : '412px',
-                height: isMP ? '844px' : '915px'
+                height: isMP ? '844px' : '915px',
               }}
               className="bg-gray-950 rounded-[48px] p-3 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] border-[8px] border-gray-800 ring-1 ring-white/10 relative flex flex-col overflow-hidden max-w-[95vw] max-h-[88vh] sm:max-h-[92vh]"
             >
@@ -122,9 +117,7 @@ export const MobileFrame: React.FC = () => {
               </div>
 
               {/* Inner Screen Scroll Viewport */}
-              <div className="w-full h-full bg-[#F5F7FA] rounded-[36px] overflow-hidden flex flex-col relative shadow-inner">
-                {isMP ? renderMiniProgramPage() : renderAndroidPage()}
-              </div>
+              <div className="w-full h-full bg-[#F5F7FA] rounded-[36px] overflow-hidden flex flex-col relative shadow-inner">{isMP ? renderMiniProgramPage() : renderAndroidPage()}</div>
 
               {/* Bottom Home Indicator Line */}
               <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-gray-600 rounded-full opacity-80" />
@@ -132,9 +125,7 @@ export const MobileFrame: React.FC = () => {
           </div>
         ) : (
           /* Fullscreen Responsive Mode */
-          <div className="w-full max-w-[430px] min-h-[85vh] bg-[#F5F7FA] text-gray-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-800 flex flex-col">
-            {isMP ? renderMiniProgramPage() : renderAndroidPage()}
-          </div>
+          <div className="w-full max-w-[430px] min-h-[85vh] bg-[#F5F7FA] text-gray-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-800 flex flex-col">{isMP ? renderMiniProgramPage() : renderAndroidPage()}</div>
         )}
       </div>
 

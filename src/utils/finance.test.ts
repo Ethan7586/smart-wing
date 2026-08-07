@@ -6,7 +6,7 @@ describe('calculatePaymentAllocation', () => {
     expect(calculatePaymentAllocation(100, 100, 50, 1000, 1000)).toEqual({
       welfare: 100,
       meal: 0,
-      external: 0
+      external: 0,
     });
   });
 
@@ -14,7 +14,7 @@ describe('calculatePaymentAllocation', () => {
     expect(calculatePaymentAllocation(100, 80, 80, 30, 20)).toEqual({
       welfare: 30,
       meal: 20,
-      external: 50
+      external: 50,
     });
   });
 
@@ -22,7 +22,7 @@ describe('calculatePaymentAllocation', () => {
     expect(calculatePaymentAllocation(10.005, -1, 4.567, 100, 100)).toEqual({
       welfare: 0,
       meal: 4.57,
-      external: 5.44
+      external: 5.44,
     });
   });
 });

@@ -6,12 +6,10 @@ export const MOCK_PRODUCTS_B: Product[] = [
     id: 'p_302',
     title: '索尼 (SONY) WH-1000XM5 无线头戴式主动降噪耳机 银黑色',
     subtitle: '双芯片驱动，8麦克风降噪系统，30小时超长续航，高清通话',
-    images: [
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 2999.00,
-    priceMall: 2499.00,
-    priceWelfare: 2099.00,
+    images: ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 2999.0,
+    priceMall: 2499.0,
+    priceWelfare: 2099.0,
     categoryId: 'cat_digital',
     categoryName: '数码办公',
     brand: 'SONY 索尼',
@@ -26,10 +24,8 @@ export const MOCK_PRODUCTS_B: Product[] = [
     rating: 4.94,
     reviewCount: 430,
     deliverySla: '京东快递24H到达',
-    specs: [
-      { name: '配色方案', options: ['铂金银', '黑色经典', '深邃蓝限量版'] }
-    ],
-    distributorId: 'DIST-001-GW'
+    specs: [{ name: '配色方案', options: ['铂金银', '黑色经典', '深邃蓝限量版'] }],
+    distributorId: 'DIST-001-GW',
   },
 
   // 10. 桑蚕丝被
@@ -37,12 +33,10 @@ export const MOCK_PRODUCTS_B: Product[] = [
     id: 'p_401',
     title: '水星家纺 100%双宫蚕丝被 200*230cm 净重2斤 春秋被礼盒装',
     subtitle: '双宫特级桑蚕丝，全棉高密面料，亲肤透气吸湿',
-    images: [
-      'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 1299.00,
-    priceMall: 899.00,
-    priceWelfare: 620.00,
+    images: ['https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 1299.0,
+    priceMall: 899.0,
+    priceWelfare: 620.0,
     categoryId: 'cat_home',
     categoryName: '家居日用',
     brand: '水星家纺',
@@ -58,10 +52,8 @@ export const MOCK_PRODUCTS_B: Product[] = [
     reviewCount: 890,
     deliverySla: '次日达',
     isHotRedeem: true,
-    specs: [
-      { name: '尺寸与充填量', options: ['200*230cm (2斤春秋被)', '220*240cm (3斤加厚被)'] }
-    ],
-    distributorId: 'DIST-001-GW'
+    specs: [{ name: '尺寸与充填量', options: ['200*230cm (2斤春秋被)', '220*240cm (3斤加厚被)'] }],
+    distributorId: 'DIST-001-GW',
   },
 
   // 11. 膳魔师保温杯套组
@@ -69,12 +61,10 @@ export const MOCK_PRODUCTS_B: Product[] = [
     id: 'p_402',
     title: '膳魔师 (THERMOS) 316L不锈钢保温杯 500ml 弹盖双饮触控温显礼盒',
     subtitle: '24小时保温保冷，长效锁温，轻量杯身，企业定制烫印首选',
-    images: [
-      'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 299.00,
-    priceMall: 199.00,
-    priceWelfare: 139.00,
+    images: ['https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 299.0,
+    priceMall: 199.0,
+    priceWelfare: 139.0,
     categoryId: 'cat_home',
     categoryName: '家居日用',
     brand: 'THERMOS 膳魔师',
@@ -90,10 +80,8 @@ export const MOCK_PRODUCTS_B: Product[] = [
     reviewCount: 3100,
     deliverySla: '次日达',
     isDailySpecial: true,
-    specs: [
-      { name: '颜色外观', options: ['哑光黑', '珍珠白', '海军蓝'] }
-    ],
-    distributorId: 'DIST-001-GW'
+    specs: [{ name: '颜色外观', options: ['哑光黑', '珍珠白', '海军蓝'] }],
+    distributorId: 'DIST-001-GW',
   },
 
   // 12. 飞利浦男士剃须刀
@@ -101,12 +89,10 @@ export const MOCK_PRODUCTS_B: Product[] = [
     id: 'p_501',
     title: '飞利浦 (Philips) 全自动电动剃须刀 S5000系列 乾湿双剃 赠鼻毛修剪器',
     subtitle: '微珠舒适圈，感应自适应切剃，全身水洗，1小时快充',
-    images: [
-      'https://images.unsplash.com/photo-1621607512214-68297480165e?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 699.00,
-    priceMall: 499.00,
-    priceWelfare: 369.00,
+    images: ['https://images.unsplash.com/photo-1621607512214-68297480165e?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 699.0,
+    priceMall: 499.0,
+    priceWelfare: 369.0,
     categoryId: 'cat_personal',
     categoryName: '个护清洁',
     brand: 'Philips 飞利浦',
@@ -121,7 +107,7 @@ export const MOCK_PRODUCTS_B: Product[] = [
     rating: 4.88,
     reviewCount: 930,
     deliverySla: '京东快递24H到达',
-    distributorId: 'DIST-001-GW'
+    distributorId: 'DIST-001-GW',
   },
 
   // ---------------- Virtual Vouchers & Movie Tickets ----------------
@@ -131,12 +117,10 @@ export const MOCK_PRODUCTS_B: Product[] = [
     id: 'p_601',
     title: '【全国通用】猫眼/淘票票 电影票通兑券 (含IMAX/杜比厅补差兑换)',
     subtitle: '即时发码，全国99%影院通用，支持在线选座，有效期12个月',
-    images: [
-      'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 70.00,
-    priceMall: 50.00,
-    priceWelfare: 35.00,
+    images: ['https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 70.0,
+    priceMall: 50.0,
+    priceWelfare: 35.0,
     categoryId: 'cat_movie',
     categoryName: '电影娱乐',
     subCategoryId: 'sub_mov_1',
@@ -154,14 +138,9 @@ export const MOCK_PRODUCTS_B: Product[] = [
     deliverySla: '系统即时自动发码',
     isEnterpriseExclusive: true,
     isHotRedeem: true,
-    specs: [
-      { name: '面值套组', options: ['单人通兑券1张', '双人通兑套餐(含爆米花可乐)'] }
-    ],
-    descriptionDetailText: [
-      '购买后凭兑换码在【我的卡券】中直接查看，复制核销码可在猫眼/淘票票APP选座下单时作为立减优惠码抵扣。',
-      '支持万达影城、博纳国际影城、CGV、金逸等全国绝大部分院线。'
-    ],
-    distributorId: 'DIST-001-GW'
+    specs: [{ name: '面值套组', options: ['单人通兑券1张', '双人通兑套餐(含爆米花可乐)'] }],
+    descriptionDetailText: ['购买后凭兑换码在【我的卡券】中直接查看，复制核销码可在猫眼/淘票票APP选座下单时作为立减优惠码抵扣。', '支持万达影城、博纳国际影城、CGV、金逸等全国绝大部分院线。'],
+    distributorId: 'DIST-001-GW',
   },
 
   // 14. 万达影城双人观影爆米花套餐 (Movie Ticket)
@@ -169,12 +148,10 @@ export const MOCK_PRODUCTS_B: Product[] = [
     id: 'p_602',
     title: '万达影城 2D/3D电影双人票 + 爆米花双杯饮品套餐兑换券',
     subtitle: '线下万达影院出示二维码直接核销，超值企业员工情侣观影首选',
-    images: [
-      'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 160.00,
-    priceMall: 110.00,
-    priceWelfare: 88.00,
+    images: ['https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 160.0,
+    priceMall: 110.0,
+    priceWelfare: 88.0,
     categoryId: 'cat_movie',
     categoryName: '电影娱乐',
     brand: '万达影城',
@@ -189,7 +166,7 @@ export const MOCK_PRODUCTS_B: Product[] = [
     rating: 4.91,
     reviewCount: 3200,
     deliverySla: '即时发码',
-    distributorId: 'DIST-001-GW'
+    distributorId: 'DIST-001-GW',
   },
 
   // 15. 星巴克100元电子星礼卡 (Virtual Voucher)
@@ -197,12 +174,10 @@ export const MOCK_PRODUCTS_B: Product[] = [
     id: 'p_701',
     title: '【官方充值】星巴克 (Starbucks) 100元电子星礼卡 自动绑定',
     subtitle: '微信/星巴克APP直接扫码支付，可分次消费，全国门店通用',
-    images: [
-      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 100.00,
-    priceMall: 98.00,
-    priceWelfare: 88.00,
+    images: ['https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 100.0,
+    priceMall: 98.0,
+    priceWelfare: 88.0,
     categoryId: 'cat_virtual',
     categoryName: '虚拟卡券',
     subCategoryId: 'sub_vir_1',
@@ -220,10 +195,8 @@ export const MOCK_PRODUCTS_B: Product[] = [
     deliverySla: '即时发码',
     isDailySpecial: true,
     isHotRedeem: true,
-    specs: [
-      { name: '卡面金额', options: ['100元电子卡', '200元电子卡', '500元电子卡'] }
-    ],
-    distributorId: 'DIST-001-GW'
+    specs: [{ name: '卡面金额', options: ['100元电子卡', '200元电子卡', '500元电子卡'] }],
+    distributorId: 'DIST-001-GW',
   },
 
   // 16. 京东E卡200元 (Virtual Voucher)
@@ -231,12 +204,10 @@ export const MOCK_PRODUCTS_B: Product[] = [
     id: 'p_702',
     title: '【官方直发】京东E卡 200元面值 经典电子卡 账号自动卡密',
     subtitle: '适用于京东自营商品，绑定即用，有效期3年，可多张叠加',
-    images: [
-      'https://images.unsplash.com/photo-1556742049-0a670f4a4591?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 200.00,
-    priceMall: 198.00,
-    priceWelfare: 188.00,
+    images: ['https://images.unsplash.com/photo-1556742049-0a670f4a4591?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 200.0,
+    priceMall: 198.0,
+    priceWelfare: 188.0,
     categoryId: 'cat_virtual',
     categoryName: '虚拟卡券',
     brand: '京东',
@@ -252,10 +223,8 @@ export const MOCK_PRODUCTS_B: Product[] = [
     reviewCount: 23000,
     deliverySla: '即时发码',
     isEnterpriseExclusive: true,
-    specs: [
-      { name: '面值规格', options: ['200元卡密', '500元卡密', '1000元卡密'] }
-    ],
-    distributorId: 'DIST-001-GW'
+    specs: [{ name: '面值规格', options: ['200元卡密', '500元卡密', '1000元卡密'] }],
+    distributorId: 'DIST-001-GW',
   },
 
   // 17. 爱奇艺黄金VIP年卡 (Virtual Voucher)
@@ -263,12 +232,10 @@ export const MOCK_PRODUCTS_B: Product[] = [
     id: 'p_703',
     title: '【直充填号】爱奇艺黄金VIP会员12个月年卡 手机/电脑/平板通用',
     subtitle: '输入手机号直接秒充到账，海量热播大剧免广告高清观看',
-    images: [
-      'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=600&auto=format&fit=crop&q=80'
-    ],
-    priceMarket: 248.00,
-    priceMall: 178.00,
-    priceWelfare: 128.00,
+    images: ['https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=600&auto=format&fit=crop&q=80'],
+    priceMarket: 248.0,
+    priceMall: 178.0,
+    priceWelfare: 128.0,
     categoryId: 'cat_virtual',
     categoryName: '虚拟卡券',
     subCategoryId: 'sub_vir_2',
@@ -284,7 +251,6 @@ export const MOCK_PRODUCTS_B: Product[] = [
     rating: 4.9,
     reviewCount: 2900,
     deliverySla: '系统即时充值',
-    distributorId: 'DIST-001-GW'
+    distributorId: 'DIST-001-GW',
   },
-
 ];

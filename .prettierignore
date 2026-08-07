@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.next/
+coverage/
+deliverables/
+mvp-preview/
+output/
+tmp/
+supabase/migrations/
+drizzle/
+package-lock.json

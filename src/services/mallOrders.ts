@@ -7,11 +7,11 @@ export class MallOrders extends MallCatalogCart {
   // --- Order & Checkout Simulation ---
   public getOrders(statusFilter?: OrderStatus | 'all'): Order[] {
     if (!statusFilter || statusFilter === 'all') return [...this.orders];
-    return this.orders.filter(o => o.status === statusFilter);
+    return this.orders.filter((o) => o.status === statusFilter);
   }
 
   public getOrderById(orderId: string): Order | undefined {
-    return this.orders.find(o => o.id === orderId || o.orderNo === orderId);
+    return this.orders.find((o) => o.id === orderId || o.orderNo === orderId);
   }
 
   /**
@@ -27,12 +27,17 @@ export class MallOrders extends MallCatalogCart {
     invoiceTitle?: string;
     invoiceTaxNo?: string;
     userRemark?: string;
-  }): { parentOrderNo: string; subOrders: Order[]; remainingWelfare: number; remainingMeal: number } {
+  }): {
+    parentOrderNo: string;
+    subOrders: Order[];
+    remainingWelfare: number;
+    remainingMeal: number;
+  } {
     const parentOrderNo = `PORD${Date.now()}`;
-    
+
     // Group cart items by supplier
     const grouped = new Map<string, CartItem[]>();
-    params.items.forEach(item => {
+    params.items.forEach((item) => {
       const supKey = item.product.supplierId;
       if (!grouped.has(supKey)) grouped.set(supKey, []);
       grouped.get(supKey)!.push(item);
@@ -40,17 +45,11 @@ export class MallOrders extends MallCatalogCart {
 
     // Calculate total order amount
     let totalGoodsAmount = 0;
-    params.items.forEach(item => {
+    params.items.forEach((item) => {
       totalGoodsAmount += item.product.priceWelfare * item.quantity;
     });
 
-    const allocation = calculatePaymentAllocation(
-      totalGoodsAmount,
-      params.useWelfareAmount,
-      params.useMealAmount,
-      this.user.welfareBalance,
-      this.user.mealBalance
-    );
+    const allocation = calculatePaymentAllocation(totalGoodsAmount, params.useWelfareAmount, params.useMealAmount, this.user.welfareBalance, this.user.mealBalance);
     const welfareToDeduct = allocation.welfare;
     const mealToDeduct = allocation.meal;
 
@@ -66,38 +65,20 @@ export class MallOrders extends MallCatalogCart {
       currentOrderSeq++;
 
       let subTotal = 0;
-      supplierItems.forEach(i => {
+      supplierItems.forEach((i) => {
         subTotal += i.product.priceWelfare * i.quantity;
       });
 
       // Pro-rate welfare and meal deduction for sub-orders
       const isLastGroup = groupIndex === supplierGroups.length - 1;
       const ratio = totalGoodsAmount > 0 ? subTotal / totalGoodsAmount : 1;
-      const subWelfare = Math.min(
-        subTotal,
-        isLastGroup
-          ? welfareAllocationRemaining
-          : Math.round(welfareToDeduct * ratio * 100) / 100
-      );
-      welfareAllocationRemaining = Math.max(
-        0,
-        Math.round((welfareAllocationRemaining - subWelfare) * 100) / 100
-      );
-      const subMeal = Math.min(
-        subTotal - subWelfare,
-        isLastGroup
-          ? mealAllocationRemaining
-          : Math.round(mealToDeduct * ratio * 100) / 100
-      );
-      mealAllocationRemaining = Math.max(
-        0,
-        Math.round((mealAllocationRemaining - subMeal) * 100) / 100
-      );
+      const subWelfare = Math.min(subTotal, isLastGroup ? welfareAllocationRemaining : Math.round(welfareToDeduct * ratio * 100) / 100);
+      welfareAllocationRemaining = Math.max(0, Math.round((welfareAllocationRemaining - subWelfare) * 100) / 100);
+      const subMeal = Math.min(subTotal - subWelfare, isLastGroup ? mealAllocationRemaining : Math.round(mealToDeduct * ratio * 100) / 100);
+      mealAllocationRemaining = Math.max(0, Math.round((mealAllocationRemaining - subMeal) * 100) / 100);
       const subWechat = Math.max(0, subTotal - subWelfare - subMeal);
 
-      const hasVirtualOrTicket = supplierItems.some(
-        i => i.product.itemType === 'virtual_coupon' || i.product.itemType === 'movie_ticket' || i.product.itemType === 'nearby_store'
-      );
+      const hasVirtualOrTicket = supplierItems.some((i) => i.product.itemType === 'virtual_coupon' || i.product.itemType === 'movie_ticket' || i.product.itemType === 'nearby_store');
 
       const newSubOrder: Order = {
         id: `ord_${Date.now()}_${currentOrderSeq}`,
@@ -112,7 +93,7 @@ export class MallOrders extends MallCatalogCart {
         supplierType: firstItem.supplierType,
         status: 'pending_shipment', // auto paid in simulation
         createTime: new Date().toLocaleString('zh-CN', { hour12: false }),
-        items: supplierItems.map(item => {
+        items: supplierItems.map((item) => {
           const specText = Object.entries(item.selectedSpec)
             .map(([k, v]) => `${k}:${v}`)
             .join(' ');
@@ -125,7 +106,7 @@ export class MallOrders extends MallCatalogCart {
             quantity: item.quantity,
             specText: specText || '默认规格',
             itemType: item.product.itemType,
-            verificationCode: vCode
+            verificationCode: vCode,
           };
         }),
         address: params.address,
@@ -136,23 +117,24 @@ export class MallOrders extends MallCatalogCart {
           mealDeducted: subMeal,
           wechatPaid: subWechat,
           finalPaidAmount: subTotal,
-          payMethodText: subWechat > 0
-            ? `福利/餐扣抵扣(¥${(subWelfare + subMeal).toFixed(2)}) + 微信补差(¥${subWechat.toFixed(2)})`
-            : '福利卡/餐卡全额抵扣',
-          paidAt: new Date().toLocaleString('zh-CN', { hour12: false })
+          payMethodText: subWechat > 0 ? `福利/餐扣抵扣(¥${(subWelfare + subMeal).toFixed(2)}) + 微信补差(¥${subWechat.toFixed(2)})` : '福利卡/餐卡全额抵扣',
+          paidAt: new Date().toLocaleString('zh-CN', { hour12: false }),
         },
-        invoice: params.invoiceType !== 'none' ? {
-          type: params.invoiceType || 'personal',
-          title: params.invoiceTitle,
-          taxNumber: params.invoiceTaxNo
-        } : undefined,
+        invoice:
+          params.invoiceType !== 'none'
+            ? {
+                type: params.invoiceType || 'personal',
+                title: params.invoiceTitle,
+                taxNumber: params.invoiceTaxNo,
+              }
+            : undefined,
         userRemark: params.userRemark,
         verificationCode: hasVirtualOrTicket ? `VERI-${Math.floor(100000 + Math.random() * 900000)}` : undefined,
-        distributorId: this.user.distributorId
+        distributorId: this.user.distributorId,
       };
 
       // Generate Coupons if virtual or store item
-      supplierItems.forEach(item => {
+      supplierItems.forEach((item) => {
         if (['virtual_coupon', 'movie_ticket', 'nearby_store', 'supermarket'].includes(item.product.itemType)) {
           const cpnCode = `${item.product.brand.toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`;
           const newCpn: UserCoupon = {
@@ -165,12 +147,9 @@ export class MallOrders extends MallCatalogCart {
             status: 'unused',
             storeName: item.product.nearbyStoreInfo?.storeName,
             storeAddress: item.product.nearbyStoreInfo?.address,
-            usageRules: [
-              '凭借电子二维码或核销码到店/线上直接抵扣',
-              '此卡券由企业福利账户统一兑换发码，免挂失'
-            ],
+            usageRules: ['凭借电子二维码或核销码到店/线上直接抵扣', '此卡券由企业福利账户统一兑换发码，免挂失'],
             sourceOrderNo: subOrderNo,
-            distributorId: this.user.distributorId
+            distributorId: this.user.distributorId,
           };
           this.coupons.unshift(newCpn);
         }
@@ -192,7 +171,7 @@ export class MallOrders extends MallCatalogCart {
         orderNo: parentOrderNo,
         time: new Date().toLocaleString('zh-CN', { hour12: false }),
         balanceAfter: this.user.welfareBalance,
-        remark: '智慧翼福利卡账户支取'
+        remark: '智慧翼福利卡账户支取',
       });
     }
 
@@ -207,11 +186,11 @@ export class MallOrders extends MallCatalogCart {
         orderNo: parentOrderNo,
         time: new Date().toLocaleString('zh-CN', { hour12: false }),
         balanceAfter: this.user.mealBalance,
-        remark: '智慧翼餐卡专享账户支取'
+        remark: '智慧翼餐卡专享账户支取',
       });
     }
 
-    this.user.couponCount = this.coupons.filter(c => c.status === 'unused').length;
+    this.user.couponCount = this.coupons.filter((c) => c.status === 'unused').length;
 
     // Save updated states
     this.saveUser();
@@ -226,17 +205,16 @@ export class MallOrders extends MallCatalogCart {
       parentOrderNo,
       subOrders,
       remainingWelfare: this.user.welfareBalance,
-      remainingMeal: this.user.mealBalance
+      remainingMeal: this.user.mealBalance,
     };
   }
 
   public updateOrderStatus(orderId: string, status: OrderStatus): Order[] {
-    const order = this.orders.find(o => o.id === orderId || o.orderNo === orderId);
+    const order = this.orders.find((o) => o.id === orderId || o.orderNo === orderId);
     if (order) {
       order.status = status;
       this.saveToStorage(this.getScopedKey(STORAGE_KEYS.ORDERS), this.orders);
     }
     return this.getOrders();
   }
-
 }

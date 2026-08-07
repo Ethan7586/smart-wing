@@ -2,28 +2,7 @@ import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
 import { AndroidStatusBar } from '../../components/mobile/AndroidStatusBar';
 import { AndroidBottomNav } from '../../components/mobile/AndroidBottomNav';
-import {
-  CreditCard,
-  Utensils,
-  Package,
-  Clock,
-  Truck,
-  CheckCircle,
-  HelpCircle,
-  Ticket,
-  MapPin,
-  FileText,
-  Bell,
-  Fingerprint,
-  ShieldCheck,
-  ChevronRight,
-  Building2,
-  Smartphone,
-  Settings,
-  Lock,
-  Headphones,
-  Info
-} from 'lucide-react';
+import { CreditCard, Utensils, Package, Clock, Truck, CheckCircle, HelpCircle, Ticket, MapPin, FileText, Bell, Fingerprint, ShieldCheck, ChevronRight, Building2, Smartphone, Settings, Lock, Headphones, Info } from 'lucide-react';
 
 export const AndroidProfilePage: React.FC = () => {
   const { user, currentMall, triggerPendingFeature, setAndroidPage } = useMall();
@@ -47,17 +26,11 @@ export const AndroidProfilePage: React.FC = () => {
       {/* User Header Profile Card */}
       <div className="bg-[#143A8F] text-white p-4 pt-2 shadow-sm space-y-3">
         <div className="flex items-center gap-3">
-          <img
-            src={user.avatar}
-            alt={user.name}
-            className="w-14 h-14 rounded-2xl object-cover border-2 border-white/80 shadow-md flex-shrink-0"
-          />
+          <img src={user.avatar} alt={user.name} className="w-14 h-14 rounded-2xl object-cover border-2 border-white/80 shadow-md flex-shrink-0" />
           <div className="overflow-hidden space-y-1">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-black text-white">{user.name}</h2>
-              <span className="bg-yellow-400 text-gray-900 text-[9px] font-bold px-2 py-0.2 rounded-full">
-                {user.jobTitle}
-              </span>
+              <span className="bg-yellow-400 text-gray-900 text-[9px] font-bold px-2 py-0.2 rounded-full">{user.jobTitle}</span>
             </div>
             <div className="text-[11px] text-blue-100 flex items-center gap-1">
               <Building2 className="w-3.5 h-3.5 text-yellow-300" />
@@ -83,15 +56,10 @@ export const AndroidProfilePage: React.FC = () => {
               </span>
               <span>明细 &gt;</span>
             </div>
-            <div className="text-base font-black text-white font-mono mt-0.5">
-              ¥{user.welfareBalance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
-            </div>
+            <div className="text-base font-black text-white font-mono mt-0.5">¥{user.welfareBalance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</div>
           </div>
 
-          <div
-            onClick={() => triggerPendingFeature('Android 餐卡账单记录', '调起 Android 餐卡消耗记录。')}
-            className="bg-white/10 backdrop-blur-xs p-3 rounded-2xl border border-white/20 cursor-pointer active:bg-white/20 transition-colors"
-          >
+          <div onClick={() => triggerPendingFeature('Android 餐卡账单记录', '调起 Android 餐卡消耗记录。')} className="bg-white/10 backdrop-blur-xs p-3 rounded-2xl border border-white/20 cursor-pointer active:bg-white/20 transition-colors">
             <div className="flex items-center justify-between text-[10px] text-blue-100">
               <span className="flex items-center gap-1 font-medium">
                 <Utensils className="w-3.5 h-3.5 text-amber-300" />
@@ -99,9 +67,7 @@ export const AndroidProfilePage: React.FC = () => {
               </span>
               <span>明细 &gt;</span>
             </div>
-            <div className="text-base font-black text-white font-mono mt-0.5">
-              ¥{user.mealBalance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
-            </div>
+            <div className="text-base font-black text-white font-mono mt-0.5">¥{user.mealBalance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</div>
           </div>
         </div>
       </div>
@@ -114,53 +80,36 @@ export const AndroidProfilePage: React.FC = () => {
               <Package className="w-4 h-4 text-[#1F5EFF]" />
               <span>企采订单中心</span>
             </h3>
-            <button
-              onClick={() => setAndroidPage('orders')}
-              className="text-[10px] text-gray-400 hover:text-[#1F5EFF] flex items-center"
-            >
+            <button onClick={() => setAndroidPage('orders')} className="text-[10px] text-gray-400 hover:text-[#1F5EFF] flex items-center">
               <span>全部订单</span>
               <ChevronRight className="w-3 h-3" />
             </button>
           </div>
 
           <div className="grid grid-cols-4 gap-2 text-center text-xs">
-            <div
-              onClick={() => triggerPendingFeature('Android 待付款列表', '查看等待付款或额度补足的订单。')}
-              className="p-1 hover:bg-gray-50 rounded-2xl cursor-pointer"
-            >
+            <div onClick={() => triggerPendingFeature('Android 待付款列表', '查看等待付款或额度补足的订单。')} className="p-1 hover:bg-gray-50 rounded-2xl cursor-pointer">
               <div className="w-9 h-9 mx-auto rounded-2xl bg-blue-50 text-[#1F5EFF] flex items-center justify-center font-bold">
                 <Clock className="w-4.5 h-4.5" />
               </div>
               <div className="text-[10px] text-gray-600 mt-1 font-medium">待付款</div>
             </div>
 
-            <div
-              onClick={() => triggerPendingFeature('Android 待发货列表', '查看物流状态。')}
-              className="p-1 hover:bg-gray-50 rounded-2xl cursor-pointer relative"
-            >
+            <div onClick={() => triggerPendingFeature('Android 待发货列表', '查看物流状态。')} className="p-1 hover:bg-gray-50 rounded-2xl cursor-pointer relative">
               <div className="w-9 h-9 mx-auto rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
                 <Truck className="w-4.5 h-4.5" />
-                <span className="absolute top-0 right-2 bg-red-500 text-white font-bold text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center">
-                  2
-                </span>
+                <span className="absolute top-0 right-2 bg-red-500 text-white font-bold text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center">2</span>
               </div>
               <div className="text-[10px] text-gray-600 mt-1 font-medium">待处理</div>
             </div>
 
-            <div
-              onClick={() => triggerPendingFeature('Android 待收货列表', '确认收到企采快递。')}
-              className="p-1 hover:bg-gray-50 rounded-2xl cursor-pointer"
-            >
+            <div onClick={() => triggerPendingFeature('Android 待收货列表', '确认收到企采快递。')} className="p-1 hover:bg-gray-50 rounded-2xl cursor-pointer">
               <div className="w-9 h-9 mx-auto rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
                 <CheckCircle className="w-4.5 h-4.5" />
               </div>
               <div className="text-[10px] text-gray-600 mt-1 font-medium">已完成</div>
             </div>
 
-            <div
-              onClick={() => triggerPendingFeature('Android 售后退换记录', '申请退货或补发。')}
-              className="p-1 hover:bg-gray-50 rounded-2xl cursor-pointer"
-            >
+            <div onClick={() => triggerPendingFeature('Android 售后退换记录', '申请退货或补发。')} className="p-1 hover:bg-gray-50 rounded-2xl cursor-pointer">
               <div className="w-9 h-9 mx-auto rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
                 <HelpCircle className="w-4.5 h-4.5" />
               </div>
@@ -171,9 +120,7 @@ export const AndroidProfilePage: React.FC = () => {
 
         {/* Android Native Settings List (Biometrics, Push Notifications tagged "接口待接入") */}
         <div className="bg-white rounded-3xl p-3.5 shadow-2xs border border-gray-100 space-y-2 text-xs">
-          <div className="text-[11px] text-gray-400 font-bold px-1 uppercase tracking-wider">
-            Android 系统安全与扩展 (接口待接入)
-          </div>
+          <div className="text-[11px] text-gray-400 font-bold px-1 uppercase tracking-wider">Android 系统安全与扩展 (接口待接入)</div>
 
           <div className="divide-y divide-gray-100 text-gray-700">
             {/* Biometrics Toggle */}
@@ -183,24 +130,13 @@ export const AndroidProfilePage: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-1.5">
                     <span>指纹 / FaceID 生物识别支付</span>
-                    <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded">
-                      接口待接入
-                    </span>
+                    <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded">接口待接入</span>
                   </div>
                   <div className="text-[10px] text-gray-400">Android Biometric Manager API</div>
                 </div>
               </div>
-              <button
-                onClick={handleBiometricToggle}
-                className={`w-10 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer ${
-                  biometricsEnabled ? 'bg-[#1F5EFF]' : 'bg-gray-300'
-                }`}
-              >
-                <div
-                  className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform ${
-                    biometricsEnabled ? 'translate-x-4' : 'translate-x-0'
-                  }`}
-                />
+              <button onClick={handleBiometricToggle} className={`w-10 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer ${biometricsEnabled ? 'bg-[#1F5EFF]' : 'bg-gray-300'}`}>
+                <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform ${biometricsEnabled ? 'translate-x-4' : 'translate-x-0'}`} />
               </button>
             </div>
 
@@ -211,24 +147,13 @@ export const AndroidProfilePage: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-1.5">
                     <span>系统 Notification 消息推送</span>
-                    <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded">
-                      接口待接入
-                    </span>
+                    <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded">接口待接入</span>
                   </div>
                   <div className="text-[10px] text-gray-400">Android Notification Channel</div>
                 </div>
               </div>
-              <button
-                onClick={handlePushToggle}
-                className={`w-10 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer ${
-                  pushEnabled ? 'bg-[#1F5EFF]' : 'bg-gray-300'
-                }`}
-              >
-                <div
-                  className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform ${
-                    pushEnabled ? 'translate-x-4' : 'translate-x-0'
-                  }`}
-                />
+              <button onClick={handlePushToggle} className={`w-10 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer ${pushEnabled ? 'bg-[#1F5EFF]' : 'bg-gray-300'}`}>
+                <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform ${pushEnabled ? 'translate-x-4' : 'translate-x-0'}`} />
               </button>
             </div>
 
@@ -245,10 +170,7 @@ export const AndroidProfilePage: React.FC = () => {
             </button>
 
             {/* Invoice Header */}
-            <button
-              onClick={() => triggerPendingFeature('Android 发票抬头配置', '快速切换专票与普票信息。')}
-              className="w-full py-2.5 flex items-center justify-between hover:bg-gray-50 px-1 rounded-lg transition-colors cursor-pointer"
-            >
+            <button onClick={() => triggerPendingFeature('Android 发票抬头配置', '快速切换专票与普票信息。')} className="w-full py-2.5 flex items-center justify-between hover:bg-gray-50 px-1 rounded-lg transition-colors cursor-pointer">
               <div className="flex items-center gap-2 font-medium">
                 <FileText className="w-4 h-4 text-amber-500" />
                 <span>发票抬头发票包</span>

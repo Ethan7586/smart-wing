@@ -23,41 +23,36 @@ export class MallCatalogCart extends MallState {
     if (params.keyword && params.keyword.trim() !== '') {
       const kw = params.keyword.trim().toLowerCase();
       list = list.filter(
-        p =>
-          p.title.toLowerCase().includes(kw) ||
-          p.subtitle.toLowerCase().includes(kw) ||
-          p.brand.toLowerCase().includes(kw) ||
-          p.categoryName.toLowerCase().includes(kw) ||
-          p.tags.some(t => t.toLowerCase().includes(kw))
+        (p) => p.title.toLowerCase().includes(kw) || p.subtitle.toLowerCase().includes(kw) || p.brand.toLowerCase().includes(kw) || p.categoryName.toLowerCase().includes(kw) || p.tags.some((t) => t.toLowerCase().includes(kw))
       );
     }
 
     if (params.categoryId && params.categoryId !== 'all') {
-      list = list.filter(p => p.categoryId === params.categoryId);
+      list = list.filter((p) => p.categoryId === params.categoryId);
     }
 
     if (params.itemType && params.itemType !== 'all') {
-      list = list.filter(p => p.itemType === params.itemType);
+      list = list.filter((p) => p.itemType === params.itemType);
     }
 
     if (params.supplierType && params.supplierType !== 'all') {
-      list = list.filter(p => p.supplierType === params.supplierType);
+      list = list.filter((p) => p.supplierType === params.supplierType);
     }
 
     if (params.accountType && params.accountType !== 'all') {
-      list = list.filter(p => p.allowedAccounts.includes(params.accountType as any));
+      list = list.filter((p) => p.allowedAccounts.includes(params.accountType as any));
     }
 
     if (params.minPrice !== undefined && !isNaN(params.minPrice)) {
-      list = list.filter(p => p.priceWelfare >= params.minPrice!);
+      list = list.filter((p) => p.priceWelfare >= params.minPrice!);
     }
 
     if (params.maxPrice !== undefined && !isNaN(params.maxPrice)) {
-      list = list.filter(p => p.priceWelfare <= params.maxPrice!);
+      list = list.filter((p) => p.priceWelfare <= params.maxPrice!);
     }
 
     if (params.inStockOnly) {
-      list = list.filter(p => p.stock > 0);
+      list = list.filter((p) => p.stock > 0);
     }
 
     if (params.sortBy) {
@@ -81,7 +76,7 @@ export class MallCatalogCart extends MallState {
   }
 
   public getProductById(id: string): Product | undefined {
-    return MOCK_PRODUCTS.find(p => p.id === id);
+    return MOCK_PRODUCTS.find((p) => p.id === id);
   }
 
   // --- Cart Management ---
@@ -90,11 +85,7 @@ export class MallCatalogCart extends MallState {
   }
 
   public addToCart(product: Product, quantity = 1, selectedSpec: Record<string, string> = {}): CartItem[] {
-    const existingIndex = this.cart.findIndex(
-      item =>
-        item.productId === product.id &&
-        JSON.stringify(item.selectedSpec) === JSON.stringify(selectedSpec)
-    );
+    const existingIndex = this.cart.findIndex((item) => item.productId === product.id && JSON.stringify(item.selectedSpec) === JSON.stringify(selectedSpec));
 
     if (existingIndex > -1) {
       this.cart[existingIndex].quantity += quantity;
@@ -106,7 +97,7 @@ export class MallCatalogCart extends MallState {
         quantity,
         selectedSpec,
         selected: true,
-        distributorId: this.user.distributorId
+        distributorId: this.user.distributorId,
       });
     }
 
@@ -118,7 +109,7 @@ export class MallCatalogCart extends MallState {
     if (quantity <= 0) {
       return this.removeCartItem(cartItemId);
     }
-    const item = this.cart.find(i => i.id === cartItemId);
+    const item = this.cart.find((i) => i.id === cartItemId);
     if (item) {
       item.quantity = quantity;
       this.saveCart();
@@ -127,7 +118,7 @@ export class MallCatalogCart extends MallState {
   }
 
   public toggleCartItemSelected(cartItemId: string): CartItem[] {
-    const item = this.cart.find(i => i.id === cartItemId);
+    const item = this.cart.find((i) => i.id === cartItemId);
     if (item) {
       item.selected = !item.selected;
       this.saveCart();
@@ -136,7 +127,7 @@ export class MallCatalogCart extends MallState {
   }
 
   public toggleSelectAllCart(selected: boolean): CartItem[] {
-    this.cart.forEach(item => {
+    this.cart.forEach((item) => {
       item.selected = selected;
     });
     this.saveCart();
@@ -144,13 +135,13 @@ export class MallCatalogCart extends MallState {
   }
 
   public removeCartItem(cartItemId: string): CartItem[] {
-    this.cart = this.cart.filter(i => i.id !== cartItemId);
+    this.cart = this.cart.filter((i) => i.id !== cartItemId);
     this.saveCart();
     return this.getCart();
   }
 
   public clearSelectedCartItems(): void {
-    this.cart = this.cart.filter(i => !i.selected);
+    this.cart = this.cart.filter((i) => !i.selected);
     this.saveCart();
   }
 
@@ -165,7 +156,7 @@ export class MallCatalogCart extends MallState {
 
   public toggleFavorite(productId: string): boolean {
     if (this.favorites.includes(productId)) {
-      this.favorites = this.favorites.filter(id => id !== productId);
+      this.favorites = this.favorites.filter((id) => id !== productId);
     } else {
       this.favorites.push(productId);
     }
@@ -181,14 +172,13 @@ export class MallCatalogCart extends MallState {
   public addAddress(address: Omit<DeliveryAddress, 'id'>): DeliveryAddress[] {
     const newAddr: DeliveryAddress = {
       ...address,
-      id: `addr_${Date.now()}`
+      id: `addr_${Date.now()}`,
     };
     if (newAddr.isDefault) {
-      this.addresses.forEach(a => (a.isDefault = false));
+      this.addresses.forEach((a) => (a.isDefault = false));
     }
     this.addresses.unshift(newAddr);
     this.saveToStorage(this.getScopedKey(STORAGE_KEYS.ADDRESSES), this.addresses);
     return this.getAddresses();
   }
-
 }

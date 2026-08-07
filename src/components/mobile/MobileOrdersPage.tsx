@@ -7,12 +7,7 @@ interface MobileOrdersPageProps {
 }
 
 export const MobileOrdersPage: React.FC<MobileOrdersPageProps> = ({ mode }) => {
-  const {
-    presentationOrders,
-    setMpPage,
-    setAndroidPage,
-    triggerPendingFeature,
-  } = useMall();
+  const { presentationOrders, setMpPage, setAndroidPage, triggerPendingFeature } = useMall();
 
   const goBack = () => {
     if (mode === 'mini-program') setMpPage('profile');
@@ -22,12 +17,7 @@ export const MobileOrdersPage: React.FC<MobileOrdersPageProps> = ({ mode }) => {
   return (
     <div className="min-h-full bg-[#F5F7FA] pb-20 text-gray-800">
       <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-gray-200 bg-white/95 px-3 py-3 backdrop-blur">
-        <button
-          type="button"
-          onClick={goBack}
-          className="rounded-full p-1.5 hover:bg-gray-100"
-          aria-label="返回个人中心"
-        >
+        <button type="button" onClick={goBack} className="rounded-full p-1.5 hover:bg-gray-100" aria-label="返回个人中心">
           <ChevronLeft className="h-5 w-5" />
         </button>
         <div>
@@ -51,22 +41,18 @@ export const MobileOrdersPage: React.FC<MobileOrdersPageProps> = ({ mode }) => {
                   <p className="font-mono text-[10px] text-gray-500">{order.orderNo}</p>
                   <p className="mt-0.5 text-[10px] text-gray-400">{order.createdAt}</p>
                 </div>
-                <span className="rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold text-[#1F5EFF]">
-                  {order.statusText}
-                </span>
+                <span className="rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold text-[#1F5EFF]">{order.statusText}</span>
               </div>
 
               <div className="space-y-2 py-2">
                 {order.items.slice(0, 3).map((item) => (
                   <div key={`${order.id}-${item.productId}`} className="flex items-center gap-2">
-                    <img
-                      src={item.product.imageUrl}
-                      alt={item.productTitle}
-                      className="h-12 w-12 rounded-xl border border-gray-100 object-cover"
-                    />
+                    <img src={item.product.imageUrl} alt={item.productTitle} className="h-12 w-12 rounded-xl border border-gray-100 object-cover" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-xs font-bold">{item.productTitle}</p>
-                      <p className="text-[10px] text-gray-500">¥{item.priceAtPurchase.toFixed(2)} × {item.quantity}</p>
+                      <p className="text-[10px] text-gray-500">
+                        ¥{item.priceAtPurchase.toFixed(2)} × {item.quantity}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -81,12 +67,7 @@ export const MobileOrdersPage: React.FC<MobileOrdersPageProps> = ({ mode }) => {
                   <span className="text-xs font-black text-[#E5484D]">¥{order.totalAmount.toFixed(2)}</span>
                   <button
                     type="button"
-                    onClick={() =>
-                      triggerPendingFeature(
-                        '移动端售后申请',
-                        `订单 ${order.orderNo} 已接入统一售后数据模型；退款审批仍需甲方确认流程。`
-                      )
-                    }
+                    onClick={() => triggerPendingFeature('移动端售后申请', `订单 ${order.orderNo} 已接入统一售后数据模型；退款审批仍需甲方确认流程。`)}
                     className="flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-[10px] font-bold"
                   >
                     <RotateCcw className="h-3 w-3" />
