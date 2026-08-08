@@ -1,6 +1,6 @@
-# zhudatuan.com 阿里云部署指南
+# hbbtzn.com 阿里云部署指南
 
-> 目标：将 Smart Wing（智慧翼企业福利商城）部署到阿里云，绑定域名 zhudatuan.com
+> 目标：将 Smart Wing（智慧翼企业福利商城）部署到阿里云，绑定域名 hbbtzn.com
 > 架构：单一部署目标——前端 SSR 与 API 是同一个 Node 进程（`vinext start`），
 > Caddy 只做反向代理 + 自动 HTTPS，不再拆分到独立的 Cloudflare Worker。
 > 预估时间：1~2 小时
@@ -85,7 +85,7 @@ zip -r zhudatuan-deploy.zip smart-wing/ -x "smart-wing/node_modules/*" "smart-wi
 
 ## 三、配置生产环境变量（关键步骤）
 
-生产密钥**绝不能**进 `ecosystem.config.js` / `zhudatuan.service`（这两个文件在 git 里）。
+生产密钥**绝不能**进 `ecosystem.config.cjs` / `zhudatuan.service`（这两个文件在 git 里）。
 在服务器上单独创建 `.env.production`（已在 `.gitignore` 里，不会被提交）：
 
 ```bash
@@ -119,14 +119,14 @@ ls -la dist/server/index.js && echo "构建成功"
 
 ```bash
 cd /opt/zhudatuan
-pm2 start deploy/ecosystem.config.js
+pm2 start deploy/ecosystem.config.cjs
 pm2 startup
 pm2 save
 pm2 status
 pm2 logs zhudatuan
 ```
 
-`ecosystem.config.js` 已配置 `--env-file=.env.production`，无需再手动 export。
+`ecosystem.config.cjs` 已配置 `--env-file=.env.production`，无需再手动 export。
 
 ### 5.2 或使用 systemd
 
@@ -190,8 +190,8 @@ curl -I http://localhost:3000
 
 浏览器验证：
 
-- `https://zhudatuan.com` — 应显示商城首页（Caddy 已自动签发证书）
-- `https://zhudatuan.com/api/health` — 应返回 `{"status": "ok", ...}`
+- `https://hbbtzn.com` — 应显示商城首页（Caddy 已自动签发证书）
+- `https://hbbtzn.com/api/health` — 应返回 `{"status": "ok", ...}`
 
 ### 常见问题排查
 
@@ -200,7 +200,7 @@ curl -I http://localhost:3000
 | 502 Bad Gateway                    | Node 进程未启动，检查 `pm2 status` / `pm2 logs` |
 | API 500，`SUPABASE_NOT_CONFIGURED` | `.env.production` 未创建或密钥缺失              |
 | 证书签发失败                       | 确认域名已解析到本机、80/443 端口可从公网访问   |
-| 域名不生效                         | `dig zhudatuan.com` 查看 DNS 是否指向服务器 IP  |
+| 域名不生效                         | `dig hbbtzn.com` 查看 DNS 是否指向服务器 IP  |
 
 ---
 
@@ -219,9 +219,11 @@ mv zhudatuan-backup zhudatuan
 
 ## 十一、后续优化建议
 
-1. **数据库合规评估**：当前 Supabase 数据库在 `ap-northeast-1`（东京）。若本项目的备案/合规
-   要求覆盖数据存放地（不只是域名与服务器），这里需要甲方/法务确认是否要求境内数据托管——
-   这个问题比部署方式本身影响更大，务必在上线前拿到明确结论。
+1. **数据库合规评估**：当前 Supabase 数据库在 `ap-southeast-1`（新加坡，选它是因为 Supabase
+   没有境内/香港区域，新加坡离大陆最近）。这依然是"境外"，若本项目的备案/合规要求覆盖数据
+   存放地（不只是域名与服务器），需要甲方/法务确认是否要求境内数据托管——这个问题比部署方式
+   本身影响更大，务必在上线前拿到明确结论；真需要境内托管的话，得把 Supabase 换成自建
+   Postgres（阿里云 RDS），工作量远大于换区域。
 2. **CDN 加速**：如需要，选用阿里云 CDN（境内节点），不要用境外通用 CDN 代理已备案域名。
 3. **监控告警**：接入阿里云云监控或 PM2 监控。
 4. **日志收集**：配置 Caddy 和 Node.js 日志轮转。

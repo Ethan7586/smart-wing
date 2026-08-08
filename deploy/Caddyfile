@@ -1,4 +1,4 @@
-zhudatuan.com, www.zhudatuan.com {
+hbbtzn.com, www.hbbtzn.com {
 	# 自动签发/续期 HTTPS 证书（Let's Encrypt），无需手动管理
 	encode gzip
 
