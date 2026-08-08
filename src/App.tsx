@@ -14,7 +14,6 @@ import { ToastContainer } from './components/common/ToastContainer';
 import { Footer } from './components/common/Footer';
 import { MobileBottomNav } from './components/common/MobileBottomNav';
 import { MvpSessionBar } from './components/common/MvpSessionBar';
-import { isMvpPreviewHost, MvpPreviewShell } from './features/mvp/MvpPreviewShell';
 import { HomePage } from './screens/HomePage';
 
 const MobileFrame = React.lazy(() => import('./components/mobile/MobileFrame').then(({ MobileFrame }) => ({ default: MobileFrame })));
@@ -37,9 +36,8 @@ const ArchitecturePage = React.lazy(() => import('./screens/ArchitecturePage').t
 
 const PageLoadingFallback = () => <div className="min-h-[360px] bg-[#F5F7FA]" aria-busy="true" aria-label="正在加载页面" />;
 
-const AppContent: React.FC<{ initialHost?: string }> = ({ initialHost = '' }) => {
+const AppContent: React.FC = () => {
   const { currentPage, appMode } = useMall();
-  const isMvpPreview = isMvpPreviewHost(initialHost);
 
   const renderPage = () => {
     switch (currentPage) {
@@ -77,20 +75,6 @@ const AppContent: React.FC<{ initialHost?: string }> = ({ initialHost = '' }) =>
         return <HomePage />;
     }
   };
-
-  if (isMvpPreview) {
-    return (
-      <MvpPreviewShell>
-        <HeaderBar />
-        <main className="flex-1 w-full">
-          <HomePage />
-        </main>
-        <ToastContainer />
-        <MobileBottomNav />
-        <Footer />
-      </MvpPreviewShell>
-    );
-  }
 
   if (appMode === 'mini-program' || appMode === 'android-app') {
     return (
@@ -140,10 +124,10 @@ const AppContent: React.FC<{ initialHost?: string }> = ({ initialHost = '' }) =>
   );
 };
 
-export function App({ initialHost = '' }: { initialHost?: string }) {
+export function App() {
   return (
     <MallProvider>
-      <AppContent initialHost={initialHost} />
+      <AppContent />
     </MallProvider>
   );
 }

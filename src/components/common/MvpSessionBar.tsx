@@ -25,7 +25,7 @@ export const MvpSessionBar: React.FC = () => {
 
   return (
     <>
-      <div data-mvp-preview-allowed="true" className={`border-b text-xs py-2 px-4 ${sessionStatus === 'authenticated' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-amber-50 border-amber-200 text-amber-900'}`}>
+      <div className={`border-b text-xs py-2 px-4 ${sessionStatus === 'authenticated' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-amber-50 border-amber-200 text-amber-900'}`}>
         <div className="max-w-[1280px] mx-auto flex items-center justify-between gap-3">
           <span className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4" />
@@ -45,7 +45,7 @@ export const MvpSessionBar: React.FC = () => {
 
       {showLogin && (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
-          <form data-mvp-preview-allowed="true" onSubmit={submit} className="w-full max-w-sm bg-white rounded-lg shadow-2xl border border-gray-200 p-6 space-y-4">
+          <form onSubmit={submit} className="w-full max-w-sm bg-white rounded-lg shadow-2xl border border-gray-200 p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="font-bold text-gray-900">智慧翼MVP安全登录</h2>
