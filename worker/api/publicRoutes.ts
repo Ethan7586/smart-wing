@@ -42,11 +42,11 @@ export async function handleHealth(request: Request, env: WorkerEnv, requestId: 
     service: 'smart-wing-production-mvp',
     status,
     checks: {
-      database: health.databaseReady ? 'ready_supabase_tokyo' : 'configuration_required',
+      database: health.databaseReady ? 'ready' : 'configuration_required',
       authentication: authReady ? 'mvp_session_ready' : 'awaiting_enterprise_provider',
       piiEncryption: piiReady ? 'configured' : 'required_for_orders',
     },
-    database: { provider: 'Supabase PostgreSQL', region: 'ap-northeast-1' },
+    database: { provider: 'Supabase PostgreSQL', region: env.SUPABASE_REGION ?? 'unconfigured' },
     requestId,
   });
 }

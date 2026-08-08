@@ -4,7 +4,7 @@ import type { WorkerEnv } from './types';
 
 describe('health endpoint', () => {
   it('does not report ready when encryption is unavailable', async () => {
-    const env: WorkerEnv = { APP_ENV: 'development', AUTH_MODE: 'development' };
+    const env: WorkerEnv = { APP_ENV: 'development', AUTH_MODE: 'development', SUPABASE_REGION: 'ap-southeast-1' };
     const response = await handleHealth(new Request('https://mall.example/api/health'), env, 'health-request');
 
     expect(response.status).toBe(200);
@@ -12,6 +12,7 @@ describe('health endpoint', () => {
     await expect(response.json()).resolves.toMatchObject({
       status: 'degraded',
       checks: { authentication: 'mvp_session_ready', piiEncryption: 'required_for_orders' },
+      database: { region: 'ap-southeast-1' },
     });
   });
 
