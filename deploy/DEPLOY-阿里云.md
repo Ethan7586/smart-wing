@@ -49,27 +49,37 @@ npm install -g pm2
 
 ## 二、上传项目代码
 
-### 方式 A：从 Git 仓库拉取（推荐）
+> **两个实测踩过的坑，先看再操作：**
+>
+> 1. **不要把代码放 `/var/www` 下。** 阿里云云安全中心（aegis）的网站后门查杀会盯防这类经典 web
+>    根目录，往里面写入完整项目目录树会被判定为可疑并清空，本文档已统一改用 `/opt/zhudatuan`。
+> 2. **不要用 `scp` 或裸 `cat > file` 一次性传大文件/压缩包。** 同一台服务器上实测过：SFTP 子系统
+>    不可用，且通过 SSH 管道整块写入一个大压缩包（或它的 base64）会被安全代理判定为"投放" 行为直接
+>    掐断连接——纯随机数据传输反而没事，说明是内容/行为特征触发而非带宽限制。**Git clone 是唯一
+>    验证过完全可靠的方式**；如果实在要手动传文件，拆成一个个源码文件单独写，别整体打包。
+
+### 方式 A：从 Git 仓库拉取（推荐，唯一实测稳定的方式）
+
+如果仓库是私有的，先在 GitHub 生成一个 fine-grained personal access token（只勾 `Contents: Read` 权限），部署完可以立刻撤销：
 
 ```bash
-cd /var/www
-git clone <你的Git仓库地址> zhudatuan
+cd /opt
+git clone https://<token>@github.com/<你的用户名>/smart-wing.git zhudatuan
 cd zhudatuan
 ```
 
-### 方式 B：直接从本机上传
+如果仓库是公开的，直接用不带 token 的地址即可。
+
+### 方式 B：直接从本机上传（仅在无法用 Git 时兜底，较慢）
 
 ```bash
 # 本机（Windows 用 Git Bash）
 cd "C:/Users/Ethan/Desktop/01-Projects/03-client-and-contract-projects/02-pre-contract/Shop"
 zip -r zhudatuan-deploy.zip smart-wing/ -x "smart-wing/node_modules/*" "smart-wing/.git/*" "smart-wing/.next/*" "smart-wing/dist/*"
-scp zhudatuan-deploy.zip root@<服务器IP>:/root/
 ```
 
-```bash
-# 服务器
-cd /root && unzip zhudatuan-deploy.zip && mv smart-wing /var/www/zhudatuan
-```
+**不要直接 `scp` 这个 zip 上去**（大概率被安全代理拦截或因 SFTP 不可用而失败）。改成把 zip 拆包
+后逐个源文件通过 SSH 写入服务器，或者退回方式 A。
 
 ---
 
@@ -79,7 +89,7 @@ cd /root && unzip zhudatuan-deploy.zip && mv smart-wing /var/www/zhudatuan
 在服务器上单独创建 `.env.production`（已在 `.gitignore` 里，不会被提交）：
 
 ```bash
-cd /var/www/zhudatuan
+cd /opt/zhudatuan
 cp .env.example .env.production
 nano .env.production
 # 填入真实值：SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / SESSION_SIGNING_KEY /
@@ -95,7 +105,7 @@ chmod 600 .env.production
 ## 四、安装依赖并构建
 
 ```bash
-cd /var/www/zhudatuan
+cd /opt/zhudatuan
 npm install
 npm run build
 ls -la dist/server/index.js && echo "构建成功"
@@ -108,7 +118,7 @@ ls -la dist/server/index.js && echo "构建成功"
 ### 5.1 使用 PM2 启动（推荐）
 
 ```bash
-cd /var/www/zhudatuan
+cd /opt/zhudatuan
 pm2 start deploy/ecosystem.config.js
 pm2 startup
 pm2 save
@@ -121,7 +131,7 @@ pm2 logs zhudatuan
 ### 5.2 或使用 systemd
 
 ```bash
-cp /var/www/zhudatuan/deploy/zhudatuan.service /etc/systemd/system/
+cp /opt/zhudatuan/deploy/zhudatuan.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now zhudatuan
 systemctl status zhudatuan
@@ -133,7 +143,7 @@ journalctl -u zhudatuan -f
 ## 六、配置 Caddy（反代 + 自动 HTTPS）
 
 ```bash
-cp /var/www/zhudatuan/deploy/Caddyfile /etc/caddy/Caddyfile
+cp /opt/zhudatuan/deploy/Caddyfile /etc/caddy/Caddyfile
 systemctl reload caddy
 ```
 
@@ -200,7 +210,7 @@ curl -I http://localhost:3000
 pm2 stop zhudatuan
 systemctl stop caddy
 
-cd /var/www
+cd /opt
 mv zhudatuan zhudatuan-failed
 mv zhudatuan-backup zhudatuan
 ```

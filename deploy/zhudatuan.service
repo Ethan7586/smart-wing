@@ -6,8 +6,8 @@ After=network.target
 Type=simple
 User=www-data
 Group=www-data
-WorkingDirectory=/var/www/zhudatuan
-ExecStart=/usr/bin/node --env-file=/var/www/zhudatuan/.env.production node_modules/vinext/dist/cli.js start
+WorkingDirectory=/opt/zhudatuan
+ExecStart=/usr/bin/node --env-file=/opt/zhudatuan/.env.production node_modules/vinext/dist/cli.js start
 Restart=on-failure
 RestartSec=10
 Environment=NODE_ENV=production

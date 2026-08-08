@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'zhudatuan',
-      cwd: '/var/www/zhudatuan',
+      cwd: '/opt/zhudatuan',
       script: 'node_modules/vinext/dist/cli.js',
       args: 'start',
       // SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / SESSION_SIGNING_KEY /
