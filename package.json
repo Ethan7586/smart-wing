@@ -25,7 +25,7 @@
     "format": "prettier --write --ignore-unknown .",
     "check:format": "prettier --check --ignore-unknown .",
     "lint": "npm run lint --workspace @smart-wing/storefront-web && npm run lint --workspace @smart-wing/admin-web && npm run lint --workspace @smart-wing/auth-web && npm run lint --workspace @smart-wing/commerce-api",
-    "test": "npm run test --workspace @smart-wing/storefront-web",
+    "test": "npm run test --workspace @smart-wing/storefront-web && npm run test --workspace @smart-wing/commerce-api",
     "audit:prod": "npm audit --omit=dev",
     "check:lines": "node scripts/check-line-budget.mjs",
     "verify:p0": "node scripts/verify-p0.mjs",

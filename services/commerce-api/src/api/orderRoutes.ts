@@ -57,6 +57,9 @@ export async function handleOrders(request: Request, env: WorkerEnv, authorizati
 
 export async function handleShipOrder(request: Request, env: WorkerEnv, authorization: AuthorizationContext, orderId: string, requestId: string): Promise<Response> {
   if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
+  // Reject principals without the coarse grant before the resource lookup;
+  // the exact server-derived order scope is validated immediately afterwards.
+  if (!authorize(authorization, PERMISSIONS.orderShip).allowed) return apiError(403, 'FORBIDDEN', '没有订单发货权限', requestId);
   const scope = await loadResourceScope(env, 'api_order_authorization_scope', orderId);
   const decision = scope ? authorize(authorization, PERMISSIONS.orderShip, scope) : null;
   if (!decision?.allowed) return apiError(403, 'FORBIDDEN', '没有发货该订单的权限', requestId);

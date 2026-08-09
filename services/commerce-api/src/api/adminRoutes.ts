@@ -48,6 +48,9 @@ export async function handleAdminOverview(request: Request, env: WorkerEnv, auth
 
 export async function handleSetProductStatus(request: Request, env: WorkerEnv, authorization: AuthorizationContext, productId: string, requestId: string): Promise<Response> {
   if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
+  // Fail closed on the coarse grant before touching the database. The resource
+  // scope is still loaded below for the final, resource-specific decision.
+  if (!authorize(authorization, PERMISSIONS.productPublish).allowed) return apiError(403, 'FORBIDDEN', '没有变更商品发布状态的权限', requestId);
   const scope = await loadResourceScope(env, 'api_product_authorization_scope', productId);
   const decision = scope ? authorize(authorization, PERMISSIONS.productPublish, scope) : null;
   if (!decision?.allowed) return apiError(403, 'FORBIDDEN', '没有变更该商品发布状态的权限', requestId);
