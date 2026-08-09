@@ -4,6 +4,7 @@
 | --------------------------- | ------------------------------------------------ |
 | `apps/storefront-web`       | `hbbtzn.com` 员工福利商城前端与同源 API 适配入口 |
 | `apps/admin-web`            | `smart.hbbtzn.com` 运营后台前端                  |
+| `apps/auth-web`             | 两域共用的统一登录 UI 原型（本地端口 3002）      |
 | `services/commerce-api`     | 商城 API、会话、订单、账户与后台 AI 服务端代码   |
 | `packages/api-contract`     | 前后端共享接口与会员关系类型                     |
 | `packages/authz`            | 会员状态、权限与数据范围规则                     |

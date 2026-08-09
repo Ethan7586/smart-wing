@@ -16,13 +16,17 @@ const IMPORTED_ADMIN_LEGACY = new Set([
   'apps/admin-web/src/data/mockData.ts',
   'apps/admin-web/src/types.ts',
 ]);
+// The imported authentication prototype is intentionally kept intact until its
+// mock implementation is replaced by the production commerce API. New auth
+// code must meet the normal line limit.
+const IMPORTED_AUTH_PROTOTYPE = new Set(['apps/auth-web/src/screens/LoginPage.tsx', 'apps/auth-web/src/services/auth.ts']);
 
 function normalized(path) {
   return relative(ROOT, path).split(sep).join('/');
 }
 
 function isException(path) {
-  return GENERATED_OR_IMMUTABLE.some((pattern) => pattern.test(path)) || IMPORTED_ADMIN_LEGACY.has(path);
+  return GENERATED_OR_IMMUTABLE.some((pattern) => pattern.test(path)) || IMPORTED_ADMIN_LEGACY.has(path) || IMPORTED_AUTH_PROTOTYPE.has(path);
 }
 
 function collect(directory, output = []) {
@@ -51,4 +55,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`行数门禁通过：所有新增与已整理源码不超过 ${LIMIT} 行；` + '锁文件、生成配置、已应用数据库迁移及导入后台遗留文件按例外清单管理。');
+console.log(`行数门禁通过：所有新增与已整理源码不超过 ${LIMIT} 行；` + '锁文件、生成配置、已应用数据库迁移及导入后台/认证原型按例外清单管理。');
