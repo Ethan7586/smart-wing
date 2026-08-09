@@ -1,7 +1,9 @@
 -- Real administration operations: every mutation is scoped by the service,
 -- idempotent, and leaves immutable authorization evidence in audit_logs.
 
-create or replace function public.api_admin_catalog(p_tenant_id text, p_mall_id text)
+drop function if exists public.api_admin_catalog(text, text);
+
+create function public.api_admin_catalog(p_tenant_id text, p_mall_id text, p_limit integer default 100)
 returns jsonb
 language sql stable security definer set search_path = public, pg_temp
 as $$
@@ -19,7 +21,12 @@ as $$
     'status', p.status,
     'classificationStatus', p.classification_status
   ) order by p.updated_at desc, p.id), '[]'::jsonb)
-  from public.products p
+  from (
+    select * from public.products
+    where tenant_id = p_tenant_id and mall_id = p_mall_id
+    order by updated_at desc, id
+    limit least(greatest(p_limit, 1), 100)
+  ) p
   join public.suppliers supplier on supplier.id = p.supplier_id
   left join lateral (
     select s.id, s.price_cents, s.market_price_cents
@@ -29,7 +36,7 @@ as $$
     limit 1
   ) sku on true
   left join public.inventory inventory on inventory.sku_id = sku.id and inventory.mall_id = p.mall_id
-  where p.tenant_id = p_tenant_id and p.mall_id = p_mall_id;
+  ;
 $$;
 
 create or replace function public.api_order_views_scoped(
@@ -130,12 +137,12 @@ begin
 end;
 $$;
 
-revoke all on function public.api_admin_catalog(text, text) from public, anon, authenticated;
+revoke all on function public.api_admin_catalog(text, text, integer) from public, anon, authenticated;
 revoke all on function public.api_order_views_scoped(text, text, text, text) from public, anon, authenticated;
 revoke all on function public.api_product_authorization_scope(text) from public, anon, authenticated;
 revoke all on function public.api_set_product_status(text, text, text, text, text, text, text, text, text, text, jsonb) from public, anon, authenticated;
 revoke all on function public.api_ship_order(text, text, text, text, text, text, text, text, text, text, jsonb) from public, anon, authenticated;
-grant execute on function public.api_admin_catalog(text, text) to service_role;
+grant execute on function public.api_admin_catalog(text, text, integer) to service_role;
 grant execute on function public.api_order_views_scoped(text, text, text, text) to service_role;
 grant execute on function public.api_product_authorization_scope(text) to service_role;
 grant execute on function public.api_set_product_status(text, text, text, text, text, text, text, text, text, text, jsonb) to service_role;

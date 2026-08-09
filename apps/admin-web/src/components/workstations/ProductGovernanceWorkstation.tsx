@@ -259,7 +259,7 @@ export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span>商品生命周期治理管道 (Product Lifecycle State Machine)</span>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-[#1769ff] border border-blue-200">全量商品：{products.length} 个</span>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-[#1769ff] border border-blue-200">当前授权目录：{products.length} 个</span>
             {isLiveCatalog && <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">生产目录实时读取</span>}
           </h2>
 

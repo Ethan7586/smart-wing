@@ -74,7 +74,7 @@ export const CockpitWorkstation: React.FC<CockpitWorkstationProps> = ({ orders, 
       {/* BLOCK 1: 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-[14px] shadow-sm border border-slate-100 space-y-1">
-          <div className="text-slate-400 text-xs mb-1">{isEn ? 'Published products' : '生产目录商品'}</div>
+          <div className="text-slate-400 text-xs mb-1">{isEn ? 'Loaded authorised products' : '当前授权目录商品'}</div>
           <div className="text-2xl font-bold text-[#10294d]">{liveOperations?.catalogCount ?? '—'}</div>
           <div className="flex items-center gap-1 text-[11px] mt-1 text-[#15a46b] font-semibold"><TrendingUp className="w-3.5 h-3.5" />{isEn ? 'Live catalogue' : '实时目录读取'}</div>
         </div>

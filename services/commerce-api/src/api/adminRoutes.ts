@@ -12,6 +12,7 @@ export async function handleAdminCatalog(request: Request, env: WorkerEnv, autho
   const items = await callRpc<Array<Record<string, unknown>>>(env, 'api_admin_catalog', {
     p_tenant_id: authorization.tenantId,
     p_mall_id: authorization.mallId,
+    p_limit: 100,
   });
   return json({ items, requestId });
 }
