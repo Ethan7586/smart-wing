@@ -19,5 +19,10 @@ export default defineConfig(({ command }) => {
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
+    // `vite preview` sits behind Caddy at hbbtzn.com/login in the public test
+    // environment. Keep the explicit host allowlist; do not turn on allowHosts: true.
+    preview: {
+      allowedHosts: ['hbbtzn.com', 'www.hbbtzn.com'],
+    },
   };
 });
