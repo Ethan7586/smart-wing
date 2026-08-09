@@ -3,8 +3,10 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vite';
 
-export default defineConfig(() => {
+export default defineConfig(({ command }) => {
   return {
+    // 生产环境仅由 hbbtzn.com/login 提供，避免与员工商城的根路径静态资源冲突。
+    base: command === 'build' ? '/login/' : '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

@@ -13,18 +13,18 @@ export interface SessionPayload {
   employeeNo: string;
   mallCode: string;
   target: SessionTarget;
-  membershipId?: string;
-  memberId?: string;
-  authzVersion?: number;
+  membershipId: string;
+  memberId: string;
+  authzVersion: number;
   stepUpAt?: number;
   expiresAt: number;
 }
 
 export interface SessionOptions {
   target?: SessionTarget;
-  membershipId?: string;
-  memberId?: string;
-  authzVersion?: number;
+  membershipId: string;
+  memberId: string;
+  authzVersion: number;
   stepUpAt?: number;
 }
 
@@ -41,12 +41,12 @@ function fromBase64Url(value: string): Uint8Array {
   return Uint8Array.from(binary, (character) => character.charCodeAt(0));
 }
 
-function targetForRequest(request: Request): SessionTarget {
+export function targetForRequest(request: Request): SessionTarget {
   return new URL(request.url).hostname === 'smart.hbbtzn.com' ? 'admin' : 'storefront';
 }
 
 function signingSecret(env: WorkerEnv, target: SessionTarget): string | undefined {
-  return target === 'admin' ? (env.ADMIN_SESSION_SIGNING_KEY ?? env.SESSION_SIGNING_KEY) : env.SESSION_SIGNING_KEY;
+  return target === 'admin' ? env.ADMIN_SESSION_SIGNING_KEY : env.SESSION_SIGNING_KEY;
 }
 
 async function signingKey(secret: string): Promise<CryptoKey> {
@@ -58,7 +58,7 @@ function cookieAttributes(maxAge: number): string {
   return `Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`;
 }
 
-export async function createSessionCookie(env: WorkerEnv, employeeNo: string, mallCode: string, options: SessionOptions = {}): Promise<string> {
+export async function createSessionCookie(env: WorkerEnv, employeeNo: string, mallCode: string, options: SessionOptions): Promise<string> {
   const target = options.target ?? 'storefront';
   const secret = signingSecret(env, target);
   if (!secret || secret.length < 32) throw new Error('SESSION_SIGNING_KEY_NOT_CONFIGURED');
@@ -68,9 +68,9 @@ export async function createSessionCookie(env: WorkerEnv, employeeNo: string, ma
     employeeNo,
     mallCode,
     target,
-    ...(options.membershipId ? { membershipId: options.membershipId } : {}),
-    ...(options.memberId ? { memberId: options.memberId } : {}),
-    ...(options.authzVersion !== undefined ? { authzVersion: options.authzVersion } : {}),
+    membershipId: options.membershipId,
+    memberId: options.memberId,
+    authzVersion: options.authzVersion,
     ...(options.stepUpAt ? { stepUpAt: options.stepUpAt } : {}),
     expiresAt: Math.floor(Date.now() / 1000) + SESSION_SECONDS,
   };
@@ -105,6 +105,10 @@ export async function readSession(request: Request, env: WorkerEnv): Promise<Ses
       typeof payload.sessionId !== 'string' ||
       typeof payload.employeeNo !== 'string' ||
       typeof payload.mallCode !== 'string' ||
+      typeof payload.memberId !== 'string' ||
+      typeof payload.membershipId !== 'string' ||
+      !Number.isInteger(payload.authzVersion) ||
+      payload.authzVersion < 1 ||
       payload.target !== target ||
       typeof payload.expiresAt !== 'number' ||
       payload.expiresAt <= Math.floor(Date.now() / 1000)
@@ -115,14 +119,4 @@ export async function readSession(request: Request, env: WorkerEnv): Promise<Ses
   } catch {
     return null;
   }
-}
-
-export async function verifyAccessCode(supplied: string, expected: string | undefined): Promise<boolean> {
-  if (!expected || supplied.length < 8 || supplied.length > 128) return false;
-  const [left, right] = await Promise.all([crypto.subtle.digest('SHA-256', new TextEncoder().encode(supplied)), crypto.subtle.digest('SHA-256', new TextEncoder().encode(expected))]);
-  const a = new Uint8Array(left);
-  const b = new Uint8Array(right);
-  let difference = 0;
-  for (let index = 0; index < a.length; index += 1) difference |= a[index] ^ b[index];
-  return difference === 0;
 }

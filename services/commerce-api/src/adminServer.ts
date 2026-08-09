@@ -1,16 +1,49 @@
-import express from 'express';
+import express, { type NextFunction, type Request as ExpressRequest, type Response as ExpressResponse } from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from '@google/genai';
+import { readSession } from './api/session';
+import type { WorkerEnv } from './api/types';
 
-dotenv.config();
-
-const app = express();
-const PORT = Number(process.env.PORT || 3000);
 const repositoryRoot = process.cwd();
 const adminWebRoot = path.join(repositoryRoot, 'apps', 'admin-web');
+dotenv.config({ path: process.env.ENV_FILE ?? path.join(repositoryRoot, '.env.production') });
 
-app.use(express.json());
+const app = express();
+const PORT = Number(process.env.PORT || 3001);
+
+app.disable('x-powered-by');
+app.use(express.json({ limit: '32kb' }));
+
+function isLocalDevelopment(): boolean {
+  return process.env.APP_ENV === 'development' && process.env.AUTH_MODE === 'development';
+}
+
+/** AI endpoints consume paid provider quota and are restricted to a host-only admin session. */
+async function requireAdminSession(request: ExpressRequest, response: ExpressResponse, next: NextFunction): Promise<void> {
+  if (isLocalDevelopment()) {
+    next();
+    return;
+  }
+
+  try {
+    const session = await readSession(
+      new Request(`https://smart.hbbtzn.com${request.originalUrl}`, {
+        headers: { cookie: request.headers.cookie ?? '' },
+      }),
+      process.env as WorkerEnv
+    );
+    if (!session || session.target !== 'admin') {
+      response.status(401).json({ error: 'AUTHENTICATION_REQUIRED' });
+      return;
+    }
+    next();
+  } catch {
+    response.status(401).json({ error: 'AUTHENTICATION_REQUIRED' });
+  }
+}
+
+app.use('/api/ai', requireAdminSession);
 
 // Lazy GoogleGenAI client initialization
 let genAIClient: GoogleGenAI | null = null;
@@ -179,8 +212,18 @@ async function startServer() {
     res.sendFile(path.join(distPath, 'index.html'));
   });
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Smart Wing Admin Console running at http://0.0.0.0:${PORT}`);
+  app.use((error: unknown, _request: ExpressRequest, response: ExpressResponse, _next: NextFunction) => {
+    if (error instanceof SyntaxError || (typeof error === 'object' && error !== null && 'type' in error && (error as { type?: string }).type === 'entity.too.large')) {
+      response.status(400).json({ error: 'INVALID_REQUEST_BODY' });
+      return;
+    }
+    console.error(JSON.stringify({ level: 'error', event: 'admin_http_error' }));
+    response.status(500).json({ error: 'INTERNAL_ERROR' });
+  });
+
+  // 仅由本机 Caddy 反向代理暴露，避免绕过 TLS、WAF 与域名级会话隔离。
+  app.listen(PORT, '127.0.0.1', () => {
+    console.log(`Smart Wing Admin Console listening on 127.0.0.1:${PORT}`);
   });
 }
 

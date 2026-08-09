@@ -1,93 +1,71 @@
-import { callRpc } from './supabase';
-import type { Actor, WorkerEnv } from './types';
+import { resolveMembershipRuntimeByIds, type MembershipRuntime } from './membershipContext';
+import type { SessionTarget } from './session';
+import type { WorkerEnv } from './types';
 
+/**
+ * Local-only fixture. It intentionally contains no roles or permissions:
+ * those are always resolved from the same Member → Membership → Role → Scope
+ * records used by real authentication. Production never loads this module.
+ */
 export interface DemoAccount {
   username: string;
   password: string;
   employeeNo: string;
   mallCode: string;
-  roles: string[];
-  permissions: string[];
+  memberId: string;
+  storefrontMembershipId?: string;
+  adminMembershipId?: string;
 }
 
-const DEFAULT_DEMO_MALL_CODE = 'SMART_WING_DEMO';
+export function isDemoAuthEnabled(env: WorkerEnv): boolean {
+  return (env.APP_ENV === 'development' && env.AUTH_MODE === 'development') || (env.APP_ENV === 'test' && env.AUTH_MODE === 'test');
+}
 
-const DEFAULT_DEMO_ACCOUNTS: DemoAccount[] = [
-  {
-    username: 'onewr',
-    password: '123456',
-    employeeNo: 'SW_DEMO_OWNER',
-    mallCode: DEFAULT_DEMO_MALL_CODE,
-    roles: ['owner'],
-    permissions: ['order:read:own', 'order:create', 'finance:refund', 'finance:reconcile'],
-  },
-  {
-    username: '李厚亿',
-    password: '123456',
-    employeeNo: 'SW_DEMO_OWNER',
-    mallCode: DEFAULT_DEMO_MALL_CODE,
-    roles: ['owner'],
-    permissions: ['order:read:own', 'order:create', 'finance:refund', 'finance:reconcile'],
-  },
+const DEFAULT_DEMO_ACCOUNTS: readonly DemoAccount[] = [
   {
     username: '业主测试员',
     password: '123456',
-    employeeNo: 'SW_DEMO_TESTER',
-    mallCode: DEFAULT_DEMO_MALL_CODE,
-    roles: ['tester'],
-    permissions: ['order:read:own', 'order:create'],
+    employeeNo: 'SW_TEST_STORE',
+    mallCode: 'SMART_WING_DEMO',
+    memberId: 'member-test-storefront',
+    storefrontMembershipId: 'membership-test-storefront',
   },
   {
     username: '福宝',
     password: '123456',
-    employeeNo: 'SW_DEMO_MANAGER',
-    mallCode: DEFAULT_DEMO_MALL_CODE,
-    roles: ['admin'],
-    permissions: ['order:read:own', 'order:create', 'finance:refund'],
+    employeeNo: 'SW_TEST_FUBAO',
+    mallCode: 'SMART_WING_DEMO',
+    memberId: 'member-test-fubao',
+    adminMembershipId: 'membership-test-fubao-admin',
   },
   {
     username: '经理1',
     password: '123456',
-    employeeNo: 'SW_DEMO_OPS',
-    mallCode: DEFAULT_DEMO_MALL_CODE,
-    roles: ['manager'],
-    permissions: ['order:read:own', 'order:create'],
+    employeeNo: 'SW_TEST_MANAGER',
+    mallCode: 'SMART_WING_DEMO',
+    memberId: 'member-test-manager',
+    adminMembershipId: 'membership-test-manager-admin',
+  },
+  {
+    username: 'onewr',
+    password: '123456',
+    employeeNo: 'SW_TEST_OWNER',
+    mallCode: 'SMART_WING_DEMO',
+    memberId: 'member-test-owner',
+    adminMembershipId: 'membership-test-owner-admin',
+  },
+  {
+    username: '李厚亿',
+    password: '123456',
+    employeeNo: 'SW_TEST_OWNER',
+    mallCode: 'SMART_WING_DEMO',
+    memberId: 'member-test-owner',
+    adminMembershipId: 'membership-test-owner-admin',
   },
 ];
 
-function normalizeAccount(value: string): string {
-  return value.trim().toLowerCase();
-}
-
-function uniqueStringList(values: string[]): string[] {
-  return [...new Set(values.filter((value): value is string => typeof value === 'string' && value.trim().length > 0))];
-}
-
-export function getDemoAccounts(env: WorkerEnv): DemoAccount[] {
-  const result = [...DEFAULT_DEMO_ACCOUNTS];
-  if (!env.DEMO_USER_CREDENTIALS) return result;
-
-  try {
-    const custom = JSON.parse(env.DEMO_USER_CREDENTIALS) as DemoAccount[];
-    if (!Array.isArray(custom)) return result;
-    for (const item of custom) {
-      if (!item || typeof item !== 'object') continue;
-      const username = typeof item.username === 'string' ? item.username.trim() : '';
-      const password = typeof item.password === 'string' ? item.password : '';
-      if (!username || !password) continue;
-      result.push({
-        username,
-        password,
-        employeeNo: typeof item.employeeNo === 'string' && item.employeeNo.trim() ? item.employeeNo.trim() : `SW_DEMO_${username.toUpperCase()}`,
-        mallCode: typeof item.mallCode === 'string' && item.mallCode.trim() ? item.mallCode.trim() : DEFAULT_DEMO_MALL_CODE,
-        roles: uniqueStringList(Array.isArray(item.roles) ? item.roles : ['visitor']),
-        permissions: uniqueStringList(Array.isArray(item.permissions) ? item.permissions : ['order:read:own', 'order:create']),
-      });
-    }
-    return result;
-  } catch {
-    return result;
-  }
+export function getDemoAccounts(env: WorkerEnv): readonly DemoAccount[] {
+  return isDemoAuthEnabled(env) ? DEFAULT_DEMO_ACCOUNTS : [];
 }
 
 export async function verifyDemoPassword(supplied: string, expected: string): Promise<boolean> {
@@ -99,25 +77,8 @@ export async function verifyDemoPassword(supplied: string, expected: string): Pr
   return difference === 0;
 }
 
-export async function resolveDemoActor(env: WorkerEnv, account: DemoAccount): Promise<Actor | null> {
-  const actor = await callRpc<Actor | null>(env, 'api_resolve_actor', {
-    p_employee_no: account.employeeNo,
-    p_mall_code: account.mallCode,
-  }).catch(() => null);
-  if (actor) return applyDemoPermissions(actor, account);
-
-  if (!env.DEMO_FALLBACK_EMPLOYEE_NO) return null;
-  const fallbackActor = await callRpc<Actor | null>(env, 'api_resolve_actor', {
-    p_employee_no: env.DEMO_FALLBACK_EMPLOYEE_NO,
-    p_mall_code: account.mallCode,
-  }).catch(() => null);
-  return fallbackActor ? applyDemoPermissions(fallbackActor, account) : null;
-}
-
-function applyDemoPermissions(actor: Actor, account: DemoAccount): Actor {
-  return {
-    ...actor,
-    roles: uniqueStringList(account.roles.length ? account.roles : actor.roles),
-    permissions: uniqueStringList(account.permissions.length ? account.permissions : actor.permissions),
-  };
+export async function resolveDemoMembership(env: WorkerEnv, account: DemoAccount, target: SessionTarget): Promise<MembershipRuntime | null> {
+  const membershipId = target === 'admin' ? account.adminMembershipId : account.storefrontMembershipId;
+  if (!membershipId) return null;
+  return resolveMembershipRuntimeByIds(env, account.memberId, membershipId, target);
 }

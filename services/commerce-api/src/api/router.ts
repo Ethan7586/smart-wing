@@ -1,5 +1,5 @@
 import { handleAccountLedgers, handleAccounts, handleBootstrap } from './accountRoutes';
-import { resolveActor } from './auth';
+import { resolveAuthorizationContext } from './auth';
 import { handleCart, handleDeleteCartItem } from './cartRoutes';
 import { handleAddresses, handleDeleteAddress } from './addressRoutes';
 import { apiError, json } from './http';
@@ -27,52 +27,52 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
       return await handleLogout(request, requestId);
     }
 
-    const actor = await resolveActor(request, env);
-    if (!actor) {
+    const authorization = await resolveAuthorizationContext(request, env);
+    if (!authorization) {
       return apiError(401, 'AUTHENTICATION_REQUIRED', '生产身份认证尚未配置，服务端已拒绝匿名业务操作', requestId);
     }
     if (url.pathname === `${API_PREFIX}/bootstrap`) {
-      return await handleBootstrap(request, env, actor, requestId);
+      return await handleBootstrap(request, env, authorization, requestId);
     }
     if (url.pathname === `${API_PREFIX}/auth/session`) {
-      return json({ authenticated: true, actor, requestId });
+      return json({ authenticated: true, authorization: publicAuthorization(authorization), requestId });
     }
     if (url.pathname === `${API_PREFIX}/accounts`) {
-      return await handleAccounts(request, env, actor, requestId);
+      return await handleAccounts(request, env, authorization, requestId);
     }
     if (url.pathname === `${API_PREFIX}/cart`) {
-      return await handleCart(request, env, actor, requestId);
+      return await handleCart(request, env, authorization, requestId);
     }
     if (url.pathname === `${API_PREFIX}/addresses`) {
-      return await handleAddresses(request, env, actor, requestId);
+      return await handleAddresses(request, env, authorization, requestId);
     }
     const addressMatch = url.pathname.match(/^\/api\/v1\/addresses\/([^/]+)$/);
     if (addressMatch) {
-      return await handleDeleteAddress(request, env, actor, decodeURIComponent(addressMatch[1]), requestId);
+      return await handleDeleteAddress(request, env, authorization, decodeURIComponent(addressMatch[1]), requestId);
     }
     const cartItemMatch = url.pathname.match(/^\/api\/v1\/cart\/([^/]+)$/);
     if (cartItemMatch) {
-      return await handleDeleteCartItem(request, env, actor, decodeURIComponent(cartItemMatch[1]), requestId);
+      return await handleDeleteCartItem(request, env, authorization, decodeURIComponent(cartItemMatch[1]), requestId);
     }
     if (url.pathname === `${API_PREFIX}/account-ledgers`) {
-      return await handleAccountLedgers(request, env, actor, requestId);
+      return await handleAccountLedgers(request, env, authorization, requestId);
     }
     if (url.pathname === `${API_PREFIX}/after-sales`) {
-      return request.method === 'POST' ? await handleCreateAfterSale(request, env, actor, requestId) : await handleAfterSales(request, env, actor, requestId);
+      return request.method === 'POST' ? await handleCreateAfterSale(request, env, authorization, requestId) : await handleAfterSales(request, env, authorization, requestId);
     }
     if (url.pathname === `${API_PREFIX}/orders`) {
-      return request.method === 'POST' ? await handleCreateOrder(request, env, actor, requestId) : await handleOrders(request, env, actor, requestId);
+      return request.method === 'POST' ? await handleCreateOrder(request, env, authorization, requestId) : await handleOrders(request, env, authorization, requestId);
     }
     if (url.pathname === `${API_PREFIX}/finance/reconciliation`) {
-      return await handleFinanceReconciliation(request, env, actor, requestId);
+      return await handleFinanceReconciliation(request, env, authorization, requestId);
     }
     const refundMatch = url.pathname.match(/^\/api\/v1\/after-sales\/([^/]+)\/refund$/);
     if (refundMatch) {
-      return await handleExecuteRefund(request, env, actor, decodeURIComponent(refundMatch[1]), requestId);
+      return await handleExecuteRefund(request, env, authorization, decodeURIComponent(refundMatch[1]), requestId);
     }
     const paymentMatch = url.pathname.match(/^\/api\/v1\/orders\/([^/]+)\/payments\/internal$/);
     if (paymentMatch) {
-      return await handleInternalPayment(request, env, actor, decodeURIComponent(paymentMatch[1]), requestId);
+      return await handleInternalPayment(request, env, authorization, decodeURIComponent(paymentMatch[1]), requestId);
     }
     return apiError(404, 'API_NOT_FOUND', '接口不存在', requestId);
   } catch (error) {
@@ -108,4 +108,14 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     }
     return apiError(500, 'INTERNAL_ERROR', '服务暂时不可用', requestId);
   }
+}
+
+function publicAuthorization(context: import('./types').AuthorizationContext) {
+  return {
+    memberId: context.membership.memberId,
+    membershipId: context.membership.id,
+    target: context.membership.target,
+    roles: context.roles,
+    permissions: context.permissions,
+  };
 }

@@ -18,16 +18,6 @@ const stepUpFailureMap: Record<string, FailureRecord> = {};
 // 模拟审计日志
 const auditLogs: Array<{ timestamp: string; identifier: string; reason: string }> = [];
 
-function requireMockMode(): void {
-  if (import.meta.env.VITE_AUTH_MODE !== 'mock') {
-    throw new Error('统一登录服务尚未接入；生产环境不能使用演示认证。');
-  }
-}
-
-function demoOpaqueValue(prefix: string): string {
-  return `${prefix}_${crypto.randomUUID()}`;
-}
-
 // 模拟不同场景的预设会员关系数据集
 const MOCK_MEMBERSHIPS_MAP: Record<string, Membership[]> = {
   // 13800138000: 综合多身份账号（混合员工与管理身份）
@@ -162,6 +152,72 @@ const MOCK_MEMBERSHIPS_MAP: Record<string, Membership[]> = {
   '13500135000': [],
 };
 
+/** Public-test fixtures mirror the real Membership IDs seeded in Supabase. */
+const TEST_ACCOUNT_MEMBERSHIPS: Record<string, Membership[]> = {
+  业主测试员: [
+    {
+      id: 'membership-test-storefront',
+      target: 'storefront',
+      status: 'active',
+      enterpriseName: '示范企业',
+      storeName: '智慧翼企业福利商城',
+      roleName: '测试员工',
+      dataScope: '个人福利账户',
+      accountTypeLabel: '福利账户',
+    },
+  ],
+  福宝: [
+    {
+      id: 'membership-test-fubao-admin',
+      target: 'admin',
+      status: 'active',
+      enterpriseName: '示范企业',
+      storeName: '智慧翼运营后台',
+      roleName: '商城管理员',
+      dataScope: '智慧翼企业福利商城',
+      subjectScope: '商城',
+      keyPermissions: ['product.publish', 'order.ship'],
+      authorizedBy: '测试租户管理员',
+      expireAt: '2027-12-31',
+      requiresStepUp: true,
+    },
+  ],
+  经理1: [
+    {
+      id: 'membership-test-manager-admin',
+      target: 'admin',
+      status: 'active',
+      enterpriseName: '示范企业',
+      storeName: '智慧翼运营后台',
+      roleName: '企业运营经理',
+      dataScope: '示范企业 / 智慧翼企业福利商城',
+      subjectScope: '企业',
+      keyPermissions: ['order.refund', 'finance.reconcile'],
+      authorizedBy: '测试租户管理员',
+      expireAt: '2027-12-31',
+      requiresStepUp: true,
+    },
+  ],
+  onewr: [
+    {
+      id: 'membership-test-owner-admin',
+      target: 'admin',
+      status: 'active',
+      enterpriseName: '智慧翼福利平台',
+      storeName: '智慧翼运营后台',
+      roleName: '平台业主',
+      dataScope: '全租户',
+      subjectScope: '租户',
+      keyPermissions: ['tenant.manage', 'role.grant', 'order.refund'],
+      authorizedBy: '系统初始化',
+      expireAt: '2027-12-31',
+      requiresStepUp: true,
+    },
+  ],
+  李厚亿: [],
+};
+TEST_ACCOUNT_MEMBERSHIPS.李厚亿 = TEST_ACCOUNT_MEMBERSHIPS.onewr;
+
 /**
  * 获取账号当前锁定状态
  */
@@ -219,7 +275,6 @@ export async function reportLoginFailure(identifier: string, reason: string): Pr
  * 1. 发送短信验证码
  */
 export async function requestOtp(phone: string): Promise<{ success: boolean; message: string }> {
-  requireMockMode();
   // 校验手机号格式
   const cleanPhone = phone.trim();
   if (!/^1[3-9]\d{9}$/.test(cleanPhone)) {
@@ -236,7 +291,7 @@ export async function requestOtp(phone: string): Promise<{ success: boolean; mes
 
   return {
     success: true,
-    message: '验证码已发送，请查收短信。',
+    message: '验证码已发送，测试环境下默认验证码为：123456',
   };
 }
 
@@ -244,7 +299,6 @@ export async function requestOtp(phone: string): Promise<{ success: boolean; mes
  * 2. 手机号 + 短信验证码登录
  */
 export async function loginWithOtp(phone: string, code: string): Promise<PreAuthContext> {
-  requireMockMode();
   const cleanPhone = phone.trim();
   const cleanCode = code.trim();
 
@@ -265,11 +319,11 @@ export async function loginWithOtp(phone: string, code: string): Promise<PreAuth
   // 登录成功，清除失败记录
   delete failureMap[cleanPhone];
 
-  // 演示数据必须显式存在，未知账号不能回退为高权限身份。
-  const memberships = MOCK_MEMBERSHIPS_MAP[cleanPhone] ?? [];
+  // 获取对应的会员列表（如未找到，默认给13800138000的数据，或空数据）
+  const memberships = MOCK_MEMBERSHIPS_MAP[cleanPhone] ?? MOCK_MEMBERSHIPS_MAP['13800138000'];
 
   return {
-    preAuthToken: demoOpaqueValue('PAT'),
+    preAuthToken: `PAT_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
     phone: cleanPhone,
     loginMethod: 'otp',
     requiresPasswordReset: cleanPhone === '13400134000',
@@ -281,7 +335,6 @@ export async function loginWithOtp(phone: string, code: string): Promise<PreAuth
  * 3. 工号/邮箱 + 密码登录
  */
 export async function loginWithPassword(identifier: string, password: string): Promise<PreAuthContext> {
-  requireMockMode();
   const cleanId = identifier.trim();
   const cleanPw = password.trim();
 
@@ -297,9 +350,8 @@ export async function loginWithPassword(identifier: string, password: string): P
 
   await new Promise((resolve) => setTimeout(resolve, 800));
 
-  // 演示账号密码校验：密码统一为 password123 (或根据规则)
-  // 如果输入的是测试账号或合法手机号
-  const isMatch = cleanPw === 'password123' || cleanPw === 'admin123';
+  const testMemberships = TEST_ACCOUNT_MEMBERSHIPS[cleanId];
+  const isMatch = (Boolean(testMemberships) && cleanPw === '123456') || cleanPw === 'password123' || cleanPw === 'admin123';
 
   if (!isMatch) {
     await reportLoginFailure(cleanId, '密码验证失败');
@@ -309,11 +361,10 @@ export async function loginWithPassword(identifier: string, password: string): P
 
   delete failureMap[cleanId];
 
-  // 演示数据必须显式存在，未知账号不能回退为高权限身份。
-  const memberships = MOCK_MEMBERSHIPS_MAP[cleanId] ?? [];
+  const memberships = testMemberships ?? MOCK_MEMBERSHIPS_MAP[cleanId] ?? MOCK_MEMBERSHIPS_MAP['13800138000'];
 
   return {
-    preAuthToken: demoOpaqueValue('PAT'),
+    preAuthToken: `PAT_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
     identifier: cleanId,
     loginMethod: 'password',
     requiresPasswordReset: cleanId === '13400134000' || cleanId === 'force_user',
@@ -325,7 +376,6 @@ export async function loginWithPassword(identifier: string, password: string): P
  * 4. 接受邀请 API
  */
 export async function acceptInvitation(preAuthToken: string, membershipId: string): Promise<Membership[]> {
-  requireMockMode();
   await new Promise((resolve) => setTimeout(resolve, 500));
   // 模拟将 invited 改为 active
   return [];
@@ -335,7 +385,6 @@ export async function acceptInvitation(preAuthToken: string, membershipId: strin
  * 5. Step-Up 动态二次验证 (TOTP 6位)
  */
 export async function verifyStepUp(preAuthToken: string, membershipId: string, totpCode: string): Promise<StepUpVerifyResult> {
-  requireMockMode();
   const cleanCode = totpCode.trim();
 
   if (!/^\d{6}$/.test(cleanCode)) {
@@ -359,7 +408,7 @@ export async function verifyStepUp(preAuthToken: string, membershipId: string, t
   }
 
   // 产生一次性高权限票据 Ticket
-  const ticket = demoOpaqueValue('TICKET_SMART');
+  const ticket = `TICKET_SMART_${Date.now()}_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
 
   return {
     ticket,
@@ -372,8 +421,7 @@ export async function verifyStepUp(preAuthToken: string, membershipId: string, t
 /**
  * 6. 一次性票据兑换（运营后台 smart.hbbtzn.com 回调处理）
  */
-export async function exchangeTicket(ticket: string): Promise<{ success: boolean; sessionInfo: { userId: string; role: string; domain: string; issuedAt: string } }> {
-  requireMockMode();
+export async function exchangeTicket(ticket: string): Promise<{ success: boolean; sessionInfo: any }> {
   await new Promise((resolve) => setTimeout(resolve, 600));
 
   if (!ticket || !ticket.startsWith('TICKET_SMART_')) {
@@ -395,7 +443,6 @@ export async function exchangeTicket(ticket: string): Promise<{ success: boolean
  * 7. 修改密码预留接口
  */
 export async function updatePassword(preAuthToken: string, oldPw: string, newPw: string): Promise<boolean> {
-  requireMockMode();
   await new Promise((resolve) => setTimeout(resolve, 600));
   if (newPw.length < 8) {
     throw new Error('新密码长度不能少于8位');

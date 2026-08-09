@@ -1,10 +1,10 @@
 import { sha256 } from './crypto';
-import { getDemoAccounts, resolveDemoActor, verifyDemoPassword } from './demoAuth';
+import { getDemoAccounts, isDemoAuthEnabled, resolveDemoMembership, verifyDemoPassword } from './demoAuth';
 import { apiError, json, methodNotAllowed } from './http';
 import { readJsonBody } from './routerSupport';
-import { clearSessionCookie, createSessionCookie, verifyAccessCode } from './session';
+import { clearSessionCookie, createSessionCookie, targetForRequest } from './session';
 import { callRpc, isSupabaseConfigured } from './supabase';
-import type { Actor, WorkerEnv } from './types';
+import type { WorkerEnv } from './types';
 
 interface CatalogRow {
   id: string;
@@ -29,16 +29,13 @@ interface CatalogRow {
 }
 
 const DEFAULT_MALL_SLUG = 'smart-wing-demo';
-const DEFAULT_DEMO_MALL_CODE = 'SMART_WING_DEMO';
-
 export async function handleHealth(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
   let health = { databaseReady: false, tableCount: 0 };
   if (isSupabaseConfigured(env)) {
     health = await callRpc<typeof health>(env, 'api_health');
   }
-  const hasDemoPasswordAuth = getDemoAccounts(env).length > 0;
-  const authReady = Boolean((env.SESSION_SIGNING_KEY && (env.DEMO_LOGIN_CODE || hasDemoPasswordAuth)) || (env.APP_ENV === 'development' && env.AUTH_MODE === 'development'));
+  const authReady = Boolean(env.SESSION_SIGNING_KEY && env.ADMIN_SESSION_SIGNING_KEY && (env.AUTH_MODE === 'membership' || isDemoAuthEnabled(env)));
   const piiReady = Boolean(env.PII_ENCRYPTION_KEY);
   const status = health.databaseReady && authReady && piiReady ? 'ok' : 'degraded';
   return json({
@@ -56,12 +53,14 @@ export async function handleHealth(request: Request, env: WorkerEnv, requestId: 
 
 export async function handleLogin(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
   if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
+  if (!isDemoAuthEnabled(env)) {
+    return apiError(503, 'AUTH_PROVIDER_NOT_CONFIGURED', '生产环境仅接受已配置的企业身份提供方登录', requestId);
+  }
   const body = await readJsonBody(request);
   if (!body.ok || typeof body.value !== 'object' || body.value === null) {
     return apiError(400, 'INVALID_LOGIN_INPUT', '登录信息不完整', requestId);
   }
   const input = body.value as Record<string, unknown>;
-  const accessCode = typeof input.accessCode === 'string' ? input.accessCode : '';
   const username = typeof input.username === 'string' ? input.username : '';
   const password = typeof input.password === 'string' ? input.password : '';
   const ipHash = await sha256(`${request.headers.get('cf-connecting-ip') ?? 'unknown'}:${env.SESSION_SIGNING_KEY ?? ''}`);
@@ -72,49 +71,40 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
     return apiError(429, 'LOGIN_RATE_LIMITED', '登录尝试过多，请15分钟后重试', requestId);
   }
 
-  const hasPasswordLogin = username.trim() !== '' && password.trim() !== '';
-  if (hasPasswordLogin) {
-    const account = getDemoAccounts(env).find((candidate) => candidate.username.trim().toLowerCase() === username.trim().toLowerCase());
-    if (!account || !(await verifyDemoPassword(password, account.password))) {
-      await callRpc<string | null>(env, 'api_record_login_failure', {
-        p_ip_hash: ipHash,
-      });
-      return apiError(401, 'INVALID_USERNAME_PASSWORD', '账号或密码不正确', requestId);
-    }
-    const actor = await resolveDemoActor(env, account);
-    if (!actor) {
-      await callRpc<string | null>(env, 'api_record_login_failure', {
-        p_ip_hash: ipHash,
-      });
-      return apiError(503, 'DEMO_ACTOR_NOT_READY', '演示用户尚未初始化', requestId);
-    }
-    await callRpc<boolean>(env, 'api_clear_login_failures', { p_ip_hash: ipHash });
-    const cookie = await createSessionCookie(env, actor.employeeNo, account.mallCode);
-    return json({ authenticated: true, actor, requestId }, { headers: { 'set-cookie': cookie } });
+  if (username.trim() === '' || password.trim() === '') {
+    return apiError(400, 'INVALID_LOGIN_INPUT', '账号或密码缺失', requestId);
   }
-
-  if (accessCode.trim() === '') {
-    return apiError(400, 'INVALID_LOGIN_INPUT', '访问码或账号密码缺失', requestId);
-  }
-
-  if (!(await verifyAccessCode(accessCode, env.DEMO_LOGIN_CODE))) {
+  const account = getDemoAccounts(env).find((candidate) => candidate.username.trim().toLowerCase() === username.trim().toLowerCase());
+  if (!account || !(await verifyDemoPassword(password, account.password))) {
     await callRpc<string | null>(env, 'api_record_login_failure', {
       p_ip_hash: ipHash,
     });
-    return apiError(401, 'INVALID_ACCESS_CODE', '访问码不正确', requestId);
+    return apiError(401, 'INVALID_USERNAME_PASSWORD', '账号或密码不正确', requestId);
   }
-  const employeeNo = 'SW0001';
-  const mallCode = DEFAULT_DEMO_MALL_CODE;
-  const actor = await callRpc<Actor | null>(env, 'api_resolve_actor', {
-    p_employee_no: employeeNo,
-    p_mall_code: mallCode,
-  });
-  if (!actor) {
-    return apiError(503, 'DEMO_ACTOR_NOT_READY', '演示员工尚未初始化', requestId);
+  const target = targetForRequest(request);
+  const runtime = await resolveDemoMembership(env, account, target);
+  if (!runtime) {
+    await callRpc<string | null>(env, 'api_record_login_failure', { p_ip_hash: ipHash });
+    return apiError(503, 'DEMO_MEMBERSHIP_NOT_READY', '演示会员关系尚未初始化', requestId);
   }
   await callRpc<boolean>(env, 'api_clear_login_failures', { p_ip_hash: ipHash });
-  const cookie = await createSessionCookie(env, employeeNo, mallCode);
-  return json({ authenticated: true, actor, requestId }, { headers: { 'set-cookie': cookie } });
+  const cookie = await createSessionCookie(env, runtime.authorization.employeeNo, runtime.authorization.mallCode, {
+    target,
+    memberId: runtime.membership.memberId,
+    membershipId: runtime.membership.id,
+    authzVersion: runtime.membership.authzVersion,
+  });
+  return json({ authenticated: true, authorization: publicAuthorization(runtime.authorization), requestId }, { headers: { 'set-cookie': cookie } });
+}
+
+function publicAuthorization(context: import('./types').AuthorizationContext) {
+  return {
+    memberId: context.membership.memberId,
+    membershipId: context.membership.id,
+    target: context.membership.target,
+    roles: context.roles,
+    permissions: context.permissions,
+  };
 }
 
 export async function handleLogout(request: Request, requestId: string): Promise<Response> {

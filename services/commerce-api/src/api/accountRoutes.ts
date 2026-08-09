@@ -1,7 +1,10 @@
+import { can } from './auth';
+import { PERMISSIONS } from '@smart-wing/api-contract';
+import { apiError } from './http';
 import { json, methodNotAllowed } from './http';
-import { actorScope } from './routerSupport';
+import { authorizationScope } from './routerSupport';
 import { callRpc } from './supabase';
-import type { Actor, WorkerEnv } from './types';
+import type { AuthorizationContext, WorkerEnv } from './types';
 
 interface BootstrapRow {
   mallName: string;
@@ -17,21 +20,22 @@ interface AccountRow {
   updated_at: string;
 }
 
-export async function handleBootstrap(request: Request, env: WorkerEnv, actor: Actor, requestId: string): Promise<Response> {
+export async function handleBootstrap(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
-  const scope = await callRpc<BootstrapRow | null>(env, 'api_bootstrap', actorScope(actor));
+  if (!can(authorization, PERMISSIONS.catalogRead)) return apiError(403, 'FORBIDDEN', '没有读取商城初始化信息的权限', requestId);
+  const scope = await callRpc<BootstrapRow | null>(env, 'api_bootstrap', authorizationScope(authorization));
   return json({
     actor: {
-      userId: actor.userId,
-      employeeNo: actor.employeeNo,
-      roles: actor.roles,
-      permissions: actor.permissions,
+      userId: authorization.userId,
+      employeeNo: authorization.employeeNo,
+      roles: authorization.roles,
+      permissions: authorization.permissions,
     },
     scope: {
-      tenantId: actor.tenantId,
-      enterpriseId: actor.enterpriseId,
-      mallId: actor.mallId,
-      mallCode: actor.mallCode,
+      tenantId: authorization.tenantId,
+      enterpriseId: authorization.enterpriseId,
+      mallId: authorization.mallId,
+      mallCode: authorization.mallCode,
       mallName: scope?.mallName ?? '',
       brandName: scope?.brandName ?? '',
       enterpriseName: scope?.enterpriseName ?? '',
@@ -40,9 +44,10 @@ export async function handleBootstrap(request: Request, env: WorkerEnv, actor: A
   });
 }
 
-export async function handleAccounts(request: Request, env: WorkerEnv, actor: Actor, requestId: string): Promise<Response> {
+export async function handleAccounts(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
-  const rows = await callRpc<AccountRow[]>(env, 'api_accounts', actorScope(actor, true));
+  if (!can(authorization, PERMISSIONS.orderRead)) return apiError(403, 'FORBIDDEN', '没有查看账户的权限', requestId);
+  const rows = await callRpc<AccountRow[]>(env, 'api_accounts', authorizationScope(authorization, true));
   return json({
     items: rows.map((row) => ({
       id: row.id,
@@ -55,8 +60,9 @@ export async function handleAccounts(request: Request, env: WorkerEnv, actor: Ac
   });
 }
 
-export async function handleAccountLedgers(request: Request, env: WorkerEnv, actor: Actor, requestId: string): Promise<Response> {
+export async function handleAccountLedgers(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
-  const rows = await callRpc<Array<Record<string, unknown>>>(env, 'api_account_ledgers', actorScope(actor, true));
+  if (!can(authorization, PERMISSIONS.orderRead)) return apiError(403, 'FORBIDDEN', '没有查看账户流水的权限', requestId);
+  const rows = await callRpc<Array<Record<string, unknown>>>(env, 'api_account_ledgers', authorizationScope(authorization, true));
   return json({ items: rows, requestId });
 }

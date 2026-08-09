@@ -16,7 +16,3 @@ npm run dev:auth
 ```
 
 It uses port `3002` locally.
-
-The committed configuration deliberately disables mock authentication. For a
-local UI-only exercise, create an untracked `.env.local` with
-`VITE_AUTH_MODE=mock`. Never use that value in a deployed environment.

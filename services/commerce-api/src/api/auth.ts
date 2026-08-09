@@ -1,40 +1,36 @@
-import type { Actor, WorkerEnv } from './types';
-import { callRpc } from './supabase';
-import { readSession } from './session';
+import { decide } from '@smart-wing/authz';
+import type { AuthorizationDecision, Permission, ResourceScope } from '@smart-wing/api-contract';
+import { resolveMembershipRuntime } from './membershipContext';
+import type { AuthorizationContext, WorkerEnv } from './types';
 
 /**
- * 生产环境默认拒绝匿名写入。
- *
- * 当前仅在显式设置 APP_ENV=development 且 AUTH_MODE=development 时，
- * 使用 x-dev-employee-no 进行本地联调。真实上线必须替换为经过签名验证的
- * 企业 SSO/微信身份适配器，绝不能信任浏览器自行提交的用户标识。
+ * Resolves exactly one membership bound into the host-only signed session.
+ * The previous api_resolve_actor / header-based development path is retired:
+ * authorization always starts with resolveMembershipContext on every request.
  */
-export async function resolveActor(request: Request, env: WorkerEnv): Promise<Actor | null> {
-  const session = await readSession(request, env);
-  if (session) {
-    return callRpc<Actor | null>(env, 'api_resolve_actor', {
-      p_employee_no: session.employeeNo,
-      p_mall_code: session.mallCode,
-    });
-  }
-
-  if (env.APP_ENV !== 'development' || env.AUTH_MODE !== 'development') {
-    return null;
-  }
-
-  const employeeNo = request.headers.get('x-dev-employee-no');
-  const mallCode = request.headers.get('x-mall-code') ?? new URL(request.url).searchParams.get('mall');
-
-  if (!employeeNo || !mallCode) {
-    return null;
-  }
-
-  return callRpc<Actor | null>(env, 'api_resolve_actor', {
-    p_employee_no: employeeNo,
-    p_mall_code: mallCode,
-  });
+export async function resolveAuthorizationContext(request: Request, env: WorkerEnv): Promise<AuthorizationContext | null> {
+  const runtime = await resolveMembershipRuntime(request, env);
+  return runtime?.authorization ?? null;
 }
 
-export function can(actor: Actor, permission: string): boolean {
-  return actor.permissions.includes(permission);
+/**
+ * Applies the pure RBAC + Scope decision to a scope projection assembled only
+ * from the server-side Membership context. Resource-specific routes must load
+ * their target row first and pass that row's scope to authorize().
+ */
+export function authorize(context: AuthorizationContext, permission: Permission, resourceScope: ResourceScope = contextResourceScope(context)): AuthorizationDecision {
+  return decide(context.membership, permission, resourceScope, { stepUpAt: context.stepUpAt });
+}
+
+export function can(context: AuthorizationContext, permission: Permission, resourceScope?: ResourceScope): boolean {
+  return authorize(context, permission, resourceScope).allowed;
+}
+
+export function contextResourceScope(context: AuthorizationContext): ResourceScope {
+  return {
+    tenantId: context.tenantId,
+    enterpriseId: context.enterpriseId,
+    mallId: context.mallId,
+    ownerUserId: context.userId,
+  };
 }

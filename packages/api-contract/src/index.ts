@@ -11,6 +11,7 @@ export const PERMISSIONS = {
   orderRead: 'order.read',
   orderShip: 'order.ship',
   orderRefund: 'order.refund',
+  financeReconcile: 'finance.reconcile',
   memberRead: 'member.read',
   memberInvite: 'member.invite',
   memberDisable: 'member.disable',

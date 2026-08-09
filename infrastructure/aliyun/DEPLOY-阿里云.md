@@ -5,6 +5,7 @@
 | 域名               | PM2 进程                | 端口 | 代码                                            |
 | ------------------ | ----------------------- | ---- | ----------------------------------------------- |
 | `hbbtzn.com`       | `smart-wing-storefront` | 3000 | `apps/storefront-web` + `services/commerce-api` |
+| `hbbtzn.com/login` | `smart-wing-auth-web`   | 3010 | `apps/auth-web`（统一登录）                     |
 | `smart.hbbtzn.com` | `smart-wing-admin-api`  | 3001 | `apps/admin-web` + `services/commerce-api`      |
 
 ## 首次迁移
@@ -38,4 +39,4 @@ curl -I https://hbbtzn.com
 curl -I https://smart.hbbtzn.com
 ```
 
-`.env.production` 不进 Git，也不复制到 `apps/`。Cookie 必须保持 host-only，不设置 `.hbbtzn.com` 的共享 Domain。
+`.env.production` 不进 Git，也不复制到 `apps/`。Cookie 必须保持 host-only，不设置 `.hbbtzn.com` 的共享 Domain。生产必须分别配置 `SESSION_SIGNING_KEY` 与 `ADMIN_SESSION_SIGNING_KEY`（两者不得相同），否则后台域不会签发或接受会话。

@@ -1,3 +1,5 @@
+import type { Membership, Permission } from '@smart-wing/api-contract';
+
 export interface WorkerEnv {
   ASSETS?: Fetcher;
   SUPABASE_URL?: string;
@@ -10,12 +12,14 @@ export interface WorkerEnv {
   SESSION_SIGNING_KEY?: string;
   /** Separate signing key for smart.hbbtzn.com sessions. */
   ADMIN_SESSION_SIGNING_KEY?: string;
-  DEMO_LOGIN_CODE?: string;
-  DEMO_USER_CREDENTIALS?: string;
-  DEMO_FALLBACK_EMPLOYEE_NO?: string;
 }
 
-export interface Actor {
+/**
+ * Runtime projection of one resolved Membership. It is never an
+ * independently-authorized principal and never contains permissions from
+ * another membership.
+ */
+export interface AuthorizationContext {
   tenantId: string;
   enterpriseId: string;
   mallId: string;
@@ -23,10 +27,12 @@ export interface Actor {
   userId: string;
   employeeNo: string;
   roles: string[];
-  permissions: string[];
+  permissions: Permission[];
+  membership: Membership;
+  stepUpAt: string | null;
 }
 
 export interface RequestContext {
   requestId: string;
-  actor: Actor | null;
+  authorization: AuthorizationContext | null;
 }

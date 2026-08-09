@@ -1,22 +1,23 @@
-import { can } from './auth';
+import { authorize, can } from './auth';
+import { PERMISSIONS } from '@smart-wing/api-contract';
 import { encryptJson, sha256 } from './crypto';
 import { apiError, json, methodNotAllowed } from './http';
-import { actorScope, invalidBody, readJsonBody } from './routerSupport';
+import { authorizationScope, invalidBody, loadResourceScope, readJsonBody } from './routerSupport';
 import { callRpc } from './supabase';
-import type { Actor, WorkerEnv } from './types';
+import type { AuthorizationContext, WorkerEnv } from './types';
 import { parseCreateAfterSaleInput, parseCreateOrderInput, parseExecuteRefundInput, parseInternalPaymentInput } from './validation';
 
-export async function handleAfterSales(request: Request, env: WorkerEnv, actor: Actor, requestId: string): Promise<Response> {
+export async function handleAfterSales(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET', 'POST'], requestId);
-  if (!can(actor, 'order:read:own')) {
+  if (!can(authorization, PERMISSIONS.orderRead)) {
     return apiError(403, 'FORBIDDEN', '没有查看售后记录的权限', requestId);
   }
-  const rows = await callRpc<Array<Record<string, unknown>>>(env, 'api_after_sales', actorScope(actor, true));
+  const rows = await callRpc<Array<Record<string, unknown>>>(env, 'api_after_sales', authorizationScope(authorization, true));
   return json({ items: rows, requestId });
 }
 
-export async function handleCreateAfterSale(request: Request, env: WorkerEnv, actor: Actor, requestId: string): Promise<Response> {
-  if (!can(actor, 'order:create')) {
+export async function handleCreateAfterSale(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
+  if (!can(authorization, PERMISSIONS.orderCreate)) {
     return apiError(403, 'FORBIDDEN', '没有提交售后的权限', requestId);
   }
   const body = await readJsonBody(request);
@@ -25,8 +26,12 @@ export async function handleCreateAfterSale(request: Request, env: WorkerEnv, ac
   if (!input) {
     return apiError(422, 'INVALID_AFTER_SALE_INPUT', '售后申请信息不完整', requestId);
   }
+  const orderScope = await loadResourceScope(env, 'api_order_authorization_scope', input.orderId);
+  if (!orderScope || !authorize(authorization, PERMISSIONS.orderCreate, orderScope).allowed) {
+    return apiError(403, 'FORBIDDEN', '没有提交该订单售后的权限', requestId);
+  }
   const response = await callRpc<Record<string, unknown>>(env, 'api_create_after_sale', {
-    ...actorScope(actor, true),
+    ...authorizationScope(authorization, true),
     p_order_id: input.orderId,
     p_type: input.type,
     p_reason: input.reason,
@@ -37,17 +42,17 @@ export async function handleCreateAfterSale(request: Request, env: WorkerEnv, ac
   return json(response, { status: 201 });
 }
 
-export async function handleOrders(request: Request, env: WorkerEnv, actor: Actor, requestId: string): Promise<Response> {
+export async function handleOrders(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET', 'POST'], requestId);
-  if (!can(actor, 'order:read:own')) {
+  if (!can(authorization, PERMISSIONS.orderRead)) {
     return apiError(403, 'FORBIDDEN', '没有查看订单的权限', requestId);
   }
-  const rows = await callRpc<Array<Record<string, unknown>>>(env, 'api_order_views', actorScope(actor, true));
+  const rows = await callRpc<Array<Record<string, unknown>>>(env, 'api_order_views', authorizationScope(authorization, true));
   return json({ items: rows, requestId });
 }
 
-export async function handleCreateOrder(request: Request, env: WorkerEnv, actor: Actor, requestId: string): Promise<Response> {
-  if (!can(actor, 'order:create')) {
+export async function handleCreateOrder(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
+  if (!can(authorization, PERMISSIONS.orderCreate)) {
     return apiError(403, 'FORBIDDEN', '没有创建订单的权限', requestId);
   }
   if (!env.PII_ENCRYPTION_KEY) {
@@ -65,7 +70,7 @@ export async function handleCreateOrder(request: Request, env: WorkerEnv, actor:
   }
   const recipientCipher = await encryptJson(input.recipient, env.PII_ENCRYPTION_KEY);
   const response = await callRpc<Record<string, unknown>>(env, 'api_create_order', {
-    ...actorScope(actor, true),
+    ...authorizationScope(authorization, true),
     p_items: input.items,
     p_recipient_cipher: JSON.parse(recipientCipher),
     p_idempotency_key: idempotencyKey,
@@ -76,9 +81,10 @@ export async function handleCreateOrder(request: Request, env: WorkerEnv, actor:
   return json(response, { status: 201 });
 }
 
-export async function handleInternalPayment(request: Request, env: WorkerEnv, actor: Actor, orderId: string, requestId: string): Promise<Response> {
+export async function handleInternalPayment(request: Request, env: WorkerEnv, authorization: AuthorizationContext, orderId: string, requestId: string): Promise<Response> {
   if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
-  if (!can(actor, 'order:create')) {
+  const orderScope = await loadResourceScope(env, 'api_order_authorization_scope', orderId);
+  if (!orderScope || !authorize(authorization, PERMISSIONS.orderCreate, orderScope).allowed) {
     return apiError(403, 'FORBIDDEN', '没有支付订单的权限', requestId);
   }
   const idempotencyKey = request.headers.get('idempotency-key');
@@ -92,7 +98,7 @@ export async function handleInternalPayment(request: Request, env: WorkerEnv, ac
     return apiError(422, 'INVALID_PAYMENT_INPUT', '账户支付金额无效', requestId);
   }
   const response = await callRpc<Record<string, unknown>>(env, 'api_pay_internal', {
-    ...actorScope(actor, true),
+    ...authorizationScope(authorization, true),
     p_order_id: orderId,
     p_welfare_cents: input.welfareCents,
     p_meal_cents: input.mealCents,
@@ -104,9 +110,10 @@ export async function handleInternalPayment(request: Request, env: WorkerEnv, ac
   return json(response, { status: 201 });
 }
 
-export async function handleExecuteRefund(request: Request, env: WorkerEnv, actor: Actor, afterSaleId: string, requestId: string): Promise<Response> {
+export async function handleExecuteRefund(request: Request, env: WorkerEnv, authorization: AuthorizationContext, afterSaleId: string, requestId: string): Promise<Response> {
   if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
-  if (!can(actor, 'finance:refund')) {
+  const afterSaleScope = await loadResourceScope(env, 'api_after_sale_authorization_scope', afterSaleId);
+  if (!afterSaleScope || !authorize(authorization, PERMISSIONS.orderRefund, afterSaleScope).allowed) {
     return apiError(403, 'FORBIDDEN', '没有执行退款的权限', requestId);
   }
   const idempotencyKey = request.headers.get('idempotency-key');
@@ -118,8 +125,8 @@ export async function handleExecuteRefund(request: Request, env: WorkerEnv, acto
   const input = parseExecuteRefundInput(body.value);
   if (!input) return apiError(422, 'INVALID_REFUND_INPUT', '退款金额无效', requestId);
   const response = await callRpc<Record<string, unknown>>(env, 'api_execute_internal_refund', {
-    ...actorScope(actor),
-    p_operator_user_id: actor.userId,
+    ...authorizationScope(authorization),
+    p_operator_user_id: authorization.userId,
     p_after_sale_id: afterSaleId,
     p_refund_cents: input.refundCents,
     p_idempotency_key: idempotencyKey,
@@ -130,11 +137,11 @@ export async function handleExecuteRefund(request: Request, env: WorkerEnv, acto
   return json(response, { status: 201 });
 }
 
-export async function handleFinanceReconciliation(request: Request, env: WorkerEnv, actor: Actor, requestId: string): Promise<Response> {
+export async function handleFinanceReconciliation(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
-  if (!can(actor, 'finance:reconcile')) {
+  if (!can(authorization, PERMISSIONS.financeReconcile)) {
     return apiError(403, 'FORBIDDEN', '没有查看财务对账的权限', requestId);
   }
-  const report = await callRpc<Record<string, unknown>>(env, 'api_finance_reconciliation', actorScope(actor));
+  const report = await callRpc<Record<string, unknown>>(env, 'api_finance_reconciliation', authorizationScope(authorization));
   return json({ report, requestId });
 }

@@ -1,15 +1,50 @@
 hbbtzn.com, www.hbbtzn.com {
   encode gzip
-  reverse_proxy localhost:3000 {
-    header_up X-Real-IP {remote_host}
-    header_up X-Forwarded-Proto {scheme}
+
+  # 统一登录是独立前端，只挂载在 /login；员工商城根路径仍由 storefront 提供。
+  @authWeb path /login /login/*
+  handle @authWeb {
+    uri strip_prefix /login
+    reverse_proxy localhost:3010 {
+      header_up X-Real-IP {remote_host}
+      header_up X-Forwarded-Proto {scheme}
+    }
+  }
+
+  handle {
+    reverse_proxy localhost:3000 {
+      header_up X-Real-IP {remote_host}
+      header_up X-Forwarded-Proto {scheme}
+    }
   }
 }
 
 smart.hbbtzn.com {
   encode gzip
+
+  # 运营后台页面由 admin-web 服务，但身份、会话与交易 API 必须统一经过
+  # commerce-api，确保后台域签发 __Host-hbbtzn_admin_session 独立 Cookie。
+  @commerceApi path /api/health /api/v1/*
+  handle @commerceApi {
+    reverse_proxy localhost:3000 {
+      header_up X-Real-IP {remote_host}
+      header_up X-Forwarded-Proto {scheme}
+    }
+  }
+
+  # AI 请求仍由 admin-api 提供，但服务端会验证独立的后台会话，防止匿名消耗模型额度。
+  @adminAi path /api/ai/*
+  handle @adminAi {
+    reverse_proxy localhost:3001 {
+      header_up X-Real-IP {remote_host}
+      header_up X-Forwarded-Proto {scheme}
+    }
+  }
+
+  handle {
   reverse_proxy localhost:3001 {
     header_up X-Real-IP {remote_host}
     header_up X-Forwarded-Proto {scheme}
+  }
   }
 }

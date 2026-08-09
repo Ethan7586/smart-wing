@@ -1,13 +1,14 @@
 import { can } from './auth';
+import { PERMISSIONS } from '@smart-wing/api-contract';
 import { apiError, json, methodNotAllowed } from './http';
-import { actorScope, invalidBody, readJsonBody } from './routerSupport';
+import { authorizationScope, invalidBody, readJsonBody } from './routerSupport';
 import { callRpc } from './supabase';
-import type { Actor, WorkerEnv } from './types';
+import type { AuthorizationContext, WorkerEnv } from './types';
 
-export async function handleCart(request: Request, env: WorkerEnv, actor: Actor, requestId: string): Promise<Response> {
-  if (!can(actor, 'order:create')) return apiError(403, 'FORBIDDEN', '没有管理购物车的权限', requestId);
+export async function handleCart(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
+  if (!can(authorization, PERMISSIONS.orderCreate)) return apiError(403, 'FORBIDDEN', '没有管理购物车的权限', requestId);
   if (request.method === 'GET') {
-    const items = await callRpc<Array<Record<string, unknown>>>(env, 'api_cart_items', actorScope(actor, true));
+    const items = await callRpc<Array<Record<string, unknown>>>(env, 'api_cart_items', authorizationScope(authorization, true));
     return json({ items, requestId });
   }
   if (request.method !== 'PUT') return methodNotAllowed(['GET', 'PUT'], requestId);
@@ -16,7 +17,7 @@ export async function handleCart(request: Request, env: WorkerEnv, actor: Actor,
   const input = parseCartInput(body.value);
   if (!input) return apiError(422, 'INVALID_CART_INPUT', '购物车商品或数量无效', requestId);
   const result = await callRpc<Record<string, unknown>>(env, 'api_upsert_cart_item', {
-    ...actorScope(actor, true),
+    ...authorizationScope(authorization, true),
     p_sku_id: input.skuId,
     p_quantity: input.quantity,
     p_selected: input.selected,
@@ -25,10 +26,10 @@ export async function handleCart(request: Request, env: WorkerEnv, actor: Actor,
   return json(result, { status: 200 });
 }
 
-export async function handleDeleteCartItem(request: Request, env: WorkerEnv, actor: Actor, itemId: string, requestId: string): Promise<Response> {
+export async function handleDeleteCartItem(request: Request, env: WorkerEnv, authorization: AuthorizationContext, itemId: string, requestId: string): Promise<Response> {
   if (request.method !== 'DELETE') return methodNotAllowed(['DELETE'], requestId);
-  if (!can(actor, 'order:create')) return apiError(403, 'FORBIDDEN', '没有管理购物车的权限', requestId);
-  const removed = await callRpc<boolean>(env, 'api_delete_cart_item', { ...actorScope(actor, true), p_cart_item_id: itemId, p_request_id: requestId });
+  if (!can(authorization, PERMISSIONS.orderCreate)) return apiError(403, 'FORBIDDEN', '没有管理购物车的权限', requestId);
+  const removed = await callRpc<boolean>(env, 'api_delete_cart_item', { ...authorizationScope(authorization, true), p_cart_item_id: itemId, p_request_id: requestId });
   return removed ? json({ removed: true, requestId }) : apiError(404, 'CART_ITEM_NOT_FOUND', '购物车商品不存在', requestId);
 }
 

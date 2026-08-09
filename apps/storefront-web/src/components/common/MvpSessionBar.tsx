@@ -1,30 +1,54 @@
-import React, { useState } from 'react';
-import { LogIn, LogOut, ShieldCheck, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { LogIn, LogOut, ShieldCheck } from 'lucide-react';
 import { useMall } from '../../context/MallContext';
-import type { LoginCredentials } from '../../context/MallContext.types';
 
 export const MvpSessionBar: React.FC = () => {
-  const { sessionStatus, login, logout, sessionError } = useMall();
-  const [showLogin, setShowLogin] = useState(false);
-  const [loginMode, setLoginMode] = useState<'accessCode' | 'account'>('accessCode');
-  const [accessCode, setAccessCode] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const { sessionStatus, logout } = useMall();
+  const [showLoginDrawer, setShowLoginDrawer] = useState(false);
+  const [loginUrl, setLoginUrl] = useState('/login?embed=storefront');
+  const loginFrameRef = useRef<HTMLIFrameElement>(null);
 
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setSubmitting(true);
-    const credentials: LoginCredentials = loginMode === 'account' ? { username, password } : { accessCode };
-    const ok = await login(credentials);
-    setSubmitting(false);
-    if (ok) {
-      setAccessCode('');
-      setUsername('');
-      setPassword('');
-      setShowLogin(false);
+  useEffect(() => {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      setLoginUrl('http://localhost:3010/?embed=storefront');
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const handleEmbeddedLoginEvent = (event: MessageEvent) => {
+      if (event.source !== loginFrameRef.current?.contentWindow) return;
+      const expectedOrigin = new URL(loginUrl, window.location.href).origin;
+      if (event.origin !== expectedOrigin) return;
+
+      if (event.data?.type === 'smart-wing:storefront-login-complete') {
+        // 登录页已在同源 iframe 内写入 HttpOnly Cookie；刷新后由商城重新拉取会话。
+        window.location.reload();
+        return;
+      }
+
+      if (event.data?.type === 'smart-wing:close-login-drawer') {
+        setShowLoginDrawer(false);
+        return;
+      }
+
+      if (event.data?.type === 'smart-wing:admin-login-complete' && typeof event.data.redirectUrl === 'string') {
+        const redirectUrl = new URL(event.data.redirectUrl);
+        if (redirectUrl.protocol === 'https:' && redirectUrl.hostname === 'smart.hbbtzn.com') {
+          window.location.assign(redirectUrl.toString());
+        }
+      }
+    };
+    window.addEventListener('message', handleEmbeddedLoginEvent);
+    return () => window.removeEventListener('message', handleEmbeddedLoginEvent);
+  }, [loginUrl]);
+
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowLoginDrawer(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, []);
 
   if (sessionStatus === 'checking') {
     return <div className="bg-[#EAF1FF] border-b border-blue-200 text-[#143A8F] text-xs py-2 px-4 text-center">正在建立安全会话并同步商城数据…</div>;
@@ -43,85 +67,22 @@ export const MvpSessionBar: React.FC = () => {
               <LogOut className="w-3.5 h-3.5" /> 退出
             </button>
           ) : (
-            <button onClick={() => setShowLogin(true)} className="bg-[#143A8F] text-white rounded px-3 py-1.5 font-bold flex items-center gap-1">
+            <button onClick={() => setShowLoginDrawer(true)} className="bg-[#143A8F] text-white rounded px-3 py-1.5 font-bold flex items-center gap-1">
               <LogIn className="w-3.5 h-3.5" /> 登录MVP
             </button>
           )}
         </div>
       </div>
 
-      {showLogin && (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
-          <form onSubmit={submit} className="w-full max-w-sm bg-white rounded-lg shadow-2xl border border-gray-200 p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-bold text-gray-900">智慧翼MVP安全登录</h2>
-                <p className="text-[11px] text-gray-500 mt-1">当前可用“访问码”或“用户名+密码”登录。</p>
-                <div className="mt-3 flex rounded border border-gray-200 bg-gray-50 text-xs text-gray-600 overflow-hidden">
-                  <button type="button" className={`px-3 py-1.5 flex-1 ${loginMode === 'accessCode' ? 'bg-white font-bold text-[#143A8F]' : 'hover:bg-gray-100'}`} onClick={() => setLoginMode('accessCode')}>
-                    访问码登录
-                  </button>
-                  <button type="button" className={`px-3 py-1.5 flex-1 ${loginMode === 'account' ? 'bg-white font-bold text-[#143A8F]' : 'hover:bg-gray-100'}`} onClick={() => setLoginMode('account')}>
-                    账号密码登录
-                  </button>
-                </div>
-              </div>
-              <button type="button" onClick={() => setShowLogin(false)}>
-                <X className="w-5 h-5 text-gray-400" />
-              </button>
-            </div>
-            {loginMode === 'accessCode' ? (
-              <label className="block text-xs font-bold text-gray-700">
-                阶段验收访问码
-                <input
-                  autoFocus
-                  type="password"
-                  value={accessCode}
-                  onChange={(event) => setAccessCode(event.target.value)}
-                  minLength={8}
-                  maxLength={128}
-                  required
-                  autoComplete="current-password"
-                  className="mt-2 w-full border border-gray-300 rounded px-3 py-2.5 outline-none focus:border-[#1F5EFF]"
-                  placeholder="请输入雍彻科技提供的访问码"
-                />
-              </label>
-            ) : (
-              <div className="space-y-3">
-                <label className="block text-xs font-bold text-gray-700">
-                  账号
-                  <input
-                    autoFocus
-                    type="text"
-                    value={username}
-                    onChange={(event) => setUsername(event.target.value)}
-                    required
-                    autoComplete="username"
-                    className="mt-2 w-full border border-gray-300 rounded px-3 py-2.5 outline-none focus:border-[#1F5EFF]"
-                    placeholder="请输入账号（如 onewr / 李厚亿）"
-                  />
-                </label>
-                <label className="block text-xs font-bold text-gray-700">
-                  密码
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    required
-                    autoComplete="current-password"
-                    className="mt-2 w-full border border-gray-300 rounded px-3 py-2.5 outline-none focus:border-[#1F5EFF]"
-                    placeholder="请输入密码"
-                  />
-                </label>
-              </div>
-            )}
-            {sessionError && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded p-2">{sessionError}</p>}
-            <button type="submit" disabled={submitting} className="w-full bg-[#1F5EFF] disabled:bg-blue-300 text-white font-bold rounded py-2.5 text-xs">
-              {submitting ? '正在验证…' : '登录并同步账户'}
-            </button>
-          </form>
-        </div>
-      )}
+      {showLoginDrawer && <button type="button" aria-label="关闭登录" className="fixed inset-0 z-[100] cursor-default bg-slate-950/25" onClick={() => setShowLoginDrawer(false)} />}
+      <aside
+        aria-hidden={!showLoginDrawer}
+        aria-label="统一账号认证"
+        className={`fixed inset-y-0 right-0 z-[110] w-full max-w-[600px] bg-transparent transition-transform duration-700 ease-out ${showLoginDrawer ? 'translate-x-0' : 'translate-x-full'}`}
+        role={showLoginDrawer ? 'dialog' : undefined}
+      >
+        {showLoginDrawer && <iframe ref={loginFrameRef} title="智慧翼统一登录" src={loginUrl} className="h-full w-full border-0" />}
+      </aside>
     </>
   );
 };
