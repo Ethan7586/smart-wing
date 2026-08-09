@@ -26,7 +26,7 @@ function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
   if (has('catalog.read') || has('product.publish')) allowed.add('product');
   if (has('order.read') || has('order.ship')) allowed.add('order');
   if (has('tenant.manage') || has('role.grant') || has('audit.read')) allowed.add('enterprise');
-  if (has('tenant.manage') || has('product.publish')) allowed.add('supplier');
+  if (has('tenant.manage')) allowed.add('supplier');
   if (has('finance.reconcile')) allowed.add('finance');
   if (has('tenant.manage') || has('role.grant')) allowed.add('system');
   return [...allowed];

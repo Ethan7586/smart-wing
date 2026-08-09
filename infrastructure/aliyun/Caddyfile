@@ -7,14 +7,12 @@ hbbtzn.com, www.hbbtzn.com {
     uri strip_prefix /login
     reverse_proxy localhost:3010 {
       header_up X-Real-IP {remote_host}
-      header_up X-Forwarded-Proto {scheme}
     }
   }
 
   handle {
     reverse_proxy localhost:3000 {
       header_up X-Real-IP {remote_host}
-      header_up X-Forwarded-Proto {scheme}
     }
   }
 }
@@ -28,7 +26,6 @@ smart.hbbtzn.com {
   handle @commerceApi {
     reverse_proxy localhost:3000 {
       header_up X-Real-IP {remote_host}
-      header_up X-Forwarded-Proto {scheme}
     }
   }
 
@@ -37,14 +34,12 @@ smart.hbbtzn.com {
   handle @adminAi {
     reverse_proxy localhost:3001 {
       header_up X-Real-IP {remote_host}
-      header_up X-Forwarded-Proto {scheme}
     }
   }
 
   handle {
-  reverse_proxy localhost:3001 {
-    header_up X-Real-IP {remote_host}
-    header_up X-Forwarded-Proto {scheme}
-  }
+    reverse_proxy localhost:3001 {
+      header_up X-Real-IP {remote_host}
+    }
   }
 }
