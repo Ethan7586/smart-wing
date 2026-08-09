@@ -1,6 +1,6 @@
 import React from 'react';
 import { LayoutDashboard, PackageCheck, Truck, Building2, Handshake, Receipt, ShieldCheck, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
-import { WorkstationId, WorkstationMeta, AdminAccount } from '../types';
+import { WorkstationId, WorkstationMeta, AdminProfile } from '../types';
 
 interface SidebarProps {
   activeTab: WorkstationId;
@@ -14,7 +14,7 @@ interface SidebarProps {
   activeCaseCount?: number;
   onOpenCaseCenter?: () => void;
   language?: 'zh' | 'en';
-  currentUser?: AdminAccount;
+  currentUser?: AdminProfile;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({

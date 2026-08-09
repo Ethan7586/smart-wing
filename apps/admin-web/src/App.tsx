@@ -15,18 +15,18 @@ import { FinancialReconciliationWorkstation } from './components/workstations/Fi
 import { SystemControlWorkstation } from './components/workstations/SystemControlWorkstation';
 
 // Mock Datasets
-import { INITIAL_ADMIN_ACCOUNTS, INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIERS, INITIAL_CASES, INITIAL_FINANCE_DISCREPANCIES, INITIAL_SYSTEM_CONFIG } from './data/mockData';
+import { ADMIN_PROFILES, INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIERS, INITIAL_CASES, INITIAL_FINANCE_DISCREPANCIES, INITIAL_SYSTEM_CONFIG } from './data/mockData';
 
-import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStatus, FinanceDiscrepancyRow, SystemConfig, GuardrailActionOptions, AdminAccount } from './types';
+import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStatus, FinanceDiscrepancyRow, SystemConfig, GuardrailActionOptions, AdminProfile } from './types';
 
-function resolveAdminAccount(roles: unknown): AdminAccount | null {
+function resolveAdminAccount(roles: unknown): AdminProfile | null {
   if (!Array.isArray(roles)) return null;
   const roleCodes = new Set(roles.filter((role): role is string => typeof role === 'string'));
   const username = roleCodes.has('platform_owner') ? 'onewr'
     : roleCodes.has('enterprise_manager') ? '经理1'
       : roleCodes.has('role-mall-admin') ? '福宝'
         : null;
-  return username ? INITIAL_ADMIN_ACCOUNTS.find((account) => account.username === username) ?? null : null;
+  return username ? ADMIN_PROFILES.find((account) => account.username === username) ?? null : null;
 }
 
 export function App() {
@@ -39,7 +39,7 @@ export function App() {
   const [language, setLanguage] = useState<'zh' | 'en'>('zh');
 
   // Access is derived exclusively from the host-only smart.hbbtzn.com session.
-  const [currentUser, setCurrentUser] = useState<AdminAccount | null>(null);
+  const [currentUser, setCurrentUser] = useState<AdminProfile | null>(null);
   const [authChecking, setAuthChecking] = useState(true);
 
   // Application Domain State (In-Memory Mock Single Source of Truth)

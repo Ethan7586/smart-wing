@@ -1,55 +1,23 @@
-import { Enterprise, Product, Order, Supplier, SettlementStatement, ReconciliationItem, CaseItem, AuditLog, FinanceDiscrepancyRow, SystemConfig, AdminAccount } from '../types';
+import { Enterprise, Product, Order, Supplier, SettlementStatement, ReconciliationItem, CaseItem, AuditLog, FinanceDiscrepancyRow, SystemConfig, AdminProfile } from '../types';
 
-export const INITIAL_ADMIN_ACCOUNTS: AdminAccount[] = [
-  {
-    username: '业主测试员',
-    password: '123456',
-    displayName: '业主测试员',
-    role: '业主测试员',
-    permissionTags: ['购物', '浏览商品', '下单'],
-    canLoginAdmin: false,
-    canPublishProducts: false,
-    canShipOrders: false,
-  },
-  {
-    username: '测试员',
-    password: '123456',
-    displayName: '测试员',
-    role: '测试员',
-    permissionTags: ['登录查看', '购物'],
-    canLoginAdmin: false,
-    canPublishProducts: false,
-    canShipOrders: false,
-  },
+export const ADMIN_PROFILES: AdminProfile[] = [
   {
     username: '福宝',
-    password: '123456',
     displayName: '福宝',
     role: '高级商场管理员',
     permissionTags: ['商品上架', '商品发布', '仓储发货', '订单履约'],
-    canLoginAdmin: true,
-    canPublishProducts: true,
-    canShipOrders: true,
   },
   {
     username: '经理1',
-    password: '123456',
     displayName: '经理1',
     role: '运营经理',
     permissionTags: ['运营管理', '后台处理', '订单履约', '售后调度'],
-    canLoginAdmin: true,
-    canPublishProducts: true,
-    canShipOrders: true,
   },
   {
     username: 'onewr',
-    password: '123456',
     displayName: '李厚亿',
     role: 'Owner',
     permissionTags: ['全量管理', '用户管理', '商品管理', '订单履约', '上架发布', '上货发货', '支付对账', '系统配置'],
-    canLoginAdmin: true,
-    canPublishProducts: true,
-    canShipOrders: true,
   },
 ];
 

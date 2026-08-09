@@ -8,15 +8,12 @@ export interface WorkstationMeta {
   icon: string;
 }
 
-export interface AdminAccount {
+/** Presentation-only profile resolved from the server-authorized role. */
+export interface AdminProfile {
   username: string;
-  password: string;
   displayName: string;
   role: string;
   permissionTags: string[];
-  canLoginAdmin: boolean;
-  canPublishProducts: boolean;
-  canShipOrders: boolean;
 }
 
 // Product Status Lifecycle

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Search, Bell, UserCheck, Sparkles, Command, Globe } from 'lucide-react';
-import { AdminAccount } from '../types';
+import { AdminProfile } from '../types';
 
 interface HeaderProps {
   onOpenCommandPalette: () => void;
@@ -11,7 +11,7 @@ interface HeaderProps {
   activeWorkstationName?: string;
   language?: 'zh' | 'en';
   onToggleLanguage?: () => void;
-  currentUser?: AdminAccount;
+  currentUser?: AdminProfile;
   onLogout?: () => void;
 }
 
