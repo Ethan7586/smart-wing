@@ -62,6 +62,30 @@ const DEFAULT_DEMO_ACCOUNTS: readonly DemoAccount[] = [
     memberId: 'member-test-owner',
     adminMembershipId: 'membership-test-owner-admin',
   },
+  ...(['02', '03', '04', '05'] as const).map((suffix) => ({
+    username: `员工测试${suffix}`,
+    password: '123456',
+    employeeNo: `SW_SIM_E${suffix}`,
+    mallCode: 'SMART_WING_DEMO',
+    memberId: `member-sim-employee-${suffix}`,
+    storefrontMembershipId: `membership-sim-employee-${suffix}`,
+  })),
+  {
+    username: '管理员测试04',
+    password: '123456',
+    employeeNo: 'SW_SIM_A04',
+    mallCode: 'SMART_WING_DEMO',
+    memberId: 'member-sim-admin-04',
+    adminMembershipId: 'membership-sim-admin-04',
+  },
+  {
+    username: '管理员测试05',
+    password: '123456',
+    employeeNo: 'SW_SIM_A05',
+    mallCode: 'SMART_WING_DEMO',
+    memberId: 'member-sim-admin-05',
+    adminMembershipId: 'membership-sim-admin-05',
+  },
 ];
 
 export function getDemoAccounts(env: WorkerEnv): readonly DemoAccount[] {

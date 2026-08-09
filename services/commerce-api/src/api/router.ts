@@ -7,6 +7,7 @@ import { handleAfterSales, handleCreateAfterSale, handleCreateOrder, handleExecu
 import { handleAdminCatalog, handleAdminOverview, handleSetProductStatus } from './adminRoutes';
 import { handleHealth, handleLogin, handleLogout, handleProducts } from './publicRoutes';
 import { handleHomeSnapshot } from './homeRoutes';
+import { handleSimulationBenefitIssue, handleSimulationMixedPayment, handleSimulationRecharge, handleSimulationWallet } from './paymentSimulationRoutes';
 import type { WorkerEnv } from './types';
 
 const API_PREFIX = '/api/v1';
@@ -62,6 +63,15 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     if (url.pathname === `${API_PREFIX}/account-ledgers`) {
       return await handleAccountLedgers(request, env, authorization, requestId);
     }
+    if (url.pathname === `${API_PREFIX}/simulation/wallet`) {
+      return await handleSimulationWallet(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/simulation/recharges`) {
+      return await handleSimulationRecharge(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/simulation/benefits`) {
+      return await handleSimulationBenefitIssue(request, env, authorization, requestId);
+    }
     if (url.pathname === `${API_PREFIX}/after-sales`) {
       return request.method === 'POST' ? await handleCreateAfterSale(request, env, authorization, requestId) : await handleAfterSales(request, env, authorization, requestId);
     }
@@ -88,6 +98,10 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     const paymentMatch = url.pathname.match(/^\/api\/v1\/orders\/([^/]+)\/payments\/internal$/);
     if (paymentMatch) {
       return await handleInternalPayment(request, env, authorization, decodeURIComponent(paymentMatch[1]), requestId);
+    }
+    const simulatedPaymentMatch = url.pathname.match(/^\/api\/v1\/orders\/([^/]+)\/payments\/simulated$/);
+    if (simulatedPaymentMatch) {
+      return await handleSimulationMixedPayment(request, env, authorization, decodeURIComponent(simulatedPaymentMatch[1]), requestId);
     }
     const shipMatch = url.pathname.match(/^\/api\/v1\/orders\/([^/]+)\/ship$/);
     if (shipMatch) {
