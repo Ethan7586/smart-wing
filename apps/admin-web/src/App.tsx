@@ -175,10 +175,12 @@ export function App() {
   const visibleWorkstation = allowedWorkstations.includes(activeWorkstation) ? activeWorkstation : 'cockpit';
 
   // Counts for Header badges
+  // In the live workstations, badges must be derived from the scoped API payload.
+  // The remaining mock-only workstations never contribute production-looking counts.
   const pendingOrdersCount = orders.filter((o) => o.isProblematic).length;
   const unclassifiedProductsCount = products.filter((p) => p.status === '待分类审核').length;
-  const warningEnterprisesCount = enterprises.filter((e) => e.status === '已预警').length;
-  const activeCasesCount = cases.filter((c) => c.status !== '关闭' && c.status !== '复盘').length;
+  const warningEnterprisesCount = isLiveCatalog ? 0 : enterprises.filter((e) => e.status === '已预警').length;
+  const activeCasesCount = isLiveCatalog ? pendingOrdersCount : cases.filter((c) => c.status !== '关闭' && c.status !== '复盘').length;
 
   const isEn = language === 'en';
 
@@ -238,9 +240,7 @@ export function App() {
 
         {/* 3. Main Workstation Area */}
         <main className="flex-1 overflow-y-auto bg-[#f8fafc]">
-          {visibleWorkstation === 'cockpit' && (
-            <CockpitWorkstation orders={orders} products={products} enterprises={enterprises} liveOperations={liveOperations} onNavigateToWorkstation={handleNavigateToWorkstation} onOpenGuardrail={handleOpenGuardrail} language={language} />
-          )}
+          {visibleWorkstation === 'cockpit' && <CockpitWorkstation orders={orders} products={products} enterprises={enterprises} liveOperations={liveOperations} onNavigateToWorkstation={handleNavigateToWorkstation} language={language} />}
 
           {visibleWorkstation === 'product' && (
             <ProductGovernanceWorkstation
@@ -285,7 +285,7 @@ export function App() {
               <span className="w-1.5 h-1.5 rounded-full bg-[#15a46b]"></span>
               {isEn ? 'Secure Connection' : '安全连接中'}
             </span>
-            <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">{isEn ? 'Gemini API L1 Authorized' : 'Gemini API L1 授权模式'}</span>
+            <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">{isEn ? 'AI calls require server authorisation' : 'AI 调用需服务端授权'}</span>
           </div>
         </footer>
       </div>
