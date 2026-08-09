@@ -82,12 +82,11 @@ export function useProductionSync(setters: ProductionSyncSetters) {
         }
       })
       .catch(() => undefined);
-    void productionApi
-      .getSession()
-      .then(async () => {
-        if (!active) return;
-        setters.setSessionStatus('authenticated');
-        await refreshProductionData();
+    // /home is both the authorization check and the initial data snapshot.
+    // Avoid a separate /auth/session round trip before loading the page.
+    void refreshProductionData()
+      .then(() => {
+        if (active) setters.setSessionStatus('authenticated');
       })
       .catch(() => {
         if (active) setters.setSessionStatus('guest');

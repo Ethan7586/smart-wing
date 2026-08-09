@@ -49,8 +49,14 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
   useEffect(() => {
     if (sessionStatus !== 'authenticated') return;
-    void refreshServerCart().catch(() => showToast('购物车同步失败，请稍后重试', 'error'));
-    void refreshServerAddresses().catch(() => showToast('地址簿同步失败，请稍后重试', 'error'));
+    // Cart and addresses are non-critical for the first view. Defer their
+    // network work until the storefront is interactive instead of delaying a
+    // refresh behind two more cross-region authorization round trips.
+    const timer = window.setTimeout(() => {
+      void refreshServerCart().catch(() => showToast('购物车同步失败，请稍后重试', 'error'));
+      void refreshServerAddresses().catch(() => showToast('地址簿同步失败，请稍后重试', 'error'));
+    }, 1_500);
+    return () => window.clearTimeout(timer);
   }, [sessionStatus, refreshServerCart, refreshServerAddresses, showToast]);
   const refreshUserData = () => {
     if (sessionStatus === 'authenticated') {
