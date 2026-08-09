@@ -2,6 +2,7 @@
 -- idempotent, and leaves immutable authorization evidence in audit_logs.
 
 drop function if exists public.api_admin_catalog(text, text);
+drop function if exists public.api_admin_catalog(text, text, integer);
 
 create function public.api_admin_catalog(p_tenant_id text, p_mall_id text, p_limit integer default 100)
 returns jsonb
@@ -61,6 +62,19 @@ as $$
     ), '[]'::jsonb)
   ) order by o.created_at desc), '[]'::jsonb)
   from public.orders o
+  where o.tenant_id = p_tenant_id and o.enterprise_id = p_enterprise_id and o.mall_id = p_mall_id
+    and (p_user_id is null or o.user_id = p_user_id);
+$$;
+
+create or replace function public.api_after_sale_count_scoped(
+  p_tenant_id text, p_enterprise_id text, p_mall_id text, p_user_id text default null
+)
+returns bigint
+language sql stable security definer set search_path = public, pg_temp
+as $$
+  select count(*)
+  from public.after_sales a
+  join public.orders o on o.id = a.order_id
   where o.tenant_id = p_tenant_id and o.enterprise_id = p_enterprise_id and o.mall_id = p_mall_id
     and (p_user_id is null or o.user_id = p_user_id);
 $$;
@@ -139,11 +153,13 @@ $$;
 
 revoke all on function public.api_admin_catalog(text, text, integer) from public, anon, authenticated;
 revoke all on function public.api_order_views_scoped(text, text, text, text) from public, anon, authenticated;
+revoke all on function public.api_after_sale_count_scoped(text, text, text, text) from public, anon, authenticated;
 revoke all on function public.api_product_authorization_scope(text) from public, anon, authenticated;
 revoke all on function public.api_set_product_status(text, text, text, text, text, text, text, text, text, text, jsonb) from public, anon, authenticated;
 revoke all on function public.api_ship_order(text, text, text, text, text, text, text, text, text, text, jsonb) from public, anon, authenticated;
 grant execute on function public.api_admin_catalog(text, text, integer) to service_role;
 grant execute on function public.api_order_views_scoped(text, text, text, text) to service_role;
+grant execute on function public.api_after_sale_count_scoped(text, text, text, text) to service_role;
 grant execute on function public.api_product_authorization_scope(text) to service_role;
 grant execute on function public.api_set_product_status(text, text, text, text, text, text, text, text, text, text, jsonb) to service_role;
 grant execute on function public.api_ship_order(text, text, text, text, text, text, text, text, text, text, jsonb) to service_role;

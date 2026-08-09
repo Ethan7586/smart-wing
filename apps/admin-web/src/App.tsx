@@ -4,7 +4,7 @@ import { Header } from './components/Header';
 import { GuardrailModal } from './components/GuardrailModal';
 import { CaseCenterDrawer } from './components/CaseCenterDrawer';
 import { CommandPaletteModal } from './components/CommandPaletteModal';
-import { loadLiveOperations, setLiveProductStatus, shipLiveOrder, type LiveOperationsSummary } from './services/catalog';
+import { loadAdminOverview, setLiveProductStatus, shipLiveOrder, type LiveOperationsSummary } from './services/catalog';
 
 // Workstations
 import { CockpitWorkstation } from './components/workstations/CockpitWorkstation';
@@ -87,28 +87,18 @@ export function App() {
 
   useEffect(() => {
     let active = true;
-    void fetch('/api/v1/auth/session', { credentials: 'same-origin' })
-      .then(async (response) => (response.ok ? response.json() : null))
+    void loadAdminOverview()
       .then((payload) => {
         if (!active) return;
         const user = payload?.authenticated && payload?.authorization?.target === 'admin' ? resolveAdminAccount(payload.authorization.roles) : null;
         if (user) {
           setCurrentUser(user);
           setSessionPermissions(Array.isArray(payload?.authorization?.permissions) ? payload.authorization.permissions.filter((permission: unknown): permission is string => typeof permission === 'string') : []);
-          void loadLiveOperations()
-            .then(({ products: catalog, orders: liveOrders, summary }) => {
-              if (!active) return;
-              setProducts(catalog);
-              setOrders(liveOrders);
-              setLiveOperations(summary);
-              setIsLiveCatalog(true);
-            })
-            .catch(() => {
-              if (active) setIsLiveCatalog(false);
-            })
-            .finally(() => {
-              if (active) setAuthChecking(false);
-            });
+          setProducts(payload.products);
+          setOrders(payload.orders);
+          setLiveOperations(payload.summary);
+          setIsLiveCatalog(true);
+          setAuthChecking(false);
           return;
         }
         window.location.replace('https://hbbtzn.com/login/?target=admin');

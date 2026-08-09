@@ -17,6 +17,35 @@ export async function handleAdminCatalog(request: Request, env: WorkerEnv, autho
   return json({ items, requestId });
 }
 
+/** Session proof and first-paint dashboard data are returned together to avoid serial cross-region requests. */
+export async function handleAdminOverview(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
+  if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
+  if (authorization.membership.target !== 'admin') return apiError(403, 'FORBIDDEN', '该身份不能访问运营后台', requestId);
+  if (!authorize(authorization, PERMISSIONS.catalogRead).allowed || !authorize(authorization, PERMISSIONS.orderRead).allowed) {
+    return apiError(403, 'FORBIDDEN', '该身份缺少后台概览权限', requestId);
+  }
+  const broadScope = authorization.membership.scopeBindings.some((binding) => binding.kind !== 'self');
+  const scopedOrderParams = { ...authorizationScope(authorization), p_user_id: broadScope ? null : authorization.userId };
+  const [products, orders, afterSaleCount] = await Promise.all([
+    callRpc<Array<Record<string, unknown>>>(env, 'api_admin_catalog', { p_tenant_id: authorization.tenantId, p_mall_id: authorization.mallId, p_limit: 100 }),
+    callRpc<Array<Record<string, unknown>>>(env, 'api_order_views_scoped', scopedOrderParams),
+    callRpc<number>(env, 'api_after_sale_count_scoped', scopedOrderParams),
+  ]);
+  return json({
+    authenticated: true,
+    authorization: { memberId: authorization.membership.memberId, membershipId: authorization.membership.id, target: authorization.membership.target, roles: authorization.roles, permissions: authorization.permissions },
+    products,
+    orders,
+    summary: {
+      catalogCount: products.length,
+      availableStock: products.reduce((total, product) => total + (typeof product.availableStock === 'number' ? product.availableStock : 0), 0),
+      orderCount: orders.length,
+      afterSaleCount,
+    },
+    requestId,
+  });
+}
+
 export async function handleSetProductStatus(request: Request, env: WorkerEnv, authorization: AuthorizationContext, productId: string, requestId: string): Promise<Response> {
   if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
   const scope = await loadResourceScope(env, 'api_product_authorization_scope', productId);

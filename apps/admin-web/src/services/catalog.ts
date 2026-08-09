@@ -171,22 +171,34 @@ export async function shipLiveOrder(orderId: string): Promise<void> {
   if (!response.ok) throw new Error(`ORDER_SHIP_REQUEST_FAILED_${response.status}`);
 }
 
-/** Minimal real-time dashboard facts; intentionally avoids copying customer PII into the cockpit. */
-export async function loadLiveOperations(): Promise<{ products: Product[]; orders: Order[]; summary: LiveOperationsSummary }> {
-  const [products, ordersResponse, afterSalesResponse] = await Promise.all([loadLiveCatalog(), fetch('/api/v1/orders', { credentials: 'same-origin' }), fetch('/api/v1/after-sales', { credentials: 'same-origin' })]);
-  if (!ordersResponse.ok || !afterSalesResponse.ok) {
-    throw new Error(`OPERATIONS_REQUEST_FAILED_${ordersResponse.status}_${afterSalesResponse.status}`);
-  }
-  const orders = (await ordersResponse.json()) as { items?: unknown };
-  const afterSales = (await afterSalesResponse.json()) as { items?: unknown };
+export interface AdminOverview {
+  authenticated: boolean;
+  authorization: { target?: unknown; roles?: unknown; permissions?: unknown };
+  products: Product[];
+  orders: Order[];
+  summary: LiveOperationsSummary;
+}
+
+/** One protected request gives the admin app its session projection and first-paint facts. */
+export async function loadAdminOverview(): Promise<AdminOverview> {
+  const response = await fetch('/api/v1/admin/overview', { credentials: 'same-origin' });
+  if (!response.ok) throw new Error(`ADMIN_OVERVIEW_REQUEST_FAILED_${response.status}`);
+  const payload = (await response.json()) as { authenticated?: unknown; authorization?: AdminOverview['authorization']; products?: unknown; orders?: unknown; summary?: Partial<LiveOperationsSummary> };
+  const products = Array.isArray(payload.products) ? payload.products.filter((item): item is CatalogItem => typeof item === 'object' && item !== null).map(toAdminProduct) : [];
+  const orders = Array.isArray(payload.orders) ? payload.orders.filter((item): item is ApiOrder => typeof item === 'object' && item !== null).map(toAdminOrder) : [];
   return {
+    authenticated: payload.authenticated === true,
+    authorization: payload.authorization ?? {},
     products,
-    orders: Array.isArray(orders.items) ? orders.items.filter((item): item is ApiOrder => typeof item === 'object' && item !== null).map(toAdminOrder) : [],
+    orders,
     summary: {
-      catalogCount: products.length,
-      availableStock: products.reduce((total, product) => total + product.stock, 0),
-      orderCount: Array.isArray(orders.items) ? orders.items.length : 0,
-      afterSaleCount: Array.isArray(afterSales.items) ? afterSales.items.length : 0,
+      catalogCount: number(payload.summary?.catalogCount, products.length),
+      availableStock: number(
+        payload.summary?.availableStock,
+        products.reduce((total, product) => total + product.stock, 0)
+      ),
+      orderCount: number(payload.summary?.orderCount, orders.length),
+      afterSaleCount: number(payload.summary?.afterSaleCount),
     },
   };
 }
