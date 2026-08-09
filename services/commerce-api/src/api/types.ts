@@ -8,6 +8,8 @@ export interface WorkerEnv {
   AUTH_MODE?: string;
   PII_ENCRYPTION_KEY?: string;
   SESSION_SIGNING_KEY?: string;
+  /** Separate signing key for smart.hbbtzn.com sessions. */
+  ADMIN_SESSION_SIGNING_KEY?: string;
   DEMO_LOGIN_CODE?: string;
   DEMO_USER_CREDENTIALS?: string;
   DEMO_FALLBACK_EMPLOYEE_NO?: string;

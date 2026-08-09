@@ -18,6 +18,16 @@ const stepUpFailureMap: Record<string, FailureRecord> = {};
 // 模拟审计日志
 const auditLogs: Array<{ timestamp: string; identifier: string; reason: string }> = [];
 
+function requireMockMode(): void {
+  if (import.meta.env.VITE_AUTH_MODE !== 'mock') {
+    throw new Error('统一登录服务尚未接入；生产环境不能使用演示认证。');
+  }
+}
+
+function demoOpaqueValue(prefix: string): string {
+  return `${prefix}_${crypto.randomUUID()}`;
+}
+
 // 模拟不同场景的预设会员关系数据集
 const MOCK_MEMBERSHIPS_MAP: Record<string, Membership[]> = {
   // 13800138000: 综合多身份账号（混合员工与管理身份）
@@ -209,6 +219,7 @@ export async function reportLoginFailure(identifier: string, reason: string): Pr
  * 1. 发送短信验证码
  */
 export async function requestOtp(phone: string): Promise<{ success: boolean; message: string }> {
+  requireMockMode();
   // 校验手机号格式
   const cleanPhone = phone.trim();
   if (!/^1[3-9]\d{9}$/.test(cleanPhone)) {
@@ -233,6 +244,7 @@ export async function requestOtp(phone: string): Promise<{ success: boolean; mes
  * 2. 手机号 + 短信验证码登录
  */
 export async function loginWithOtp(phone: string, code: string): Promise<PreAuthContext> {
+  requireMockMode();
   const cleanPhone = phone.trim();
   const cleanCode = code.trim();
 
@@ -257,7 +269,7 @@ export async function loginWithOtp(phone: string, code: string): Promise<PreAuth
   const memberships = MOCK_MEMBERSHIPS_MAP[cleanPhone] ?? [];
 
   return {
-    preAuthToken: `PAT_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    preAuthToken: demoOpaqueValue('PAT'),
     phone: cleanPhone,
     loginMethod: 'otp',
     requiresPasswordReset: cleanPhone === '13400134000',
@@ -269,6 +281,7 @@ export async function loginWithOtp(phone: string, code: string): Promise<PreAuth
  * 3. 工号/邮箱 + 密码登录
  */
 export async function loginWithPassword(identifier: string, password: string): Promise<PreAuthContext> {
+  requireMockMode();
   const cleanId = identifier.trim();
   const cleanPw = password.trim();
 
@@ -300,7 +313,7 @@ export async function loginWithPassword(identifier: string, password: string): P
   const memberships = MOCK_MEMBERSHIPS_MAP[cleanId] ?? [];
 
   return {
-    preAuthToken: `PAT_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    preAuthToken: demoOpaqueValue('PAT'),
     identifier: cleanId,
     loginMethod: 'password',
     requiresPasswordReset: cleanId === '13400134000' || cleanId === 'force_user',
@@ -312,6 +325,7 @@ export async function loginWithPassword(identifier: string, password: string): P
  * 4. 接受邀请 API
  */
 export async function acceptInvitation(preAuthToken: string, membershipId: string): Promise<Membership[]> {
+  requireMockMode();
   await new Promise((resolve) => setTimeout(resolve, 500));
   // 模拟将 invited 改为 active
   return [];
@@ -321,6 +335,7 @@ export async function acceptInvitation(preAuthToken: string, membershipId: strin
  * 5. Step-Up 动态二次验证 (TOTP 6位)
  */
 export async function verifyStepUp(preAuthToken: string, membershipId: string, totpCode: string): Promise<StepUpVerifyResult> {
+  requireMockMode();
   const cleanCode = totpCode.trim();
 
   if (!/^\d{6}$/.test(cleanCode)) {
@@ -344,7 +359,7 @@ export async function verifyStepUp(preAuthToken: string, membershipId: string, t
   }
 
   // 产生一次性高权限票据 Ticket
-  const ticket = `TICKET_SMART_${Date.now()}_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+  const ticket = demoOpaqueValue('TICKET_SMART');
 
   return {
     ticket,
@@ -357,7 +372,8 @@ export async function verifyStepUp(preAuthToken: string, membershipId: string, t
 /**
  * 6. 一次性票据兑换（运营后台 smart.hbbtzn.com 回调处理）
  */
-export async function exchangeTicket(ticket: string): Promise<{ success: boolean; sessionInfo: any }> {
+export async function exchangeTicket(ticket: string): Promise<{ success: boolean; sessionInfo: { userId: string; role: string; domain: string; issuedAt: string } }> {
+  requireMockMode();
   await new Promise((resolve) => setTimeout(resolve, 600));
 
   if (!ticket || !ticket.startsWith('TICKET_SMART_')) {
@@ -379,6 +395,7 @@ export async function exchangeTicket(ticket: string): Promise<{ success: boolean
  * 7. 修改密码预留接口
  */
 export async function updatePassword(preAuthToken: string, oldPw: string, newPw: string): Promise<boolean> {
+  requireMockMode();
   await new Promise((resolve) => setTimeout(resolve, 600));
   if (newPw.length < 8) {
     throw new Error('新密码长度不能少于8位');

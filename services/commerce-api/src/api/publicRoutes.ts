@@ -119,7 +119,7 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
 
 export async function handleLogout(request: Request, requestId: string): Promise<Response> {
   if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
-  return json({ authenticated: false, requestId }, { headers: { 'set-cookie': clearSessionCookie() } });
+  return json({ authenticated: false, requestId }, { headers: { 'set-cookie': clearSessionCookie(request) } });
 }
 
 export async function handleProducts(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
