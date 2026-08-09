@@ -1,0 +1,9 @@
+:root {
+  --sw-brand: #1f5eff;
+  --sw-brand-dark: #143a8f;
+  --sw-surface: #ffffff;
+  --sw-text: #172033;
+  --sw-muted: #64748b;
+  --sw-danger: #dc2626;
+  --sw-radius: 0.375rem;
+}

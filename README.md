@@ -1,24 +1,23 @@
-# 智慧翼企业福利商城
+# Smart Wing Monorepo
 
-雍彻科技（YONGCHE TECH）建设的企业福利商城生产型 MVP。
+| 目录                        | 职责                                             |
+| --------------------------- | ------------------------------------------------ |
+| `apps/storefront-web`       | `hbbtzn.com` 员工福利商城前端与同源 API 适配入口 |
+| `apps/admin-web`            | `smart.hbbtzn.com` 运营后台前端                  |
+| `services/commerce-api`     | 商城 API、会话、订单、账户与后台 AI 服务端代码   |
+| `packages/api-contract`     | 前后端共享接口与会员关系类型                     |
+| `packages/authz`            | 会员状态、权限与数据范围规则                     |
+| `packages/design-system`    | 两端共用设计令牌                                 |
+| `database/supabase`         | Supabase 迁移、RPC、审计基线                     |
+| `infrastructure/aliyun`     | Caddy、PM2、部署说明                             |
+| `infrastructure/cloudflare` | DNS/边缘职责说明                                 |
 
-当前版本具备受控登录、企业/商城/员工数据隔离、生产商品目录、福利卡与餐卡、主子订单、内部账户组合支付、账户流水、售后工单、审计日志和验收控制台。数据库部署在 Supabase 东京区域，浏览器不接触数据库管理密钥。
-
-## 本地运行
+## 常用命令
 
 ```bash
 npm install
-npm run dev
+npm run quality
+npm run verify:p0
 ```
 
-服务端环境变量参考 `.env.example`。生产密钥只配置在托管平台，不提交到 Git。
-
-## 质量检查
-
-```bash
-npm run lint
-npm test
-npm run build
-```
-
-完整边界、接口与验收说明见 `docs/生产型MVP开发说明.md`。
+生产部署只使用 `infrastructure/aliyun/deploy.sh`。密钥仅保存在服务器 `/opt/smart-wing/.env.production`，不提交 Git。

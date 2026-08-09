@@ -1,38 +1,34 @@
-# 智慧翼企业福利商城架构基线
+# Smart Wing 单仓架构
 
-架构版本：v1.0  
-技术服务方：雍彻科技（YONGCHE TECH）  
-更新日期：2026-07-24
+## 运行拓扑
 
-## 架构入口
+```text
+hbbtzn.com ──────────────► smart-wing-storefront (3000)
+                               ├─ apps/storefront-web
+                               └─ services/commerce-api/src/api
 
-商城 PC 端页脚提供“系统 Canvas 架构图”入口，也可通过应用内路由
-`#/architecture` 打开。图形由原生 Canvas 实时绘制，支持点击节点查看职责。
+smart.hbbtzn.com ────────► smart-wing-admin-api (3001)
+                               ├─ apps/admin-web
+                               └─ services/commerce-api/src/adminServer.ts
 
-## 四层结构
+services/commerce-api ───► Supabase PostgreSQL
+database/supabase ───────► migrations / RPC / audit baseline
+```
 
-1. 终端体验层：PC、13/14 寸笔记本、微信小程序、Android 与平板端。
-2. 边缘接入与安全层：Cloudflare CDN、API Worker、会话、RBAC 与租户范围。
-3. 核心业务服务层：商品、订单、福利账户、售后和供应商适配。
-4. 数据与治理层：Supabase PostgreSQL、RLS、审计流水和 PII 加密。
+## 目录职责
 
-## 代码模块
+- `apps/storefront-web`：员工商城页面与同源 API 入口；浏览器只访问 `/api`，不接触数据库密钥。
+- `apps/admin-web`：运营后台页面；不包含 Express、数据库或 AI 密钥。
+- `services/commerce-api`：唯一的服务端业务目录，包含商城 API、会话、订单、账户和后台 AI API。
+- `packages/api-contract`：Member、Membership、接口错误等共享类型。
+- `packages/authz`：会员状态、权限和范围的纯规则函数；服务端实际鉴权应由此扩展。
+- `packages/design-system`：跨商城与后台使用的视觉令牌。
+- `database/supabase`：唯一数据库演进来源。已应用迁移不可修改，只能新增。
+- `infrastructure/aliyun`：两域名的 Caddy、两项 PM2 进程及发布脚本。
+- `infrastructure/cloudflare`：DNS 与边缘职责，不持有 ECS 密钥。
 
-- `src/screens`：页面编排，只组合业务组件。
-- `src/features`：按商品、结算、架构图及各设备端划分的业务功能。
-- `src/components`：跨页面复用的展示与交互组件。
-- `src/context`：全局状态、设备导航与生产数据同步。
-- `src/services`：商城状态、目录购物车、订单和生产 API。
-- `worker/api`：边缘 API 的公开、账户、订单路由与通用校验。
-- `supabase/migrations`：数据库结构、RPC、RLS 和审计基线。
+## 当前边界
 
-## 300 行工程约束
+商城 API 为同源 BFF，暂不新增独立 `api.hbbtzn.com`。这避免了不必要的 CORS 和跨子域会话风险；统一登录实施时，前后台仍必须按域签发 host-only Cookie。
 
-`npm run check:lines` 会检查所有可维护源码；任何文件达到 300 行即失败。
-以下内容属于生成或不可变制品，不执行拆分：
-
-- `package-lock.json` 等依赖锁文件；
-- Supabase 自动生成配置；
-- 已经应用的 Supabase / Drizzle 历史迁移。
-
-历史迁移必须保持原样，后续数据库变更通过新增迁移实现，不能为了行数修改已上线历史。
+`apps/admin-web` 由旧项目导入，8 个超长遗留文件暂列在行数门禁例外清单中。它们不属于新代码，后续按工作台拆分后再移出例外。

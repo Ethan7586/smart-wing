@@ -1,0 +1,7 @@
+{
+  "name": "@smart-wing/api-contract",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "types": "./src/index.ts"
+}
