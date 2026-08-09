@@ -36,6 +36,12 @@ export interface ToastMessage {
   text: string;
 }
 
+export interface LoginCredentials {
+  accessCode?: string;
+  username?: string;
+  password?: string;
+}
+
 export interface MallContextType {
   appMode: AppMode;
   setAppMode: (mode: AppMode) => void;
@@ -72,7 +78,7 @@ export interface MallContextType {
   accountLogs: AccountLog[];
   sessionStatus: SessionStatus;
   sessionError: string | null;
-  login: (accessCode: string) => Promise<boolean>;
+  login: (credentials: LoginCredentials) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshProductionData: () => Promise<void>;
   isSubmittingOrder: boolean;

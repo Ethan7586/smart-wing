@@ -1,20 +1,27 @@
 import React, { useState } from 'react';
 import { LogIn, LogOut, ShieldCheck, X } from 'lucide-react';
 import { useMall } from '../../context/MallContext';
+import type { LoginCredentials } from '../../context/MallContext.types';
 
 export const MvpSessionBar: React.FC = () => {
   const { sessionStatus, login, logout, sessionError } = useMall();
   const [showLogin, setShowLogin] = useState(false);
+  const [loginMode, setLoginMode] = useState<'accessCode' | 'account'>('accessCode');
   const [accessCode, setAccessCode] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSubmitting(true);
-    const ok = await login(accessCode);
+    const credentials: LoginCredentials = loginMode === 'account' ? { username, password } : { accessCode };
+    const ok = await login(credentials);
     setSubmitting(false);
     if (ok) {
       setAccessCode('');
+      setUsername('');
+      setPassword('');
       setShowLogin(false);
     }
   };
@@ -49,27 +56,65 @@ export const MvpSessionBar: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="font-bold text-gray-900">智慧翼MVP安全登录</h2>
-                <p className="text-[11px] text-gray-500 mt-1">当前使用阶段验收访问码，正式版将替换为企业SSO。</p>
+                <p className="text-[11px] text-gray-500 mt-1">当前可用“访问码”或“用户名+密码”登录。</p>
+                <div className="mt-3 flex rounded border border-gray-200 bg-gray-50 text-xs text-gray-600 overflow-hidden">
+                  <button type="button" className={`px-3 py-1.5 flex-1 ${loginMode === 'accessCode' ? 'bg-white font-bold text-[#143A8F]' : 'hover:bg-gray-100'}`} onClick={() => setLoginMode('accessCode')}>
+                    访问码登录
+                  </button>
+                  <button type="button" className={`px-3 py-1.5 flex-1 ${loginMode === 'account' ? 'bg-white font-bold text-[#143A8F]' : 'hover:bg-gray-100'}`} onClick={() => setLoginMode('account')}>
+                    账号密码登录
+                  </button>
+                </div>
               </div>
               <button type="button" onClick={() => setShowLogin(false)}>
                 <X className="w-5 h-5 text-gray-400" />
               </button>
             </div>
-            <label className="block text-xs font-bold text-gray-700">
-              阶段验收访问码
-              <input
-                autoFocus
-                type="password"
-                value={accessCode}
-                onChange={(event) => setAccessCode(event.target.value)}
-                minLength={8}
-                maxLength={128}
-                required
-                autoComplete="current-password"
-                className="mt-2 w-full border border-gray-300 rounded px-3 py-2.5 outline-none focus:border-[#1F5EFF]"
-                placeholder="请输入雍彻科技提供的访问码"
-              />
-            </label>
+            {loginMode === 'accessCode' ? (
+              <label className="block text-xs font-bold text-gray-700">
+                阶段验收访问码
+                <input
+                  autoFocus
+                  type="password"
+                  value={accessCode}
+                  onChange={(event) => setAccessCode(event.target.value)}
+                  minLength={8}
+                  maxLength={128}
+                  required
+                  autoComplete="current-password"
+                  className="mt-2 w-full border border-gray-300 rounded px-3 py-2.5 outline-none focus:border-[#1F5EFF]"
+                  placeholder="请输入雍彻科技提供的访问码"
+                />
+              </label>
+            ) : (
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-gray-700">
+                  账号
+                  <input
+                    autoFocus
+                    type="text"
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    required
+                    autoComplete="username"
+                    className="mt-2 w-full border border-gray-300 rounded px-3 py-2.5 outline-none focus:border-[#1F5EFF]"
+                    placeholder="请输入账号（如 onewr / 李厚亿）"
+                  />
+                </label>
+                <label className="block text-xs font-bold text-gray-700">
+                  密码
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                    autoComplete="current-password"
+                    className="mt-2 w-full border border-gray-300 rounded px-3 py-2.5 outline-none focus:border-[#1F5EFF]"
+                    placeholder="请输入密码"
+                  />
+                </label>
+              </div>
+            )}
             {sessionError && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded p-2">{sessionError}</p>}
             <button type="submit" disabled={submitting} className="w-full bg-[#1F5EFF] disabled:bg-blue-300 text-white font-bold rounded py-2.5 text-xs">
               {submitting ? '正在验证…' : '登录并同步账户'}

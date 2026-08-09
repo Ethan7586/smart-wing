@@ -1,5 +1,20 @@
 # hbbtzn.com 阿里云部署指南
 
+> 📌 **关于文中的 `zhudatuan` 命名（2026-08-09 说明）**
+>
+> 域名早期为 `zhudatuan.com`，现已弃用；**现行域名是 `hbbtzn.com`（商城前台 + 业务 API）
+> 与 `smart.hbbtzn.com`（运营后台）**。
+>
+> 但文中的 `/opt/zhudatuan`、pm2 应用名 `zhudatuan`、`zhudatuan.service`、
+> `/var/log/pm2/zhudatuan-*.log` **不是域名，而是阿里云服务器上正在使用的真实命名**，
+> 保持原样是为了让本文档与线上状态一致。**请照抄执行，不要自行改成 hbbtzn**，
+> 否则会指向不存在的目录和服务。若要统一改名，须先在服务器上完成迁移（停 pm2 →
+> 改目录 → 重装 systemd unit → 改日志路径），再同步更新本文档。
+>
+> 另：原 `deploy/nginx.conf` 与 `deploy/deploy-aliyun.sh` 已于 2026-08-09 删除 ——
+> 它们描述的是被 Caddy 取代的旧方案（`/var/www` 路径 + nginx + 独立 Cloudflare Worker），
+> 与当前实际部署矛盾。现行方案以本文档与 `deploy/Caddyfile` 为准。
+
 > 目标：将 Smart Wing（智慧翼企业福利商城）部署到阿里云，绑定域名 hbbtzn.com
 > 架构：单一部署目标——前端 SSR 与 API 是同一个 Node 进程（`vinext start`），
 > Caddy 只做反向代理 + 自动 HTTPS，不再拆分到独立的 Cloudflare Worker。
@@ -200,7 +215,7 @@ curl -I http://localhost:3000
 | 502 Bad Gateway                    | Node 进程未启动，检查 `pm2 status` / `pm2 logs` |
 | API 500，`SUPABASE_NOT_CONFIGURED` | `.env.production` 未创建或密钥缺失              |
 | 证书签发失败                       | 确认域名已解析到本机、80/443 端口可从公网访问   |
-| 域名不生效                         | `dig hbbtzn.com` 查看 DNS 是否指向服务器 IP  |
+| 域名不生效                         | `dig hbbtzn.com` 查看 DNS 是否指向服务器 IP     |
 
 ---
 

@@ -1,5 +1,32 @@
 # Smart Wing 智慧翼企业福利商城 —— 完整代码报告（重写/续写交接版）
 
+> ⚠️ **本报告部分内容已过期（2026-08-09 复核后标注）**
+>
+> **1. 域名全部变更。** 文中所有 `zhudatuan.com` 均已弃用。现行：
+> 商城前台与业务 API `https://hbbtzn.com`（实测 health `ok`）；运营后台 `https://smart.hbbtzn.com`
+> （独立静态 SPA，`/api/v1/*` 落 index.html 兜底，**尚无真实认证 API**）。
+>
+> **2. 第 7 章前四条 P0 已全部被修复**（2026-08-09 逐条实测确认）：
+> - 7.1 router 少 `await` → [worker/api/router.ts](../worker/api/router.ts) 全部 14 处已改 `return await`
+> - 7.2 `showToast` 未 memo 导致请求风暴 → 已改 `useCallback`，effect 依赖全部稳定
+> - 7.3 预览壳锁死站点 → `src/features/mvp/` 整目录已删除，全库零引用
+> - 7.4 Node 下 `env=undefined` → `worker/index.ts` 已加 `resolveEnv()` 回落 `process.env`
+>
+> **3. 仍然成立、尚未处理**：权限模型只有 permissions 白名单（无 scope / 无状态校验 / 会话不可吊销，
+> `accountRoutes` 中 `can()` 命中 0 次）、前后端类目表漂移（`mallMappers` 仍缺 `service` 键）、
+> 死代码 `db/` + `drizzle/` + `index.html` + `src/main.tsx` 仍在、`audit:prod` 仍有 2 个 postcss 中危。
+>
+> **4. 新增发现**：`scripts/verify-p0.mjs` 原先存在假绿缺陷（四项全被 Cloudflare 拦截、一项未验到仍报
+> "通过"并 exit 0），已于 2026-08-09 修复为：失败 exit 1、未验证 exit 2，并改用 curl 原生 TLS 绕过指纹拦截。
+>
+> **5. 从未验证过的部分**：运营后台的账号与权限矩阵。截至标注时点，`smart.hbbtzn.com` 没有认证 API，
+> 无法验证任何后台角色权限。
+>
+> **6. 第 2.2 节"三套部署目标冲突"的权重已过时**：实际只有一套在跑。生产为阿里云 ECS +
+> Caddy + 单 Node 进程（SSR 与 API 同源）。文中分析过的 `deploy/nginx.conf` 与
+> `deploy/deploy-aliyun.sh` 已于 2026-08-09 删除（描述的是被取代的旧方案），现行方案以
+> `deploy/DEPLOY-阿里云.md` + `deploy/Caddyfile` 为准。
+
 生成时间：2026-08-08
 分析对象：`C:\Users\Ethan\Desktop\01-Projects\03-client-and-contract-projects\02-pre-contract\Shop\smart wing`
 分析方式：全量源码通读 + 实际执行质量门禁 + 本地生产构建 + 本地起服务探测接口

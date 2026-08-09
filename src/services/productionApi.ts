@@ -105,6 +105,12 @@ export interface ApiActor {
   permissions: string[];
 }
 
+export interface LoginRequest {
+  accessCode?: string;
+  username?: string;
+  password?: string;
+}
+
 export interface ApiBootstrap {
   actor: ApiActor;
   scope: {
@@ -191,10 +197,10 @@ export const productionApi = {
     return apiFetch('/api/v1/auth/session');
   },
 
-  async login(accessCode: string): Promise<{ authenticated: true; actor: ApiActor }> {
+  async login(credentials: LoginRequest): Promise<{ authenticated: true; actor: ApiActor }> {
     return apiFetch('/api/v1/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ accessCode }),
+      body: JSON.stringify(credentials),
     });
   },
 

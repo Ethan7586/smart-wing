@@ -1,3 +1,6 @@
+> ⛔ **域名已作废（2026-08-09 标注）**：`zhudatuan.com` 已弃用。
+> 复用本模板时请替换为：前台与业务 API `https://hbbtzn.com`，运营后台 `https://smart.hbbtzn.com`。
+
 # zhudatuan.com P0 验收快照模板（可复用）
 
 生成时间：____年____月____日（建议：`2026-07-25`）  

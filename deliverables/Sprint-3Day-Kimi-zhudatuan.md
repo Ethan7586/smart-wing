@@ -1,3 +1,7 @@
+> ⛔ **域名已作废（2026-08-09 标注）**：`zhudatuan.com` 已弃用。
+> 现行域名：前台与业务 API `https://hbbtzn.com`，运营后台 `https://smart.hbbtzn.com`。
+> 冲刺内容（权限底座升级）尚未完成，指令本身仍适用。
+
 # Kimi 3 天冲刺指令：zhudatuan.com 权限底座升级
 
 > 目标：将 `smart wing` 从演示级鉴权升级到可审计的生产级 RBAC+Scope+会话管理体系。  

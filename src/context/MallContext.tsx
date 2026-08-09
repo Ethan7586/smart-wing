@@ -3,10 +3,11 @@ import { UserProfile, EnterpriseMall, Product, CartItem, Order, DeliveryAddress,
 import { mallService } from '../services/mallService';
 import { productionApi, ProductionApiError } from '../services/productionApi';
 import { MOCK_CATEGORIES, toFrontendOrders, toFrontendProducts } from '../adapters/frontendData';
-import type { AndroidAppPage, AppMode, LaptopPage, MallContextType, MiniProgramPage, PageRoute, PendingFeatureInfo, RouteParams, SessionStatus, TabletOrientation, TabletPage, ToastMessage, ViewportMode } from './MallContext.types';
+import type { AndroidAppPage, AppMode, LaptopPage, LoginCredentials, MallContextType, MiniProgramPage, PageRoute, PendingFeatureInfo, RouteParams, SessionStatus, TabletOrientation, TabletPage, ViewportMode } from './MallContext.types';
 import { useDeviceNavigation } from './useDeviceNavigation';
 import { checkoutSelectedCartRequest } from './checkoutSelectedCart';
 import { useProductionSync } from './useProductionSync';
+import { useToasts } from './useToasts';
 export type * from './MallContext.types';
 const MallContext = createContext<MallContextType | undefined>(undefined);
 export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -24,8 +25,8 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
   const [favorites, setFavorites] = useState<string[]>(() => mallService.getFavorites());
   const [addresses, setAddresses] = useState<DeliveryAddress[]>(() => mallService.getAddresses());
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const { toasts, showToast, removeToast } = useToasts();
   const presentationProducts = useMemo(() => toFrontendProducts(products), [products]);
   const presentationOrders = useMemo(() => toFrontendOrders(orders, presentationProducts), [orders, presentationProducts]);
 
@@ -38,16 +39,6 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCart(nextCart);
   }, [products]);
   const refreshServerAddresses = useCallback(async () => setAddresses((await productionApi.listAddresses()).items), []);
-  const removeToast = useCallback((id: string) => setToasts((prev) => prev.filter((t) => t.id !== id)), []);
-  const showToast = useCallback(
-    (text: string, type: 'success' | 'info' | 'error' | 'warning' = 'success') => {
-      const id = `toast_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`;
-      setToasts((prev) => [...prev, { id, text, type }]);
-      setTimeout(() => removeToast(id), 3500);
-    },
-    [removeToast]
-  );
-
   const { refreshProductionData } = useProductionSync({
     setProducts,
     setUser,
@@ -74,10 +65,10 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setOrders(mallService.getOrders());
   };
 
-  const login = async (accessCode: string): Promise<boolean> => {
+  const login = async (credentials: LoginCredentials): Promise<boolean> => {
     setSessionError(null);
     try {
-      await productionApi.login(accessCode);
+      await productionApi.login(credentials);
       setSessionStatus('authenticated');
       await refreshProductionData();
       showToast('安全登录成功，已同步福利账户与订单', 'success');

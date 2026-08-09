@@ -1,3 +1,7 @@
+> ⛔ **域名已作废（2026-08-09 标注）**：`zhudatuan.com` 已弃用。
+> 现行域名：前台与业务 API `https://hbbtzn.com`，运营后台 `https://smart.hbbtzn.com`。
+> 清单中的权限底座（RBAC + scope + 可吊销会话 + 审计）**至今仍未实施**，条目本身依然有效。
+
 # zhudatuan.com 权限底座升级验收清单（可打勾交付）
 
 > 适用：P0 内测通过后，RBAC+Scope+会话管理体系升级完成时的验收。  

@@ -389,7 +389,7 @@ def add_cover(doc: Document):
     set_run_font(r, 15, False, BLUE)
 
     for label, value in [
-        ("拟用正式域名", "zhudatuan.com / www.zhudatuan.com"),
+        ("拟用正式域名", "hbbtzn.com / www.hbbtzn.com（管理后台 smart.hbbtzn.com）"),
         ("商城展示名称", "智慧翼企业福利商城"),
         ("技术服务方", "雍彻科技（YONGCHE TECH）"),
         ("当前版本", "生产演示版 V2，Git 2d09a6c5，公开站点 HTTP 200"),
@@ -622,7 +622,7 @@ def build_markdown(rows):
     lines = [
         "# 智慧翼企业福利商城全量技术方案与报价评估报告",
         "",
-        "- 域名：zhudatuan.com / www.zhudatuan.com",
+        "- 域名：hbbtzn.com / www.hbbtzn.com；管理后台 smart.hbbtzn.com",
         "- 商城名称：智慧翼企业福利商城",
         "- 技术服务方：雍彻科技（YONGCHE TECH）",
         "- 当前版本：V2，Git 2d09a6c5d61dc842d33b9ad84ceee98d5e82e5d3",
@@ -703,7 +703,7 @@ def build_docx(rows):
     verify_rows = [
         ("Git提交", "2d09a6c5d61dc842d33b9ad84ceee98d5e82e5d3", "已推送托管源main"),
         ("生产版本", "Sites V2", "部署成功"),
-        ("公开地址", "https://zhudatuan-smart-wing.wchswchs.chatgpt.site", "HTTP 200"),
+        ("公开地址", "https://hbbtzn.com", "HTTP 200"),
         ("类型检查", "npm run lint", "通过"),
         ("自动测试", "2个测试文件、6个测试", "全部通过"),
         ("生产构建", "vinext build / Vite 8.1.5", "通过"),
@@ -727,9 +727,9 @@ def build_docx(rows):
 
     doc.add_heading("3. 域名、名称与品牌治理", level=1)
     domain_rows = [
-        ("主域名", "zhudatuan.com", "已在托管平台登记；DNS尚未完成验证"),
-        ("www域名", "www.zhudatuan.com", "已登记；建议301跳转至主域名或反向统一"),
-        ("生产临时地址", "zhudatuan-smart-wing.wchswchs.chatgpt.site", "已公开、HTTP 200"),
+        ("主域名", "hbbtzn.com", "商城前台与业务 API 同源，已上线"),
+        ("www域名", "www.hbbtzn.com", "建议 301 跳转至主域名"),
+        ("管理后台", "smart.hbbtzn.com", "运营后台，独立部署"),
         ("商城展示名", "智慧翼企业福利商城", "建议甲方书面确认商标/名称使用权"),
         ("技术服务方", "雍彻科技（YONGCHE TECH）", "可展示于技术支持与版权说明"),
         ("运营主体", "待甲方确认", "必须决定备案、协议、收款、发票与客服责任主体"),
@@ -1013,7 +1013,7 @@ def build_docx(rows):
     doc.core_properties.title = "智慧翼企业福利商城全量技术方案与报价评估报告"
     doc.core_properties.subject = "域名、需求、架构、客服制度、项目计划、报价与验收"
     doc.core_properties.author = "雍彻科技（YONGCHE TECH）"
-    doc.core_properties.keywords = "智慧翼, 福利商城, zhudatuan.com, 雍彻科技, MVP, 技术方案, 报价"
+    doc.core_properties.keywords = "智慧翼, 福利商城, hbbtzn.com, 雍彻科技, MVP, 技术方案, 报价"
     doc.save(DOCX_PATH)
 
 

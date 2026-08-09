@@ -1,4 +1,5 @@
 import { sha256 } from './crypto';
+import { getDemoAccounts, resolveDemoActor, verifyDemoPassword } from './demoAuth';
 import { apiError, json, methodNotAllowed } from './http';
 import { readJsonBody } from './routerSupport';
 import { clearSessionCookie, createSessionCookie, verifyAccessCode } from './session';
@@ -28,6 +29,7 @@ interface CatalogRow {
 }
 
 const DEFAULT_MALL_SLUG = 'smart-wing-demo';
+const DEFAULT_DEMO_MALL_CODE = 'SMART_WING_DEMO';
 
 export async function handleHealth(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
@@ -35,7 +37,8 @@ export async function handleHealth(request: Request, env: WorkerEnv, requestId: 
   if (isSupabaseConfigured(env)) {
     health = await callRpc<typeof health>(env, 'api_health');
   }
-  const authReady = Boolean((env.SESSION_SIGNING_KEY && env.DEMO_LOGIN_CODE) || (env.APP_ENV === 'development' && env.AUTH_MODE === 'development'));
+  const hasDemoPasswordAuth = getDemoAccounts(env).length > 0;
+  const authReady = Boolean((env.SESSION_SIGNING_KEY && (env.DEMO_LOGIN_CODE || hasDemoPasswordAuth)) || (env.APP_ENV === 'development' && env.AUTH_MODE === 'development'));
   const piiReady = Boolean(env.PII_ENCRYPTION_KEY);
   const status = health.databaseReady && authReady && piiReady ? 'ok' : 'degraded';
   return json({
@@ -59,6 +62,8 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
   }
   const input = body.value as Record<string, unknown>;
   const accessCode = typeof input.accessCode === 'string' ? input.accessCode : '';
+  const username = typeof input.username === 'string' ? input.username : '';
+  const password = typeof input.password === 'string' ? input.password : '';
   const ipHash = await sha256(`${request.headers.get('cf-connecting-ip') ?? 'unknown'}:${env.SESSION_SIGNING_KEY ?? ''}`);
   const loginAllowed = await callRpc<boolean>(env, 'api_login_allowed', {
     p_ip_hash: ipHash,
@@ -66,6 +71,32 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
   if (!loginAllowed) {
     return apiError(429, 'LOGIN_RATE_LIMITED', '登录尝试过多，请15分钟后重试', requestId);
   }
+
+  const hasPasswordLogin = username.trim() !== '' && password.trim() !== '';
+  if (hasPasswordLogin) {
+    const account = getDemoAccounts(env).find((candidate) => candidate.username.trim().toLowerCase() === username.trim().toLowerCase());
+    if (!account || !(await verifyDemoPassword(password, account.password))) {
+      await callRpc<string | null>(env, 'api_record_login_failure', {
+        p_ip_hash: ipHash,
+      });
+      return apiError(401, 'INVALID_USERNAME_PASSWORD', '账号或密码不正确', requestId);
+    }
+    const actor = await resolveDemoActor(env, account);
+    if (!actor) {
+      await callRpc<string | null>(env, 'api_record_login_failure', {
+        p_ip_hash: ipHash,
+      });
+      return apiError(503, 'DEMO_ACTOR_NOT_READY', '演示用户尚未初始化', requestId);
+    }
+    await callRpc<boolean>(env, 'api_clear_login_failures', { p_ip_hash: ipHash });
+    const cookie = await createSessionCookie(env, actor.employeeNo, account.mallCode);
+    return json({ authenticated: true, actor, requestId }, { headers: { 'set-cookie': cookie } });
+  }
+
+  if (accessCode.trim() === '') {
+    return apiError(400, 'INVALID_LOGIN_INPUT', '访问码或账号密码缺失', requestId);
+  }
+
   if (!(await verifyAccessCode(accessCode, env.DEMO_LOGIN_CODE))) {
     await callRpc<string | null>(env, 'api_record_login_failure', {
       p_ip_hash: ipHash,
@@ -73,7 +104,7 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
     return apiError(401, 'INVALID_ACCESS_CODE', '访问码不正确', requestId);
   }
   const employeeNo = 'SW0001';
-  const mallCode = 'SMART_WING_DEMO';
+  const mallCode = DEFAULT_DEMO_MALL_CODE;
   const actor = await callRpc<Actor | null>(env, 'api_resolve_actor', {
     p_employee_no: employeeNo,
     p_mall_code: mallCode,

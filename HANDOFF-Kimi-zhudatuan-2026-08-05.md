@@ -1,3 +1,7 @@
+> ⛔ **域名已作废（2026-08-09 标注）**：本文档写于 2026-08-05，当时的目标站点是 `zhudatuan.com`，该域名**已弃用**。
+> 现行域名：商城前台与业务 API `https://hbbtzn.com`；运营后台 `https://smart.hbbtzn.com`。
+> 文内保留 `zhudatuan.com` 是历史记录原貌，**不要据此配置或测试**。技术方案与权限改造思路仍然有效。
+
 # zhudatuan.com（smart wing）整体验收/对接交接包（给 Kimi）
 
 生成时间：2026-08-05  

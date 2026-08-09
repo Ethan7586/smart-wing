@@ -2,8 +2,8 @@ hbbtzn.com, www.hbbtzn.com {
 	# 自动签发/续期 HTTPS 证书（Let's Encrypt），无需手动管理
 	encode gzip
 
-	# 前端 SSR + API 是同一个 Node 进程（vinext start，见 ecosystem.config.js /
-	# zhudatuan.service），全部反代到本地端口，不再拆分到独立的 Cloudflare Worker。
+	# 前端 SSR + API 是同一个 Node 进程（vinext start，见 ecosystem.config.cjs /
+	# 同目录下的 systemd unit），全部反代到本地端口，不再拆分到独立的 Cloudflare Worker。
 	reverse_proxy localhost:3000 {
 		header_up X-Real-IP {remote_host}
 		header_up X-Forwarded-Proto {scheme}
