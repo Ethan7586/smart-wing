@@ -3,7 +3,8 @@ import { resolveAuthorizationContext } from './auth';
 import { handleCart, handleDeleteCartItem } from './cartRoutes';
 import { handleAddresses, handleDeleteAddress } from './addressRoutes';
 import { apiError, json } from './http';
-import { handleAfterSales, handleCreateAfterSale, handleCreateOrder, handleExecuteRefund, handleFinanceReconciliation, handleInternalPayment, handleOrders } from './orderRoutes';
+import { handleAfterSales, handleCreateAfterSale, handleCreateOrder, handleExecuteRefund, handleFinanceReconciliation, handleInternalPayment, handleOrders, handleShipOrder } from './orderRoutes';
+import { handleAdminCatalog, handleSetProductStatus } from './adminRoutes';
 import { handleHealth, handleLogin, handleLogout, handleProducts } from './publicRoutes';
 import { handleHomeSnapshot } from './homeRoutes';
 import type { WorkerEnv } from './types';
@@ -67,6 +68,13 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     if (url.pathname === `${API_PREFIX}/orders`) {
       return request.method === 'POST' ? await handleCreateOrder(request, env, authorization, requestId) : await handleOrders(request, env, authorization, requestId);
     }
+    if (url.pathname === `${API_PREFIX}/admin/products`) {
+      return await handleAdminCatalog(request, env, authorization, requestId);
+    }
+    const productStatusMatch = url.pathname.match(/^\/api\/v1\/admin\/products\/([^/]+)\/status$/);
+    if (productStatusMatch) {
+      return await handleSetProductStatus(request, env, authorization, decodeURIComponent(productStatusMatch[1]), requestId);
+    }
     if (url.pathname === `${API_PREFIX}/finance/reconciliation`) {
       return await handleFinanceReconciliation(request, env, authorization, requestId);
     }
@@ -77,6 +85,10 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     const paymentMatch = url.pathname.match(/^\/api\/v1\/orders\/([^/]+)\/payments\/internal$/);
     if (paymentMatch) {
       return await handleInternalPayment(request, env, authorization, decodeURIComponent(paymentMatch[1]), requestId);
+    }
+    const shipMatch = url.pathname.match(/^\/api\/v1\/orders\/([^/]+)\/ship$/);
+    if (shipMatch) {
+      return await handleShipOrder(request, env, authorization, decodeURIComponent(shipMatch[1]), requestId);
     }
     return apiError(404, 'API_NOT_FOUND', '接口不存在', requestId);
   } catch (error) {
@@ -96,6 +108,9 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
       ['INSUFFICIENT_ACCOUNT_BALANCE', 409, 'INSUFFICIENT_ACCOUNT_BALANCE', '账户余额不足'],
       ['ORDER_NOT_FOUND', 404, 'ORDER_NOT_FOUND', '订单不存在'],
       ['ORDER_NOT_PAYABLE', 409, 'ORDER_NOT_PAYABLE', '订单当前状态不可支付'],
+      ['ORDER_NOT_SHIPPABLE', 409, 'ORDER_NOT_SHIPPABLE', '订单当前状态不可发货'],
+      ['PRODUCT_NOT_FOUND', 404, 'PRODUCT_NOT_FOUND', '商品不存在'],
+      ['INVALID_PRODUCT_STATUS_INPUT', 422, 'INVALID_PRODUCT_STATUS_INPUT', '商品状态参数无效'],
       ['ACCOUNT_NOT_ACTIVE', 409, 'ACCOUNT_NOT_ACTIVE', '账户当前不可用'],
       ['PAYMENT_TOTAL_MISMATCH', 422, 'PAYMENT_TOTAL_MISMATCH', '账户扣款合计必须等于订单应付金额'],
       ['SKU_NOT_AVAILABLE', 422, 'SKU_NOT_AVAILABLE', '订单中存在无效商品'],

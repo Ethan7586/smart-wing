@@ -14,9 +14,22 @@ export function authorizationScope(context: AuthorizationContext, includeUser = 
 }
 
 /** Loads the target resource scope from a security-definer RPC, never request input. */
-export async function loadResourceScope(env: WorkerEnv, rpc: 'api_order_authorization_scope' | 'api_after_sale_authorization_scope', resourceId: string): Promise<ResourceScope | null> {
-  const row = await callRpc<Record<string, unknown> | null>(env, rpc, rpc === 'api_order_authorization_scope' ? { p_order_id: resourceId } : { p_after_sale_id: resourceId });
+type ResourceScopeRpc = 'api_order_authorization_scope' | 'api_after_sale_authorization_scope' | 'api_product_authorization_scope';
+
+export async function loadResourceScope(env: WorkerEnv, rpc: ResourceScopeRpc, resourceId: string): Promise<ResourceScope | null> {
+  const params = rpc === 'api_order_authorization_scope' ? { p_order_id: resourceId } : rpc === 'api_after_sale_authorization_scope' ? { p_after_sale_id: resourceId } : { p_product_id: resourceId };
+  const row = await callRpc<Record<string, unknown> | null>(env, rpc, params);
   return resourceScopeFromDatabaseRow(row);
+}
+
+/** Audit proof is assembled from the server-resolved membership, never from the browser. */
+export function authorizationEvidence(context: AuthorizationContext, decision: import('@smart-wing/api-contract').AuthorizationDecision): Record<string, unknown> {
+  return {
+    membershipId: context.membership.id,
+    roleIds: context.roles,
+    permission: decision.evidence?.permission ?? null,
+    scope: decision.evidence?.scope ?? null,
+  };
 }
 
 export function invalidBody(tooLarge: boolean, requestId: string): Response {

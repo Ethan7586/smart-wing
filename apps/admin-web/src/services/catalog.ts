@@ -1,4 +1,4 @@
-import type { Product, ProductStatus } from '../types';
+import type { Order, OrderStatus, Product, ProductStatus } from '../types';
 
 type CatalogItem = {
   id?: unknown;
@@ -11,6 +11,7 @@ type CatalogItem = {
   marketPriceCents?: unknown;
   priceCents?: unknown;
   availableStock?: unknown;
+  status?: unknown;
 };
 
 function text(value: unknown, fallback = ''): string {
@@ -24,7 +25,8 @@ function number(value: unknown, fallback = 0): number {
 function toAdminProduct(item: CatalogItem): Product {
   const id = text(item.id, text(item.skuId, crypto.randomUUID()));
   const stock = number(item.availableStock);
-  const status: ProductStatus = stock > 0 ? '已发布' : '已下架';
+  const sourceStatus = text(item.status);
+  const status: ProductStatus = sourceStatus === 'active' ? '已发布' : sourceStatus === 'inactive' ? '已下架' : '草稿';
   const title = text(item.nameZh, text(item.name, '未命名商品'));
   const supplierName = text(item.supplierName, '未标注供应商');
 
@@ -54,13 +56,24 @@ function toAdminProduct(item: CatalogItem): Product {
   };
 }
 
-/** Reads the production catalogue through commerce-api; no write action uses this adapter. */
+/** Reads the full administration catalogue through the authorised commerce API. */
 export async function loadLiveCatalog(): Promise<Product[]> {
-  const response = await fetch('/api/v1/products?limit=100', { credentials: 'same-origin' });
+  const response = await fetch('/api/v1/admin/products', { credentials: 'same-origin' });
   if (!response.ok) throw new Error(`CATALOG_REQUEST_FAILED_${response.status}`);
-  const payload = await response.json() as { items?: unknown };
+  const payload = (await response.json()) as { items?: unknown };
   if (!Array.isArray(payload.items)) throw new Error('CATALOG_RESPONSE_INVALID');
   return payload.items.filter((item): item is CatalogItem => typeof item === 'object' && item !== null).map(toAdminProduct);
+}
+
+/** Changes only the publication state. The server verifies scope, idempotency and writes an immutable audit event. */
+export async function setLiveProductStatus(productId: string, status: 'active' | 'inactive'): Promise<void> {
+  const response = await fetch(`/api/v1/admin/products/${encodeURIComponent(productId)}/status`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'content-type': 'application/json', 'idempotency-key': crypto.randomUUID() },
+    body: JSON.stringify({ status }),
+  });
+  if (!response.ok) throw new Error(`PRODUCT_STATUS_REQUEST_FAILED_${response.status}`);
 }
 
 export interface LiveOperationsSummary {
@@ -70,20 +83,105 @@ export interface LiveOperationsSummary {
   afterSaleCount: number;
 }
 
+type ApiOrderItem = { productId?: unknown; productTitle?: unknown; productImage?: unknown; priceCents?: unknown; quantity?: unknown; specs?: unknown };
+type ApiOrder = {
+  id?: unknown;
+  orderNo?: unknown;
+  status?: unknown;
+  payableCents?: unknown;
+  welfarePaidCents?: unknown;
+  mealPaidCents?: unknown;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+  items?: unknown;
+};
+
+function orderStatus(status: unknown): OrderStatus {
+  switch (status) {
+    case 'pending_payment':
+      return '待付款';
+    case 'paid':
+    case 'processing':
+      return '待发货';
+    case 'shipped':
+      return '已发货';
+    case 'completed':
+      return '已签收';
+    case 'refund_pending':
+      return '退款申请中';
+    case 'refunded':
+      return '已退款';
+    default:
+      return '异常挂起';
+  }
+}
+
+function dateText(value: unknown): string {
+  const date = typeof value === 'string' ? new Date(value) : null;
+  return date && Number.isFinite(date.getTime()) ? date.toLocaleString('zh-CN', { hour12: false }) : '暂无时间记录';
+}
+
+function toAdminOrder(raw: ApiOrder): Order {
+  const items = Array.isArray(raw.items) ? raw.items : [];
+  const first = items[0] as ApiOrderItem | undefined;
+  const status = orderStatus(raw.status);
+  const amount = number(raw.payableCents) / 100;
+  const orderId = text(raw.id, text(raw.orderNo, crypto.randomUUID()));
+  const createdAt = dateText(raw.createdAt);
+  return {
+    id: orderId,
+    enterpriseId: 'production-enterprise',
+    enterpriseName: '授权企业范围',
+    employeeId: 'protected-member',
+    employeeName: '受保护会员',
+    employeeDept: '按最小必要原则隐藏',
+    productId: text(first?.productId),
+    productTitle: text(first?.productTitle, '订单商品'),
+    productImage: text(first?.productImage),
+    specName: '订单快照',
+    quantity: number(first?.quantity, 1),
+    unitPrice: number(first?.priceCents) / 100,
+    totalAmount: amount,
+    corporateBudgetPaid: number(raw.welfarePaidCents) / 100,
+    employeeSelfPaid: number(raw.mealPaidCents) / 100,
+    status,
+    isProblematic: status === '退款申请中' || status === '异常挂起',
+    problemType: status === '退款申请中' ? 'REFUND_DISPUTE' : undefined,
+    problemSummary: status === '退款申请中' ? '售后退款申请待处理' : undefined,
+    slaDeadline: '由供应商履约系统计算',
+    createdAt,
+    shippingAddress: '收货信息已脱敏',
+    timeline: [
+      { id: `${orderId}:created`, nodeName: '创建订单', timestamp: createdAt, status: 'success', operator: '系统', remark: '订单已在生产数据库创建。' },
+      { id: `${orderId}:status`, nodeName: '当前状态', timestamp: dateText(raw.updatedAt), status: status === '异常挂起' ? 'warning' : 'success', operator: '系统', remark: `当前状态：${status}` },
+    ],
+    retryLogs: [],
+    benefitsCard: { welfarePlanName: '企业福利账户', quotaUsed: number(raw.welfarePaidCents) / 100, remainingQuota: 0 },
+    supplierId: 'not-exposed',
+    supplierName: '供应商信息按订单权限展示',
+  };
+}
+
+export async function shipLiveOrder(orderId: string): Promise<void> {
+  const response = await fetch(`/api/v1/orders/${encodeURIComponent(orderId)}/ship`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'idempotency-key': crypto.randomUUID() },
+  });
+  if (!response.ok) throw new Error(`ORDER_SHIP_REQUEST_FAILED_${response.status}`);
+}
+
 /** Minimal real-time dashboard facts; intentionally avoids copying customer PII into the cockpit. */
-export async function loadLiveOperations(): Promise<{ products: Product[]; summary: LiveOperationsSummary }> {
-  const [products, ordersResponse, afterSalesResponse] = await Promise.all([
-    loadLiveCatalog(),
-    fetch('/api/v1/orders', { credentials: 'same-origin' }),
-    fetch('/api/v1/after-sales', { credentials: 'same-origin' }),
-  ]);
+export async function loadLiveOperations(): Promise<{ products: Product[]; orders: Order[]; summary: LiveOperationsSummary }> {
+  const [products, ordersResponse, afterSalesResponse] = await Promise.all([loadLiveCatalog(), fetch('/api/v1/orders', { credentials: 'same-origin' }), fetch('/api/v1/after-sales', { credentials: 'same-origin' })]);
   if (!ordersResponse.ok || !afterSalesResponse.ok) {
     throw new Error(`OPERATIONS_REQUEST_FAILED_${ordersResponse.status}_${afterSalesResponse.status}`);
   }
-  const orders = await ordersResponse.json() as { items?: unknown };
-  const afterSales = await afterSalesResponse.json() as { items?: unknown };
+  const orders = (await ordersResponse.json()) as { items?: unknown };
+  const afterSales = (await afterSalesResponse.json()) as { items?: unknown };
   return {
     products,
+    orders: Array.isArray(orders.items) ? orders.items.filter((item): item is ApiOrder => typeof item === 'object' && item !== null).map(toAdminOrder) : [],
     summary: {
       catalogCount: products.length,
       availableStock: products.reduce((total, product) => total + product.stock, 0),

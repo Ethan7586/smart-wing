@@ -4,7 +4,7 @@ import { Header } from './components/Header';
 import { GuardrailModal } from './components/GuardrailModal';
 import { CaseCenterDrawer } from './components/CaseCenterDrawer';
 import { CommandPaletteModal } from './components/CommandPaletteModal';
-import { loadLiveOperations, type LiveOperationsSummary } from './services/catalog';
+import { loadLiveOperations, setLiveProductStatus, shipLiveOrder, type LiveOperationsSummary } from './services/catalog';
 
 // Workstations
 import { CockpitWorkstation } from './components/workstations/CockpitWorkstation';
@@ -35,11 +35,8 @@ function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
 function resolveAdminAccount(roles: unknown): AdminProfile | null {
   if (!Array.isArray(roles)) return null;
   const roleCodes = new Set(roles.filter((role): role is string => typeof role === 'string'));
-  const username = roleCodes.has('platform_owner') ? 'onewr'
-    : roleCodes.has('enterprise_manager') ? '经理1'
-      : roleCodes.has('role-mall-admin') ? '福宝'
-        : null;
-  return username ? ADMIN_PROFILES.find((account) => account.username === username) ?? null : null;
+  const username = roleCodes.has('platform_owner') ? 'onewr' : roleCodes.has('enterprise_manager') ? '经理1' : roleCodes.has('role-mall-admin') ? '福宝' : null;
+  return username ? (ADMIN_PROFILES.find((account) => account.username === username) ?? null) : null;
 }
 
 export function App() {
@@ -91,26 +88,27 @@ export function App() {
   useEffect(() => {
     let active = true;
     void fetch('/api/v1/auth/session', { credentials: 'same-origin' })
-      .then(async (response) => response.ok ? response.json() : null)
+      .then(async (response) => (response.ok ? response.json() : null))
       .then((payload) => {
         if (!active) return;
-        const user = payload?.authenticated && payload?.authorization?.target === 'admin'
-          ? resolveAdminAccount(payload.authorization.roles)
-          : null;
+        const user = payload?.authenticated && payload?.authorization?.target === 'admin' ? resolveAdminAccount(payload.authorization.roles) : null;
         if (user) {
           setCurrentUser(user);
           setSessionPermissions(Array.isArray(payload?.authorization?.permissions) ? payload.authorization.permissions.filter((permission: unknown): permission is string => typeof permission === 'string') : []);
           void loadLiveOperations()
-            .then(({ products: catalog, summary }) => {
+            .then(({ products: catalog, orders: liveOrders, summary }) => {
               if (!active) return;
               setProducts(catalog);
+              setOrders(liveOrders);
               setLiveOperations(summary);
               setIsLiveCatalog(true);
             })
             .catch(() => {
               if (active) setIsLiveCatalog(false);
+            })
+            .finally(() => {
+              if (active) setAuthChecking(false);
             });
-          setAuthChecking(false);
           return;
         }
         window.location.replace('https://hbbtzn.com/login/?target=admin');
@@ -118,7 +116,9 @@ export function App() {
       .catch(() => {
         if (active) window.location.replace('https://hbbtzn.com/login/?target=admin');
       });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleOpenGuardrail = (title: string, actionType: string, targetEntityName: string, entityId: string, impactAmount: number, onConfirm: (reason: string, evidence: string) => void) => {
@@ -253,11 +253,25 @@ export function App() {
           )}
 
           {visibleWorkstation === 'product' && (
-            <ProductGovernanceWorkstation products={products} onUpdateProducts={setProducts} onOpenGuardrail={handleOpenGuardrail} initialFilterStatus={filterParams.key === 'status' ? filterParams.value : undefined} isLiveCatalog={isLiveCatalog} />
+            <ProductGovernanceWorkstation
+              products={products}
+              onUpdateProducts={setProducts}
+              onOpenGuardrail={handleOpenGuardrail}
+              initialFilterStatus={filterParams.key === 'status' ? filterParams.value : undefined}
+              isLiveCatalog={isLiveCatalog}
+              onSetProductStatus={setLiveProductStatus}
+            />
           )}
 
           {visibleWorkstation === 'order' && (
-            <OrderFulfillmentWorkstation orders={orders} onUpdateOrders={setOrders} onOpenGuardrail={handleOpenGuardrail} initialProblemType={filterParams.key === 'problemType' ? filterParams.value : undefined} />
+            <OrderFulfillmentWorkstation
+              orders={orders}
+              onUpdateOrders={setOrders}
+              onOpenGuardrail={handleOpenGuardrail}
+              initialProblemType={filterParams.key === 'problemType' ? filterParams.value : undefined}
+              isLiveOrders={isLiveCatalog}
+              onShipOrder={shipLiveOrder}
+            />
           )}
 
           {visibleWorkstation === 'enterprise' && <EnterpriseWelfareWorkstation enterprises={enterprises} onOpenGuardrail={handleOpenGuardrail} initialSearchName={filterParams.key === 'search' ? filterParams.value : undefined} />}

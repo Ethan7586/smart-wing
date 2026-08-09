@@ -8,11 +8,12 @@ interface ProductGovernanceProps {
   onOpenGuardrail: (title: string, actionType: string, targetName: string, entityId: string, amount: number, onConfirm: (reason: string, evidence: string) => void) => void;
   initialFilterStatus?: string;
   isLiveCatalog?: boolean;
+  onSetProductStatus?: (productId: string, status: 'active' | 'inactive') => Promise<void>;
 }
 
 const STATUS_PIPELINE: ProductStatus[] = ['草稿', '已导入', '待补全', '待分类审核', '待发布审核', '已发布', '已下架'];
 
-export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({ products, onUpdateProducts, onOpenGuardrail, initialFilterStatus, isLiveCatalog = false }) => {
+export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({ products, onUpdateProducts, onOpenGuardrail, initialFilterStatus, isLiveCatalog = false, onSetProductStatus }) => {
   const [selectedStatus, setSelectedStatus] = useState<string>(initialFilterStatus || 'ALL');
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
@@ -184,7 +185,15 @@ export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({
       return;
     }
 
-    onOpenGuardrail(`正式发布商品全网上线: ${prd.title.slice(0, 15)}...`, '商品正式发布上线', prd.title, prd.id, prd.mallPrice, (reason) => {
+    onOpenGuardrail(`正式发布商品全网上线: ${prd.title.slice(0, 15)}...`, '商品正式发布上线', prd.title, prd.id, prd.mallPrice, async (reason) => {
+      if (isLiveCatalog && onSetProductStatus) {
+        try {
+          await onSetProductStatus(prd.id, 'active');
+        } catch {
+          window.alert('商品发布未成功，请刷新后重试。');
+          return;
+        }
+      }
       const updated = products.map((p) => {
         if (p.id === prd.id) {
           return {
@@ -205,7 +214,7 @@ export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({
         return p;
       });
       onUpdateProducts(updated);
-      alert('商品发布成功！已对指定企业可见。');
+      alert(isLiveCatalog ? '商品已通过服务端发布并写入审计记录。' : '商品发布成功！已对指定企业可见。');
     });
   };
 

@@ -2,7 +2,7 @@ import { authorize, can } from './auth';
 import { PERMISSIONS } from '@smart-wing/api-contract';
 import { encryptJson, sha256 } from './crypto';
 import { apiError, json, methodNotAllowed } from './http';
-import { authorizationScope, invalidBody, loadResourceScope, readJsonBody } from './routerSupport';
+import { authorizationEvidence, authorizationScope, invalidBody, loadResourceScope, readJsonBody } from './routerSupport';
 import { callRpc } from './supabase';
 import type { AuthorizationContext, WorkerEnv } from './types';
 import { parseCreateAfterSaleInput, parseCreateOrderInput, parseExecuteRefundInput, parseInternalPaymentInput } from './validation';
@@ -47,8 +47,33 @@ export async function handleOrders(request: Request, env: WorkerEnv, authorizati
   if (!can(authorization, PERMISSIONS.orderRead)) {
     return apiError(403, 'FORBIDDEN', '没有查看订单的权限', requestId);
   }
-  const rows = await callRpc<Array<Record<string, unknown>>>(env, 'api_order_views', authorizationScope(authorization, true));
+  const hasAdministrativeScope = authorization.membership.scopeBindings.some((binding) => binding.kind !== 'self');
+  const rows = await callRpc<Array<Record<string, unknown>>>(env, 'api_order_views_scoped', {
+    ...authorizationScope(authorization),
+    p_user_id: hasAdministrativeScope ? null : authorization.userId,
+  });
   return json({ items: rows, requestId });
+}
+
+export async function handleShipOrder(request: Request, env: WorkerEnv, authorization: AuthorizationContext, orderId: string, requestId: string): Promise<Response> {
+  if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
+  const scope = await loadResourceScope(env, 'api_order_authorization_scope', orderId);
+  const decision = scope ? authorize(authorization, PERMISSIONS.orderShip, scope) : null;
+  if (!decision?.allowed) return apiError(403, 'FORBIDDEN', '没有发货该订单的权限', requestId);
+  const idempotencyKey = request.headers.get('idempotency-key');
+  if (!idempotencyKey || idempotencyKey.length > 120) return apiError(400, 'IDEMPOTENCY_KEY_REQUIRED', '发货必须提供 Idempotency-Key', requestId);
+  const response = await callRpc<Record<string, unknown>>(env, 'api_ship_order', {
+    ...authorizationScope(authorization),
+    p_operator_user_id: authorization.userId,
+    p_order_id: orderId,
+    p_idempotency_key: idempotencyKey,
+    p_request_hash: await sha256(JSON.stringify({ orderId, action: 'ship' })),
+    p_request_id: requestId,
+    p_user_agent: (request.headers.get('user-agent') ?? '').slice(0, 300),
+    p_membership_id: authorization.membership.id,
+    p_granted_via: authorizationEvidence(authorization, decision),
+  });
+  return json(response, { status: 201 });
 }
 
 export async function handleCreateOrder(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {

@@ -7,9 +7,11 @@ interface OrderFulfillmentProps {
   onUpdateOrders: (updatedOrders: Order[]) => void;
   onOpenGuardrail: (title: string, actionType: string, targetName: string, entityId: string, amount: number, onConfirm: (reason: string, evidence: string) => void) => void;
   initialProblemType?: string;
+  isLiveOrders?: boolean;
+  onShipOrder?: (orderId: string) => Promise<void>;
 }
 
-export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ orders, onUpdateOrders, onOpenGuardrail, initialProblemType }) => {
+export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ orders, onUpdateOrders, onOpenGuardrail, initialProblemType, isLiveOrders = false, onShipOrder }) => {
   const [activeTab, setActiveTab] = useState<'PENDING' | 'ALL' | 'ARCHIVED'>('PENDING');
   const [problemFilter, setProblemFilter] = useState<string>(initialProblemType || 'ALL');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(orders.find((o) => o.isProblematic)?.id || orders[0]?.id || null);
@@ -117,6 +119,31 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
     });
     onUpdateOrders(updated);
     alert('人工接管重试成功！接口Token已重新灌入。');
+  };
+
+  const handleShip = (ord: Order) => {
+    onOpenGuardrail(`确认订单发货: ${ord.id}`, '订单发货', ord.enterpriseName, ord.id, ord.totalAmount, async () => {
+      if (!onShipOrder) return;
+      try {
+        await onShipOrder(ord.id);
+        onUpdateOrders(
+          orders.map((order) =>
+            order.id === ord.id
+              ? {
+                  ...order,
+                  status: '已发货' as const,
+                  timeline: [
+                    ...order.timeline,
+                    { id: `ship:${Date.now()}`, nodeName: '发货', timestamp: new Date().toLocaleString('zh-CN'), status: 'success', operator: '当前管理身份', remark: '已通过服务端完成发货状态变更并写入审计记录。' },
+                  ],
+                }
+              : order
+          )
+        );
+      } catch {
+        window.alert('订单发货未成功，请刷新后重试。');
+      }
+    });
   };
 
   return (
@@ -253,6 +280,11 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
 
               {/* Guardrail Interaction Buttons (Refund, Compensation, Force Close) */}
               <div className="flex items-center gap-2">
+                {isLiveOrders && selectedOrder.status === '待发货' && (
+                  <button onClick={() => handleShip(selectedOrder)} className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer">
+                    确认发货
+                  </button>
+                )}
                 <button
                   onClick={() => handleTriggerCompensation(selectedOrder)}
                   className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold transition-colors cursor-pointer"
