@@ -19,6 +19,18 @@ import { ADMIN_PROFILES, INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, 
 
 import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStatus, FinanceDiscrepancyRow, SystemConfig, GuardrailActionOptions, AdminProfile } from './types';
 
+function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
+  const allowed = new Set<WorkstationId>(['cockpit']);
+  const has = (permission: string) => permissions.includes(permission);
+  if (has('catalog.read') || has('product.publish')) allowed.add('product');
+  if (has('order.read') || has('order.ship')) allowed.add('order');
+  if (has('tenant.manage') || has('role.grant') || has('audit.read')) allowed.add('enterprise');
+  if (has('tenant.manage') || has('product.publish')) allowed.add('supplier');
+  if (has('finance.reconcile')) allowed.add('finance');
+  if (has('tenant.manage') || has('role.grant')) allowed.add('system');
+  return [...allowed];
+}
+
 function resolveAdminAccount(roles: unknown): AdminProfile | null {
   if (!Array.isArray(roles)) return null;
   const roleCodes = new Set(roles.filter((role): role is string => typeof role === 'string'));
@@ -40,6 +52,7 @@ export function App() {
 
   // Access is derived exclusively from the host-only smart.hbbtzn.com session.
   const [currentUser, setCurrentUser] = useState<AdminProfile | null>(null);
+  const [sessionPermissions, setSessionPermissions] = useState<string[]>([]);
   const [authChecking, setAuthChecking] = useState(true);
 
   // Application Domain State (In-Memory Mock Single Source of Truth)
@@ -83,6 +96,7 @@ export function App() {
           : null;
         if (user) {
           setCurrentUser(user);
+          setSessionPermissions(Array.isArray(payload?.authorization?.permissions) ? payload.authorization.permissions.filter((permission: unknown): permission is string => typeof permission === 'string') : []);
           setAuthChecking(false);
           return;
         }
@@ -106,6 +120,7 @@ export function App() {
   };
 
   const handleNavigateToWorkstation = (wsId: WorkstationId, filterKey?: string, filterValue?: string) => {
+    if (!allowedWorkstationsFor(sessionPermissions).includes(wsId)) return;
     setActiveWorkstation(wsId);
     if (filterKey && filterValue) {
       setFilterParams({ key: filterKey, value: filterValue });
@@ -153,6 +168,9 @@ export function App() {
 
   if (!currentUser) return null;
 
+  const allowedWorkstations = allowedWorkstationsFor(sessionPermissions);
+  const visibleWorkstation = allowedWorkstations.includes(activeWorkstation) ? activeWorkstation : 'cockpit';
+
   // Counts for Header badges
   const pendingOrdersCount = orders.filter((o) => o.isProblematic).length;
   const unclassifiedProductsCount = products.filter((p) => p.status === '待分类审核').length;
@@ -169,14 +187,15 @@ export function App() {
     supplier: isEn ? 'Suppliers' : '供应商协同台',
     finance: isEn ? 'Finance' : '财务与对账台',
     system: isEn ? 'System Control' : '系统治理台',
-  }[activeWorkstation];
+  }[visibleWorkstation];
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#f8fafc] font-sans text-[13px] text-slate-700 antialiased selection:bg-[#1769ff] selection:text-white">
       {/* 1. Deep Navy Sidebar Navigation */}
       <Sidebar
-        activeTab={activeWorkstation}
+        activeTab={visibleWorkstation}
         onSelectTab={(wsId) => {
+          if (!allowedWorkstations.includes(wsId)) return;
           setActiveWorkstation(wsId);
           setFilterParams({});
         }}
@@ -189,6 +208,7 @@ export function App() {
         onOpenCaseCenter={() => setIsCaseCenterOpen(true)}
         language={language}
         currentUser={currentUser}
+        allowedWorkstations={allowedWorkstations}
       />
 
       {/* Main Workspace Wrapper */}
@@ -215,27 +235,27 @@ export function App() {
 
         {/* 3. Main Workstation Area */}
         <main className="flex-1 overflow-y-auto bg-[#f8fafc]">
-          {activeWorkstation === 'cockpit' && (
+          {visibleWorkstation === 'cockpit' && (
             <CockpitWorkstation orders={orders} products={products} enterprises={enterprises} onNavigateToWorkstation={handleNavigateToWorkstation} onOpenGuardrail={handleOpenGuardrail} language={language} />
           )}
 
-          {activeWorkstation === 'product' && (
+          {visibleWorkstation === 'product' && (
             <ProductGovernanceWorkstation products={products} onUpdateProducts={setProducts} onOpenGuardrail={handleOpenGuardrail} initialFilterStatus={filterParams.key === 'status' ? filterParams.value : undefined} />
           )}
 
-          {activeWorkstation === 'order' && (
+          {visibleWorkstation === 'order' && (
             <OrderFulfillmentWorkstation orders={orders} onUpdateOrders={setOrders} onOpenGuardrail={handleOpenGuardrail} initialProblemType={filterParams.key === 'problemType' ? filterParams.value : undefined} />
           )}
 
-          {activeWorkstation === 'enterprise' && <EnterpriseWelfareWorkstation enterprises={enterprises} onOpenGuardrail={handleOpenGuardrail} initialSearchName={filterParams.key === 'search' ? filterParams.value : undefined} />}
+          {visibleWorkstation === 'enterprise' && <EnterpriseWelfareWorkstation enterprises={enterprises} onOpenGuardrail={handleOpenGuardrail} initialSearchName={filterParams.key === 'search' ? filterParams.value : undefined} />}
 
-          {activeWorkstation === 'supplier' && <SupplierGovernanceWorkstation suppliers={suppliers} onUpdateSuppliers={setSuppliers} onOpenGuardrail={handleOpenGuardrail} />}
+          {visibleWorkstation === 'supplier' && <SupplierGovernanceWorkstation suppliers={suppliers} onUpdateSuppliers={setSuppliers} onOpenGuardrail={handleOpenGuardrail} />}
 
-          {activeWorkstation === 'finance' && (
+          {visibleWorkstation === 'finance' && (
             <FinancialReconciliationWorkstation discrepancies={discrepancies} onUpdateDiscrepancies={setDiscrepancies} onOpenGuardrail={handleOpenGuardrail} initialFilterDiscrepancyOnly={filterParams.key === 'discrepancy'} />
           )}
 
-          {activeWorkstation === 'system' && <SystemControlWorkstation config={systemConfig} onUpdateConfig={setSystemConfig} onOpenGuardrail={handleOpenGuardrail} />}
+          {visibleWorkstation === 'system' && <SystemControlWorkstation config={systemConfig} onUpdateConfig={setSystemConfig} onOpenGuardrail={handleOpenGuardrail} />}
         </main>
 
         {/* System Footer Bar */}

@@ -15,6 +15,7 @@ interface SidebarProps {
   onOpenCaseCenter?: () => void;
   language?: 'zh' | 'en';
   currentUser?: AdminProfile;
+  allowedWorkstations?: WorkstationId[];
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -30,12 +31,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenCaseCenter,
   language = 'zh',
   currentUser,
+  allowedWorkstations,
 }) => {
   const isEn = language === 'en';
   const userName = currentUser?.displayName ?? (isEn ? 'Zhang Li' : '张立');
   const roleText = currentUser?.role ?? (isEn ? 'COO' : '高级运营总监 (COO)');
 
-  const workstations: WorkstationMeta[] = [
+  const allWorkstations: WorkstationMeta[] = [
     {
       id: 'cockpit',
       name: isEn ? 'Cockpit' : '经营驾驶舱',
@@ -86,6 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: 'ShieldCheck',
     },
   ];
+  const workstations = allWorkstations.filter((workstation) => !allowedWorkstations || allowedWorkstations.includes(workstation.id));
 
   const renderIcon = (iconName: string) => {
     switch (iconName) {

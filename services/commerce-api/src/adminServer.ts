@@ -2,6 +2,9 @@ import express, { type NextFunction, type Request as ExpressRequest, type Respon
 import path from 'path';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from '@google/genai';
+import { decide } from '@smart-wing/authz';
+import { PERMISSIONS, type Permission } from '@smart-wing/api-contract';
+import { resolveMembershipRuntime } from './api/membershipContext';
 import { readSession } from './api/session';
 import type { WorkerEnv } from './api/types';
 
@@ -19,8 +22,12 @@ function isLocalDevelopment(): boolean {
   return process.env.APP_ENV === 'development' && process.env.AUTH_MODE === 'development';
 }
 
-/** AI endpoints consume paid provider quota and are restricted to a host-only admin session. */
-async function requireAdminSession(request: ExpressRequest, response: ExpressResponse, next: NextFunction): Promise<void> {
+/**
+ * AI endpoints consume paid provider quota. A host-only admin cookie alone is
+ * not authority: every endpoint declares the business permission it needs.
+ */
+function requireAdminPermission(permission: Permission) {
+  return async (request: ExpressRequest, response: ExpressResponse, next: NextFunction): Promise<void> => {
   if (isLocalDevelopment()) {
     next();
     return;
@@ -37,13 +44,33 @@ async function requireAdminSession(request: ExpressRequest, response: ExpressRes
       response.status(401).json({ error: 'AUTHENTICATION_REQUIRED' });
       return;
     }
+    const runtime = await resolveMembershipRuntime(
+      new Request(`https://smart.hbbtzn.com${request.originalUrl}`, {
+        headers: { cookie: request.headers.cookie ?? '' },
+      }),
+      process.env as WorkerEnv,
+    );
+    if (!runtime) {
+      response.status(401).json({ error: 'AUTHENTICATION_REQUIRED' });
+      return;
+    }
+    const decision = decide(runtime.membership, permission, {
+      tenantId: runtime.membership.context.tenantId,
+      enterpriseId: runtime.membership.context.enterpriseId,
+      mallId: runtime.membership.context.mallId,
+      supplierId: runtime.membership.context.supplierId,
+      ownerUserId: runtime.membership.context.userId,
+    }, { stepUpAt: runtime.authorization.stepUpAt });
+    if (!decision.allowed) {
+      response.status(403).json({ error: 'FORBIDDEN', reason: decision.reason });
+      return;
+    }
     next();
   } catch {
     response.status(401).json({ error: 'AUTHENTICATION_REQUIRED' });
   }
+  };
 }
-
-app.use('/api/ai', requireAdminSession);
 
 // Lazy GoogleGenAI client initialization
 let genAIClient: GoogleGenAI | null = null;
@@ -70,7 +97,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 // API Route 1: AI Product Classification Copilot
-app.post('/api/ai/classify-product', async (req, res) => {
+app.post('/api/ai/classify-product', requireAdminPermission(PERMISSIONS.productPublish), async (req, res) => {
   try {
     const { title, attributes, supplierCategory, price } = req.body;
     const ai = getGenAI();
@@ -136,7 +163,7 @@ app.post('/api/ai/classify-product', async (req, res) => {
 });
 
 // API Route 2: AI Operational Anomaly Copilot
-app.post('/api/ai/operational-copilot', async (req, res) => {
+app.post('/api/ai/operational-copilot', requireAdminPermission(PERMISSIONS.orderRead), async (req, res) => {
   try {
     const { anomalyData } = req.body;
     const ai = getGenAI();
