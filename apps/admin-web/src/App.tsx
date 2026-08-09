@@ -4,7 +4,7 @@ import { Header } from './components/Header';
 import { GuardrailModal } from './components/GuardrailModal';
 import { CaseCenterDrawer } from './components/CaseCenterDrawer';
 import { CommandPaletteModal } from './components/CommandPaletteModal';
-import { loadLiveCatalog } from './services/catalog';
+import { loadLiveOperations, type LiveOperationsSummary } from './services/catalog';
 
 // Workstations
 import { CockpitWorkstation } from './components/workstations/CockpitWorkstation';
@@ -55,6 +55,7 @@ export function App() {
   const [currentUser, setCurrentUser] = useState<AdminProfile | null>(null);
   const [sessionPermissions, setSessionPermissions] = useState<string[]>([]);
   const [isLiveCatalog, setIsLiveCatalog] = useState(false);
+  const [liveOperations, setLiveOperations] = useState<LiveOperationsSummary | null>(null);
   const [authChecking, setAuthChecking] = useState(true);
 
   // Application Domain State (In-Memory Mock Single Source of Truth)
@@ -99,10 +100,11 @@ export function App() {
         if (user) {
           setCurrentUser(user);
           setSessionPermissions(Array.isArray(payload?.authorization?.permissions) ? payload.authorization.permissions.filter((permission: unknown): permission is string => typeof permission === 'string') : []);
-          void loadLiveCatalog()
-            .then((catalog) => {
+          void loadLiveOperations()
+            .then(({ products: catalog, summary }) => {
               if (!active) return;
               setProducts(catalog);
+              setLiveOperations(summary);
               setIsLiveCatalog(true);
             })
             .catch(() => {
@@ -247,7 +249,7 @@ export function App() {
         {/* 3. Main Workstation Area */}
         <main className="flex-1 overflow-y-auto bg-[#f8fafc]">
           {visibleWorkstation === 'cockpit' && (
-            <CockpitWorkstation orders={orders} products={products} enterprises={enterprises} onNavigateToWorkstation={handleNavigateToWorkstation} onOpenGuardrail={handleOpenGuardrail} language={language} />
+            <CockpitWorkstation orders={orders} products={products} enterprises={enterprises} liveOperations={liveOperations} onNavigateToWorkstation={handleNavigateToWorkstation} onOpenGuardrail={handleOpenGuardrail} language={language} />
           )}
 
           {visibleWorkstation === 'product' && (

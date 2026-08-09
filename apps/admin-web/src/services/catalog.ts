@@ -62,3 +62,33 @@ export async function loadLiveCatalog(): Promise<Product[]> {
   if (!Array.isArray(payload.items)) throw new Error('CATALOG_RESPONSE_INVALID');
   return payload.items.filter((item): item is CatalogItem => typeof item === 'object' && item !== null).map(toAdminProduct);
 }
+
+export interface LiveOperationsSummary {
+  catalogCount: number;
+  availableStock: number;
+  orderCount: number;
+  afterSaleCount: number;
+}
+
+/** Minimal real-time dashboard facts; intentionally avoids copying customer PII into the cockpit. */
+export async function loadLiveOperations(): Promise<{ products: Product[]; summary: LiveOperationsSummary }> {
+  const [products, ordersResponse, afterSalesResponse] = await Promise.all([
+    loadLiveCatalog(),
+    fetch('/api/v1/orders', { credentials: 'same-origin' }),
+    fetch('/api/v1/after-sales', { credentials: 'same-origin' }),
+  ]);
+  if (!ordersResponse.ok || !afterSalesResponse.ok) {
+    throw new Error(`OPERATIONS_REQUEST_FAILED_${ordersResponse.status}_${afterSalesResponse.status}`);
+  }
+  const orders = await ordersResponse.json() as { items?: unknown };
+  const afterSales = await afterSalesResponse.json() as { items?: unknown };
+  return {
+    products,
+    summary: {
+      catalogCount: products.length,
+      availableStock: products.reduce((total, product) => total + product.stock, 0),
+      orderCount: Array.isArray(orders.items) ? orders.items.length : 0,
+      afterSaleCount: Array.isArray(afterSales.items) ? afterSales.items.length : 0,
+    },
+  };
+}

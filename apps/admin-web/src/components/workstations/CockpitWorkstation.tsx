@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { AlertTriangle, ArrowRight, TrendingUp, Sparkles, ShieldAlert, Clock, User, Activity, Zap, RotateCw } from 'lucide-react';
 import { WorkstationId, Order, Product, Enterprise } from '../../types';
+import type { LiveOperationsSummary } from '../../services/catalog';
 
 interface CockpitWorkstationProps {
   orders: Order[];
   products: Product[];
   enterprises: Enterprise[];
+  liveOperations: LiveOperationsSummary | null;
   onNavigateToWorkstation: (wsId: WorkstationId, filterKey?: string, filterValue?: string) => void;
   onOpenGuardrail: (title: string, actionType: string, targetName: string, entityId: string, amount: number, onConfirm: (reason: string) => void) => void;
   language?: 'zh' | 'en';
 }
 
-export const CockpitWorkstation: React.FC<CockpitWorkstationProps> = ({ orders, products, enterprises, onNavigateToWorkstation, onOpenGuardrail, language = 'zh' }) => {
+export const CockpitWorkstation: React.FC<CockpitWorkstationProps> = ({ orders, products, enterprises, liveOperations, onNavigateToWorkstation, onOpenGuardrail, language = 'zh' }) => {
   const isEn = language === 'en';
   const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -53,7 +55,7 @@ export const CockpitWorkstation: React.FC<CockpitWorkstationProps> = ({ orders, 
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2 py-0.5 rounded bg-[#1769ff] text-white text-[10px] font-bold tracking-wider uppercase">Operational Cockpit</span>
-            <span className="text-xs text-blue-200/80">{isEn ? 'Real-time Operations • Closed-loop Governance' : '实时驱动 · 闭环治理'}</span>
+            <span className="text-xs text-blue-200/80">{liveOperations ? (isEn ? 'Production data • Read-only overview' : '生产数据 · 只读概览') : (isEn ? 'Loading production facts…' : '正在加载生产数据…')}</span>
           </div>
           <h2 className="text-lg font-bold text-white">{isEn ? 'Smart Wing Executive Cockpit' : 'Smart Wing 经营决策驾驶舱'}</h2>
           <p className="text-xs text-slate-300 mt-0.5">{isEn ? 'Actionable Insights Only • Identify conflicts in 30s, resolve in 3min' : '只展示“决策”与“行动” • 30 秒看清关键冲突，3 分钟完成闭环处置'}</p>
@@ -72,32 +74,29 @@ export const CockpitWorkstation: React.FC<CockpitWorkstationProps> = ({ orders, 
       {/* BLOCK 1: 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-[14px] shadow-sm border border-slate-100 space-y-1">
-          <div className="text-slate-400 text-xs mb-1">{isEn ? "Today's GMV" : '今日累计成交额 (GMV)'}</div>
-          <div className="text-2xl font-bold text-[#10294d]">¥ 1,842,500</div>
-          <div className="flex items-center gap-1 text-[11px] mt-1 text-[#15a46b] font-semibold">
-            <TrendingUp className="w-3.5 h-3.5" />
-            {isEn ? '+12.4% vs Yesterday' : '+12.4% 较昨日'}
-          </div>
+          <div className="text-slate-400 text-xs mb-1">{isEn ? 'Published products' : '生产目录商品'}</div>
+          <div className="text-2xl font-bold text-[#10294d]">{liveOperations?.catalogCount ?? '—'}</div>
+          <div className="flex items-center gap-1 text-[11px] mt-1 text-[#15a46b] font-semibold"><TrendingUp className="w-3.5 h-3.5" />{isEn ? 'Live catalogue' : '实时目录读取'}</div>
         </div>
 
         <div className="bg-white p-4 rounded-[14px] shadow-sm border border-slate-100 space-y-1">
-          <div className="text-slate-400 text-xs mb-1">{isEn ? 'Welfare Budget Burn Rate' : '福利预算整体消耗率'}</div>
-          <div className="text-2xl font-bold text-[#10294d]">82.34%</div>
+          <div className="text-slate-400 text-xs mb-1">{isEn ? 'Available stock' : '可用库存'}</div>
+          <div className="text-2xl font-bold text-[#10294d]">{liveOperations?.availableStock ?? '—'}</div>
           <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-            <div className="bg-[#1769ff] h-1.5 rounded-full" style={{ width: '82.34%' }}></div>
+            <div className="bg-[#1769ff] h-1.5 rounded-full" style={{ width: liveOperations ? '100%' : '0%' }}></div>
           </div>
         </div>
 
         <div className="bg-white p-4 rounded-[14px] shadow-sm border border-slate-100 space-y-1">
-          <div className="text-slate-400 text-xs mb-1">{isEn ? 'Active Employees (MAU)' : '员工活跃度 (MAU)'}</div>
-          <div className="text-2xl font-bold text-[#10294d]">12,504</div>
-          <div className="flex items-center gap-1 text-[11px] mt-1 text-slate-400">{isEn ? '42 Enterprise Clients' : '企业客户数 42 家'}</div>
+          <div className="text-slate-400 text-xs mb-1">{isEn ? 'Orders in scope' : '权限范围内订单'}</div>
+          <div className="text-2xl font-bold text-[#10294d]">{liveOperations?.orderCount ?? '—'}</div>
+          <div className="flex items-center gap-1 text-[11px] mt-1 text-slate-400">{isEn ? 'Live order query' : '实时订单查询'}</div>
         </div>
 
         <div className="bg-white p-4 rounded-[14px] shadow-sm border border-slate-100 space-y-1">
-          <div className="text-slate-400 text-xs mb-1">{isEn ? 'Fulfillment Health (SLA)' : '履约健康度 (SLA)'}</div>
-          <div className="text-2xl font-bold text-[#15a46b]">99.2%</div>
-          <div className="flex items-center gap-1 text-[11px] mt-1 text-slate-400">{isEn ? '3 Active Anomalies' : '当前 3 单异常处理中'}</div>
+          <div className="text-slate-400 text-xs mb-1">{isEn ? 'After-sales cases' : '售后工单'}</div>
+          <div className="text-2xl font-bold text-[#15a46b]">{liveOperations?.afterSaleCount ?? '—'}</div>
+          <div className="flex items-center gap-1 text-[11px] mt-1 text-slate-400">{isEn ? 'Live after-sales query' : '实时售后查询'}</div>
         </div>
       </div>
 
