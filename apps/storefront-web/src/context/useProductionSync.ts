@@ -34,7 +34,8 @@ async function loadCompleteCatalog(): Promise<ApiProduct[]> {
 
 export function useProductionSync(setters: ProductionSyncSetters) {
   const refreshProductionData = async () => {
-    const [bootstrap, accounts, orderResult, ledgerResult] = await Promise.all([productionApi.getBootstrap(), productionApi.listAccounts(), productionApi.listOrders(), productionApi.listAccountLedgers()]);
+    const snapshot = await productionApi.getHomeSnapshot();
+    const { bootstrap, accounts, orders: orderResult, accountLedgers: ledgerResult } = snapshot;
     const welfare = accounts.items.find((account) => account.type === 'welfare');
     const meal = accounts.items.find((account) => account.type === 'meal');
     setters.setUser((previous) => ({

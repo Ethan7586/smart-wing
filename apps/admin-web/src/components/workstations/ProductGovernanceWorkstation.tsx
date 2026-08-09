@@ -7,12 +7,13 @@ interface ProductGovernanceProps {
   onUpdateProducts: (updatedProducts: Product[]) => void;
   onOpenGuardrail: (title: string, actionType: string, targetName: string, entityId: string, amount: number, onConfirm: (reason: string, evidence: string) => void) => void;
   initialFilterStatus?: string;
+  isLiveCatalog?: boolean;
 }
 
 const STATUS_PIPELINE: ProductStatus[] = ['草稿', '已导入', '待补全', '待分类审核', '待发布审核', '已发布', '已下架'];
 
-export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({ products, onUpdateProducts, onOpenGuardrail, initialFilterStatus }) => {
-  const [selectedStatus, setSelectedStatus] = useState<string>(initialFilterStatus || '待分类审核');
+export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({ products, onUpdateProducts, onOpenGuardrail, initialFilterStatus, isLiveCatalog = false }) => {
+  const [selectedStatus, setSelectedStatus] = useState<string>(initialFilterStatus || 'ALL');
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -250,6 +251,7 @@ export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({
           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span>商品生命周期治理管道 (Product Lifecycle State Machine)</span>
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-[#1769ff] border border-blue-200">全量商品：{products.length} 个</span>
+            {isLiveCatalog && <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">生产目录实时读取</span>}
           </h2>
 
           <div className="flex items-center gap-2 text-xs">

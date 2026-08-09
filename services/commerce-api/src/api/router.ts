@@ -5,6 +5,7 @@ import { handleAddresses, handleDeleteAddress } from './addressRoutes';
 import { apiError, json } from './http';
 import { handleAfterSales, handleCreateAfterSale, handleCreateOrder, handleExecuteRefund, handleFinanceReconciliation, handleInternalPayment, handleOrders } from './orderRoutes';
 import { handleHealth, handleLogin, handleLogout, handleProducts } from './publicRoutes';
+import { handleHomeSnapshot } from './homeRoutes';
 import type { WorkerEnv } from './types';
 
 const API_PREFIX = '/api/v1';
@@ -33,6 +34,9 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     }
     if (url.pathname === `${API_PREFIX}/bootstrap`) {
       return await handleBootstrap(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/home`) {
+      return await handleHomeSnapshot(request, env, authorization, requestId);
     }
     if (url.pathname === `${API_PREFIX}/auth/session`) {
       return json({ authenticated: true, authorization: publicAuthorization(authorization), requestId });

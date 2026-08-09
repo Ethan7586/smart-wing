@@ -4,6 +4,7 @@ import { Header } from './components/Header';
 import { GuardrailModal } from './components/GuardrailModal';
 import { CaseCenterDrawer } from './components/CaseCenterDrawer';
 import { CommandPaletteModal } from './components/CommandPaletteModal';
+import { loadLiveCatalog } from './services/catalog';
 
 // Workstations
 import { CockpitWorkstation } from './components/workstations/CockpitWorkstation';
@@ -53,6 +54,7 @@ export function App() {
   // Access is derived exclusively from the host-only smart.hbbtzn.com session.
   const [currentUser, setCurrentUser] = useState<AdminProfile | null>(null);
   const [sessionPermissions, setSessionPermissions] = useState<string[]>([]);
+  const [isLiveCatalog, setIsLiveCatalog] = useState(false);
   const [authChecking, setAuthChecking] = useState(true);
 
   // Application Domain State (In-Memory Mock Single Source of Truth)
@@ -97,6 +99,15 @@ export function App() {
         if (user) {
           setCurrentUser(user);
           setSessionPermissions(Array.isArray(payload?.authorization?.permissions) ? payload.authorization.permissions.filter((permission: unknown): permission is string => typeof permission === 'string') : []);
+          void loadLiveCatalog()
+            .then((catalog) => {
+              if (!active) return;
+              setProducts(catalog);
+              setIsLiveCatalog(true);
+            })
+            .catch(() => {
+              if (active) setIsLiveCatalog(false);
+            });
           setAuthChecking(false);
           return;
         }
@@ -240,7 +251,7 @@ export function App() {
           )}
 
           {visibleWorkstation === 'product' && (
-            <ProductGovernanceWorkstation products={products} onUpdateProducts={setProducts} onOpenGuardrail={handleOpenGuardrail} initialFilterStatus={filterParams.key === 'status' ? filterParams.value : undefined} />
+            <ProductGovernanceWorkstation products={products} onUpdateProducts={setProducts} onOpenGuardrail={handleOpenGuardrail} initialFilterStatus={filterParams.key === 'status' ? filterParams.value : undefined} isLiveCatalog={isLiveCatalog} />
           )}
 
           {visibleWorkstation === 'order' && (

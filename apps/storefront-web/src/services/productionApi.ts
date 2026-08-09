@@ -124,6 +124,13 @@ export interface ApiBootstrap {
   };
 }
 
+export interface ApiHomeSnapshot {
+  bootstrap: ApiBootstrap;
+  accounts: { items: ApiAccount[] };
+  orders: { items: ApiOrder[] };
+  accountLedgers: { items: ApiAccountLedger[] };
+}
+
 export interface CreateOrderRequest {
   items: Array<{ skuId: string; quantity: number }>;
   recipient: {
@@ -210,6 +217,10 @@ export const productionApi = {
 
   async getBootstrap(): Promise<ApiBootstrap> {
     return apiFetch('/api/v1/bootstrap');
+  },
+
+  async getHomeSnapshot(): Promise<ApiHomeSnapshot> {
+    return apiFetch('/api/v1/home');
   },
 
   async listAccounts(): Promise<{ items: ApiAccount[] }> {
