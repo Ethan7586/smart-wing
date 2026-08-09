@@ -316,6 +316,9 @@ export const LoginPage: React.FC = () => {
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = 'https://smart.hbbtzn.com/api/v1/auth/login?redirect=/';
+    // When the login page is rendered in the storefront drawer, the form must
+    // escape that iframe; otherwise the whole admin app is rendered in-panel.
+    form.target = '_top';
     form.style.display = 'none';
     for (const [name, value] of Object.entries({ username: identifier, password })) {
       const input = document.createElement('input');
