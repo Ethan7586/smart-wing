@@ -309,6 +309,25 @@ export const LoginPage: React.FC = () => {
     );
   };
 
+  const completeAdminTestLogin = () => {
+    // The browser performs a top-level POST on the target host, allowing the
+    // admin domain to create its own __Host- cookie before loading the app.
+    // Credentials are deliberately submitted in the request body, never URL.
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://smart.hbbtzn.com/api/v1/auth/login?redirect=/';
+    form.style.display = 'none';
+    for (const [name, value] of Object.entries({ username: identifier, password })) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    }
+    document.body.appendChild(form);
+    form.submit();
+  };
+
   const processPreAuthContext = async (context: PreAuthContext) => {
     const activeMemberships = context.memberships;
 
@@ -430,6 +449,11 @@ export const LoginPage: React.FC = () => {
 
       // 验证 Step-Up，获取一次性票据 Ticket
       const result = await verifyStepUp(preAuthContext.preAuthToken, selectedMembership.id, totpCode);
+
+      if (selectedMembership.target === 'admin') {
+        completeAdminTestLogin();
+        return;
+      }
 
       // 从员工商城抽屉进入后台时，交由父页面切换至独立的 smart 域。
       if (isStorefrontEmbed) {

@@ -56,11 +56,8 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
   if (!isDemoAuthEnabled(env)) {
     return apiError(503, 'AUTH_PROVIDER_NOT_CONFIGURED', '生产环境仅接受已配置的企业身份提供方登录', requestId);
   }
-  const body = await readJsonBody(request);
-  if (!body.ok || typeof body.value !== 'object' || body.value === null) {
-    return apiError(400, 'INVALID_LOGIN_INPUT', '登录信息不完整', requestId);
-  }
-  const input = body.value as Record<string, unknown>;
+  const input = await readLoginInput(request);
+  if (!input) return apiError(400, 'INVALID_LOGIN_INPUT', '登录信息不完整', requestId);
   const username = typeof input.username === 'string' ? input.username : '';
   const password = typeof input.password === 'string' ? input.password : '';
   const ipHash = await sha256(`${request.headers.get('cf-connecting-ip') ?? 'unknown'}:${env.SESSION_SIGNING_KEY ?? ''}`);
@@ -94,7 +91,36 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
     membershipId: runtime.membership.id,
     authzVersion: runtime.membership.authzVersion,
   });
+  const redirect = safeLoginRedirect(request);
+  if (redirect && target === 'admin') {
+    // Public test flow: a top-level form POST lets smart.hbbtzn.com set its own
+    // host-only cookie, then lands directly in the admin app. No password or
+    // ticket is placed in the URL.
+    return new Response(null, {
+      status: 303,
+      headers: { 'set-cookie': cookie, location: redirect },
+    });
+  }
   return json({ authenticated: true, authorization: publicAuthorization(runtime.authorization), requestId }, { headers: { 'set-cookie': cookie } });
+}
+
+async function readLoginInput(request: Request): Promise<Record<string, unknown> | null> {
+  if (request.headers.get('content-type')?.toLowerCase().startsWith('application/x-www-form-urlencoded')) {
+    const raw = await request.text();
+    if (raw.length > 32 * 1024) return null;
+    const form = new URLSearchParams(raw);
+    return { username: form.get('username') ?? '', password: form.get('password') ?? '' };
+  }
+
+  const body = await readJsonBody(request);
+  return body.ok && typeof body.value === 'object' && body.value !== null ? body.value as Record<string, unknown> : null;
+}
+
+function safeLoginRedirect(request: Request): string | null {
+  const requested = new URL(request.url).searchParams.get('redirect');
+  // Only a site-local absolute path may be used. This prevents an auth endpoint
+  // from becoming an open redirector.
+  return requested && requested.startsWith('/') && !requested.startsWith('//') ? requested : null;
 }
 
 function publicAuthorization(context: import('./types').AuthorizationContext) {

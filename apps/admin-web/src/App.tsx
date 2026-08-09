@@ -19,7 +19,15 @@ import { INITIAL_ADMIN_ACCOUNTS, INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_
 
 import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStatus, FinanceDiscrepancyRow, SystemConfig, GuardrailActionOptions, AdminAccount } from './types';
 
-const SESSION_KEY = 'smart-wing-admin-session';
+function resolveAdminAccount(roles: unknown): AdminAccount | null {
+  if (!Array.isArray(roles)) return null;
+  const roleCodes = new Set(roles.filter((role): role is string => typeof role === 'string'));
+  const username = roleCodes.has('platform_owner') ? 'onewr'
+    : roleCodes.has('enterprise_manager') ? '经理1'
+      : roleCodes.has('role-mall-admin') ? '福宝'
+        : null;
+  return username ? INITIAL_ADMIN_ACCOUNTS.find((account) => account.username === username) ?? null : null;
+}
 
 export function App() {
   // Navigation & UI States
@@ -30,21 +38,9 @@ export function App() {
   const [guardrailOptions, setGuardrailOptions] = useState<GuardrailActionOptions | null>(null);
   const [language, setLanguage] = useState<'zh' | 'en'>('zh');
 
-  // Mock auth state
-  const [currentUser, setCurrentUser] = useState<AdminAccount | null>(() => {
-    try {
-      const cached = window.localStorage.getItem(SESSION_KEY);
-      if (!cached) {
-        return null;
-      }
-      const parsed = JSON.parse(cached) as { username: string };
-      return INITIAL_ADMIN_ACCOUNTS.find((account) => account.username === parsed?.username) ?? null;
-    } catch {
-      return null;
-    }
-  });
-  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-  const [loginError, setLoginError] = useState('');
+  // Access is derived exclusively from the host-only smart.hbbtzn.com session.
+  const [currentUser, setCurrentUser] = useState<AdminAccount | null>(null);
+  const [authChecking, setAuthChecking] = useState(true);
 
   // Application Domain State (In-Memory Mock Single Source of Truth)
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
@@ -74,6 +70,28 @@ export function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    void fetch('/api/v1/auth/session', { credentials: 'same-origin' })
+      .then(async (response) => response.ok ? response.json() : null)
+      .then((payload) => {
+        if (!active) return;
+        const user = payload?.authenticated && payload?.authorization?.target === 'admin'
+          ? resolveAdminAccount(payload.authorization.roles)
+          : null;
+        if (user) {
+          setCurrentUser(user);
+          setAuthChecking(false);
+          return;
+        }
+        window.location.replace('https://hbbtzn.com/login/?target=admin');
+      })
+      .catch(() => {
+        if (active) window.location.replace('https://hbbtzn.com/login/?target=admin');
+      });
+    return () => { active = false; };
   }, []);
 
   const handleOpenGuardrail = (title: string, actionType: string, targetEntityName: string, entityId: string, impactAmount: number, onConfirm: (reason: string, evidence: string) => void) => {
@@ -119,94 +137,21 @@ export function App() {
     );
   };
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginError('');
-
-    const user = INITIAL_ADMIN_ACCOUNTS.find((account) => account.username === loginForm.username.trim() && account.password === loginForm.password);
-
-    if (!user) {
-      setLoginError('账号或密码不正确，请重试。');
-      return;
-    }
-
-    if (!user.canLoginAdmin) {
-      setLoginError('该账号为商城账号，仅支持 https://www.hbbtzn.com 购物，不支持后台登录。');
-      return;
-    }
-
-    setCurrentUser(user);
-    try {
-      window.localStorage.setItem(SESSION_KEY, JSON.stringify({ username: user.username }));
-    } catch {
-      // ignore
-    }
-  };
-
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => undefined);
     setCurrentUser(null);
-    setLoginForm({ username: '', password: '' });
-    setLoginError('');
-    try {
-      window.localStorage.removeItem(SESSION_KEY);
-    } catch {
-      // ignore
-    }
+    window.location.replace('https://hbbtzn.com/login/?target=admin');
   };
 
-  if (!currentUser) {
+  if (authChecking) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-200 flex items-center justify-center p-6">
-        <div className="w-full max-w-md bg-white/6 border border-white/15 rounded-xl p-6 space-y-5">
-          <h1 className="text-2xl font-bold text-white">Smart Wing 管理后台</h1>
-          <p className="text-sm text-slate-300">请选择角色并输入密码，登录后进入运营管理台。</p>
-
-          <form onSubmit={handleLogin} className="space-y-3">
-            <label className="block">
-              <span className="text-xs text-slate-300">账号</span>
-              <input
-                className="mt-1 w-full rounded-md bg-white/10 border border-white/20 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#1769ff]"
-                value={loginForm.username}
-                onChange={(e) => setLoginForm((prev) => ({ ...prev, username: e.target.value }))}
-                placeholder="例如：李厚亿 / 测试员 / 福宝"
-              />
-            </label>
-            <label className="block">
-              <span className="text-xs text-slate-300">密码</span>
-              <input
-                type="password"
-                className="mt-1 w-full rounded-md bg-white/10 border border-white/20 px-3 py-2 text-sm text-white placeholder:text-slate-400 outline-none focus:border-[#1769ff]"
-                value={loginForm.password}
-                onChange={(e) => setLoginForm((prev) => ({ ...prev, password: e.target.value }))}
-                placeholder="输入密码"
-              />
-            </label>
-            {loginError && <p className="text-xs text-red-300">{loginError}</p>}
-            <button type="submit" className="w-full rounded-md bg-[#1769ff] hover:bg-[#1452d4] text-white px-3 py-2 text-sm font-semibold cursor-pointer">
-              登录后台
-            </button>
-          </form>
-
-          <div className="space-y-2">
-            <p className="text-xs text-slate-300">快速填充账号：</p>
-            <div className="flex flex-wrap gap-2">
-              {INITIAL_ADMIN_ACCOUNTS.map((account) => (
-                <button
-                  key={account.username}
-                  type="button"
-                  className="px-2 py-1.5 text-xs rounded-md bg-white/10 border border-white/20 hover:bg-white/15"
-                  onClick={() => setLoginForm({ username: account.username, password: account.password })}
-                >
-                  {account.username}
-                </button>
-              ))}
-            </div>
-            <p className="text-[11px] text-slate-400">提示：当前内置账号均为演示密码，建议首次上生产环境时替换为正式鉴权服务。</p>
-          </div>
-        </div>
+        <p className="text-sm text-slate-300">正在验证运营后台安全会话…</p>
       </div>
     );
   }
+
+  if (!currentUser) return null;
 
   // Counts for Header badges
   const pendingOrdersCount = orders.filter((o) => o.isProblematic).length;
