@@ -9,7 +9,7 @@ import { DomainType, MallContextType, ScreenType } from '../types';
 const MallContext = createContext<MallContextType | undefined>(undefined);
 
 export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentDomain, setDomain] = useState<DomainType>('hbbtzn.com');
+  const [currentDomain, setDomain] = useState<DomainType>(() => (window.location.hostname === 'smart.hbbtzn.com' ? 'smart.hbbtzn.com' : 'hbbtzn.com'));
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('login');
   const [screenParams, setScreenParams] = useState<Record<string, any>>({});
   const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);

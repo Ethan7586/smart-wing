@@ -1,1 +1,28 @@
 @import 'tailwindcss';
+
+:root {
+  color: #172033;
+  background: #f4f7fc;
+  font-family: Inter, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  background: radial-gradient(circle at 82% 8%, rgb(31 94 255 / 12%), transparent 24rem), linear-gradient(135deg, #eef4ff 0%, #f8fafc 45%, #f4f7fc 100%);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid rgb(31 94 255 / 24%);
+  outline-offset: 2px;
+}

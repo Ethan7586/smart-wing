@@ -225,7 +225,7 @@ export async function requestOtp(phone: string): Promise<{ success: boolean; mes
 
   return {
     success: true,
-    message: '验证码已发送，测试环境下默认验证码为：123456',
+    message: '验证码已发送，请查收短信。',
   };
 }
 
@@ -253,8 +253,8 @@ export async function loginWithOtp(phone: string, code: string): Promise<PreAuth
   // 登录成功，清除失败记录
   delete failureMap[cleanPhone];
 
-  // 获取对应的会员列表（如未找到，默认给13800138000的数据，或空数据）
-  const memberships = MOCK_MEMBERSHIPS_MAP[cleanPhone] ?? MOCK_MEMBERSHIPS_MAP['13800138000'];
+  // 演示数据必须显式存在，未知账号不能回退为高权限身份。
+  const memberships = MOCK_MEMBERSHIPS_MAP[cleanPhone] ?? [];
 
   return {
     preAuthToken: `PAT_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -296,7 +296,8 @@ export async function loginWithPassword(identifier: string, password: string): P
 
   delete failureMap[cleanId];
 
-  const memberships = MOCK_MEMBERSHIPS_MAP[cleanId] ?? MOCK_MEMBERSHIPS_MAP['13800138000'];
+  // 演示数据必须显式存在，未知账号不能回退为高权限身份。
+  const memberships = MOCK_MEMBERSHIPS_MAP[cleanId] ?? [];
 
   return {
     preAuthToken: `PAT_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
