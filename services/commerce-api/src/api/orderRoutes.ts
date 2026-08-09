@@ -80,7 +80,8 @@ export async function handleShipOrder(request: Request, env: WorkerEnv, authoriz
 }
 
 export async function handleCreateOrder(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
-  if (!can(authorization, PERMISSIONS.orderCreate)) {
+  const decision = authorize(authorization, PERMISSIONS.orderCreate);
+  if (!decision.allowed) {
     return apiError(403, 'FORBIDDEN', '没有创建订单的权限', requestId);
   }
   if (!env.PII_ENCRYPTION_KEY) {
@@ -97,7 +98,7 @@ export async function handleCreateOrder(request: Request, env: WorkerEnv, author
     return apiError(422, 'INVALID_ORDER_INPUT', '订单商品或收货信息不完整', requestId);
   }
   const recipientCipher = await encryptJson(input.recipient, env.PII_ENCRYPTION_KEY);
-  const response = await callRpc<Record<string, unknown>>(env, 'api_create_order', {
+  const response = await callRpc<Record<string, unknown>>(env, 'api_create_order_authorized', {
     ...authorizationScope(authorization, true),
     p_items: input.items,
     p_recipient_cipher: JSON.parse(recipientCipher),
@@ -105,6 +106,8 @@ export async function handleCreateOrder(request: Request, env: WorkerEnv, author
     p_request_hash: await sha256(JSON.stringify(input)),
     p_request_id: requestId,
     p_user_agent: (request.headers.get('user-agent') ?? '').slice(0, 300),
+    p_membership_id: authorization.membership.id,
+    p_granted_via: authorizationEvidence(authorization, decision),
   });
   return json(response, { status: 201 });
 }
@@ -112,7 +115,8 @@ export async function handleCreateOrder(request: Request, env: WorkerEnv, author
 export async function handleInternalPayment(request: Request, env: WorkerEnv, authorization: AuthorizationContext, orderId: string, requestId: string): Promise<Response> {
   if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
   const orderScope = await loadResourceScope(env, 'api_order_authorization_scope', orderId);
-  if (!orderScope || !authorize(authorization, PERMISSIONS.orderCreate, orderScope).allowed) {
+  const decision = orderScope ? authorize(authorization, PERMISSIONS.orderCreate, orderScope) : null;
+  if (!decision?.allowed) {
     return apiError(403, 'FORBIDDEN', '没有支付订单的权限', requestId);
   }
   const idempotencyKey = request.headers.get('idempotency-key');
@@ -125,7 +129,7 @@ export async function handleInternalPayment(request: Request, env: WorkerEnv, au
   if (!input) {
     return apiError(422, 'INVALID_PAYMENT_INPUT', '账户支付金额无效', requestId);
   }
-  const response = await callRpc<Record<string, unknown>>(env, 'api_pay_internal', {
+  const response = await callRpc<Record<string, unknown>>(env, 'api_pay_internal_authorized', {
     ...authorizationScope(authorization, true),
     p_order_id: orderId,
     p_welfare_cents: input.welfareCents,
@@ -134,6 +138,8 @@ export async function handleInternalPayment(request: Request, env: WorkerEnv, au
     p_request_hash: await sha256(JSON.stringify({ orderId, ...input })),
     p_request_id: requestId,
     p_user_agent: (request.headers.get('user-agent') ?? '').slice(0, 300),
+    p_membership_id: authorization.membership.id,
+    p_granted_via: authorizationEvidence(authorization, decision),
   });
   return json(response, { status: 201 });
 }
