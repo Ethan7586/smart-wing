@@ -271,7 +271,7 @@ export const LoginPage: React.FC = () => {
       setActiveTab('password');
       setRegistrationOpen(false);
       setRegistrationNotice('');
-      setFormError('注册成功。已为你建立普通员工会员身份；手机号开通前无法自助找回密码，请妥善保管。');
+      setFormError('注册成功。已建立基础会员身份；手机尚未验证，可登录和浏览，短信认证完成前暂不能提交订单或付款。');
     } catch (error: any) {
       setFormError(error.message || '注册失败');
     } finally {

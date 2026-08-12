@@ -38,7 +38,7 @@ export const AndroidProfilePage: React.FC = () => {
             </div>
             <div className="text-[10px] text-emerald-200 flex items-center gap-1">
               <Smartphone className="w-3.5 h-3.5 text-emerald-300" />
-              <span>Android 设备已实名认证</span>
+              <span>{user.phoneVerified ? '手机已验证，可使用支付功能' : '账号已认证，手机待验证'}</span>
             </div>
           </div>
         </div>

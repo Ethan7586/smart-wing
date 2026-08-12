@@ -179,7 +179,9 @@ export const MPProfilePage: React.FC = () => {
                 <ShieldCheck className="w-4 h-4 text-blue-600" />
                 <span>企业安全认证凭证</span>
               </div>
-              <span className="text-emerald-600 font-bold text-[10px]">已认证 &gt;</span>
+              <span className={`${user.phoneVerified ? 'text-emerald-600' : 'text-amber-600'} font-bold text-[10px]`}>
+                {user.phoneVerified ? '手机已验证' : '手机待验证'} &gt;
+              </span>
             </button>
           </div>
         </div>

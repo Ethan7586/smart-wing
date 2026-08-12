@@ -59,11 +59,14 @@ export function useCheckoutModel() {
     if (sessionStatus !== 'authenticated') {
       return '请先点击页面顶部“登录MVP”，再提交测试订单';
     }
+    if (!user.phoneVerified || !user.paymentEligible) {
+      return '手机尚未验证，完成短信验证后才能提交订单和付款';
+    }
     if (finalWechatTopUp > 0) {
       return '当前演示环境仅支持内部账户先支付，请先将福利卡/餐卡金额调至可全额支付。';
     }
     return '';
-  }, [finalWechatTopUp, invalidItems.length, selectedAddrId, selectedItems, sessionStatus]);
+  }, [finalWechatTopUp, invalidItems.length, selectedAddrId, selectedItems, sessionStatus, user.paymentEligible, user.phoneVerified]);
   const groupedItems = useMemo(() => {
     const groups = new Map<string, typeof selectedItems>();
     selectedItems.forEach((item) => {

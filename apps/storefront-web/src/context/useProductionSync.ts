@@ -46,6 +46,9 @@ export function useProductionSync(setters: ProductionSyncSetters) {
       enterpriseId: bootstrap.scope.enterpriseId,
       enterpriseName: bootstrap.scope.enterpriseName,
       currentMallId: bootstrap.scope.mallId,
+      assuranceLevel: bootstrap.actor.assurance.level,
+      phoneVerified: bootstrap.actor.assurance.phoneVerified,
+      paymentEligible: bootstrap.actor.assurance.paymentEligible,
       welfareBalance: (welfare?.balanceCents ?? 0) / 100,
       mealBalance: (meal?.balanceCents ?? 0) / 100,
     }));

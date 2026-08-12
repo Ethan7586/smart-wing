@@ -101,6 +101,16 @@ export interface ApiActor {
   roles: string[];
   permissions: string[];
 }
+export interface ApiMemberAssurance {
+  level: 'account' | 'phone';
+  accountAuthenticated: boolean;
+  accountAuthenticatedAt: string;
+  phoneVerified: boolean;
+  phoneVerifiedAt: string | null;
+  phoneVerificationMethod: string | null;
+  paymentEligible: boolean;
+  restrictedCapabilities: string[];
+}
 export interface ApiSecuritySession {
   id: string;
   target: 'storefront' | 'admin';
@@ -114,6 +124,14 @@ export interface ApiSecurityCenter {
   hasLocalCredential: boolean;
   phoneMasked: string | null;
   passwordChangedAt: string | null;
+  assuranceLevel: 'account' | 'phone';
+  accountAuthenticated: boolean;
+  accountAuthenticatedAt: string | null;
+  phoneVerified: boolean;
+  phoneVerifiedAt: string | null;
+  paymentEligible: boolean;
+  restrictedCapabilities: string[];
+  phoneVerificationAvailable: boolean;
   sessions: ApiSecuritySession[];
 }
 export interface LoginRequest {
@@ -122,7 +140,7 @@ export interface LoginRequest {
   password?: string;
 }
 export interface ApiBootstrap {
-  actor: ApiActor;
+  actor: ApiActor & { assurance: ApiMemberAssurance };
   scope: { tenantId: string; enterpriseId: string; mallId: string; mallCode: string; mallName: string; brandName: string; enterpriseName: string };
 }
 export interface ApiHomeSnapshot {

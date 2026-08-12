@@ -220,6 +220,7 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
       ['INVALID_PRODUCT_STATUS_INPUT', 422, 'INVALID_PRODUCT_STATUS_INPUT', '商品状态参数无效'],
       ['ACCOUNT_NOT_ACTIVE', 409, 'ACCOUNT_NOT_ACTIVE', '账户当前不可用'],
       ['PAYMENT_TOTAL_MISMATCH', 422, 'PAYMENT_TOTAL_MISMATCH', '账户扣款合计必须等于订单应付金额'],
+      ['PHONE_VERIFICATION_REQUIRED', 403, 'PHONE_VERIFICATION_REQUIRED', '完成手机短信验证后才能提交订单和付款'],
       ['SKU_NOT_AVAILABLE', 422, 'SKU_NOT_AVAILABLE', '订单中存在无效商品'],
       ['SKU_NOT_ELIGIBLE', 403, 'SKU_NOT_ELIGIBLE', '当前员工资格不能购买该商品'],
       ['CITY_NOT_ELIGIBLE', 403, 'CITY_NOT_ELIGIBLE', '当前城市不在该商品的可售范围'],

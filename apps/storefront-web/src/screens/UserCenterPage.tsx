@@ -10,7 +10,7 @@ import { CreditCard, Utensils, Package, MapPin, Heart, Ticket, Headphones, Chevr
 import { AccountSecurityCenter } from '../components/security/AccountSecurityCenter';
 
 export const UserCenterPage: React.FC = () => {
-  const { user, currentMall, navigateTo, orders, sessionStatus, logout } = useMall();
+  const { user, currentMall, navigateTo, orders, sessionStatus, logout, refreshProductionData } = useMall();
 
   const pendingShipment = orders.filter((o) => o.status === 'pending_shipment').length;
   const pendingReceipt = orders.filter((o) => o.status === 'pending_receipt').length;
@@ -27,6 +27,11 @@ export const UserCenterPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-black">{user.name}</h1>
               <span className="bg-white/20 text-yellow-300 text-xs px-2 py-0.5 rounded font-bold border border-white/20">{user.jobTitle}</span>
+              {sessionStatus === 'authenticated' && (
+                <span className={`${user.phoneVerified ? 'bg-emerald-500/30 text-emerald-100' : 'bg-amber-400/30 text-amber-100'} rounded border border-white/20 px-2 py-0.5 text-[10px] font-bold`}>
+                  {user.phoneVerified ? '手机已验证' : '手机待验证'}
+                </span>
+              )}
             </div>
             <p className="text-xs text-blue-100 flex items-center gap-1">
               <Building2 className="w-3.5 h-3.5" /> {user.enterpriseName} · 部门：{user.department}
@@ -138,7 +143,7 @@ export const UserCenterPage: React.FC = () => {
           <ChevronRight className="w-4 h-4 text-gray-400" />
         </div>
       </div>
-      {sessionStatus === 'authenticated' && <AccountSecurityCenter onSignedOut={() => void logout()} />}
+      {sessionStatus === 'authenticated' && <AccountSecurityCenter onSignedOut={() => void logout()} onSecurityChanged={refreshProductionData} />}
     </div>
   );
 };

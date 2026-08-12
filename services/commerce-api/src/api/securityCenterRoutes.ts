@@ -16,7 +16,7 @@ export async function handleSecurityCenter(request: Request, env: WorkerEnv, aut
   const session = await readSession(request, env);
   if (!session) return apiError(401, 'AUTHENTICATION_REQUIRED', '当前会话已失效', requestId);
   const data = await callRpc<Record<string, unknown> | null>(env, 'api_account_security_center', { p_member_id: auth.membership.memberId, p_current_session_id: session.sessionId });
-  return data ? json({ ...data, requestId }) : apiError(404, 'SECURITY_PROFILE_NOT_FOUND', '安全资料不存在', requestId);
+  return data ? json({ ...data, phoneVerificationAvailable: debugSmsEnabled(env), requestId }) : apiError(404, 'SECURITY_PROFILE_NOT_FOUND', '安全资料不存在', requestId);
 }
 
 export async function handleChangePassword(request: Request, env: WorkerEnv, auth: AuthorizationContext, requestId: string): Promise<Response> {
