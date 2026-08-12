@@ -34,8 +34,9 @@ async function loadCompleteCatalog(): Promise<ApiProduct[]> {
 
 export function useProductionSync(setters: ProductionSyncSetters) {
   const refreshProductionData = async () => {
-    const snapshot = await productionApi.getHomeSnapshot();
+    const [snapshot, catalog] = await Promise.all([productionApi.getHomeSnapshot(), loadCompleteCatalog()]);
     const { bootstrap, accounts, orders: orderResult, accountLedgers: ledgerResult } = snapshot;
+    setters.setProducts(catalog.map(mapApiProduct));
     const welfare = accounts.items.find((account) => account.type === 'welfare');
     const meal = accounts.items.find((account) => account.type === 'meal');
     setters.setUser((previous) => ({
@@ -75,13 +76,6 @@ export function useProductionSync(setters: ProductionSyncSetters) {
 
   useEffect(() => {
     let active = true;
-    void loadCompleteCatalog()
-      .then((response) => {
-        if (active && response.length) {
-          setters.setProducts(response.map(mapApiProduct));
-        }
-      })
-      .catch(() => undefined);
     // /home is both the authorization check and the initial data snapshot.
     // Avoid a separate /auth/session round trip before loading the page.
     void refreshProductionData()

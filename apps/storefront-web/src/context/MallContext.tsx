@@ -8,6 +8,7 @@ import { useDeviceNavigation } from './useDeviceNavigation';
 import { checkoutSelectedCartRequest } from './checkoutSelectedCart';
 import { useProductionSync } from './useProductionSync';
 import { useToasts } from './useToasts';
+import { mapApiCartItems } from './mallMappers';
 export type * from './MallContext.types';
 const MallContext = createContext<MallContextType | undefined>(undefined);
 export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -32,11 +33,7 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshServerCart = useCallback(async () => {
     const response = await productionApi.listCart();
-    const nextCart = response.items.flatMap((item) => {
-      const product = products.find((candidate) => candidate.id === item.productId && candidate.skuId === item.skuId);
-      return product ? [{ id: item.id, productId: item.productId, product, quantity: item.quantity, selectedSpec: {}, selected: item.selected }] : [];
-    });
-    setCart(nextCart);
+    setCart(mapApiCartItems(response.items, products));
   }, [products]);
   const refreshServerAddresses = useCallback(async () => setAddresses((await productionApi.listAddresses()).items), []);
   const { refreshProductionData } = useProductionSync({
@@ -117,6 +114,10 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const handleAddToCart = async (product: Product, quantity = 1, selectedSpec: Record<string, string> = {}) => {
     if (product.isTest) {
       showToast('测试商品仅用于系统验证，不能加入购物车', 'warning');
+      return;
+    }
+    if (product.purchasable === false) {
+      showToast(product.qualificationReason === 'PURCHASE_LIMIT_EXCEEDED' ? '已达到该商品的限购上限' : '当前资格或城市暂不能购买该商品', 'warning');
       return;
     }
     if (sessionStatus === 'authenticated' && product.skuId) {

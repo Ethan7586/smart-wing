@@ -40,3 +40,10 @@
 4. 给高风险操作增加双人审批与职责分离。
 5. 接入分销商、品牌、门店资源表后启用对应范围校验。
 6. 建立权限回归矩阵，确保每个接口、导出、敏感字段都在服务端复核。
+
+## 相关设计与实施文档
+
+- [四类边界模型](./00-BOUNDARY-MODELS.md)
+- [商业资源关系模型](./02-COMMERCIAL-RESOURCE-RELATIONSHIPS.md)
+- [员工端可见与可买资格模型](./03-STOREFRONT-ENTITLEMENT.md)
+- [商业资源与员工资格系统实施说明](./05-COMMERCIAL-RESOURCES-AND-EMPLOYEE-QUALIFICATION-IMPLEMENTATION.md)

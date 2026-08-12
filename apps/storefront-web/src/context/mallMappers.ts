@@ -1,6 +1,6 @@
-import type { Order, OrderStatus, Product, ProductItemType } from '../types';
+import type { CartItem, Order, OrderStatus, Product, ProductItemType } from '../types';
 import { isStrictTaxonomyPath } from '../domain/catalog/taxonomy';
-import type { ApiOrder, ApiProduct } from '../services/productionApi';
+import type { ApiCartItem, ApiOrder, ApiProduct } from '../services/productionApi';
 
 const CATEGORY_MAP: Record<string, { id: string; name: string }> = {
   food: { id: 'cat_food', name: '食品饮料' },
@@ -52,9 +52,29 @@ export function mapApiProduct(product: ApiProduct): Product {
     deliverySla: isVirtual ? '支付成功后即时发放' : '供应商履约时效为准',
     isEnterpriseExclusive: true,
     isTest: product.isTest,
+    purchasable: product.purchasable,
+    qualificationReason: product.qualification.purchaseReason,
     specs: [{ name: '标准规格', options: ['默认规格'] }],
     descriptionDetailText: ['商品信息来自生产型商品目录，最终履约规则以供应商确认结果为准。'],
   };
+}
+
+export function mapApiCartItems(items: ApiCartItem[], products: Product[]): CartItem[] {
+  return items.flatMap((item) => {
+    const product = products.find((candidate) => candidate.id === item.productId && candidate.skuId === item.skuId);
+    if (!product) return [];
+    const qualifiedProduct = item.purchasable === false ? { ...product, purchasable: false, qualificationReason: item.qualification?.purchaseReason } : product;
+    return [
+      {
+        id: item.id,
+        productId: item.productId,
+        product: qualifiedProduct,
+        quantity: item.quantity,
+        selectedSpec: {},
+        selected: item.selected && item.purchasable !== false,
+      },
+    ];
+  });
 }
 
 export function mapApiOrder(order: ApiOrder, scope: { enterpriseId: string; enterpriseName: string; mallId: string; mallName: string }): Order {

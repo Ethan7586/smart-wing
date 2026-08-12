@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, PackageCheck, Truck, Building2, Handshake, Receipt, ShieldCheck, Sparkles, ChevronLeft, ChevronRight, UsersRound } from 'lucide-react';
+import { LayoutDashboard, PackageCheck, Truck, Building2, Handshake, Receipt, ShieldCheck, Sparkles, ChevronLeft, ChevronRight, UsersRound, BadgeCheck } from 'lucide-react';
 import { WorkstationId, WorkstationMeta, AdminProfile } from '../types';
 
 interface SidebarProps {
@@ -88,6 +88,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: 'UsersRound',
     },
     {
+      id: 'qualification',
+      name: isEn ? 'Qualification' : '员工资格',
+      badgeCount: pendingCounts.qualification || 0,
+      badgeColor: 'blue',
+      icon: 'BadgeCheck',
+    },
+    {
       id: 'system',
       name: isEn ? 'System Control' : '系统治理台',
       badgeCount: pendingCounts.system || 0,
@@ -115,6 +122,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return <ShieldCheck className="w-4 h-4" />;
       case 'UsersRound':
         return <UsersRound className="w-4 h-4" />;
+      case 'BadgeCheck':
+        return <BadgeCheck className="w-4 h-4" />;
       default:
         return <LayoutDashboard className="w-4 h-4" />;
     }

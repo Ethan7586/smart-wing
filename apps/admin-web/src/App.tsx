@@ -15,6 +15,7 @@ import { SupplierGovernanceWorkstation } from './components/workstations/Supplie
 import { FinancialReconciliationWorkstation } from './components/workstations/FinancialReconciliationWorkstation';
 import { SystemControlWorkstation } from './components/workstations/SystemControlWorkstation';
 import { MembershipPermissionWorkstation } from './components/workstations/MembershipPermissionWorkstation';
+import { QualificationCenterWorkstation } from './components/workstations/QualificationCenterWorkstation';
 
 // Mock Datasets
 import { ADMIN_PROFILES, INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIERS, INITIAL_CASES, INITIAL_FINANCE_DISCREPANCIES, INITIAL_SYSTEM_CONFIG } from './data/mockData';
@@ -30,6 +31,7 @@ export function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
   if (has('tenant.manage')) allowed.add('supplier');
   if (has('finance.reconcile')) allowed.add('finance');
   if (has('member.read') && has('role.read')) allowed.add('membership');
+  if (has('commercial_resource.read') || has('commercial_resource.manage') || has('entitlement.read') || has('entitlement.manage') || has('purchase_limit.read') || has('purchase_limit.manage')) allowed.add('qualification');
   if (has('tenant.manage') || has('role.grant')) allowed.add('system');
   return [...allowed];
 }
@@ -210,6 +212,7 @@ export function App() {
     supplier: isEn ? 'Suppliers' : '供应商协同台',
     finance: isEn ? 'Finance' : '财务与对账台',
     membership: isEn ? 'Members & Access' : '会员与权限中心',
+    qualification: isEn ? 'Employee Qualification' : '商业资源与员工资格中心',
     system: isEn ? 'System Control' : '系统治理台',
   }[visibleWorkstation];
 
@@ -298,6 +301,8 @@ export function App() {
               canOffboard={sessionPermissions.includes('member.offboard')}
             />
           )}
+
+          {visibleWorkstation === 'qualification' && <QualificationCenterWorkstation />}
 
           {visibleWorkstation === 'system' && <SystemControlWorkstation config={systemConfig} onUpdateConfig={setSystemConfig} onOpenGuardrail={handleOpenGuardrail} />}
         </main>

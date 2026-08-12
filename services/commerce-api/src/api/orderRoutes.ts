@@ -102,6 +102,7 @@ export async function handleCreateOrder(request: Request, env: WorkerEnv, author
     ...authorizationScope(authorization, true),
     p_items: input.items,
     p_recipient_cipher: JSON.parse(recipientCipher),
+    p_recipient_city: input.recipient.city,
     p_idempotency_key: idempotencyKey,
     p_request_hash: await sha256(JSON.stringify(input)),
     p_request_id: requestId,

@@ -16,6 +16,17 @@ export interface ApiProduct {
   availableStock: number;
   supplierName: string;
   isTest: boolean;
+  purchasable: boolean;
+  qualification: {
+    visible: boolean;
+    purchasable: boolean;
+    visibilityReason: string;
+    purchaseReason: string;
+    policyVersion?: number;
+    matchedPolicyIds?: string[];
+    cityZoneIds?: string[];
+    limitTemplateIds?: string[];
+  };
 }
 
 export interface ApiOrder {
@@ -58,6 +69,8 @@ export interface ApiCartItem {
   quantity: number;
   selected: boolean;
   updatedAt: string;
+  purchasable?: boolean;
+  qualification?: { purchaseReason?: string };
 }
 export interface ApiDeliveryAddress {
   id: string;

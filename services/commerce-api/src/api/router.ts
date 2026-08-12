@@ -10,6 +10,7 @@ import { handleHomeSnapshot } from './homeRoutes';
 import { handleSimulationBenefitIssue, handleSimulationMixedPayment, handleSimulationRecharge, handleSimulationWallet } from './paymentSimulationRoutes';
 import { handleMembershipAccess, handleMembershipStatus, handlePermissionCommandCenter } from './permissionAdminRoutes';
 import { handleStepUp } from './stepUpRoutes';
+import { handleQualificationCenter } from './qualificationAdminRoutes';
 import type { WorkerEnv } from './types';
 
 const API_PREFIX = '/api/v1';
@@ -22,9 +23,6 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
 
   try {
     if (url.pathname === '/api/health') return await handleHealth(request, env, requestId);
-    if (url.pathname === `${API_PREFIX}/products`) {
-      return await handleProducts(request, env, requestId);
-    }
     if (url.pathname === `${API_PREFIX}/auth/login`) {
       return await handleLogin(request, env, requestId);
     }
@@ -35,6 +33,9 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     const authorization = await resolveAuthorizationContext(request, env);
     if (!authorization) {
       return apiError(401, 'AUTHENTICATION_REQUIRED', '生产身份认证尚未配置，服务端已拒绝匿名业务操作', requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/products`) {
+      return await handleProducts(request, env, authorization, requestId);
     }
     if (url.pathname === `${API_PREFIX}/bootstrap`) {
       return await handleBootstrap(request, env, authorization, requestId);
@@ -92,6 +93,9 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     if (url.pathname === `${API_PREFIX}/admin/access-control`) {
       return await handlePermissionCommandCenter(request, env, authorization, requestId);
     }
+    if (url.pathname === `${API_PREFIX}/admin/qualification-center`) {
+      return await handleQualificationCenter(request, env, authorization, requestId);
+    }
     const membershipAccessMatch = url.pathname.match(/^\/api\/v1\/admin\/memberships\/([^/]+)\/access$/);
     if (membershipAccessMatch) {
       return await handleMembershipAccess(request, env, authorization, decodeURIComponent(membershipAccessMatch[1]), requestId);
@@ -147,6 +151,9 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
       ['ACCOUNT_NOT_ACTIVE', 409, 'ACCOUNT_NOT_ACTIVE', '账户当前不可用'],
       ['PAYMENT_TOTAL_MISMATCH', 422, 'PAYMENT_TOTAL_MISMATCH', '账户扣款合计必须等于订单应付金额'],
       ['SKU_NOT_AVAILABLE', 422, 'SKU_NOT_AVAILABLE', '订单中存在无效商品'],
+      ['SKU_NOT_ELIGIBLE', 403, 'SKU_NOT_ELIGIBLE', '当前员工资格不能购买该商品'],
+      ['CITY_NOT_ELIGIBLE', 403, 'CITY_NOT_ELIGIBLE', '当前城市不在该商品的可售范围'],
+      ['PURCHASE_LIMIT_EXCEEDED', 409, 'PURCHASE_LIMIT_EXCEEDED', '已超过该商品的限购数量或金额'],
       ['INVALID_AFTER_SALE_INPUT', 422, 'INVALID_AFTER_SALE_INPUT', '售后申请信息不完整'],
       ['ORDER_NOT_AFTER_SALE_ELIGIBLE', 409, 'ORDER_NOT_AFTER_SALE_ELIGIBLE', '订单当前状态不可申请售后'],
       ['AFTER_SALE_AMOUNT_EXCEEDED', 422, 'AFTER_SALE_AMOUNT_EXCEEDED', '售后申请金额超过订单实付金额'],

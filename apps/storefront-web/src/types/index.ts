@@ -75,6 +75,8 @@ export interface Product {
   isHotRedeem?: boolean;
   isNewArrival?: boolean;
   isTest?: boolean;
+  purchasable?: boolean;
+  qualificationReason?: string;
   specs?: ProductSpec[];
   params?: ProductParam[];
   descriptionHtml?: string;

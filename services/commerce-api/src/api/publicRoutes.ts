@@ -5,7 +5,7 @@ import { isTestLoginRateLimitBypassed, readTrustedClientIp } from './loginRateLi
 import { readJsonBody } from './routerSupport';
 import { clearSessionCookie, createSessionCookie, targetForRequest } from './session';
 import { callRpc, isSupabaseConfigured } from './supabase';
-import type { WorkerEnv } from './types';
+import type { AuthorizationContext, WorkerEnv } from './types';
 
 interface CatalogRow {
   id: string;
@@ -27,9 +27,10 @@ interface CatalogRow {
   available_stock: number;
   supplier_name: string;
   is_test: boolean;
+  purchasable: boolean;
+  qualification: Record<string, unknown>;
 }
 
-const DEFAULT_MALL_SLUG = 'smart-wing-demo';
 export async function handleHealth(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
   let health = { databaseReady: false, tableCount: 0 };
@@ -132,7 +133,7 @@ async function readLoginInput(request: Request): Promise<Record<string, unknown>
   }
 
   const body = await readJsonBody(request);
-  return body.ok && typeof body.value === 'object' && body.value !== null ? body.value as Record<string, unknown> : null;
+  return body.ok && typeof body.value === 'object' && body.value !== null ? (body.value as Record<string, unknown>) : null;
 }
 
 function safeLoginRedirect(request: Request): string | null {
@@ -157,15 +158,18 @@ export async function handleLogout(request: Request, requestId: string): Promise
   return json({ authenticated: false, requestId }, { headers: { 'set-cookie': clearSessionCookie(request) } });
 }
 
-export async function handleProducts(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
+export async function handleProducts(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
   const url = new URL(request.url);
-  const mallSlug = (url.searchParams.get('mall') ?? DEFAULT_MALL_SLUG).slice(0, 80);
   const category = url.searchParams.get('category')?.slice(0, 80) ?? null;
   const limit = Math.min(Math.max(Number.parseInt(url.searchParams.get('limit') ?? '24', 10) || 24, 1), 100);
   const cursor = Math.max(Number.parseInt(url.searchParams.get('cursor') ?? '0', 10) || 0, 0);
-  const rows = await callRpc<CatalogRow[]>(env, 'api_catalog', {
-    p_mall_slug: mallSlug,
+  const rows = await callRpc<CatalogRow[]>(env, 'api_catalog_qualified', {
+    p_tenant_id: authorization.tenantId,
+    p_enterprise_id: authorization.enterpriseId,
+    p_mall_id: authorization.mallId,
+    p_user_id: authorization.userId,
+    p_membership_id: authorization.membership.id,
     p_category: category,
     p_limit: limit,
     p_offset: cursor,
@@ -193,6 +197,8 @@ export async function handleProducts(request: Request, env: WorkerEnv, requestId
       availableStock: row.available_stock,
       supplierName: row.supplier_name,
       isTest: row.is_test,
+      purchasable: row.purchasable,
+      qualification: row.qualification,
     })),
     pagination: {
       cursor,
