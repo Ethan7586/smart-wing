@@ -173,7 +173,7 @@ export async function shipLiveOrder(orderId: string): Promise<void> {
 
 export interface AdminOverview {
   authenticated: boolean;
-  authorization: { target?: unknown; roles?: unknown; permissions?: unknown };
+  authorization: { target?: unknown; employeeNo?: unknown; roles?: unknown; permissions?: unknown };
   products: Product[];
   orders: Order[];
   summary: LiveOperationsSummary;

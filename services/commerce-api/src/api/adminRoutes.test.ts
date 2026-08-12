@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { PERMISSIONS, type Membership } from '@smart-wing/api-contract';
 import { handleAdminCatalog, handleAdminOverview, handleSetProductStatus } from './adminRoutes';
 import type { AuthorizationContext } from './types';
@@ -51,5 +51,27 @@ describe('admin routes: authorization guardrails', () => {
     const response = await handleSetProductStatus(new Request('https://smart.example/api/v1/admin/products/product-a/status', { method: 'POST' }), {}, authorization, 'product-a', 'publish-denied');
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toMatchObject({ error: { code: 'FORBIDDEN', requestId: 'publish-denied' } });
+  });
+
+  it('returns the server-resolved employee number used by the admin profile', async () => {
+    const responses = [
+      new Response('[]', { status: 200, headers: { 'content-type': 'application/json' } }),
+      new Response('[]', { status: 200, headers: { 'content-type': 'application/json' } }),
+      new Response('0', { status: 200, headers: { 'content-type': 'application/json' } }),
+    ];
+    const fetchRpc = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => responses.shift()!);
+    try {
+      const authorization = context({ employeeNo: 'seller001', roles: ['role-test-seller'] });
+      const response = await handleAdminOverview(
+        new Request('https://smart.example/api/v1/admin/overview'),
+        { SUPABASE_URL: 'https://supabase.example', SUPABASE_SERVICE_ROLE_KEY: 'service-role-key' },
+        authorization,
+        'overview-profile'
+      );
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({ authorization: { employeeNo: 'seller001', roles: ['role-test-seller'] } });
+    } finally {
+      fetchRpc.mockRestore();
+    }
   });
 });

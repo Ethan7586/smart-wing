@@ -32,11 +32,26 @@ function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
   return [...allowed];
 }
 
-function resolveAdminAccount(roles: unknown): AdminProfile | null {
+export function resolveAdminAccount(employeeNo: unknown, roles: unknown): AdminProfile | null {
   if (!Array.isArray(roles)) return null;
   const roleCodes = new Set(roles.filter((role): role is string => typeof role === 'string'));
-  const username = roleCodes.has('platform_owner') ? 'onewr' : roleCodes.has('enterprise_manager') ? '经理1' : roleCodes.has('role-mall-admin') ? '福宝' : null;
-  return username ? (ADMIN_PROFILES.find((account) => account.username === username) ?? null) : null;
+  const username = roleCodes.has('role-platform-owner-v2') || roleCodes.has('platform_owner')
+    ? 'onewr'
+    : roleCodes.has('role-enterprise-manager-v2') || roleCodes.has('enterprise_manager')
+      ? '经理1'
+      : roleCodes.has('role-mall-admin') || roleCodes.has('mall_admin')
+        ? '福宝'
+        : null;
+  if (username) return ADMIN_PROFILES.find((account) => account.username === username) ?? null;
+
+  if (typeof employeeNo !== 'string') return null;
+  const profile = [
+    { pattern: /^seller00[1-5]$/, role: '测试商家', permissionTags: ['商品发布', '订单履约', '仓储发货'] },
+    { pattern: /^ops00[1-5]$/, role: '测试运营', permissionTags: ['商品运营', '订单履约', '审计查看'] },
+    { pattern: /^cs00[1-5]$/, role: '测试客服', permissionTags: ['订单查看', '售后处理', '成员查看'] },
+    { pattern: /^admin00[1-5]$/, role: '测试管理员', permissionTags: ['全量管理', '角色授权', '审计查看'] },
+  ].find((candidate) => candidate.pattern.test(employeeNo));
+  return profile ? { username: employeeNo, displayName: employeeNo, role: profile.role, permissionTags: profile.permissionTags } : null;
 }
 
 export function App() {
@@ -90,7 +105,7 @@ export function App() {
     void loadAdminOverview()
       .then((payload) => {
         if (!active) return;
-        const user = payload?.authenticated && payload?.authorization?.target === 'admin' ? resolveAdminAccount(payload.authorization.roles) : null;
+        const user = payload?.authenticated && payload?.authorization?.target === 'admin' ? resolveAdminAccount(payload.authorization.employeeNo, payload.authorization.roles) : null;
         if (user) {
           setCurrentUser(user);
           setSessionPermissions(Array.isArray(payload?.authorization?.permissions) ? payload.authorization.permissions.filter((permission: unknown): permission is string => typeof permission === 'string') : []);

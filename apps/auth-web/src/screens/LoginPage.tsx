@@ -50,10 +50,10 @@ export const LoginPage: React.FC = () => {
   // 表单受控字段
   const [phone, setPhone] = useState<string>('13800138000');
   const [otpCode, setOtpCode] = useState<string>('123456');
-  const [identifier, setIdentifier] = useState<string>('13800138000');
-  const [password, setPassword] = useState<string>('password123');
+  const [identifier, setIdentifier] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [ssoDomain, setSsoDomain] = useState<string>('tencent.hbbtzn.com');
-  const [totpCode, setTotpCode] = useState<string>('654321');
+  const [totpCode, setTotpCode] = useState<string>('123456');
 
   // UI 视觉交互状态
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -358,10 +358,14 @@ export const LoginPage: React.FC = () => {
         });
         navigateTo('storefront_home', { membershipId: singleMem.id });
         return;
-      } else if (singleMem.target === 'admin' && singleMem.requiresStepUp) {
-        // 管理身份需 Step-Up，自动进入第3段
-        setSelectedMembership(singleMem);
-        setStage(3);
+      } else if (singleMem.target === 'admin') {
+        if (singleMem.requiresStepUp) {
+          // 管理身份需 Step-Up，自动进入第3段
+          setSelectedMembership(singleMem);
+          setStage(3);
+        } else {
+          completeAdminTestLogin();
+        }
         return;
       }
     }
@@ -402,17 +406,18 @@ export const LoginPage: React.FC = () => {
         return;
       }
 
-      // 普通员工卡片或不需 step-up 的后台卡片，直接进入
+      if (mem.target === 'admin') {
+        completeAdminTestLogin();
+        return;
+      }
+
+      // 普通员工卡片直接进入商城
       setActiveSession({
         membership: mem,
-        domain: mem.target === 'admin' ? 'smart.hbbtzn.com' : 'hbbtzn.com',
+        domain: 'hbbtzn.com',
       });
 
-      if (mem.target === 'admin') {
-        navigateTo('admin_dashboard', { membershipId: mem.id });
-      } else {
-        navigateTo('storefront_home', { membershipId: mem.id });
-      }
+      navigateTo('storefront_home', { membershipId: mem.id });
     }
   };
 
@@ -498,7 +503,7 @@ export const LoginPage: React.FC = () => {
   };
 
   // 快速测试填入账号工具
-  const quickFillAccount = (testPhone: string, testPass: string = 'password123') => {
+  const quickFillAccount = (testPhone: string, testPass: string = '123456') => {
     setPhone(testPhone);
     setIdentifier(testPhone);
     setPassword(testPass);
@@ -729,17 +734,20 @@ export const LoginPage: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <span className="text-slate-400">快速填入测试账号:</span>
-            <button onClick={() => quickFillAccount('13800138000')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] transition-colors">
-              混合多身份(138)
+            <button onClick={() => quickFillAccount('buyer001')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] transition-colors">
+              买家 buyer001
             </button>
-            <button onClick={() => quickFillAccount('13900139000')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] transition-colors">
-              高阶管理员(139)
+            <button onClick={() => quickFillAccount('seller001')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] transition-colors">
+              商家 seller001
             </button>
-            <button onClick={() => quickFillAccount('13600136000')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] transition-colors">
-              异常状态账号(136)
+            <button onClick={() => quickFillAccount('ops001')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] transition-colors">
+              运营 ops001
             </button>
-            <button onClick={() => quickFillAccount('13500135000')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] transition-colors">
-              无计划账号(135)
+            <button onClick={() => quickFillAccount('cs001')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] transition-colors">
+              客服 cs001
+            </button>
+            <button onClick={() => quickFillAccount('admin001')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] transition-colors">
+              管理员 admin001
             </button>
           </div>
         </div>
@@ -1041,7 +1049,7 @@ export const LoginPage: React.FC = () => {
                                   setPassword(e.target.value);
                                   setFieldErrors((prev) => ({ ...prev, password: '' }));
                                 }}
-                                placeholder="演示密码: password123"
+                                placeholder="测试密码: 123456"
                                 className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1F5EFF] focus:border-[#1F5EFF] transition-all pr-10"
                                 aria-label="密码"
                                 disabled={lockoutSeconds > 0 || loading}
@@ -1295,13 +1303,13 @@ export const LoginPage: React.FC = () => {
                           setTotpCode(e.target.value);
                           setFieldErrors({});
                         }}
-                        placeholder="6位动态数字（测试填: 654321）"
+                        placeholder="6位动态数字（测试填: 123456）"
                         className="w-full px-3.5 py-3 text-center text-lg font-mono tracking-[0.3em] rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1F5EFF] focus:border-[#1F5EFF] transition-all"
                         aria-label="TOTP 6位动态口令"
                       />
                       {fieldErrors.totpCode && <p className="text-[11px] text-rose-500">{fieldErrors.totpCode}</p>}
                       <p className="text-[11px] text-slate-400">
-                        💡 测试说明：填任意6位数字（如 <code className="text-[#1F5EFF]">654321</code>）通过；填 <code className="text-rose-500">000000</code> 模拟验签失败。
+                        💡 测试说明：动态口令固定为 <code className="text-[#1F5EFF]">123456</code>，其他数字均会被拒绝。
                       </p>
                     </div>
 

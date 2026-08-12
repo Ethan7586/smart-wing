@@ -86,7 +86,28 @@ const DEFAULT_DEMO_ACCOUNTS: readonly DemoAccount[] = [
     memberId: 'member-sim-admin-05',
     adminMembershipId: 'membership-sim-admin-05',
   },
+  ...buildRoleTestAccounts('buyer', 'storefront'),
+  ...buildRoleTestAccounts('seller', 'admin'),
+  ...buildRoleTestAccounts('ops', 'admin'),
+  ...buildRoleTestAccounts('cs', 'admin'),
+  ...buildRoleTestAccounts('admin', 'admin'),
 ];
+
+function buildRoleTestAccounts(prefix: string, target: SessionTarget): DemoAccount[] {
+  return Array.from({ length: 5 }, (_, index) => {
+    const suffix = String(index + 1).padStart(3, '0');
+    const username = `${prefix}${suffix}`;
+    const membershipId = `membership-test-${prefix}-${suffix}`;
+    return {
+      username,
+      password: '123456',
+      employeeNo: username,
+      mallCode: 'SMART_WING_DEMO',
+      memberId: `member-test-${prefix}-${suffix}`,
+      ...(target === 'storefront' ? { storefrontMembershipId: membershipId } : { adminMembershipId: membershipId }),
+    };
+  });
+}
 
 export function getDemoAccounts(env: WorkerEnv): readonly DemoAccount[] {
   return isDemoAuthEnabled(env) ? DEFAULT_DEMO_ACCOUNTS : [];

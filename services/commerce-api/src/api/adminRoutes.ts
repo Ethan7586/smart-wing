@@ -33,7 +33,14 @@ export async function handleAdminOverview(request: Request, env: WorkerEnv, auth
   ]);
   return json({
     authenticated: true,
-    authorization: { memberId: authorization.membership.memberId, membershipId: authorization.membership.id, target: authorization.membership.target, roles: authorization.roles, permissions: authorization.permissions },
+    authorization: {
+      memberId: authorization.membership.memberId,
+      membershipId: authorization.membership.id,
+      target: authorization.membership.target,
+      employeeNo: authorization.employeeNo,
+      roles: authorization.roles,
+      permissions: authorization.permissions,
+    },
     products,
     orders,
     summary: {
