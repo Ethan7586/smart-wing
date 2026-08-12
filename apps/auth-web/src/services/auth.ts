@@ -325,13 +325,7 @@ export async function requestOtp(phone: string): Promise<{ success: boolean; mes
     throw new Error(`账号已锁定，请在 ${Math.ceil(lockout.remainingSeconds / 60)} 分钟后重试`);
   }
 
-  // 模拟网络延迟
-  await new Promise((resolve) => setTimeout(resolve, 600));
-
-  return {
-    success: true,
-    message: '验证码已发送，测试环境下默认验证码为：123456',
-  };
+  throw new Error('短信验证码登录正在接入运营商，请先使用密码登录；新用户可使用注册验证码');
 }
 
 /**
@@ -347,27 +341,8 @@ export async function loginWithOtp(phone: string, code: string): Promise<PreAuth
     throw new Error(`账号连续失败过多，已被锁定。剩余解封时间：${lockout.remainingSeconds} 秒`);
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 800));
-
-  // 默认演示验证码为 123456
-  if (cleanCode !== '123456') {
-    await reportLoginFailure(cleanPhone, '短信验证码不正确或已失效');
-    throw new Error('账号或验证码不正确'); // 安全红线：统一提示，不泄漏细节
-  }
-
-  // 登录成功，清除失败记录
-  delete failureMap[cleanPhone];
-
-  // 获取对应的会员列表（如未找到，默认给13800138000的数据，或空数据）
-  const memberships = MOCK_MEMBERSHIPS_MAP[cleanPhone] ?? MOCK_MEMBERSHIPS_MAP['13800138000'];
-
-  return {
-    preAuthToken: `PAT_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-    phone: cleanPhone,
-    loginMethod: 'otp',
-    requiresPasswordReset: cleanPhone === '13400134000',
-    memberships: JSON.parse(JSON.stringify(memberships)),
-  };
+  void cleanCode;
+  throw new Error('短信验证码登录正在接入运营商，请先使用密码登录');
 }
 
 /**
@@ -385,6 +360,34 @@ export async function loginWithPassword(identifier: string, password: string): P
   const lockout = getLockoutState(cleanId);
   if (lockout.isLocked) {
     throw new Error(`账号已被锁定，请在 ${Math.ceil(lockout.remainingSeconds / 60)} 分钟后再试`);
+  }
+
+  if (/^1[3-9]\d{9}$/.test(cleanId)) {
+    const response = await fetch('/api/v1/auth/login', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ username: cleanId, password: cleanPw }),
+    });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(payload?.error?.message || '账号或密码不正确');
+    const membershipId = payload?.authorization?.membershipId;
+    if (typeof membershipId !== 'string') throw new Error('会员身份未正确建立');
+    return {
+      preAuthToken: `SERVER_SESSION_${Date.now()}`,
+      identifier: cleanId,
+      loginMethod: 'password',
+      memberships: [{
+        id: membershipId,
+        target: 'storefront',
+        status: 'active',
+        enterpriseName: '已绑定企业',
+        storeName: '智慧翼企业福利商城',
+        roleName: '企业员工会员',
+        dataScope: '个人福利账户',
+        accountTypeLabel: '福利账户',
+      }],
+    };
   }
 
   await new Promise((resolve) => setTimeout(resolve, 800));
@@ -409,6 +412,42 @@ export async function loginWithPassword(identifier: string, password: string): P
     requiresPasswordReset: cleanId === '13400134000' || cleanId === 'force_user',
     memberships: JSON.parse(JSON.stringify(memberships)),
   };
+}
+
+export interface RegistrationOtpResult {
+  challengeId: string;
+  expiresInSeconds: number;
+  resendAfterSeconds: number;
+  debugCode?: string;
+}
+
+export async function requestRegistrationOtp(mobile: string): Promise<RegistrationOtpResult> {
+  const response = await fetch('/api/v1/auth/registration/otp', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ mobile }),
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error?.message || '验证码发送失败');
+  return payload as RegistrationOtpResult;
+}
+
+export async function registerMember(input: {
+  mobile: string;
+  challengeId: string;
+  code: string;
+  password: string;
+  displayName: string;
+  inviteCode: string;
+}): Promise<{ registered: true; employeeNo: string }> {
+  const response = await fetch('/api/v1/auth/register', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error?.message || '注册失败');
+  return payload;
 }
 
 /**

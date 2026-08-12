@@ -2,6 +2,9 @@ import { sha256 } from './crypto';
 import { getDemoAccounts, isDemoAuthEnabled, resolveDemoMembership, verifyDemoPassword } from './demoAuth';
 import { apiError, json, methodNotAllowed } from './http';
 import { isTestLoginRateLimitBypassed, readTrustedClientIp } from './loginRateLimitBypass';
+import { resolveMembershipRuntimeByIds, type MembershipRuntime } from './membershipContext';
+import { localPhoneSubject } from './registrationRoutes';
+import { normalizeChineseMobile, verifyPassword } from './registrationSecurity';
 import { readJsonBody } from './routerSupport';
 import { clearSessionCookie, createSessionCookie, targetForRequest } from './session';
 import { callRpc, isSupabaseConfigured } from './supabase';
@@ -55,7 +58,8 @@ export async function handleHealth(request: Request, env: WorkerEnv, requestId: 
 
 export async function handleLogin(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
   if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
-  if (!isDemoAuthEnabled(env)) {
+  const registeredAuthEnabled = isSupabaseConfigured(env);
+  if (!registeredAuthEnabled && !isDemoAuthEnabled(env)) {
     return apiError(503, 'AUTH_PROVIDER_NOT_CONFIGURED', '生产环境仅接受已配置的企业身份提供方登录', requestId);
   }
   const input = await readLoginInput(request);
@@ -87,22 +91,18 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
   if (username.trim() === '' || password.trim() === '') {
     return apiError(400, 'INVALID_LOGIN_INPUT', '账号或密码缺失', requestId);
   }
-  const account = getDemoAccounts(env).find((candidate) => candidate.username.trim().toLowerCase() === username.trim().toLowerCase());
-  if (!account || !(await verifyDemoPassword(password, account.password))) {
+  const target = targetForRequest(request);
+  const registeredRuntime = registeredAuthEnabled ? await authenticateRegisteredMember(username, password, target, env) : null;
+  const account = registeredRuntime ? null : getDemoAccounts(env).find((candidate) => candidate.username.trim().toLowerCase() === username.trim().toLowerCase());
+  const demoRuntime = account && (await verifyDemoPassword(password, account.password)) ? await resolveDemoMembership(env, account, target) : null;
+  const runtime = registeredRuntime ?? demoRuntime;
+  if (!runtime) {
     if (!bypassRateLimit) {
       await callRpc<string | null>(env, 'api_record_login_failure', {
         p_ip_hash: ipHash,
       });
     }
     return apiError(401, 'INVALID_USERNAME_PASSWORD', '账号或密码不正确', requestId);
-  }
-  const target = targetForRequest(request);
-  const runtime = await resolveDemoMembership(env, account, target);
-  if (!runtime) {
-    if (!bypassRateLimit) {
-      await callRpc<string | null>(env, 'api_record_login_failure', { p_ip_hash: ipHash });
-    }
-    return apiError(503, 'DEMO_MEMBERSHIP_NOT_READY', '演示会员关系尚未初始化', requestId);
   }
   await callRpc<boolean>(env, 'api_clear_login_failures', { p_ip_hash: ipHash });
   const cookie = await createSessionCookie(env, runtime.authorization.employeeNo, runtime.authorization.mallCode, {
@@ -122,6 +122,31 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
     });
   }
   return json({ authenticated: true, authorization: publicAuthorization(runtime.authorization), requestId }, { headers: { 'set-cookie': cookie } });
+}
+
+type RegisteredCandidate = { memberId?: string; membershipId?: string; passwordHash?: string; mustResetPassword?: boolean };
+const DUMMY_PASSWORD_HASH = `pbkdf2-sha256$310000$AAAAAAAAAAAAAAAAAAAAAA==$${'A'.repeat(43)}=`;
+
+async function authenticateRegisteredMember(
+  identifier: string,
+  password: string,
+  target: 'storefront' | 'admin',
+  env: WorkerEnv
+): Promise<MembershipRuntime | null> {
+  const mobile = normalizeChineseMobile(identifier);
+  if (!mobile) return null;
+  const subject = await localPhoneSubject(mobile, env);
+  if (!subject) return null;
+  const candidate = await callRpc<RegisteredCandidate | null>(env, 'api_registered_login_candidate', {
+    p_phone_subject: subject,
+    p_target: target,
+  });
+  if (!candidate?.memberId || !candidate.membershipId || !candidate.passwordHash) {
+    await verifyPassword(password, DUMMY_PASSWORD_HASH);
+    return null;
+  }
+  if (!(await verifyPassword(password, candidate.passwordHash))) return null;
+  return resolveMembershipRuntimeByIds(env, candidate.memberId, candidate.membershipId, target);
 }
 
 async function readLoginInput(request: Request): Promise<Record<string, unknown> | null> {

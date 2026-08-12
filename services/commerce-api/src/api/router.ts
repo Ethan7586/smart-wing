@@ -6,6 +6,7 @@ import { apiError, json } from './http';
 import { handleAfterSales, handleCreateAfterSale, handleCreateOrder, handleExecuteRefund, handleFinanceReconciliation, handleInternalPayment, handleOrders, handleShipOrder } from './orderRoutes';
 import { handleAdminCatalog, handleAdminOverview, handleSetProductStatus } from './adminRoutes';
 import { handleHealth, handleLogin, handleLogout, handleProducts } from './publicRoutes';
+import { handleRegistration, handleRegistrationOtp } from './registrationRoutes';
 import { handleHomeSnapshot } from './homeRoutes';
 import { handleSimulationBenefitIssue, handleSimulationMixedPayment, handleSimulationRecharge, handleSimulationWallet } from './paymentSimulationRoutes';
 import { handleMembershipAccess, handleMembershipStatus, handlePermissionCommandCenter } from './permissionAdminRoutes';
@@ -37,6 +38,12 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     }
     if (url.pathname === `${API_PREFIX}/auth/logout`) {
       return await handleLogout(request, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/auth/registration/otp`) {
+      return await handleRegistrationOtp(request, env, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/auth/register`) {
+      return await handleRegistration(request, env, requestId);
     }
 
     const authorization = await resolveAuthorizationContext(request, env);

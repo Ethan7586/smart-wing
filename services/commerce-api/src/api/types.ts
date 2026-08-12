@@ -8,6 +8,10 @@ export interface WorkerEnv {
   SUPABASE_SERVICE_ROLE_KEY?: string;
   APP_ENV?: string;
   AUTH_MODE?: string;
+  /** Public member registration is fail-closed in production unless enabled. */
+  SELF_REGISTRATION_ENABLED?: string;
+  /** Debug OTP is permitted only outside production. A real SMS provider follows. */
+  SMS_PROVIDER?: string;
   /** Exact test-client IPs that may skip only the login failure limiter. */
   TEST_LOGIN_RATE_LIMIT_BYPASS_IPS?: string;
   /** Required ISO timestamp at which the temporary bypass begins. */
@@ -16,6 +20,8 @@ export interface WorkerEnv {
   TEST_LOGIN_RATE_LIMIT_BYPASS_UNTIL?: string;
   PII_ENCRYPTION_KEY?: string;
   SESSION_SIGNING_KEY?: string;
+  /** Stable pepper for phone lookup and one-time verification hashes. */
+  IDENTITY_LOOKUP_KEY?: string;
   /** Separate signing key for smart.hbbtzn.com sessions. */
   ADMIN_SESSION_SIGNING_KEY?: string;
 }
