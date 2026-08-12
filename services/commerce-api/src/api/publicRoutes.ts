@@ -1,6 +1,7 @@
 import { sha256 } from './crypto';
 import { getDemoAccounts, isDemoAuthEnabled, resolveDemoMembership, verifyDemoPassword } from './demoAuth';
 import { apiError, json, methodNotAllowed } from './http';
+import { isTestLoginRateLimitBypassed, readTrustedClientIp } from './loginRateLimitBypass';
 import { readJsonBody } from './routerSupport';
 import { clearSessionCookie, createSessionCookie, targetForRequest } from './session';
 import { callRpc, isSupabaseConfigured } from './supabase';
@@ -60,12 +61,26 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
   if (!input) return apiError(400, 'INVALID_LOGIN_INPUT', '登录信息不完整', requestId);
   const username = typeof input.username === 'string' ? input.username : '';
   const password = typeof input.password === 'string' ? input.password : '';
-  const ipHash = await sha256(`${request.headers.get('cf-connecting-ip') ?? 'unknown'}:${env.SESSION_SIGNING_KEY ?? ''}`);
-  const loginAllowed = await callRpc<boolean>(env, 'api_login_allowed', {
-    p_ip_hash: ipHash,
-  });
-  if (!loginAllowed) {
-    return apiError(429, 'LOGIN_RATE_LIMITED', '登录尝试过多，请15分钟后重试', requestId);
+  const clientIp = readTrustedClientIp(request);
+  const ipHash = await sha256(`${clientIp ?? 'unknown'}:${env.SESSION_SIGNING_KEY ?? ''}`);
+  const bypassRateLimit = isTestLoginRateLimitBypassed(clientIp, env);
+  if (bypassRateLimit) {
+    console.info(
+      JSON.stringify({
+        event: 'login_rate_limit_bypassed',
+        requestId,
+        ipHash,
+        bypassFrom: env.TEST_LOGIN_RATE_LIMIT_BYPASS_FROM,
+        bypassUntil: env.TEST_LOGIN_RATE_LIMIT_BYPASS_UNTIL,
+      })
+    );
+  } else {
+    const loginAllowed = await callRpc<boolean>(env, 'api_login_allowed', {
+      p_ip_hash: ipHash,
+    });
+    if (!loginAllowed) {
+      return apiError(429, 'LOGIN_RATE_LIMITED', '登录尝试过多，请15分钟后重试', requestId);
+    }
   }
 
   if (username.trim() === '' || password.trim() === '') {
@@ -73,15 +88,19 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
   }
   const account = getDemoAccounts(env).find((candidate) => candidate.username.trim().toLowerCase() === username.trim().toLowerCase());
   if (!account || !(await verifyDemoPassword(password, account.password))) {
-    await callRpc<string | null>(env, 'api_record_login_failure', {
-      p_ip_hash: ipHash,
-    });
+    if (!bypassRateLimit) {
+      await callRpc<string | null>(env, 'api_record_login_failure', {
+        p_ip_hash: ipHash,
+      });
+    }
     return apiError(401, 'INVALID_USERNAME_PASSWORD', '账号或密码不正确', requestId);
   }
   const target = targetForRequest(request);
   const runtime = await resolveDemoMembership(env, account, target);
   if (!runtime) {
-    await callRpc<string | null>(env, 'api_record_login_failure', { p_ip_hash: ipHash });
+    if (!bypassRateLimit) {
+      await callRpc<string | null>(env, 'api_record_login_failure', { p_ip_hash: ipHash });
+    }
     return apiError(503, 'DEMO_MEMBERSHIP_NOT_READY', '演示会员关系尚未初始化', requestId);
   }
   await callRpc<boolean>(env, 'api_clear_login_failures', { p_ip_hash: ipHash });

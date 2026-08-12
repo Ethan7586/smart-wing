@@ -8,6 +8,12 @@ export interface WorkerEnv {
   SUPABASE_SERVICE_ROLE_KEY?: string;
   APP_ENV?: string;
   AUTH_MODE?: string;
+  /** Exact test-client IPs that may skip only the login failure limiter. */
+  TEST_LOGIN_RATE_LIMIT_BYPASS_IPS?: string;
+  /** Required ISO timestamp at which the temporary bypass begins. */
+  TEST_LOGIN_RATE_LIMIT_BYPASS_FROM?: string;
+  /** Required ISO timestamp after which the test-client bypass fails closed. */
+  TEST_LOGIN_RATE_LIMIT_BYPASS_UNTIL?: string;
   PII_ENCRYPTION_KEY?: string;
   SESSION_SIGNING_KEY?: string;
   /** Separate signing key for smart.hbbtzn.com sessions. */
