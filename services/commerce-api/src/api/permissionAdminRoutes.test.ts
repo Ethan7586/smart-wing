@@ -94,6 +94,33 @@ describe('permission command center routes', () => {
     }
   });
 
+  it('accepts every commercial hierarchy scope and leaves grant ceilings to the database', async () => {
+    const fetchRpc = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ membershipId: 'other', authzVersion: 5 }), { status: 200, headers: { 'content-type': 'application/json' } }));
+    try {
+      const scopes = [
+        { kind: 'platform', resourceId: 'platform-a' },
+        { kind: 'distributor', resourceId: 'distributor-a' },
+        { kind: 'brand', resourceId: 'brand-a' },
+        { kind: 'store', resourceId: 'store-a' },
+      ];
+      const response = await handleMembershipAccess(
+        new Request('https://smart.example/api/v1/admin/memberships/other/access', {
+          method: 'PUT',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ roleIds: ['role-a'], scopes, deniedPermissions: [], reason: '配置完整商业层级范围' }),
+        }),
+        { SUPABASE_URL: 'https://supabase.example', SUPABASE_SERVICE_ROLE_KEY: 'key' },
+        context([PERMISSIONS.roleGrant, PERMISSIONS.scopeGrant]),
+        'other',
+        'full-scope-write'
+      );
+      expect(response.status).toBe(200);
+      expect(JSON.parse(String(fetchRpc.mock.calls[0][1]?.body))).toMatchObject({ p_scopes: scopes });
+    } finally {
+      fetchRpc.mockRestore();
+    }
+  });
+
   it('cannot suspend itself even with member.disable', async () => {
     const response = await handleMembershipStatus(new Request('https://smart.example/api/v1/admin/memberships/membership-owner/status', { method: 'PUT' }), {}, context([PERMISSIONS.memberDisable]), 'membership-owner', 'self-status');
     expect(response.status).toBe(409);

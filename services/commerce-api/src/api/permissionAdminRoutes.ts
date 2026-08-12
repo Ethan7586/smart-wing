@@ -5,13 +5,10 @@ import { authorizationEvidence, invalidBody, readJsonBody } from './routerSuppor
 import { callRpc } from './supabase';
 import type { AuthorizationContext, WorkerEnv } from './types';
 
-// Reserved scope kinds stay in the shared contract so future modules do not need
-// a breaking API change. Until their resource tables exist, the mutation API
-// fails closed and only accepts scope kinds that can be validated today.
-// Platform/distributor are global hierarchy grants. They remain read-only in
-// the MVP command center until the dedicated global-owner grant ceremony is
-// implemented; a tenant Owner must never mint global authority.
-const SCOPE_KINDS = new Set<ScopeKind>(['tenant', 'enterprise', 'mall', 'supplier', 'department', 'self']);
+// Parse every scope kind exposed by the shared contract. The database remains
+// authoritative: api_update_membership_access validates the resource exists and
+// api_actor_can_grant_scope prevents an actor from granting beyond their scope.
+const SCOPE_KINDS = new Set<ScopeKind>(['platform', 'tenant', 'distributor', 'enterprise', 'mall', 'supplier', 'brand', 'store', 'department', 'self']);
 type ScopeInput = { kind: ScopeKind; resourceId: string };
 type AccessInput = { roleIds: string[]; scopes: ScopeInput[]; deniedPermissions: string[]; reason: string };
 
