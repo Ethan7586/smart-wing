@@ -35,7 +35,7 @@ export const BalancePage: React.FC = () => {
         <div
           onClick={() => setActiveAccountTab('welfare')}
           className={`p-6 rounded-md cursor-pointer transition-all border shadow-xs ${
-            activeAccountTab === 'welfare' ? 'bg-gradient-to-r from-[#143A8F] to-[#1F5EFF] text-white border-blue-500 ring-2 ring-blue-400/30' : 'bg-white text-gray-800 border-gray-200 hover:border-blue-300'
+            activeAccountTab === 'welfare' ? 'bg-gradient-to-r from-[var(--sw-brand-dark)] to-[var(--sw-brand)] text-white border-blue-500 ring-2 ring-blue-400/30' : 'bg-white text-gray-800 border-gray-200 hover:border-blue-300'
           }`}
         >
           <div className="flex items-center justify-between text-xs opacity-90 mb-2">

@@ -47,7 +47,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="relative group">
           <button
             onClick={onOpenCommandPalette}
-            className="bg-slate-100 hover:bg-slate-100/80 border border-slate-200/80 rounded-full py-1.5 pl-9 pr-12 w-64 md:w-72 text-left focus:outline-none focus:ring-2 focus:ring-[#1769ff] text-xs transition-all cursor-pointer flex items-center justify-between text-slate-500"
+            className="bg-slate-100 hover:bg-slate-100/80 border border-slate-200/80 rounded-full py-1.5 pl-9 pr-12 w-64 md:w-72 text-left focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)] text-xs transition-all cursor-pointer flex items-center justify-between text-slate-500"
           >
             <span className="truncate">{isEn ? 'Search orders, products, or AI commands...' : '搜索订单、商品或自然语言命令...'}</span>
             <div className="flex items-center gap-0.5 text-[10px] bg-white px-1.5 py-0.5 rounded-full border border-slate-200 text-slate-400 font-mono shadow-2xs">
@@ -91,7 +91,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-700 transition-colors cursor-pointer"
             title="Switch Language / 切换语言"
           >
-            <Globe className="w-3.5 h-3.5 text-[#1769ff]" />
+            <Globe className="w-3.5 h-3.5 text-[var(--sw-brand)]" />
             <span>{isEn ? 'EN' : '中文'}</span>
           </button>
         )}
@@ -108,11 +108,11 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Operator Profile */}
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-[#1769ff]/10 border border-[#1769ff]/30 text-[#1769ff] flex items-center justify-center font-bold text-xs shadow-2xs">{(displayName || '智').slice(0, 1)}</div>
+          <div className="w-8 h-8 rounded-full bg-[var(--sw-brand)]/10 border border-[var(--sw-brand)]/30 text-[var(--sw-brand)] flex items-center justify-center font-bold text-xs shadow-2xs">{(displayName || '智').slice(0, 1)}</div>
           <div className="text-left hidden sm:block">
             <div className="text-xs font-bold text-slate-800 flex items-center gap-1">
               <span>{displayName}</span>
-              <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-blue-50 text-[#1769ff] border border-blue-200 font-semibold">COO</span>
+              <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-blue-50 text-[var(--sw-brand)] border border-blue-200 font-semibold">COO</span>
             </div>
             <div className="text-[10px] text-slate-400 flex items-center gap-1">
               <UserCheck className="w-2.5 h-2.5 text-[#15a46b]" />

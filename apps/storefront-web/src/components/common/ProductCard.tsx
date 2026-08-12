@@ -32,9 +32,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, compact = fal
   const getSupplierBadgeStyle = () => {
     switch (product.supplierType) {
       case 'self_operated':
-        return 'bg-[#1F5EFF] text-white';
+        return 'bg-[var(--sw-brand)] text-white';
       case 'group_owned':
-        return 'bg-[#143A8F] text-yellow-300';
+        return 'bg-[var(--sw-brand-dark)] text-yellow-300';
       default:
         return 'bg-gray-800 text-white';
     }
@@ -107,7 +107,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, compact = fal
         <div>
           <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
             {isWelfareAllowed && (
-              <span className="inline-flex items-center gap-0.5 bg-blue-50 text-[#1F5EFF] text-[10px] font-bold px-1.5 py-0.5 rounded border border-blue-200">
+              <span className="inline-flex items-center gap-0.5 bg-blue-50 text-[var(--sw-brand)] text-[10px] font-bold px-1.5 py-0.5 rounded border border-blue-200">
                 <CreditCard className="w-3 h-3" />
                 福利卡抵扣
               </span>
@@ -118,10 +118,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, compact = fal
                 餐卡可用
               </span>
             )}
-            {product.isEnterpriseExclusive && <span className="bg-[#143A8F] text-white text-[10px] px-1.5 py-0.5 rounded font-bold">企业专享价</span>}
+            {product.isEnterpriseExclusive && <span className="bg-[var(--sw-brand-dark)] text-white text-[10px] px-1.5 py-0.5 rounded font-bold">企业专享价</span>}
           </div>
 
-          <h3 onClick={() => navigateTo('detail', { productId: product.id })} className="text-xs font-bold text-gray-900 line-clamp-2 leading-snug cursor-pointer hover:text-[#1F5EFF] transition-colors">
+          <h3 onClick={() => navigateTo('detail', { productId: product.id })} className="text-xs font-bold text-gray-900 line-clamp-2 leading-snug cursor-pointer hover:text-[var(--sw-brand)] transition-colors">
             {product.title}
           </h3>
 
@@ -155,7 +155,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, compact = fal
                     canAddToCart && addToCart(product, 1, product.specs?.[0] ? { [product.specs[0].name]: product.specs[0].options[0] } : {});
                   }}
                   disabled={!canAddToCart}
-                  className={`text-white p-1.5 rounded transition-colors flex items-center justify-center shadow-xs ${canAddToCart ? 'bg-[#1F5EFF] hover:bg-blue-700 cursor-pointer' : 'bg-gray-300 cursor-not-allowed'}`}
+                  className={`text-white p-1.5 rounded transition-colors flex items-center justify-center shadow-xs ${canAddToCart ? 'bg-[var(--sw-brand)] hover:bg-blue-700 cursor-pointer' : 'bg-gray-300 cursor-not-allowed'}`}
                   title={canAddToCart ? '加入购物车' : inventory.actionButtonStateText}
                 >
                   <ShoppingCart className="w-4 h-4" />

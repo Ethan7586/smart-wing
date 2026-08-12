@@ -79,7 +79,7 @@ export const OrdersPage: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-2 rounded transition-colors cursor-pointer whitespace-nowrap ${isActive ? 'bg-[#1F5EFF] text-white font-black' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
+                className={`px-4 py-2 rounded transition-colors cursor-pointer whitespace-nowrap ${isActive ? 'bg-[var(--sw-brand)] text-white font-black' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
               >
                 {tab.label}
               </button>
@@ -112,7 +112,7 @@ export const OrdersPage: React.FC = () => {
                   <span>·</span>
                   <span className="font-mono">订单号：{order.orderNo}</span>
                   <span>·</span>
-                  <span className="bg-blue-100 text-[#1F5EFF] font-bold px-1.5 py-0.2 rounded text-[10px]">{order.supplierName}</span>
+                  <span className="bg-blue-100 text-[var(--sw-brand)] font-bold px-1.5 py-0.2 rounded text-[10px]">{order.supplierName}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -144,7 +144,7 @@ export const OrdersPage: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <img src={item.productImage} alt="" className="w-16 h-16 rounded object-cover border border-gray-200 cursor-pointer" onClick={() => navigateTo('order-detail', { orderId: order.id })} />
                       <div className="space-y-1">
-                        <div onClick={() => navigateTo('order-detail', { orderId: order.id })} className="font-bold text-gray-900 hover:text-[#1F5EFF] cursor-pointer">
+                        <div onClick={() => navigateTo('order-detail', { orderId: order.id })} className="font-bold text-gray-900 hover:text-[var(--sw-brand)] cursor-pointer">
                           {item.productTitle}
                         </div>
                         <div className="text-gray-400 text-[11px]">规格：{item.specText}</div>
@@ -167,7 +167,7 @@ export const OrdersPage: React.FC = () => {
                         承运物流：<strong>{order.expressCompany}</strong> (运单号: <strong className="font-mono">{order.trackingNo}</strong>)
                       </span>
                     </div>
-                    <button onClick={() => navigateTo('order-detail', { orderId: order.id })} className="text-[#1F5EFF] font-bold hover:underline cursor-pointer">
+                    <button onClick={() => navigateTo('order-detail', { orderId: order.id })} className="text-[var(--sw-brand)] font-bold hover:underline cursor-pointer">
                       查看物流轨迹 &gt;
                     </button>
                   </div>

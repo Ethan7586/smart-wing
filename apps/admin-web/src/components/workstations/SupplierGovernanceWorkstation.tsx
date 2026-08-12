@@ -79,7 +79,7 @@ export const SupplierGovernanceWorkstation: React.FC<SupplierGovernanceProps> = 
                 <div
                   key={sup.id}
                   onClick={() => setSelectedSupplierId(sup.id)}
-                  className={`p-3.5 rounded-xl border text-xs transition-all cursor-pointer space-y-2 ${isSelected ? 'bg-white border-[#1769ff] shadow-md ring-2 ring-blue-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}
+                  className={`p-3.5 rounded-xl border text-xs transition-all cursor-pointer space-y-2 ${isSelected ? 'bg-white border-[var(--sw-brand)] shadow-md ring-2 ring-blue-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-slate-900">{sup.name}</span>

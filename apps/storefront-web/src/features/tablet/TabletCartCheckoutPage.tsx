@@ -42,13 +42,13 @@ export const TabletCartCheckoutPage: React.FC = () => {
           className="bg-white rounded-3xl p-4 shadow-2xs border border-gray-200 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#1F5EFF] flex items-center justify-center font-bold flex-shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[var(--sw-brand)] flex items-center justify-center font-bold flex-shrink-0">
               <MapPin className="w-5 h-5" />
             </div>
             <div>
               <div className="text-xs font-bold text-gray-900 flex items-center gap-2">
                 <span>张伟 (员工工号 80219)</span>
-                <span className="bg-blue-100 text-[#1F5EFF] text-[9px] font-black px-1.5 py-0.2 rounded">公司总部</span>
+                <span className="bg-blue-100 text-[var(--sw-brand)] text-[9px] font-black px-1.5 py-0.2 rounded">公司总部</span>
               </div>
               <div className="text-xs text-gray-500 mt-0.5">北京市朝阳区中国建筑大厦 12F 企采仓发货口</div>
             </div>
@@ -60,7 +60,7 @@ export const TabletCartCheckoutPage: React.FC = () => {
         <div className="bg-white rounded-3xl p-4 shadow-2xs border border-gray-200 space-y-3">
           <div className="text-xs font-black text-gray-900 border-b border-gray-100 pb-2 flex items-center justify-between">
             <span className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-[#143A8F]" />
+              <Building2 className="w-4 h-4 text-[var(--sw-brand-dark)]" />
               <span>企采自营福利仓商品 ({cart.length})</span>
             </span>
             <span className="text-[10px] text-gray-400">统仓发货 · 包邮</span>
@@ -70,7 +70,7 @@ export const TabletCartCheckoutPage: React.FC = () => {
             <div className="text-center py-12 text-gray-400 text-xs space-y-2">
               <ShoppingCart className="w-10 h-10 text-gray-300 mx-auto" />
               <div>购物车暂无商品</div>
-              <button onClick={() => setTabletPage('home')} className="bg-[#1F5EFF] text-white font-bold text-xs px-4 py-2 rounded-xl mt-2 cursor-pointer">
+              <button onClick={() => setTabletPage('home')} className="bg-[var(--sw-brand)] text-white font-bold text-xs px-4 py-2 rounded-xl mt-2 cursor-pointer">
                 去挑选福利
               </button>
             </div>
@@ -79,7 +79,7 @@ export const TabletCartCheckoutPage: React.FC = () => {
               {cart.map((item) => (
                 <div key={item.id} className="py-3 flex items-center gap-3 text-xs">
                   {/* Select Checkbox */}
-                  <input type="checkbox" checked={item.selected} onChange={() => toggleCartItemSelected(item.id)} className="w-4 h-4 rounded text-[#1F5EFF] border-gray-300 cursor-pointer" />
+                  <input type="checkbox" checked={item.selected} onChange={() => toggleCartItemSelected(item.id)} className="w-4 h-4 rounded text-[var(--sw-brand)] border-gray-300 cursor-pointer" />
 
                   <img src={item.product.images[0]} alt={item.product.title} className="w-16 h-16 object-cover rounded-2xl border border-gray-100 flex-shrink-0" />
 
@@ -116,7 +116,7 @@ export const TabletCartCheckoutPage: React.FC = () => {
         <div className="space-y-4">
           <div className="text-sm font-black text-gray-900 border-b border-gray-100 pb-2 flex items-center justify-between">
             <span>企采计算与抵扣汇总</span>
-            <span className="text-[10px] bg-blue-50 text-[#1F5EFF] font-bold px-2 py-0.5 rounded">Split View</span>
+            <span className="text-[10px] bg-blue-50 text-[var(--sw-brand)] font-bold px-2 py-0.5 rounded">Split View</span>
           </div>
 
           {/* Pricing Breakdown Card */}
@@ -134,7 +134,7 @@ export const TabletCartCheckoutPage: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-mono font-bold text-amber-600">-¥{welfareDeduction.toFixed(2)}</span>
-                <input type="checkbox" checked={useWelfareCard} onChange={(e) => setUseWelfareCard(e.target.checked)} className="w-4 h-4 rounded text-[#1F5EFF] cursor-pointer" />
+                <input type="checkbox" checked={useWelfareCard} onChange={(e) => setUseWelfareCard(e.target.checked)} className="w-4 h-4 rounded text-[var(--sw-brand)] cursor-pointer" />
               </div>
             </div>
 
@@ -146,7 +146,7 @@ export const TabletCartCheckoutPage: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-mono font-bold text-amber-600">-¥{mealDeduction.toFixed(2)}</span>
-                <input type="checkbox" checked={useMealCard} onChange={(e) => setUseMealCard(e.target.checked)} className="w-4 h-4 rounded text-[#1F5EFF] cursor-pointer" />
+                <input type="checkbox" checked={useMealCard} onChange={(e) => setUseMealCard(e.target.checked)} className="w-4 h-4 rounded text-[var(--sw-brand)] cursor-pointer" />
               </div>
             </div>
 
@@ -186,7 +186,7 @@ export const TabletCartCheckoutPage: React.FC = () => {
             onClick={handlePlaceOrder}
             disabled={selectedItems.length === 0 || isSubmittingOrder}
             className={`w-full font-black text-xs py-3.5 rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer min-h-[48px] ${
-              selectedItems.length > 0 ? 'bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] hover:opacity-95 text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              selectedItems.length > 0 ? 'bg-gradient-to-r from-[var(--sw-brand)] to-[var(--sw-brand-dark)] hover:opacity-95 text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
             <span>{isSubmittingOrder ? '安全提交中…' : `提交真实订单（福利冲抵 ¥${(welfareDeduction + mealDeduction).toFixed(2)}）`}</span>

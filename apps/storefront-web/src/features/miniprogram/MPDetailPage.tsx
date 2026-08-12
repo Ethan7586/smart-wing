@@ -43,7 +43,7 @@ export const MPDetailPage: React.FC = () => {
       </div>
 
       {/* Product Price & Enterprise Subsidy Banner */}
-      <div className="bg-gradient-to-r from-[#143A8F] to-[#1F5EFF] text-white p-3.5 flex items-center justify-between shadow-xs">
+      <div className="bg-gradient-to-r from-[var(--sw-brand-dark)] to-[var(--sw-brand)] text-white p-3.5 flex items-center justify-between shadow-xs">
         <div>
           <div className="flex items-baseline gap-1.5 font-mono">
             <span className="text-xs font-bold">福利特惠价 ¥</span>
@@ -74,7 +74,7 @@ export const MPDetailPage: React.FC = () => {
         <p className="text-xs text-gray-500">{product.subtitle}</p>
 
         <div className="flex items-center gap-2 pt-1 text-[10px]">
-          <span className="bg-blue-50 text-[#1F5EFF] font-bold px-2 py-0.5 rounded border border-blue-100">{product.itemType === 'virtual_coupon' ? '虚拟电子码' : product.itemType === 'nearby_store' ? '到店扫码核销' : '实物包邮配送'}</span>
+          <span className="bg-blue-50 text-[var(--sw-brand)] font-bold px-2 py-0.5 rounded border border-blue-100">{product.itemType === 'virtual_coupon' ? '虚拟电子码' : product.itemType === 'nearby_store' ? '到店扫码核销' : '实物包邮配送'}</span>
           <span className="text-gray-400">品牌: {product.brand || '智慧翼精选'}</span>
           <span className="text-gray-400">库存: {product.stockCount} 件</span>
         </div>
@@ -110,7 +110,7 @@ export const MPDetailPage: React.FC = () => {
                     <button
                       key={val}
                       onClick={() => setSelectedSpec((prev) => ({ ...prev, [specKey]: val }))}
-                      className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${isSelected ? 'border-[#1F5EFF] bg-blue-50 text-[#1F5EFF] font-bold' : 'border-gray-200 text-gray-700 bg-gray-50'}`}
+                      className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${isSelected ? 'border-[var(--sw-brand)] bg-blue-50 text-[var(--sw-brand)] font-bold' : 'border-gray-200 text-gray-700 bg-gray-50'}`}
                     >
                       {val}
                     </button>
@@ -138,7 +138,7 @@ export const MPDetailPage: React.FC = () => {
 
       {/* Product Description */}
       <div className="bg-white p-3.5 mt-2 border-y border-gray-200/80 space-y-2">
-        <h3 className="text-xs font-bold text-gray-900 border-l-2 border-[#1F5EFF] pl-2">商品企采说明与参数</h3>
+        <h3 className="text-xs font-bold text-gray-900 border-l-2 border-[var(--sw-brand)] pl-2">商品企采说明与参数</h3>
         <p className="text-xs text-gray-600 leading-relaxed">{product.description || '本商品属于智慧翼企业福利商城企采直供商品，支持员工使用企业发放的福利卡或餐卡进行全额扣减兑换，支持在线开具企业普通发票或增值税发票。'}</p>
 
         {product.parameters && (
@@ -169,11 +169,11 @@ export const MPDetailPage: React.FC = () => {
           {cartCount > 0 && <span className="absolute top-0 right-1 bg-[#E5484D] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">{cartCount}</span>}
         </button>
 
-        <button onClick={() => addToCart(product, quantity, selectedSpec)} className="flex-1 bg-[#EAF1FF] hover:bg-blue-100 text-[#1F5EFF] font-bold text-xs py-2.5 rounded-xl transition-colors cursor-pointer">
+        <button onClick={() => addToCart(product, quantity, selectedSpec)} className="flex-1 bg-[var(--sw-brand-light)] hover:bg-blue-100 text-[var(--sw-brand)] font-bold text-xs py-2.5 rounded-xl transition-colors cursor-pointer">
           加入购物车
         </button>
 
-        <button onClick={handleBuyNow} className="flex-1 bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] text-white font-bold text-xs py-2.5 rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer">
+        <button onClick={handleBuyNow} className="flex-1 bg-gradient-to-r from-[var(--sw-brand)] to-[var(--sw-brand-dark)] text-white font-bold text-xs py-2.5 rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer">
           福利卡直接兑换
         </button>
       </div>

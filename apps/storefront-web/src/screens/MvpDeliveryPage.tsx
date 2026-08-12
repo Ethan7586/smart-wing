@@ -63,7 +63,7 @@ export const MvpDeliveryPage: React.FC = () => {
   const { navigateTo } = useMall();
   return (
     <div className="max-w-[1280px] mx-auto px-4 py-6 space-y-5">
-      <section className="rounded-xl bg-gradient-to-br from-[#102E74] to-[#1F5EFF] text-white p-6 md:p-8 shadow-lg">
+      <section className="rounded-xl bg-gradient-to-br from-[#102E74] to-[var(--sw-brand)] text-white p-6 md:p-8 shadow-lg">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
           <div>
             <p className="text-blue-200 text-xs font-bold tracking-wider">智慧翼企业福利商城 · 阶段交付看板</p>
@@ -84,7 +84,7 @@ export const MvpDeliveryPage: React.FC = () => {
               <h2 className="font-black text-gray-900">内部开发与甲方可见进度</h2>
               <p className="text-xs text-gray-500 mt-1">每阶段以可验收成果为开放条件，而非单纯按页面数量计算。</p>
             </div>
-            <span className="text-xs font-bold text-[#143A8F] bg-[#EAF1FF] px-2.5 py-1 rounded">MVP 路线</span>
+            <span className="text-xs font-bold text-[var(--sw-brand-dark)] bg-[var(--sw-brand-light)] px-2.5 py-1 rounded">MVP 路线</span>
           </div>
           <div className="space-y-3">
             {deliveryPlan.map(({ period, score, status, internal, visible }, index) => {
@@ -93,7 +93,7 @@ export const MvpDeliveryPage: React.FC = () => {
               return (
                 <div key={period} className={`border rounded-lg p-4 ${active ? 'border-blue-300 bg-blue-50/50' : 'border-gray-200'}`}>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Icon className={`w-4 h-4 ${active ? 'text-[#1F5EFF]' : 'text-gray-500'}`} />
+                    <Icon className={`w-4 h-4 ${active ? 'text-[var(--sw-brand)]' : 'text-gray-500'}`} />
                     <span className="font-black text-sm text-gray-900">{period}</span>
                     <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${status === '已完成' ? 'bg-emerald-100 text-emerald-700' : active ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>{status}</span>
                     <span className="ml-auto text-xs font-black text-[#FF7A00]">目标 {score}</span>
@@ -120,7 +120,7 @@ export const MvpDeliveryPage: React.FC = () => {
             <div className="mt-4 space-y-3">
               {openingPlan.map(([day, content]) => (
                 <div key={day} className="flex gap-3 text-xs">
-                  <Clock3 className="w-4 h-4 text-[#1F5EFF] shrink-0 mt-0.5" />
+                  <Clock3 className="w-4 h-4 text-[var(--sw-brand)] shrink-0 mt-0.5" />
                   <div>
                     <b className="text-gray-900">{day}</b>
                     <p className="text-gray-500 mt-0.5">{content}</p>
@@ -151,7 +151,7 @@ export const MvpDeliveryPage: React.FC = () => {
             </React.Fragment>
           ))}
         </div>
-        <button onClick={() => navigateTo('mvp-console')} className="mt-5 text-xs font-bold text-[#1F5EFF] hover:underline">
+        <button onClick={() => navigateTo('mvp-console')} className="mt-5 text-xs font-bold text-[var(--sw-brand)] hover:underline">
           返回 MVP 验收工作台
         </button>
       </section>

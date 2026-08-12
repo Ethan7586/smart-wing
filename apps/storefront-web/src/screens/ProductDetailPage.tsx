@@ -84,11 +84,11 @@ export const ProductDetailPage: React.FC = () => {
   return (
     <div className="max-w-[1280px] mx-auto px-4 py-4 space-y-6 font-sans">
       <div className="flex items-center gap-1.5 text-xs text-gray-500">
-        <button onClick={() => navigateTo('home')} className="hover:text-[#1F5EFF]">
+        <button onClick={() => navigateTo('home')} className="hover:text-[var(--sw-brand)]">
           首页
         </button>
         <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
-        <button onClick={() => navigateTo('category', { categoryId: product.categoryId })} className="hover:text-[#1F5EFF]">
+        <button onClick={() => navigateTo('category', { categoryId: product.categoryId })} className="hover:text-[var(--sw-brand)]">
           {product.categoryName}
         </button>
         <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
@@ -99,14 +99,14 @@ export const ProductDetailPage: React.FC = () => {
         <div className="col-span-12 md:col-span-5 space-y-3">
           <div className="aspect-square bg-gray-50 rounded-md overflow-hidden border border-gray-200 relative">
             <img src={product.images[selectedImgIndex] || product.images[0]} alt={product.title} className="w-full h-full object-cover" />
-            <div className="absolute top-3 left-3 bg-[#1F5EFF] text-white text-xs font-bold px-2 py-0.5 rounded shadow-xs">{product.supplierName}</div>
+            <div className="absolute top-3 left-3 bg-[var(--sw-brand)] text-white text-xs font-bold px-2 py-0.5 rounded shadow-xs">{product.supplierName}</div>
           </div>
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
             {product.images.map((img, idx) => (
               <button
                 key={idx}
                 onClick={() => setSelectedImgIndex(idx)}
-                className={`w-16 h-16 rounded border-2 overflow-hidden flex-shrink-0 cursor-pointer transition-all ${selectedImgIndex === idx ? 'border-[#1F5EFF]' : 'border-gray-200 opacity-70 hover:opacity-100'}`}
+                className={`w-16 h-16 rounded border-2 overflow-hidden flex-shrink-0 cursor-pointer transition-all ${selectedImgIndex === idx ? 'border-[var(--sw-brand)]' : 'border-gray-200 opacity-70 hover:opacity-100'}`}
               >
                 <img src={img} alt="" className="w-full h-full object-cover" />
               </button>
@@ -117,7 +117,7 @@ export const ProductDetailPage: React.FC = () => {
         <div className="col-span-12 md:col-span-7 flex flex-col justify-between space-y-4">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="bg-[#143A8F] text-white text-xs font-bold px-2 py-0.5 rounded">{product.brand}</span>
+              <span className="bg-[var(--sw-brand-dark)] text-white text-xs font-bold px-2 py-0.5 rounded">{product.brand}</span>
               <span className="text-xs text-gray-500">累计销量 {product.salesCount} 件</span>
               <span className="text-xs text-amber-500 font-bold flex items-center gap-0.5 ml-auto">
                 <Star className="w-3.5 h-3.5 fill-current" /> {product.rating} ({product.reviewCount}条好评)
@@ -127,7 +127,7 @@ export const ProductDetailPage: React.FC = () => {
             <h1 className="text-lg font-black text-gray-900 leading-snug">{product.title}</h1>
             <p className="text-xs text-gray-500 mt-1">{product.subtitle}</p>
 
-            <div className="bg-[#EAF1FF] border border-blue-200 rounded-md p-4 mt-4 space-y-3">
+            <div className="bg-[var(--sw-brand-light)] border border-blue-200 rounded-md p-4 mt-4 space-y-3">
               <div className="flex items-baseline justify-between">
                 <div>
                   <span className="text-xs text-[#FF7A00] font-bold">企业福利专享价：</span>
@@ -146,7 +146,7 @@ export const ProductDetailPage: React.FC = () => {
                 <span className="font-bold flex-shrink-0">可用福利：</span>
                 <div className="flex items-center gap-2 flex-wrap">
                   {product.allowedAccounts.includes('welfare') && (
-                    <span className="bg-white border border-blue-300 text-[#1F5EFF] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-2xs">
+                    <span className="bg-white border border-blue-300 text-[var(--sw-brand)] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-2xs">
                       <CreditCard className="w-3.5 h-3.5" /> 福利卡全额/混合抵扣 (余额: ¥{user.welfareBalance.toFixed(2)})
                     </span>
                   )}
@@ -160,7 +160,7 @@ export const ProductDetailPage: React.FC = () => {
 
               <div className="flex items-center gap-3 text-xs">
                 <span className="w-20 text-gray-500">库存状态</span>
-                <span className={`font-bold ${inventory.canPurchase ? 'text-[#1F5EFF]' : 'text-red-600'}`}>{inventory.stockText}</span>
+                <span className={`font-bold ${inventory.canPurchase ? 'text-[var(--sw-brand)]' : 'text-red-600'}`}>{inventory.stockText}</span>
               </div>
             </div>
 
@@ -220,7 +220,7 @@ export const ProductDetailPage: React.FC = () => {
                             key={opt}
                             onClick={() => setSelectedSpecs((prev) => ({ ...prev, [spec.name]: opt }))}
                             className={`px-3 py-1.5 rounded border text-xs font-medium cursor-pointer transition-colors ${
-                              isSelected ? 'bg-blue-50 border-[#1F5EFF] text-[#1F5EFF] font-bold shadow-2xs' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
+                              isSelected ? 'bg-blue-50 border-[var(--sw-brand)] text-[var(--sw-brand)] font-bold shadow-2xs' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
                             }`}
                           >
                             {opt}

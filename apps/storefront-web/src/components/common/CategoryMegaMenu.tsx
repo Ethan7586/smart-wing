@@ -40,16 +40,16 @@ export const CategoryMegaMenu: React.FC<{ isAlwaysOpen?: boolean }> = ({ isAlway
               key={cat.id}
               onMouseEnter={() => setActiveCategoryId(cat.id)}
               onClick={() => navigateTo('category', { categoryId: cat.id })}
-              className={`px-3 py-2.5 flex items-center justify-between cursor-pointer transition-colors text-xs ${isHovered ? 'bg-[#EAF1FF] text-[#1F5EFF] font-semibold' : 'hover:bg-gray-50 text-gray-800'}`}
+              className={`px-3 py-2.5 flex items-center justify-between cursor-pointer transition-colors text-xs ${isHovered ? 'bg-[var(--sw-brand-light)] text-[var(--sw-brand)] font-semibold' : 'hover:bg-gray-50 text-gray-800'}`}
             >
               <div className="flex items-center gap-2 overflow-hidden">
-                <IconComponent className={`w-4 h-4 flex-shrink-0 ${isHovered ? 'text-[#1F5EFF]' : 'text-gray-400'}`} />
+                <IconComponent className={`w-4 h-4 flex-shrink-0 ${isHovered ? 'text-[var(--sw-brand)]' : 'text-gray-400'}`} />
                 <div className="truncate">
                   <div className="font-medium truncate">{cat.name}</div>
                   <div className="text-[10px] text-gray-400 truncate mt-0.5">{cat.hotKeywords.slice(0, 2).join(' / ')}</div>
                 </div>
               </div>
-              <ChevronRight className={`w-3.5 h-3.5 flex-shrink-0 ${isHovered ? 'text-[#1F5EFF]' : 'text-gray-300'}`} />
+              <ChevronRight className={`w-3.5 h-3.5 flex-shrink-0 ${isHovered ? 'text-[var(--sw-brand)]' : 'text-gray-300'}`} />
             </div>
           );
         })}
@@ -61,9 +61,9 @@ export const CategoryMegaMenu: React.FC<{ isAlwaysOpen?: boolean }> = ({ isAlway
           <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-gray-900">{activeCategory.name}</span>
-              <span className="text-xs bg-blue-50 text-[#1F5EFF] px-2 py-0.5 rounded">企业福利配发与兑换</span>
+              <span className="text-xs bg-blue-50 text-[var(--sw-brand)] px-2 py-0.5 rounded">企业福利配发与兑换</span>
             </div>
-            <button onClick={() => navigateTo('category', { categoryId: activeCategory.id })} className="text-xs text-[#1F5EFF] hover:underline flex items-center gap-0.5 font-medium">
+            <button onClick={() => navigateTo('category', { categoryId: activeCategory.id })} className="text-xs text-[var(--sw-brand)] hover:underline flex items-center gap-0.5 font-medium">
               查看全部分类 <ChevronRight className="w-3 h-3" />
             </button>
           </div>
@@ -85,7 +85,7 @@ export const CategoryMegaMenu: React.FC<{ isAlwaysOpen?: boolean }> = ({ isAlway
                           keyword: item,
                         })
                       }
-                      className="hover:text-[#1F5EFF] hover:bg-blue-50 px-1.5 py-0.5 rounded transition-colors"
+                      className="hover:text-[var(--sw-brand)] hover:bg-blue-50 px-1.5 py-0.5 rounded transition-colors"
                     >
                       {item}
                     </button>
@@ -108,7 +108,7 @@ export const CategoryMegaMenu: React.FC<{ isAlwaysOpen?: boolean }> = ({ isAlway
                       keyword: kw,
                     })
                   }
-                  className="bg-white border border-gray-200 text-gray-700 hover:border-blue-300 hover:text-[#1F5EFF] px-2 py-0.5 rounded transition-colors"
+                  className="bg-white border border-gray-200 text-gray-700 hover:border-blue-300 hover:text-[var(--sw-brand)] px-2 py-0.5 rounded transition-colors"
                 >
                   {kw}
                 </button>

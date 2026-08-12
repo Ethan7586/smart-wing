@@ -170,14 +170,14 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
 
             <button
               onClick={() => setActiveTab('ALL')}
-              className={`px-3.5 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${activeTab === 'ALL' ? 'bg-[#1769ff] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              className={`px-3.5 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${activeTab === 'ALL' ? 'bg-[var(--sw-brand)] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
             >
               全部订单 ({orders.length})
             </button>
 
             <button
               onClick={() => setActiveTab('ARCHIVED')}
-              className={`px-3.5 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${activeTab === 'ARCHIVED' ? 'bg-[#1769ff] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              className={`px-3.5 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${activeTab === 'ARCHIVED' ? 'bg-[var(--sw-brand)] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
             >
               已归档历史
             </button>
@@ -227,7 +227,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
                 <div
                   key={ord.id}
                   onClick={() => setSelectedOrderId(ord.id)}
-                  className={`p-3.5 rounded-xl border text-xs transition-all cursor-pointer space-y-2 ${isSelected ? 'bg-white border-[#1769ff] shadow-md ring-2 ring-blue-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}
+                  className={`p-3.5 rounded-xl border text-xs transition-all cursor-pointer space-y-2 ${isSelected ? 'bg-white border-[var(--sw-brand)] shadow-md ring-2 ring-blue-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-mono font-bold text-slate-900">{ord.id}</span>
@@ -271,7 +271,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm font-mono font-bold text-slate-900">{selectedOrder.id}</span>
-                  <span className="text-xs px-2 py-0.5 rounded bg-blue-50 text-[#1769ff] font-semibold border border-blue-200">{selectedOrder.enterpriseName}</span>
+                  <span className="text-xs px-2 py-0.5 rounded bg-blue-50 text-[var(--sw-brand)] font-semibold border border-blue-200">{selectedOrder.enterpriseName}</span>
                 </div>
                 <p className="text-xs text-slate-500">
                   下单时间：{selectedOrder.createdAt} · 运送地址：{selectedOrder.shippingAddress}
@@ -310,7 +310,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
             {/* TIMELINE NODES (从上到下依次：创建 → 库存预占 → 支付 → 供应商接单 → 发货 → 签收 → 售后 → 退款) */}
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
               <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-[#1769ff]" />
+                <Clock className="w-4 h-4 text-[var(--sw-brand)]" />
                 <span>订单全生命周期履约时间线节点 (Full-Lifecycle Timeline)</span>
               </h3>
 
@@ -340,7 +340,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
               {/* Card 1: Customer Benefits Card */}
               <div className="p-3.5 bg-blue-50/70 rounded-xl border border-blue-200 space-y-1.5">
                 <div className="font-bold text-blue-900 flex items-center gap-1">
-                  <CreditCard className="w-4 h-4 text-[#1769ff]" />
+                  <CreditCard className="w-4 h-4 text-[var(--sw-brand)]" />
                   <span>客户福利权益卡片</span>
                 </div>
                 <div className="text-slate-700 font-semibold text-[11px]">福利计划: {selectedOrder.benefitsCard.welfarePlanName}</div>
@@ -379,7 +379,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
                   </div>
                   <div className="flex justify-between border-t border-slate-200 pt-1 font-bold">
                     <span>订单应付总额:</span>
-                    <span className="text-[#1769ff]">¥{selectedOrder.totalAmount}</span>
+                    <span className="text-[var(--sw-brand)]">¥{selectedOrder.totalAmount}</span>
                   </div>
                 </div>
               </div>

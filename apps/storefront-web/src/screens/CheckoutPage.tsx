@@ -51,7 +51,7 @@ export const CheckoutPage: React.FC = () => {
     return (
       <div className="max-w-[1280px] mx-auto px-4 py-12 text-center font-sans space-y-3">
         <h2 className="text-base font-bold text-gray-800">暂无已勾选的待结算商品</h2>
-        <button onClick={() => navigateTo('cart')} className="bg-[#1F5EFF] text-white text-xs font-bold px-4 py-2 rounded">
+        <button onClick={() => navigateTo('cart')} className="bg-[var(--sw-brand)] text-white text-xs font-bold px-4 py-2 rounded">
           返回购物车勾选商品
         </button>
       </div>
@@ -73,7 +73,7 @@ export const CheckoutPage: React.FC = () => {
 
       <div className="grid grid-cols-3 gap-2 text-[11px] text-gray-600 bg-white border border-gray-200 rounded-md p-2">
         {steps.map((step) => (
-          <div key={step.id} className={`rounded border px-2 py-1.5 text-center ${step.done ? 'bg-blue-50 border-blue-100 text-[#1F5EFF] font-bold' : 'bg-gray-100 border-gray-200 text-gray-500'}`}>
+          <div key={step.id} className={`rounded border px-2 py-1.5 text-center ${step.done ? 'bg-blue-50 border-blue-100 text-[var(--sw-brand)] font-bold' : 'bg-gray-100 border-gray-200 text-gray-500'}`}>
             {step.id} {step.label}
           </div>
         ))}
@@ -88,7 +88,7 @@ export const CheckoutPage: React.FC = () => {
         {groupedItems.map(([supplierName, items]) => (
           <div key={supplierName} className="border border-gray-200 rounded p-4 space-y-3 bg-gray-50/40">
             <div className="flex items-center gap-2 text-xs font-bold text-gray-800 border-b border-gray-100 pb-2">
-              <span className="bg-[#1F5EFF] text-white text-[10px] px-1.5 py-0.5 rounded">子订单</span>
+              <span className="bg-[var(--sw-brand)] text-white text-[10px] px-1.5 py-0.5 rounded">子订单</span>
               <span>{supplierName} 直发仓</span>
             </div>
 
@@ -124,16 +124,16 @@ export const CheckoutPage: React.FC = () => {
       {/* 3. 福利卡/餐卡与微信补差精准算式 */}
       <div className="bg-white border border-gray-200 rounded-md p-5 shadow-xs space-y-4">
         <div className="font-bold text-sm text-gray-900 border-b border-gray-100 pb-2 flex items-center gap-2">
-          <CreditCard className="w-4 h-4 text-[#1F5EFF]" />
+          <CreditCard className="w-4 h-4 text-[var(--sw-brand)]" />
           <span>选择福利账户扣减与补差方式</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
           {/* 福利卡扣减 */}
-          <div className="bg-[#EAF1FF] border border-blue-200 rounded-md p-4 space-y-2">
+          <div className="bg-[var(--sw-brand-light)] border border-blue-200 rounded-md p-4 space-y-2">
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer font-bold text-blue-900">
-                <input type="checkbox" checked={useWelfare} onChange={(e) => setUseWelfare(e.target.checked)} className="w-4 h-4 text-[#1F5EFF] rounded" />
+                <input type="checkbox" checked={useWelfare} onChange={(e) => setUseWelfare(e.target.checked)} className="w-4 h-4 text-[var(--sw-brand)] rounded" />
                 <span>使用福利卡余额抵扣</span>
               </label>
               <span className="text-blue-700 font-bold">个人可用余额: ¥{user.welfareBalance.toFixed(2)}</span>
@@ -146,9 +146,9 @@ export const CheckoutPage: React.FC = () => {
                   type="number"
                   value={welfareInput}
                   onChange={(e) => setWelfareInput(Math.min(totalGoodsAmount, user.welfareBalance, Math.max(0, parseFloat(e.target.value) || 0)))}
-                  className="w-32 bg-white border border-blue-300 rounded px-2 py-1 text-xs font-bold text-[#1F5EFF]"
+                  className="w-32 bg-white border border-blue-300 rounded px-2 py-1 text-xs font-bold text-[var(--sw-brand)]"
                 />
-                <button onClick={() => setWelfareInput(Math.min(totalGoodsAmount, user.welfareBalance))} className="text-[11px] text-[#1F5EFF] underline font-bold">
+                <button onClick={() => setWelfareInput(Math.min(totalGoodsAmount, user.welfareBalance))} className="text-[11px] text-[var(--sw-brand)] underline font-bold">
                   最大化使用
                 </button>
               </div>
@@ -200,7 +200,7 @@ export const CheckoutPage: React.FC = () => {
       <div className="bg-white border border-gray-200 rounded-md p-5 shadow-xs grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
         <div className="space-y-3">
           <div className="font-bold text-gray-900 flex items-center gap-1.5 border-b border-gray-100 pb-2">
-            <FileText className="w-4 h-4 text-[#1F5EFF]" /> 发票开具选项
+            <FileText className="w-4 h-4 text-[var(--sw-brand)]" /> 发票开具选项
           </div>
 
           <div className="flex items-center gap-3">
@@ -210,7 +210,7 @@ export const CheckoutPage: React.FC = () => {
               { id: 'none', label: '暂不开票' },
             ].map((inv) => (
               <label key={inv.id} className="flex items-center gap-1.5 cursor-pointer">
-                <input type="radio" name="invType" checked={invoiceType === inv.id} onChange={() => setInvoiceType(inv.id as any)} className="text-[#1F5EFF]" />
+                <input type="radio" name="invType" checked={invoiceType === inv.id} onChange={() => setInvoiceType(inv.id as any)} className="text-[var(--sw-brand)]" />
                 <span>{inv.label}</span>
               </label>
             ))}
@@ -258,7 +258,7 @@ export const CheckoutPage: React.FC = () => {
           <button
             onClick={() => void handleSubmitOrder()}
             disabled={isSubmitting || Boolean(submitBlocker)}
-            className="bg-[#1F5EFF] disabled:bg-blue-300 hover:bg-blue-700 text-white font-black px-8 py-3 rounded text-sm shadow-md transition-colors cursor-pointer flex items-center gap-2"
+            className="bg-[var(--sw-brand)] disabled:bg-blue-300 hover:bg-blue-700 text-white font-black px-8 py-3 rounded text-sm shadow-md transition-colors cursor-pointer flex items-center gap-2"
           >
             <span>{isSubmitting ? '正在安全提交…' : submitBlocker ? submitBlocker : '立即提交订单'}</span>
             <ArrowRight className="w-4 h-4" />

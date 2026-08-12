@@ -65,7 +65,7 @@ export const MobileFrame: React.FC = () => {
   const isMP = appMode === 'mini-program';
 
   return (
-    <div className="min-h-screen bg-[#111827] text-white flex flex-col font-sans selection:bg-[#1F5EFF] selection:text-white">
+    <div className="min-h-screen bg-[#111827] text-white flex flex-col font-sans selection:bg-[var(--sw-brand)] selection:text-white">
       {/* 顶部多端切换导览条 */}
       <MobileTopBarSwitcher />
 

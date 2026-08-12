@@ -64,7 +64,7 @@ export const MvpConsolePage: React.FC = () => {
           <h1 className="text-xl font-black text-gray-900">生产型MVP验收工作台</h1>
           <p className="text-xs text-gray-500 mt-1">用于甲方阶段验收、数据链路检查和第三方接入准备，不等同于正式运营后台。</p>
         </div>
-        <button onClick={() => void refresh()} disabled={loading} className="bg-[#143A8F] disabled:bg-blue-300 text-white text-xs font-bold rounded px-4 py-2 flex items-center gap-2">
+        <button onClick={() => void refresh()} disabled={loading} className="bg-[var(--sw-brand-dark)] disabled:bg-blue-300 text-white text-xs font-bold rounded px-4 py-2 flex items-center gap-2">
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           刷新运行状态
         </button>
@@ -85,7 +85,7 @@ export const MvpConsolePage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white border border-gray-200 rounded-md p-5 space-y-3">
           <h2 className="font-bold text-sm flex items-center gap-2">
-            <Activity className="w-4 h-4 text-[#1F5EFF]" /> 系统健康状态
+            <Activity className="w-4 h-4 text-[var(--sw-brand)]" /> 系统健康状态
           </h2>
           {[
             ['服务状态', health?.status ?? '检查中'],
@@ -124,8 +124,8 @@ export const MvpConsolePage: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-[#EAF1FF] border border-blue-200 rounded-md p-5">
-        <h2 className="font-bold text-sm text-[#143A8F]">验收快捷入口</h2>
+      <div className="bg-[var(--sw-brand-light)] border border-blue-200 rounded-md p-5">
+        <h2 className="font-bold text-sm text-[var(--sw-brand-dark)]">验收快捷入口</h2>
         <div className="flex flex-wrap gap-2 mt-3">
           {[
             ['阶段交付计划', 'mvp-delivery'],
@@ -138,7 +138,7 @@ export const MvpConsolePage: React.FC = () => {
             <button
               key={page}
               onClick={() => navigateTo(page as 'mvp-delivery' | 'category' | 'cart' | 'orders' | 'balance' | 'user-center')}
-              className="bg-white border border-blue-200 hover:border-[#1F5EFF] text-[#143A8F] text-xs font-bold px-3 py-2 rounded"
+              className="bg-white border border-blue-200 hover:border-[var(--sw-brand)] text-[var(--sw-brand-dark)] text-xs font-bold px-3 py-2 rounded"
             >
               {label}
             </button>

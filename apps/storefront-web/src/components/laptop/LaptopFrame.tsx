@@ -40,7 +40,7 @@ export const LaptopFrame: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA] text-gray-800 flex flex-col justify-between font-sans overflow-x-hidden selection:bg-[#1F5EFF] selection:text-white">
+    <div className="min-h-screen bg-[#F5F7FA] text-gray-800 flex flex-col justify-between font-sans overflow-x-hidden selection:bg-[var(--sw-brand)] selection:text-white">
       {/* 1. 多端多视口顶栏切换器 */}
       <LaptopTopSwitcher />
 

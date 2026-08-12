@@ -18,7 +18,7 @@ export const AdminDashboardScreen: React.FC = () => {
       <header className="bg-slate-800/90 backdrop-blur-md border-b border-slate-700 p-4 sm:p-5 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1F5EFF] to-[#143A8F] flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--sw-brand)] to-[var(--sw-brand-dark)] flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>

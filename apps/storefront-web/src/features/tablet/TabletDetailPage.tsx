@@ -40,7 +40,7 @@ export const TabletDetailPage: React.FC = () => {
         {/* Service Guarantees Card */}
         <div className="bg-blue-50/70 rounded-2xl p-3.5 border border-blue-100 grid grid-cols-3 gap-2 text-center text-xs text-gray-700 font-bold">
           <div className="flex items-center justify-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-[#1F5EFF]" />
+            <ShieldCheck className="w-4 h-4 text-[var(--sw-brand)]" />
             <span>100% 正品开票</span>
           </div>
           <div className="flex items-center justify-center gap-1.5">
@@ -55,7 +55,7 @@ export const TabletDetailPage: React.FC = () => {
 
         {/* Product Parameters & Details */}
         <div className="bg-gray-50 rounded-2xl p-4 space-y-3 text-xs border border-gray-200">
-          <h3 className="font-black text-gray-900 text-xs border-l-3 border-[#1F5EFF] pl-2 flex items-center justify-between">
+          <h3 className="font-black text-gray-900 text-xs border-l-3 border-[var(--sw-brand)] pl-2 flex items-center justify-between">
             <span>企采图文详情与规格说明</span>
             <span className="text-[10px] text-gray-400 font-normal">编号: {product.id}</span>
           </h3>
@@ -79,7 +79,7 @@ export const TabletDetailPage: React.FC = () => {
       <div className="w-1/2 p-5 overflow-y-auto flex flex-col justify-between space-y-4 bg-[#F5F7FA]">
         <div className="space-y-4">
           {/* Price Banner Container */}
-          <div className="bg-gradient-to-r from-[#143A8F] to-[#1F5EFF] text-white p-4 rounded-3xl shadow-sm flex items-center justify-between">
+          <div className="bg-gradient-to-r from-[var(--sw-brand-dark)] to-[var(--sw-brand)] text-white p-4 rounded-3xl shadow-sm flex items-center justify-between">
             <div>
               <div className="text-[10px] text-blue-200 uppercase font-black tracking-wider">企采专享内购价</div>
               <div className="flex items-baseline gap-1.5 font-mono mt-0.5">
@@ -101,7 +101,7 @@ export const TabletDetailPage: React.FC = () => {
             <p className="text-xs text-gray-500">{product.subtitle}</p>
 
             <div className="flex items-center gap-2 pt-2 text-xs">
-              <span className="bg-blue-50 text-[#1F5EFF] font-bold px-2.5 py-1 rounded-lg">{product.itemType === 'virtual_coupon' ? '虚拟兑换券' : '实物直邮仓'}</span>
+              <span className="bg-blue-50 text-[var(--sw-brand)] font-bold px-2.5 py-1 rounded-lg">{product.itemType === 'virtual_coupon' ? '虚拟兑换券' : '实物直邮仓'}</span>
               <span className="text-gray-400">品牌: {product.brand || '智慧翼精选'}</span>
               <span className="text-gray-400">库存: {product.stockCount} 件</span>
             </div>
@@ -126,7 +126,7 @@ export const TabletDetailPage: React.FC = () => {
                           key={val}
                           onClick={() => setSelectedSpec((prev) => ({ ...prev, [specKey]: val }))}
                           className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer min-h-[40px] ${
-                            isSelected ? 'border-[#1F5EFF] bg-blue-50 text-[#1F5EFF] shadow-2xs' : 'border-gray-200 text-gray-700 bg-gray-50 hover:bg-gray-100'
+                            isSelected ? 'border-[var(--sw-brand)] bg-blue-50 text-[var(--sw-brand)] shadow-2xs' : 'border-gray-200 text-gray-700 bg-gray-50 hover:bg-gray-100'
                           }`}
                         >
                           {val}
@@ -159,7 +159,7 @@ export const TabletDetailPage: React.FC = () => {
             className="bg-white rounded-2xl p-3.5 shadow-2xs border border-gray-200 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-center gap-2.5 text-xs">
-              <MapPin className="w-4 h-4 text-[#1F5EFF]" />
+              <MapPin className="w-4 h-4 text-[var(--sw-brand)]" />
               <div>
                 <span className="font-bold text-gray-900">默认配送至：</span>
                 <span className="text-gray-600">北京市朝阳区中国建筑大厦 12F 企采仓</span>
@@ -172,15 +172,15 @@ export const TabletDetailPage: React.FC = () => {
         {/* Action Buttons Bar */}
         <div className="bg-white rounded-3xl p-3 shadow-md border border-gray-200 flex items-center gap-3">
           <button onClick={() => triggerPendingFeature('平板客服', '调起企业专属 1 对 1 客服通道。')} className="p-3 text-gray-500 hover:text-gray-800 text-xs flex flex-col items-center cursor-pointer min-h-[44px]">
-            <Headphones className="w-5 h-5 text-[#1F5EFF]" />
+            <Headphones className="w-5 h-5 text-[var(--sw-brand)]" />
             <span className="text-[10px]">客服</span>
           </button>
 
-          <button onClick={() => addToCart(product, quantity, selectedSpec)} className="flex-1 bg-blue-50 hover:bg-blue-100 text-[#1F5EFF] font-black text-xs py-3 rounded-2xl transition-colors cursor-pointer min-h-[48px]">
+          <button onClick={() => addToCart(product, quantity, selectedSpec)} className="flex-1 bg-blue-50 hover:bg-blue-100 text-[var(--sw-brand)] font-black text-xs py-3 rounded-2xl transition-colors cursor-pointer min-h-[48px]">
             加入购物车 ({cartCount})
           </button>
 
-          <button onClick={handleBuyNow} className="flex-1 bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] hover:opacity-95 text-white font-black text-xs py-3 rounded-2xl shadow-md transition-all cursor-pointer min-h-[48px]">
+          <button onClick={handleBuyNow} className="flex-1 bg-gradient-to-r from-[var(--sw-brand)] to-[var(--sw-brand-dark)] hover:opacity-95 text-white font-black text-xs py-3 rounded-2xl shadow-md transition-all cursor-pointer min-h-[48px]">
             福利卡全额兑换
           </button>
         </div>

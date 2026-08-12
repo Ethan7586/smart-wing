@@ -55,7 +55,7 @@ export const CouponsPage: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-1.5 rounded transition-colors cursor-pointer ${activeTab === tab.id ? 'bg-[#1F5EFF] text-white font-black' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`px-4 py-1.5 rounded transition-colors cursor-pointer ${activeTab === tab.id ? 'bg-[var(--sw-brand)] text-white font-black' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
             >
               {tab.label}
             </button>
@@ -113,7 +113,7 @@ export const CouponsPage: React.FC = () => {
                   </button>
 
                   {isUnused ? (
-                    <button onClick={() => setSelectedCoupon(coupon)} className="bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold px-4 py-1.5 rounded flex items-center gap-1 cursor-pointer shadow-2xs">
+                    <button onClick={() => setSelectedCoupon(coupon)} className="bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-bold px-4 py-1.5 rounded flex items-center gap-1 cursor-pointer shadow-2xs">
                       <QrCode className="w-3.5 h-3.5" /> 出示核销码 / 到店核销
                     </button>
                   ) : (
@@ -152,7 +152,7 @@ export const CouponsPage: React.FC = () => {
             <div className="text-[11px] text-gray-400">请向门店收银员出示此码，或在合作小程序/猫眼APP内直接输入使用。</div>
 
             <div className="pt-2">
-              <button onClick={() => handleSimulateVerification(selectedCoupon.id)} className="w-full bg-[#1F5EFF] hover:bg-blue-700 text-white font-black py-2.5 rounded text-xs transition-colors cursor-pointer shadow-md">
+              <button onClick={() => handleSimulateVerification(selectedCoupon.id)} className="w-full bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-black py-2.5 rounded text-xs transition-colors cursor-pointer shadow-md">
                 模拟门店扫码核销 (完成核销)
               </button>
             </div>

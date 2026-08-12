@@ -26,7 +26,6 @@ import {
   Info,
   Clock,
   ExternalLink,
-  Sparkles,
   Store,
   CreditCard,
   UserX,
@@ -303,10 +302,7 @@ export const LoginPage: React.FC = () => {
     }
 
     // iframe 与商城同源；只通知父窗口刷新已建立的 HttpOnly 会话，不传递密码或票据。
-    window.parent.postMessage(
-      { type: 'smart-wing:storefront-login-complete', membershipId },
-      window.location.origin,
-    );
+    window.parent.postMessage({ type: 'smart-wing:storefront-login-complete', membershipId }, window.location.origin);
   };
 
   const completeAdminTestLogin = () => {
@@ -539,7 +535,7 @@ export const LoginPage: React.FC = () => {
               setStage(1);
               setFormError('');
             }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-[#1F5EFF] bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-[var(--sw-brand)] bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             切换其他账号登录
@@ -558,7 +554,7 @@ export const LoginPage: React.FC = () => {
       <div className="space-y-3 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Store className="w-4 h-4 text-[#1F5EFF]" />
+            <Store className="w-4 h-4 text-[var(--sw-brand)]" />
             <h4 className="text-xs font-bold text-slate-700 tracking-wider uppercase">我的福利商城</h4>
           </div>
           <span className="text-[11px] text-slate-400">共 {storefrontItems.length} 个专区</span>
@@ -576,7 +572,7 @@ export const LoginPage: React.FC = () => {
                 aria-disabled={mem.status !== 'active'}
                 aria-label={`进入 ${mem.storeName}，${mem.enterpriseName}，${mem.roleName}`}
                 className={`group relative p-3.5 rounded-xl border transition-all duration-200 cursor-pointer ${
-                  isInvalid ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed' : 'bg-white border-slate-200 hover:border-[#1F5EFF] hover:shadow-md hover:bg-blue-50/20'
+                  isInvalid ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed' : 'bg-white border-slate-200 hover:border-[var(--sw-brand)] hover:shadow-md hover:bg-blue-50/20'
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -584,7 +580,7 @@ export const LoginPage: React.FC = () => {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-semibold text-sm text-slate-800 truncate">{mem.storeName}</span>
                       {mem.accountTypeLabel && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-blue-50 text-[#1F5EFF] rounded-md border border-blue-100">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-blue-50 text-[var(--sw-brand)] rounded-md border border-blue-100">
                           <CreditCard className="w-2.5 h-2.5" />
                           {mem.accountTypeLabel}
                         </span>
@@ -598,11 +594,11 @@ export const LoginPage: React.FC = () => {
                   </div>
 
                   {mem.status === 'invited' ? (
-                    <button onClick={(e) => handleAcceptInvite(e, mem)} className="shrink-0 px-3 py-1 text-xs font-medium bg-[#1F5EFF] text-white rounded-lg hover:bg-[#143A8F] transition-colors">
+                    <button onClick={(e) => handleAcceptInvite(e, mem)} className="shrink-0 px-3 py-1 text-xs font-medium bg-[var(--sw-brand)] text-white rounded-lg hover:bg-[var(--sw-brand-dark)] transition-colors">
                       接受邀请
                     </button>
                   ) : (
-                    <div className="shrink-0 pt-1 text-slate-300 group-hover:text-[#1F5EFF] transition-colors">
+                    <div className="shrink-0 pt-1 text-slate-300 group-hover:text-[var(--sw-brand)] transition-colors">
                       <ChevronRight className="w-5 h-5" />
                     </div>
                   )}
@@ -635,7 +631,7 @@ export const LoginPage: React.FC = () => {
       <div className="space-y-3 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-[#143A8F]" />
+            <ShieldCheck className="w-4 h-4 text-[var(--sw-brand-dark)]" />
             <h4 className="text-xs font-bold text-slate-700 tracking-wider uppercase">我管理的运营主体</h4>
           </div>
           <span className="text-[11px] text-slate-400">共 {adminItems.length} 项管理权限</span>
@@ -651,10 +647,10 @@ export const LoginPage: React.FC = () => {
                 tabIndex={mem.status === 'active' ? 0 : -1}
                 aria-disabled={mem.status !== 'active'}
                 aria-label={`进入运营后台：${mem.enterpriseName}，${mem.roleName}`}
-                className="group p-3.5 rounded-xl border border-slate-200 bg-slate-900 text-white hover:border-[#1F5EFF] hover:ring-2 hover:ring-[#1F5EFF]/30 transition-all cursor-pointer shadow-sm relative overflow-hidden"
+                className="group p-3.5 rounded-xl border border-slate-200 bg-slate-900 text-white hover:border-[var(--sw-brand)] hover:ring-2 hover:ring-[var(--sw-brand)]/30 transition-all cursor-pointer shadow-sm relative overflow-hidden"
               >
                 {/* 顶部微渐变条 */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#1F5EFF] to-[#143A8F]" />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--sw-brand)] to-[var(--sw-brand-dark)]" />
 
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1 min-w-0">
@@ -691,7 +687,7 @@ export const LoginPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="shrink-0 pt-1 text-slate-500 group-hover:text-[#1F5EFF] transition-colors">
+                  <div className="shrink-0 pt-1 text-slate-500 group-hover:text-[var(--sw-brand)] transition-colors">
                     <ArrowRight className="w-5 h-5" />
                   </div>
                 </div>
@@ -720,7 +716,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className={`${isStorefrontEmbed ? 'min-h-screen bg-transparent' : 'min-h-screen bg-slate-50 flex flex-col justify-between'} selection:bg-blue-100 selection:text-[#1F5EFF]`}>
+    <div className={`${isStorefrontEmbed ? 'min-h-screen bg-transparent' : 'min-h-screen bg-slate-50 flex flex-col justify-between'} selection:bg-blue-100 selection:text-[var(--sw-brand)]`}>
       {/* 顶部体验演示与调试工具条 */}
       {!isStorefrontEmbed && (
         <div className="bg-slate-900 text-slate-300 text-xs px-4 py-2 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
@@ -755,7 +751,7 @@ export const LoginPage: React.FC = () => {
 
       {/* 主布局：认证卡片叠压在蓝色品牌底板上（桌面端覆盖约 80%） */}
       <div className={isStorefrontEmbed ? 'flex min-h-screen items-center justify-center bg-transparent p-0' : 'flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-12'}>
-        <div className={`relative w-full max-w-[520px] rounded-3xl bg-gradient-to-br from-[#1F5EFF] to-[#143A8F] shadow-xl ${isStorefrontEmbed ? 'overflow-visible p-3' : 'overflow-hidden'}`}>
+        <div className={`relative w-full max-w-[520px] rounded-3xl bg-gradient-to-br from-[var(--sw-brand)] to-[var(--sw-brand-dark)] shadow-xl ${isStorefrontEmbed ? 'overflow-visible p-3' : 'overflow-hidden'}`}>
           {isStorefrontEmbed && (
             <button
               type="button"
@@ -773,11 +769,9 @@ export const LoginPage: React.FC = () => {
 
             {/* 顶部 Logo 品牌 */}
             <div className="relative z-10 flex items-center gap-3">
-              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-[#1F5EFF] shadow-md shrink-0">
-                <Sparkles className="w-6 h-6" />
-              </div>
+              <img src="./brand/brand-mark.svg" alt="" className="h-12 w-12 shrink-0 rounded-2xl shadow-md" />
               <div>
-                <span className="text-2xl font-bold tracking-tight text-white block">智慧翼 SmartWing</span>
+                <span className="text-2xl font-bold tracking-tight text-white block">智慧翼 Smart Wing</span>
                 <span className="text-[10px] font-semibold tracking-widest text-blue-200 uppercase">Enterprise Benefits</span>
               </div>
             </div>
@@ -811,30 +805,35 @@ export const LoginPage: React.FC = () => {
                     </button>
                   )}
                   {/* 步骤 1 */}
-                  <div className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${stage >= 1 ? 'bg-[#1F5EFF] text-white shadow-sm' : 'border-2 border-slate-200 text-slate-400'}`}>1</div>
-                  <div className={`w-6 sm:w-8 h-[2px] ${stage >= 2 ? 'bg-[#1F5EFF]' : 'bg-slate-200'}`} />
+                  <div className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${stage >= 1 ? 'bg-[var(--sw-brand)] text-white shadow-sm' : 'border-2 border-slate-200 text-slate-400'}`}>1</div>
+                  <div className={`w-6 sm:w-8 h-[2px] ${stage >= 2 ? 'bg-[var(--sw-brand)]' : 'bg-slate-200'}`} />
 
                   {/* 步骤 2 */}
                   <div
                     className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${
-                      stage > 2 ? 'bg-[#1F5EFF] text-white shadow-sm' : stage === 2 ? 'border-2 border-[#1F5EFF] text-[#1F5EFF] bg-white font-black' : 'border-2 border-slate-200 text-slate-400'
+                      stage > 2 ? 'bg-[var(--sw-brand)] text-white shadow-sm' : stage === 2 ? 'border-2 border-[var(--sw-brand)] text-[var(--sw-brand)] bg-white font-black' : 'border-2 border-slate-200 text-slate-400'
                     }`}
                   >
                     2
                   </div>
-                  <div className={`w-6 sm:w-8 h-[2px] ${stage >= 3 ? 'bg-[#1F5EFF]' : 'bg-slate-200'}`} />
+                  <div className={`w-6 sm:w-8 h-[2px] ${stage >= 3 ? 'bg-[var(--sw-brand)]' : 'bg-slate-200'}`} />
 
                   {/* 步骤 3 */}
-                  <div className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${stage === 3 ? 'border-2 border-[#1F5EFF] text-[#1F5EFF] bg-white font-black' : 'border-2 border-slate-200 text-slate-400'}`}>
+                  <div
+                    className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${stage === 3 ? 'border-2 border-[var(--sw-brand)] text-[var(--sw-brand)] bg-white font-black' : 'border-2 border-slate-200 text-slate-400'}`}
+                  >
                     3
                   </div>
                 </div>
 
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
-                  {stage === 1 && '账号认证'}
-                  {stage === 2 && '选择访问身份'}
-                  {stage === 3 && '二次验证'}
-                </span>
+                <div className="flex items-center gap-2">
+                  <img src="./brand/brand-mark.svg" alt="" className="h-5 w-5 rounded-md" />
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
+                    {stage === 1 && '账号认证'}
+                    {stage === 2 && '选择访问身份'}
+                    {stage === 3 && '二次验证'}
+                  </span>
+                </div>
               </div>
 
               {/* 卡片主内容区 */}
@@ -884,7 +883,7 @@ export const LoginPage: React.FC = () => {
                           setActiveTab('otp');
                           setFormError('');
                         }}
-                        className={`py-2 px-1 rounded-lg transition-all text-center ${activeTab === 'otp' ? 'bg-white text-[#1F5EFF] font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                        className={`py-2 px-1 rounded-lg transition-all text-center ${activeTab === 'otp' ? 'bg-white text-[var(--sw-brand)] font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
                         role="tab"
                         aria-selected={activeTab === 'otp'}
                         aria-controls="login-method-panel"
@@ -898,7 +897,7 @@ export const LoginPage: React.FC = () => {
                           setActiveTab('password');
                           setFormError('');
                         }}
-                        className={`py-2 px-1 rounded-lg transition-all text-center ${activeTab === 'password' ? 'bg-white text-[#1F5EFF] font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                        className={`py-2 px-1 rounded-lg transition-all text-center ${activeTab === 'password' ? 'bg-white text-[var(--sw-brand)] font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
                         role="tab"
                         aria-selected={activeTab === 'password'}
                         aria-controls="login-method-panel"
@@ -912,7 +911,7 @@ export const LoginPage: React.FC = () => {
                           setActiveTab('work_weixin');
                           setFormError('');
                         }}
-                        className={`py-2 px-1 rounded-lg transition-all text-center ${activeTab === 'work_weixin' ? 'bg-white text-[#1F5EFF] font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                        className={`py-2 px-1 rounded-lg transition-all text-center ${activeTab === 'work_weixin' ? 'bg-white text-[var(--sw-brand)] font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
                         role="tab"
                         aria-selected={activeTab === 'work_weixin'}
                         aria-controls="login-method-panel"
@@ -926,7 +925,7 @@ export const LoginPage: React.FC = () => {
                           setActiveTab('sso');
                           setFormError('');
                         }}
-                        className={`py-2 px-1 rounded-lg transition-all text-center ${activeTab === 'sso' ? 'bg-white text-[#1F5EFF] font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                        className={`py-2 px-1 rounded-lg transition-all text-center ${activeTab === 'sso' ? 'bg-white text-[var(--sw-brand)] font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
                         role="tab"
                         aria-selected={activeTab === 'sso'}
                         aria-controls="login-method-panel"
@@ -950,7 +949,7 @@ export const LoginPage: React.FC = () => {
                               value={phone}
                               onChange={(e) => handlePhoneChange(e.target.value)}
                               placeholder="请输入员工手机号（测试: 13800138000）"
-                              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1F5EFF] focus:border-[#1F5EFF] transition-all"
+                              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)] focus:border-[var(--sw-brand)] transition-all"
                               aria-label="手机号码"
                               disabled={lockoutSeconds > 0 || loading}
                             />
@@ -971,7 +970,7 @@ export const LoginPage: React.FC = () => {
                                   setFieldErrors((prev) => ({ ...prev, otpCode: '' }));
                                 }}
                                 placeholder="6位数字（演示: 123456）"
-                                className="flex-1 px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1F5EFF] focus:border-[#1F5EFF] transition-all font-mono"
+                                className="flex-1 px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)] focus:border-[var(--sw-brand)] transition-all font-mono"
                                 aria-label="短信验证码"
                                 disabled={lockoutSeconds > 0 || loading}
                               />
@@ -979,7 +978,7 @@ export const LoginPage: React.FC = () => {
                                 type="button"
                                 onClick={handleSendOtp}
                                 disabled={otpCountdown > 0 || lockoutSeconds > 0 || loading}
-                                className="shrink-0 px-4 py-2.5 text-xs font-medium text-[#1F5EFF] bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="shrink-0 px-4 py-2.5 text-xs font-medium text-[var(--sw-brand)] bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 {otpCountdown > 0 ? `${otpCountdown}s 后重发` : '获取验证码'}
                               </button>
@@ -989,10 +988,10 @@ export const LoginPage: React.FC = () => {
 
                           {/* 辅助链接 */}
                           <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-                            <button type="button" onClick={() => setActiveTab('password')} className="hover:text-[#1F5EFF] transition-colors">
+                            <button type="button" onClick={() => setActiveTab('password')} className="hover:text-[var(--sw-brand)] transition-colors">
                               使用密码登录
                             </button>
-                            <button type="button" onClick={() => setFormError('请联系您所在企业的 HR 或福利管理员重置登录身份')} className="hover:text-[#1F5EFF] transition-colors">
+                            <button type="button" onClick={() => setFormError('请联系您所在企业的 HR 或福利管理员重置登录身份')} className="hover:text-[var(--sw-brand)] transition-colors">
                               收不到验证码？
                             </button>
                           </div>
@@ -1001,7 +1000,7 @@ export const LoginPage: React.FC = () => {
                           <button
                             type="submit"
                             disabled={!acceptedTerms || lockoutSeconds > 0 || loading}
-                            className="w-full py-3 px-4 bg-[#1F5EFF] hover:bg-[#143A8F] text-white font-medium text-sm rounded-xl shadow-md shadow-blue-500/10 transition-all disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full py-3 px-4 bg-[var(--sw-brand)] hover:bg-[var(--sw-brand-dark)] text-white font-medium text-sm rounded-xl shadow-md shadow-blue-500/10 transition-all disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                           >
                             {loading ? (
                               <>
@@ -1030,7 +1029,7 @@ export const LoginPage: React.FC = () => {
                               value={identifier}
                               onChange={(e) => handleIdentifierChange(e.target.value)}
                               placeholder="例如: EMP8801 或 user@hbbtzn.com"
-                              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1F5EFF] focus:border-[#1F5EFF] transition-all"
+                              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)] focus:border-[var(--sw-brand)] transition-all"
                               aria-label="工号或企业邮箱"
                               disabled={lockoutSeconds > 0 || loading}
                             />
@@ -1050,7 +1049,7 @@ export const LoginPage: React.FC = () => {
                                   setFieldErrors((prev) => ({ ...prev, password: '' }));
                                 }}
                                 placeholder="测试密码: 123456"
-                                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1F5EFF] focus:border-[#1F5EFF] transition-all pr-10"
+                                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)] focus:border-[var(--sw-brand)] transition-all pr-10"
                                 aria-label="密码"
                                 disabled={lockoutSeconds > 0 || loading}
                               />
@@ -1067,10 +1066,10 @@ export const LoginPage: React.FC = () => {
                           </div>
 
                           <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-                            <button type="button" onClick={() => setFormError('重置密码请联系企业管理员发送重置链接')} className="hover:text-[#1F5EFF] transition-colors">
+                            <button type="button" onClick={() => setFormError('重置密码请联系企业管理员发送重置链接')} className="hover:text-[var(--sw-brand)] transition-colors">
                               忘记密码？
                             </button>
-                            <button type="button" onClick={() => setActiveTab('otp')} className="hover:text-[#1F5EFF] transition-colors">
+                            <button type="button" onClick={() => setActiveTab('otp')} className="hover:text-[var(--sw-brand)] transition-colors">
                               短信验证码登录
                             </button>
                           </div>
@@ -1078,7 +1077,7 @@ export const LoginPage: React.FC = () => {
                           <button
                             type="submit"
                             disabled={!acceptedTerms || lockoutSeconds > 0 || loading}
-                            className="w-full py-3 px-4 bg-[#1F5EFF] hover:bg-[#143A8F] text-white font-medium text-sm rounded-xl shadow-md shadow-blue-500/10 transition-all disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full py-3 px-4 bg-[var(--sw-brand)] hover:bg-[var(--sw-brand-dark)] text-white font-medium text-sm rounded-xl shadow-md shadow-blue-500/10 transition-all disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                           >
                             {loading ? (
                               <>
@@ -1110,7 +1109,7 @@ export const LoginPage: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={switchQrLoginChannel}
-                                    className={`font-semibold transition-colors ${qrLoginChannel === 'work_weixin' ? 'text-[#1F5EFF] hover:text-[#143A8F]' : 'text-emerald-600 hover:text-emerald-700'}`}
+                                    className={`font-semibold transition-colors ${qrLoginChannel === 'work_weixin' ? 'text-[var(--sw-brand)] hover:text-[var(--sw-brand-dark)]' : 'text-emerald-600 hover:text-emerald-700'}`}
                                     aria-label={qrLoginChannel === 'work_weixin' ? '切换为微信扫码' : '切换为企业微信扫码'}
                                   >
                                     {qrLoginChannel === 'work_weixin' ? '企业微信' : '微信'}
@@ -1131,7 +1130,7 @@ export const LoginPage: React.FC = () => {
 
                             {qrStatus === 'confirmed' && (
                               <div className="w-40 h-40 bg-blue-50 rounded-xl mx-auto flex flex-col items-center justify-center p-4 space-y-2" role="status" aria-live="polite">
-                                <CheckCircle2 className="w-10 h-10 text-[#1F5EFF]" />
+                                <CheckCircle2 className="w-10 h-10 text-[var(--sw-brand)]" />
                                 <p className="text-xs font-bold text-slate-900">手机确认成功</p>
                                 <p className="text-[10px] text-slate-500">正在保护您的登录身份</p>
                               </div>
@@ -1157,7 +1156,7 @@ export const LoginPage: React.FC = () => {
                           {/* 本地演示控制：真实环境将由扫码平台回调驱动 */}
                           <div className="pt-2">
                             {qrStatus === 'pending_scan' && (
-                              <button onClick={() => setQrStatus('scanned')} className="text-xs font-medium text-[#1F5EFF] hover:underline" aria-label="演示手机扫码">
+                              <button onClick={() => setQrStatus('scanned')} className="text-xs font-medium text-[var(--sw-brand)] hover:underline" aria-label="演示手机扫码">
                                 演示：手机已扫码
                               </button>
                             )}
@@ -1169,7 +1168,7 @@ export const LoginPage: React.FC = () => {
                             {qrStatus === 'confirmed' && (
                               <button
                                 onClick={continueFromQrConfirmation}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-[#1F5EFF] px-3 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#143A8F]"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--sw-brand)] px-3 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[var(--sw-brand-dark)]"
                                 aria-label="选择登录身份"
                               >
                                 选择登录身份
@@ -1192,7 +1191,7 @@ export const LoginPage: React.FC = () => {
                               value={ssoDomain}
                               onChange={(e) => setSsoDomain(e.target.value)}
                               placeholder="例如: tencent.hbbtzn.com 或 EMP-SSO-2026"
-                              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1F5EFF] focus:border-[#1F5EFF] transition-all font-mono"
+                              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)] focus:border-[var(--sw-brand)] transition-all font-mono"
                               aria-label="企业专属域名或邀请码"
                             />
                           </div>
@@ -1228,7 +1227,7 @@ export const LoginPage: React.FC = () => {
                     {/* 底部合规与协议勾选 */}
                     <div className="mt-auto pt-2 border-t border-slate-100">
                       <label className="flex items-start gap-2 cursor-pointer text-xs text-slate-500">
-                        <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} className="mt-0.5 w-4 h-4 text-[#1F5EFF] rounded border-slate-300 focus:ring-[#1F5EFF]" />
+                        <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} className="mt-0.5 w-4 h-4 text-[var(--sw-brand)] rounded border-slate-300 focus:ring-[var(--sw-brand)]" />
                         <span className="leading-tight">
                           我已阅读并同意智慧翼福利商城的{' '}
                           <button
@@ -1237,7 +1236,7 @@ export const LoginPage: React.FC = () => {
                               e.preventDefault();
                               setActiveModal('terms');
                             }}
-                            className="text-[#1F5EFF] hover:underline"
+                            className="text-[var(--sw-brand)] hover:underline"
                           >
                             《用户服务协议》
                           </button>{' '}
@@ -1248,7 +1247,7 @@ export const LoginPage: React.FC = () => {
                               e.preventDefault();
                               setActiveModal('privacy');
                             }}
-                            className="text-[#1F5EFF] hover:underline"
+                            className="text-[var(--sw-brand)] hover:underline"
                           >
                             《隐私保护政策》
                           </button>
@@ -1262,7 +1261,7 @@ export const LoginPage: React.FC = () => {
                 {stage === 2 && (
                   <div className="space-y-4">
                     <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 text-xs text-slate-600 flex items-start gap-2">
-                      <Info className="w-4 h-4 text-[#1F5EFF] shrink-0 mt-0.5" />
+                      <Info className="w-4 h-4 text-[var(--sw-brand)] shrink-0 mt-0.5" />
                       <p>该账号关联了多个企业的福利计划或管理身份。请选择您本次需要进入的商城专区或运营后台：</p>
                     </div>
 
@@ -1290,7 +1289,7 @@ export const LoginPage: React.FC = () => {
                     <div className="space-y-2">
                       <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
                         <span className="flex items-center gap-1">
-                          <KeyRound className="w-3.5 h-3.5 text-[#1F5EFF]" />
+                          <KeyRound className="w-3.5 h-3.5 text-[var(--sw-brand)]" />
                           TOTP 6位动态口令二次验证
                         </span>
                         <span className="text-[10px] text-slate-400">谷歌/微软身份验证器</span>
@@ -1304,16 +1303,20 @@ export const LoginPage: React.FC = () => {
                           setFieldErrors({});
                         }}
                         placeholder="6位动态数字（测试填: 123456）"
-                        className="w-full px-3.5 py-3 text-center text-lg font-mono tracking-[0.3em] rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1F5EFF] focus:border-[#1F5EFF] transition-all"
+                        className="w-full px-3.5 py-3 text-center text-lg font-mono tracking-[0.3em] rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)] focus:border-[var(--sw-brand)] transition-all"
                         aria-label="TOTP 6位动态口令"
                       />
                       {fieldErrors.totpCode && <p className="text-[11px] text-rose-500">{fieldErrors.totpCode}</p>}
                       <p className="text-[11px] text-slate-400">
-                        💡 测试说明：动态口令固定为 <code className="text-[#1F5EFF]">123456</code>，其他数字均会被拒绝。
+                        💡 测试说明：动态口令固定为 <code className="text-[var(--sw-brand)]">123456</code>，其他数字均会被拒绝。
                       </p>
                     </div>
 
-                    <button type="submit" disabled={loading} className="w-full py-3 px-4 bg-[#143A8F] hover:bg-[#0D2666] text-white font-medium text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-3 px-4 bg-[var(--sw-brand-dark)] hover:bg-[#0D2666] text-white font-medium text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                    >
                       {loading ? (
                         <>
                           <RefreshCw className="w-4 h-4 animate-spin" />
@@ -1356,7 +1359,7 @@ export const LoginPage: React.FC = () => {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="请输入符合复杂度的安全新密码"
-                  className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#1F5EFF]"
+                  className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-[var(--sw-brand)]"
                 />
               </div>
             </div>
@@ -1376,7 +1379,7 @@ export const LoginPage: React.FC = () => {
                     void processPreAuthContext(preAuthContext);
                   }
                 }}
-                className="flex-1 py-2 text-xs font-medium text-white bg-[#1F5EFF] rounded-xl"
+                className="flex-1 py-2 text-xs font-medium text-white bg-[var(--sw-brand)] rounded-xl"
               >
                 确认并提交
               </button>
@@ -1391,7 +1394,7 @@ export const LoginPage: React.FC = () => {
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center gap-2 text-slate-900 font-bold text-base">
-                <FileText className="w-5 h-5 text-[#1F5EFF]" />
+                <FileText className="w-5 h-5 text-[var(--sw-brand)]" />
                 {activeModal === 'terms' ? '智慧翼企业福利商城 - 用户服务协议' : '智慧翼企业福利商城 - 隐私保护政策'}
               </div>
               <button onClick={() => setActiveModal(null)} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
@@ -1422,7 +1425,7 @@ export const LoginPage: React.FC = () => {
                   setAcceptedTerms(true);
                   setActiveModal(null);
                 }}
-                className="px-5 py-2 text-xs font-semibold text-white bg-[#1F5EFF] rounded-xl hover:bg-[#143A8F]"
+                className="px-5 py-2 text-xs font-semibold text-white bg-[var(--sw-brand)] rounded-xl hover:bg-[var(--sw-brand-dark)]"
               >
                 我已阅读并同意
               </button>

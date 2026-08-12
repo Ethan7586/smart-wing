@@ -122,15 +122,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`${isCollapsed ? 'w-16' : 'w-[220px]'} h-full bg-gradient-to-b from-[#10294d] to-[#07182f] text-slate-300 flex flex-col shrink-0 select-none transition-all duration-300 relative z-20 shadow-xl border-r border-white/10`}
+      className={`${isCollapsed ? 'w-16' : 'w-[220px]'} h-full bg-gradient-to-b from-[var(--sw-sidebar-top)] to-[var(--sw-brand-ink)] text-slate-300 flex flex-col shrink-0 select-none transition-all duration-300 relative z-20 shadow-xl border-r border-white/10`}
     >
       {/* Brand Logo Header */}
       <div className="p-4 flex items-center justify-between mb-2 border-b border-white/10">
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <div className="w-8 h-8 bg-[#1769ff] rounded-lg flex items-center justify-center text-white font-bold text-base shrink-0 shadow-md shadow-blue-500/30">W</div>
+          <img src="/brand/brand-mark.svg" alt="" className="h-8 w-8 shrink-0 rounded-lg shadow-md shadow-blue-500/30" />
           {!isCollapsed && (
             <div className="whitespace-nowrap overflow-hidden">
-              <span className="font-bold text-white tracking-tight text-sm block leading-tight">Smart Wing</span>
+              <span className="font-bold text-white tracking-tight text-sm block leading-tight">智慧翼 Smart Wing</span>
               <span className="text-[10px] text-slate-400 font-medium">{isEn ? 'Welfare Operations' : '福利平台治理系统'}</span>
             </div>
           )}
@@ -159,16 +159,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={() => onSelectTab(ws.id)}
               title={isCollapsed ? ws.name : undefined}
               className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} p-2 rounded-lg cursor-pointer transition-colors text-xs font-medium ${
-                isActive ? 'bg-[#1769ff]/20 text-white font-semibold border border-[#1769ff]/40 shadow-sm' : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                isActive ? 'bg-[var(--sw-brand)]/20 text-white font-semibold border border-[var(--sw-brand)]/40 shadow-sm' : 'text-slate-300 hover:bg-white/5 hover:text-white'
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className={isActive ? 'text-[#1769ff]' : 'opacity-70'}>{renderIcon(ws.icon)}</span>
+                <span className={isActive ? 'text-[var(--sw-brand)]' : 'opacity-70'}>{renderIcon(ws.icon)}</span>
                 {!isCollapsed && <span className="truncate">{ws.name}</span>}
               </div>
 
               {!isCollapsed && ws.badgeCount > 0 && (
-                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${ws.badgeColor === 'red' ? 'bg-[#ef476f] text-white' : ws.badgeColor === 'amber' ? 'bg-[#f59e0b] text-white' : 'bg-[#1769ff] text-white'}`}>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${ws.badgeColor === 'red' ? 'bg-[#ef476f] text-white' : ws.badgeColor === 'amber' ? 'bg-[#f59e0b] text-white' : 'bg-[var(--sw-brand)] text-white'}`}>
                   {ws.badgeCount}
                 </span>
               )}

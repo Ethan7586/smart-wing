@@ -55,7 +55,7 @@ export const AfterSalePage: React.FC = () => {
     return (
       <div className="max-w-[1024px] mx-auto px-4 py-12 text-center space-y-3">
         <h2 className="text-base font-bold text-gray-800">当前商城暂无可申请售后的订单</h2>
-        <button onClick={() => navigateTo('orders')} className="bg-[#1F5EFF] text-white px-4 py-2 rounded text-xs font-bold">
+        <button onClick={() => navigateTo('orders')} className="bg-[var(--sw-brand)] text-white px-4 py-2 rounded text-xs font-bold">
           返回订单列表
         </button>
       </div>
@@ -65,7 +65,7 @@ export const AfterSalePage: React.FC = () => {
   return (
     <div className="max-w-[1024px] mx-auto px-4 py-4 space-y-4 font-sans text-xs">
       {/* 面包屑 */}
-      <button onClick={() => navigateTo('orders')} className="flex items-center gap-1 text-gray-600 hover:text-[#1F5EFF] font-bold">
+      <button onClick={() => navigateTo('orders')} className="flex items-center gap-1 text-gray-600 hover:text-[var(--sw-brand)] font-bold">
         <ArrowLeft className="w-4 h-4" /> 返回我的订单列表
       </button>
 
@@ -80,7 +80,7 @@ export const AfterSalePage: React.FC = () => {
             退款须知：经合规确认后，抵扣的福利卡金额 (¥{order.payment.welfareDeducted.toFixed(2)}) 与餐卡金额 (¥
             {order.payment.mealDeducted.toFixed(2)}) 将在 1 个工作日内实时退回您的企业福利账户。
           </div>
-          <button onClick={() => navigateTo('orders')} className="bg-[#1F5EFF] text-white font-bold px-6 py-2 rounded">
+          <button onClick={() => navigateTo('orders')} className="bg-[var(--sw-brand)] text-white font-bold px-6 py-2 rounded">
             返回我的订单
           </button>
         </div>
@@ -131,7 +131,7 @@ export const AfterSalePage: React.FC = () => {
                   <div
                     key={type.id}
                     onClick={() => setAfterSaleType(type.id as any)}
-                    className={`p-3 rounded border cursor-pointer transition-all ${afterSaleType === type.id ? 'border-[#1F5EFF] bg-blue-50/60 font-bold text-[#1F5EFF]' : 'border-gray-200 text-gray-700 hover:border-gray-300'}`}
+                    className={`p-3 rounded border cursor-pointer transition-all ${afterSaleType === type.id ? 'border-[var(--sw-brand)] bg-blue-50/60 font-bold text-[var(--sw-brand)]' : 'border-gray-200 text-gray-700 hover:border-gray-300'}`}
                   >
                     <div className="font-bold">{type.title}</div>
                     <div className="text-[10px] text-gray-400 font-normal mt-0.5">{type.desc}</div>
@@ -167,7 +167,7 @@ export const AfterSalePage: React.FC = () => {
             {/* 凭证上传模拟 */}
             <div>
               <label className="block font-bold text-gray-800 mb-1">图片凭证 (选填)：</label>
-              <div className="border-2 border-dashed border-gray-300 rounded-md p-4 text-center text-gray-400 space-y-1 hover:border-[#1F5EFF] transition-colors cursor-pointer">
+              <div className="border-2 border-dashed border-gray-300 rounded-md p-4 text-center text-gray-400 space-y-1 hover:border-[var(--sw-brand)] transition-colors cursor-pointer">
                 <Upload className="w-6 h-6 mx-auto text-gray-400" />
                 <div>点击或拖拽上传现场图片/快递包装凭证 (最多5张)</div>
               </div>
@@ -178,7 +178,7 @@ export const AfterSalePage: React.FC = () => {
               <button type="button" onClick={() => navigateTo('orders')} className="px-5 py-2 border rounded font-bold text-gray-600">
                 取消
               </button>
-              <button type="submit" disabled={submitting} className="px-6 py-2 bg-[#1F5EFF] text-white font-black rounded shadow-xs">
+              <button type="submit" disabled={submitting} className="px-6 py-2 bg-[var(--sw-brand)] text-white font-black rounded shadow-xs">
                 {submitting ? '正在安全提交…' : '确认提交售后工单'}
               </button>
             </div>

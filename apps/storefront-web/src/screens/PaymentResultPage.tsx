@@ -46,8 +46,8 @@ export const PaymentResultPage: React.FC = () => {
             <div className="text-base font-black text-gray-900 mt-0.5">¥{grandTotal.toFixed(2)}</div>
           </div>
           <div>
-            <div className="text-[#1F5EFF] font-bold">福利卡扣减</div>
-            <div className="text-base font-black text-[#1F5EFF] mt-0.5">¥{totalDeductedWelfare.toFixed(2)}</div>
+            <div className="text-[var(--sw-brand)] font-bold">福利卡扣减</div>
+            <div className="text-base font-black text-[var(--sw-brand)] mt-0.5">¥{totalDeductedWelfare.toFixed(2)}</div>
           </div>
           <div>
             <div className="text-[#FF7A00] font-bold">餐卡/微信补差</div>
@@ -56,7 +56,7 @@ export const PaymentResultPage: React.FC = () => {
         </div>
 
         <div className="flex items-center justify-center gap-3 pt-4">
-          <button onClick={() => navigateTo('orders')} className="bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold text-xs px-6 py-2.5 rounded shadow-xs cursor-pointer transition-colors">
+          <button onClick={() => navigateTo('orders')} className="bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-bold text-xs px-6 py-2.5 rounded shadow-xs cursor-pointer transition-colors">
             查看我的订单
           </button>
           <button onClick={() => navigateTo('coupons')} className="bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 font-bold text-xs px-6 py-2.5 rounded cursor-pointer transition-colors">
@@ -80,7 +80,7 @@ export const PaymentResultPage: React.FC = () => {
             <div key={sub.id} className="border border-gray-200 rounded-md p-4 text-xs space-y-3 bg-gray-50/50">
               <div className="flex items-center justify-between border-b border-gray-200 pb-2">
                 <div className="flex items-center gap-2">
-                  <span className="bg-[#1F5EFF] text-white text-[10px] font-bold px-1.5 py-0.5 rounded">子订单 {idx + 1}</span>
+                  <span className="bg-[var(--sw-brand)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded">子订单 {idx + 1}</span>
                   <span className="font-bold text-gray-900">{sub.supplierName}</span>
                   <span className="text-gray-400 font-mono">({sub.orderNo})</span>
                 </div>

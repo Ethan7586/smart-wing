@@ -20,7 +20,7 @@ export const TabletLandscapeHome: React.FC = () => {
             <button
               onClick={() => setActiveCategory('all')}
               className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between transition-colors cursor-pointer min-h-[44px] ${
-                activeCategory === 'all' ? 'bg-blue-50 text-[#1F5EFF] border-l-4 border-[#1F5EFF]' : 'text-gray-700 hover:bg-gray-100'
+                activeCategory === 'all' ? 'bg-blue-50 text-[var(--sw-brand)] border-l-4 border-[var(--sw-brand)]' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               <span>🔥 全部推荐</span>
@@ -32,7 +32,7 @@ export const TabletLandscapeHome: React.FC = () => {
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between transition-colors cursor-pointer min-h-[44px] ${
-                  activeCategory === cat.id ? 'bg-blue-50 text-[#1F5EFF] border-l-4 border-[#1F5EFF]' : 'text-gray-700 hover:bg-gray-100'
+                  activeCategory === cat.id ? 'bg-blue-50 text-[var(--sw-brand)] border-l-4 border-[var(--sw-brand)]' : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
                 <span>{cat.name}</span>
@@ -44,15 +44,15 @@ export const TabletLandscapeHome: React.FC = () => {
           <div className="border-t border-gray-100 pt-3 space-y-2">
             <div className="text-xs font-black text-gray-400 uppercase tracking-wider px-2">企采专区保障</div>
             <div className="bg-blue-50/60 rounded-2xl p-2.5 text-[11px] space-y-2 border border-blue-100">
-              <div className="flex items-center gap-2 text-[#143A8F] font-bold">
-                <ShieldCheck className="w-4 h-4 text-[#1F5EFF]" />
+              <div className="flex items-center gap-2 text-[var(--sw-brand-dark)] font-bold">
+                <ShieldCheck className="w-4 h-4 text-[var(--sw-brand)]" />
                 <span>100% 正品开票</span>
               </div>
-              <div className="flex items-center gap-2 text-[#143A8F] font-bold">
+              <div className="flex items-center gap-2 text-[var(--sw-brand-dark)] font-bold">
                 <Truck className="w-4 h-4 text-emerald-600" />
                 <span>企采统仓极速直邮</span>
               </div>
-              <div className="flex items-center gap-2 text-[#143A8F] font-bold">
+              <div className="flex items-center gap-2 text-[var(--sw-brand-dark)] font-bold">
                 <CreditCard className="w-4 h-4 text-amber-600" />
                 <span>福利卡/餐卡全额冲抵</span>
               </div>
@@ -88,13 +88,13 @@ export const TabletLandscapeHome: React.FC = () => {
             onClick={() => triggerPendingFeature('平板扫码核销', '调起硬件或后置摄像头扫描商品条形码。')}
             className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer min-h-[40px]"
           >
-            <Scan className="w-4 h-4 text-[#1F5EFF]" />
+            <Scan className="w-4 h-4 text-[var(--sw-brand)]" />
             <span>扫码购</span>
           </button>
         </div>
 
         {/* Hero Banner */}
-        <div className="bg-gradient-to-r from-[#143A8F] via-[#1F5EFF] to-blue-600 rounded-3xl p-5 text-white shadow-md relative overflow-hidden flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[var(--sw-brand-dark)] via-[var(--sw-brand)] to-blue-600 rounded-3xl p-5 text-white shadow-md relative overflow-hidden flex items-center justify-between">
           <div className="space-y-2 z-10 max-w-[70%]">
             <div className="inline-flex items-center gap-1.5 bg-amber-400 text-gray-900 text-[10px] font-black px-2.5 py-0.5 rounded-full">
               <Sparkles className="w-3 h-3" />
@@ -104,7 +104,7 @@ export const TabletLandscapeHome: React.FC = () => {
             <p className="text-xs text-blue-100">企采直发、福利卡全额扣减、支持开具电子发票与专票。</p>
           </div>
           <div className="flex items-center gap-2 z-10">
-            <button onClick={() => setTabletPage('category')} className="bg-white text-[#143A8F] hover:bg-yellow-300 font-bold text-xs px-4 py-2.5 rounded-2xl shadow-sm transition-colors cursor-pointer min-h-[44px]">
+            <button onClick={() => setTabletPage('category')} className="bg-white text-[var(--sw-brand-dark)] hover:bg-yellow-300 font-bold text-xs px-4 py-2.5 rounded-2xl shadow-sm transition-colors cursor-pointer min-h-[44px]">
               浏览全部分类
             </button>
           </div>
@@ -145,7 +145,7 @@ export const TabletLandscapeHome: React.FC = () => {
                     e.stopPropagation();
                     addToCart(p, 1);
                   }}
-                  className="w-full bg-blue-50 hover:bg-[#1F5EFF] hover:text-white text-[#1F5EFF] font-bold text-xs py-2 rounded-xl transition-colors flex items-center justify-center gap-1 cursor-pointer min-h-[40px]"
+                  className="w-full bg-blue-50 hover:bg-[var(--sw-brand)] hover:text-white text-[var(--sw-brand)] font-bold text-xs py-2 rounded-xl transition-colors flex items-center justify-center gap-1 cursor-pointer min-h-[40px]"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>加入购物车</span>

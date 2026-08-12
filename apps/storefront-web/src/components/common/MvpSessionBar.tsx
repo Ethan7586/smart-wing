@@ -51,7 +51,7 @@ export const MvpSessionBar: React.FC = () => {
   }, []);
 
   if (sessionStatus === 'checking') {
-    return <div className="bg-[#EAF1FF] border-b border-blue-200 text-[#143A8F] text-xs py-2 px-4 text-center">正在建立安全会话并同步商城数据…</div>;
+    return <div className="bg-[var(--sw-brand-light)] border-b border-blue-200 text-[var(--sw-brand-dark)] text-xs py-2 px-4 text-center">正在建立安全会话并同步商城数据…</div>;
   }
 
   return (
@@ -67,7 +67,7 @@ export const MvpSessionBar: React.FC = () => {
               <LogOut className="w-3.5 h-3.5" /> 退出
             </button>
           ) : (
-            <button onClick={() => setShowLoginDrawer(true)} className="bg-[#143A8F] text-white rounded px-3 py-1.5 font-bold flex items-center gap-1">
+            <button onClick={() => setShowLoginDrawer(true)} className="bg-[var(--sw-brand-dark)] text-white rounded px-3 py-1.5 font-bold flex items-center gap-1">
               <LogIn className="w-3.5 h-3.5" /> 登录MVP
             </button>
           )}

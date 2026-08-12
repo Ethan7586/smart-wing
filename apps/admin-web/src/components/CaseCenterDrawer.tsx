@@ -76,7 +76,7 @@ export const CaseCenterDrawer: React.FC<CaseCenterDrawerProps> = ({ isOpen, onCl
                   <button
                     key={c.id}
                     onClick={() => setSelectedCaseId(c.id)}
-                    className={`w-full text-left p-3 rounded-xl border text-xs transition-all cursor-pointer ${isSelected ? 'bg-white border-[#1769ff] shadow-md ring-1 ring-[#1769ff]' : 'bg-white border-slate-200 hover:border-slate-300'}`}
+                    className={`w-full text-left p-3 rounded-xl border text-xs transition-all cursor-pointer ${isSelected ? 'bg-white border-[var(--sw-brand)] shadow-md ring-1 ring-[var(--sw-brand)]' : 'bg-white border-slate-200 hover:border-slate-300'}`}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span
@@ -118,7 +118,7 @@ export const CaseCenterDrawer: React.FC<CaseCenterDrawerProps> = ({ isOpen, onCl
 
                 <button
                   onClick={() => onNavigateToWorkstation(selectedCase.sourceWorkstation, selectedCase.relatedObjectId)}
-                  className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#1769ff] border border-blue-200 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[var(--sw-brand)] border border-blue-200 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                 >
                   <span>去工作台处理</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -139,12 +139,12 @@ export const CaseCenterDrawer: React.FC<CaseCenterDrawerProps> = ({ isOpen, onCl
                         <div className="flex flex-col items-center">
                           <div
                             className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                              isCurrent ? 'bg-[#1769ff] text-white ring-4 ring-blue-100 shadow-md' : isPassed ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500'
+                              isCurrent ? 'bg-[var(--sw-brand)] text-white ring-4 ring-blue-100 shadow-md' : isPassed ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500'
                             }`}
                           >
                             {isPassed ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
                           </div>
-                          <span className={`text-[10px] mt-1 font-semibold ${isCurrent ? 'text-[#1769ff]' : isPassed ? 'text-emerald-700' : 'text-slate-400'}`}>{stage}</span>
+                          <span className={`text-[10px] mt-1 font-semibold ${isCurrent ? 'text-[var(--sw-brand)]' : isPassed ? 'text-emerald-700' : 'text-slate-400'}`}>{stage}</span>
                         </div>
                         {idx < LIFECYCLE_STAGES.length - 1 && <div className={`flex-1 h-0.5 mx-1 ${idx < currentIdx ? 'bg-emerald-400' : 'bg-slate-200'}`} />}
                       </React.Fragment>
@@ -186,7 +186,7 @@ export const CaseCenterDrawer: React.FC<CaseCenterDrawerProps> = ({ isOpen, onCl
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-blue-900">工单流转处置 (State Machine Action)</span>
                   {selectedCase.status !== '复盘' && (
-                    <button onClick={handleAdvanceStatus} className="px-3 py-1.5 rounded-xl bg-[#1769ff] hover:bg-blue-700 text-white text-xs font-semibold shadow-xs flex items-center gap-1 transition-all cursor-pointer">
+                    <button onClick={handleAdvanceStatus} className="px-3 py-1.5 rounded-xl bg-[var(--sw-brand)] hover:bg-blue-700 text-white text-xs font-semibold shadow-xs flex items-center gap-1 transition-all cursor-pointer">
                       <span>推进状态至下一步</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>

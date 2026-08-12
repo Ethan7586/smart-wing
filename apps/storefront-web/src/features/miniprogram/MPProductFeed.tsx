@@ -22,7 +22,7 @@ export const MPProductFeed: React.FC = () => {
             <div key={p.id} onClick={() => setMpPage('detail', p.id)} className="bg-white rounded-2xl overflow-hidden shadow-xs border border-gray-100 flex flex-col justify-between cursor-pointer active:scale-98 transition-transform">
               <div className="relative aspect-square bg-gray-50">
                 <img src={p.imageUrl} alt={p.title} className="w-full h-full object-cover" />
-                <span className="absolute top-1.5 left-1.5 bg-[#143A8F]/90 backdrop-blur-xs text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">
+                <span className="absolute top-1.5 left-1.5 bg-[var(--sw-brand-dark)]/90 backdrop-blur-xs text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">
                   {p.itemType === 'virtual_coupon' ? '电子券' : p.itemType === 'nearby_store' ? '到店核销' : '企采实物'}
                 </span>
               </div>
@@ -49,7 +49,7 @@ export const MPProductFeed: React.FC = () => {
                         e.stopPropagation();
                         addToCart(p, 1);
                       }}
-                      className="w-6 h-6 rounded-full bg-[#1F5EFF] text-white flex items-center justify-center shadow-xs hover:bg-blue-700 cursor-pointer"
+                      className="w-6 h-6 rounded-full bg-[var(--sw-brand)] text-white flex items-center justify-center shadow-xs hover:bg-blue-700 cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>

@@ -22,7 +22,7 @@ export const AndroidBottomNav: React.FC = () => {
         return (
           <button key={tab.id} onClick={() => setAndroidPage(tab.id)} className="flex flex-col items-center justify-center flex-1 py-1 cursor-pointer group">
             {/* Material 3 Active Indicator Pill */}
-            <div className={`px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center relative ${isActive ? 'bg-[#EAF1FF] text-[#1F5EFF]' : 'text-gray-500 group-hover:text-gray-800'}`}>
+            <div className={`px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center relative ${isActive ? 'bg-[var(--sw-brand-light)] text-[var(--sw-brand)]' : 'text-gray-500 group-hover:text-gray-800'}`}>
               <Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-105 stroke-[2.5]' : 'stroke-2'}`} />
 
               {tab.id === 'checkout' && cartCount > 0 && (
@@ -30,7 +30,7 @@ export const AndroidBottomNav: React.FC = () => {
               )}
             </div>
 
-            <span className={`text-[10px] mt-0.5 tracking-tight ${isActive ? 'font-bold text-[#1F5EFF]' : 'font-medium text-gray-600'}`}>{tab.label}</span>
+            <span className={`text-[10px] mt-0.5 tracking-tight ${isActive ? 'font-bold text-[var(--sw-brand)]' : 'font-medium text-gray-600'}`}>{tab.label}</span>
           </button>
         );
       })}

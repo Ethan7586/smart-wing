@@ -40,7 +40,7 @@ export const AndroidDetailPage: React.FC = () => {
       </div>
 
       {/* Material 3 Price Banner Container */}
-      <div className="bg-[#143A8F] text-white p-4 shadow-sm flex items-center justify-between">
+      <div className="bg-[var(--sw-brand-dark)] text-white p-4 shadow-sm flex items-center justify-between">
         <div>
           <div className="flex items-baseline gap-1.5 font-mono">
             <span className="text-xs font-bold">企采内购价 ¥</span>
@@ -66,7 +66,7 @@ export const AndroidDetailPage: React.FC = () => {
           <p className="text-xs text-gray-500">{product.subtitle}</p>
 
           <div className="flex items-center gap-2 pt-1 text-[10px]">
-            <span className="bg-blue-50 text-[#1F5EFF] font-bold px-2 py-0.5 rounded-md">{product.itemType === 'virtual_coupon' ? '虚拟卡券码' : '实物直邮'}</span>
+            <span className="bg-blue-50 text-[var(--sw-brand)] font-bold px-2 py-0.5 rounded-md">{product.itemType === 'virtual_coupon' ? '虚拟卡券码' : '实物直邮'}</span>
             <span className="text-gray-400">品牌: {product.brand || '智慧翼精选'}</span>
             <span className="text-gray-400">库存: {product.stockCount}</span>
           </div>
@@ -78,7 +78,7 @@ export const AndroidDetailPage: React.FC = () => {
           className="bg-white rounded-2xl p-3.5 shadow-2xs border border-gray-100 flex items-center justify-between text-xs font-bold text-gray-800 cursor-pointer hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center gap-2">
-            <SlidersHorizontal className="w-4 h-4 text-[#1F5EFF]" />
+            <SlidersHorizontal className="w-4 h-4 text-[var(--sw-brand)]" />
             <span>选择规格与兑换数量</span>
           </div>
           <span className="text-gray-400 text-[10px] flex items-center">
@@ -107,7 +107,7 @@ export const AndroidDetailPage: React.FC = () => {
 
         {/* Product Details Description */}
         <div className="bg-white rounded-3xl p-4 shadow-2xs border border-gray-100 space-y-2 text-xs">
-          <h3 className="font-bold text-gray-900 border-l-2 border-[#1F5EFF] pl-2">图文详情与企采说明</h3>
+          <h3 className="font-bold text-gray-900 border-l-2 border-[var(--sw-brand)] pl-2">图文详情与企采说明</h3>
           <p className="text-gray-600 leading-relaxed">{product.description || '智慧翼企业福利商城为企业员工提供一站式福利兑换服务。'}</p>
 
           {product.parameters && (
@@ -146,7 +146,7 @@ export const AndroidDetailPage: React.FC = () => {
                         key={val}
                         onClick={() => setSelectedSpec((prev) => ({ ...prev, [specKey]: val }))}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
-                          selectedSpec[specKey] === val || (!selectedSpec[specKey] && specValues[0] === val) ? 'border-[#1F5EFF] bg-blue-50 text-[#1F5EFF]' : 'border-gray-200 text-gray-700 bg-gray-50'
+                          selectedSpec[specKey] === val || (!selectedSpec[specKey] && specValues[0] === val) ? 'border-[var(--sw-brand)] bg-blue-50 text-[var(--sw-brand)]' : 'border-gray-200 text-gray-700 bg-gray-50'
                         }`}
                       >
                         {val}
@@ -169,7 +169,7 @@ export const AndroidDetailPage: React.FC = () => {
               </div>
             </div>
 
-            <button onClick={() => setShowSpecBottomSheet(false)} className="w-full bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-2xl shadow-md cursor-pointer">
+            <button onClick={() => setShowSpecBottomSheet(false)} className="w-full bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-2xl shadow-md cursor-pointer">
               确定规格配置
             </button>
           </div>
@@ -189,11 +189,11 @@ export const AndroidDetailPage: React.FC = () => {
           {cartCount > 0 && <span className="absolute top-0 right-1 bg-[#E5484D] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">{cartCount}</span>}
         </button>
 
-        <button onClick={() => addToCart(product, quantity, selectedSpec)} className="flex-1 bg-[#EAF1FF] text-[#1F5EFF] font-bold text-xs py-2.5 rounded-2xl cursor-pointer">
+        <button onClick={() => addToCart(product, quantity, selectedSpec)} className="flex-1 bg-[var(--sw-brand-light)] text-[var(--sw-brand)] font-bold text-xs py-2.5 rounded-2xl cursor-pointer">
           加购物车
         </button>
 
-        <button onClick={handleBuyNow} className="flex-1 bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] text-white font-bold text-xs py-2.5 rounded-2xl shadow-md cursor-pointer">
+        <button onClick={handleBuyNow} className="flex-1 bg-gradient-to-r from-[var(--sw-brand)] to-[var(--sw-brand-dark)] text-white font-bold text-xs py-2.5 rounded-2xl shadow-md cursor-pointer">
           福利卡直接兑换
         </button>
       </div>

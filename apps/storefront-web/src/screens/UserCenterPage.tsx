@@ -19,7 +19,7 @@ export const UserCenterPage: React.FC = () => {
   return (
     <div className="max-w-[1280px] mx-auto px-4 py-4 space-y-6 font-sans">
       {/* 1. 员工个人名片 Header */}
-      <div className="bg-gradient-to-r from-[#143A8F] via-[#1F5EFF] to-blue-800 text-white rounded-md p-6 shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-[var(--sw-brand-dark)] via-[var(--sw-brand)] to-blue-800 text-white rounded-md p-6 shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <img src={user.avatar} alt={user.name} className="w-16 h-16 rounded-full object-cover border-2 border-white/40 shadow-sm" />
           <div className="space-y-1">
@@ -56,7 +56,7 @@ export const UserCenterPage: React.FC = () => {
       <div className="bg-white border border-gray-200 rounded-md p-5 shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-gray-100 pb-3 text-xs">
           <span className="font-bold text-sm text-gray-900">我的福利采购订单</span>
-          <button onClick={() => navigateTo('orders')} className="text-[#1F5EFF] font-bold hover:underline flex items-center gap-0.5">
+          <button onClick={() => navigateTo('orders')} className="text-[var(--sw-brand)] font-bold hover:underline flex items-center gap-0.5">
             查看全部订单 <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -69,7 +69,7 @@ export const UserCenterPage: React.FC = () => {
           </button>
 
           <button onClick={() => navigateTo('orders', { statusFilter: 'pending_shipment' })} className="p-3 hover:bg-gray-50 rounded transition-colors cursor-pointer space-y-1">
-            <Package className="w-6 h-6 text-[#1F5EFF] mx-auto" />
+            <Package className="w-6 h-6 text-[var(--sw-brand)] mx-auto" />
             <div className="font-bold text-blue-600">待发货/排单</div>
             <div className="text-[11px] text-gray-500 font-bold">{pendingShipment} 单</div>
           </button>
@@ -113,7 +113,7 @@ export const UserCenterPage: React.FC = () => {
 
         <div onClick={() => navigateTo('balance')} className="bg-white border border-gray-200 rounded-md p-4 shadow-xs hover:border-blue-300 cursor-pointer transition-all flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded bg-blue-50 text-[#1F5EFF] flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded bg-blue-50 text-[var(--sw-brand)] flex items-center justify-center font-bold">
               <CreditCard className="w-5 h-5" />
             </div>
             <div>

@@ -31,7 +31,7 @@ export const AndroidSearchPage: React.FC = () => {
       <AndroidStatusBar title="搜索福利商品" showBack={true} onBack={() => setAndroidPage('home')} />
 
       {/* Android Search Input Bar */}
-      <div className="bg-[#143A8F] px-3 pb-3 pt-1">
+      <div className="bg-[var(--sw-brand-dark)] px-3 pb-3 pt-1">
         <div className="bg-white rounded-2xl p-1.5 flex items-center gap-2 shadow-md">
           <Search className="w-4 h-4 text-gray-400 ml-1.5 flex-shrink-0" />
           <input
@@ -47,7 +47,7 @@ export const AndroidSearchPage: React.FC = () => {
               <X className="w-4 h-4" />
             </button>
           )}
-          <button onClick={() => handleSearchSubmit(keyword)} className="bg-[#1F5EFF] text-white font-bold text-xs px-3 py-1.5 rounded-xl cursor-pointer flex-shrink-0">
+          <button onClick={() => handleSearchSubmit(keyword)} className="bg-[var(--sw-brand)] text-white font-bold text-xs px-3 py-1.5 rounded-xl cursor-pointer flex-shrink-0">
             搜索
           </button>
         </div>
@@ -70,7 +70,7 @@ export const AndroidSearchPage: React.FC = () => {
 
             <div className="flex items-center gap-2 flex-wrap">
               {searchHistory.map((term) => (
-                <button key={term} onClick={() => handleSearchSubmit(term)} className="bg-gray-100 hover:bg-blue-50 hover:text-[#1F5EFF] text-gray-700 text-xs px-3 py-1 rounded-full cursor-pointer transition-colors">
+                <button key={term} onClick={() => handleSearchSubmit(term)} className="bg-gray-100 hover:bg-blue-50 hover:text-[var(--sw-brand)] text-gray-700 text-xs px-3 py-1 rounded-full cursor-pointer transition-colors">
                   {term}
                 </button>
               ))}
@@ -81,12 +81,12 @@ export const AndroidSearchPage: React.FC = () => {
         {/* Filter Bar & Bottom Sheet Trigger */}
         <div className="bg-white rounded-2xl p-2.5 shadow-2xs border border-gray-100 flex items-center justify-between text-xs font-bold text-gray-700">
           <div className="flex items-center gap-3">
-            <span className="text-[#1F5EFF]">综合排序</span>
+            <span className="text-[var(--sw-brand)]">综合排序</span>
             <span className="text-gray-400">销量榜</span>
             <span className="text-gray-400">价格区间</span>
           </div>
 
-          <button onClick={() => setShowBottomSheet(true)} className="bg-blue-50 text-[#1F5EFF] border border-blue-200 px-2.5 py-1 rounded-xl flex items-center gap-1 cursor-pointer">
+          <button onClick={() => setShowBottomSheet(true)} className="bg-blue-50 text-[var(--sw-brand)] border border-blue-200 px-2.5 py-1 rounded-xl flex items-center gap-1 cursor-pointer">
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span>筛选 Bottom Sheet</span>
           </button>
@@ -96,7 +96,7 @@ export const AndroidSearchPage: React.FC = () => {
         <div className="space-y-2">
           <div className="text-[11px] text-gray-500 font-medium flex items-center justify-between px-1">
             <span>
-              为您找到 <span className="text-[#1F5EFF] font-bold">{filteredProducts.length}</span> 件相关企采福利商品
+              为您找到 <span className="text-[var(--sw-brand)] font-bold">{filteredProducts.length}</span> 件相关企采福利商品
             </span>
             <span>可用福利卡/餐卡抵扣</span>
           </div>
@@ -109,7 +109,7 @@ export const AndroidSearchPage: React.FC = () => {
                   setKeyword('');
                   setMaxPrice(1000);
                 }}
-                className="text-xs text-[#1F5EFF] font-bold underline"
+                className="text-xs text-[var(--sw-brand)] font-bold underline"
               >
                 重置筛选条件
               </button>
@@ -136,7 +136,7 @@ export const AndroidSearchPage: React.FC = () => {
                           e.stopPropagation();
                           addToCart(p, 1);
                         }}
-                        className="bg-[#1F5EFF] text-white text-[10px] font-bold px-3 py-1 rounded-xl shadow-2xs flex items-center gap-1 cursor-pointer"
+                        className="bg-[var(--sw-brand)] text-white text-[10px] font-bold px-3 py-1 rounded-xl shadow-2xs flex items-center gap-1 cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>加入购物车</span>
@@ -176,7 +176,7 @@ export const AndroidSearchPage: React.FC = () => {
                   <button
                     key={opt.id}
                     onClick={() => setSelectedAccountType(opt.id as any)}
-                    className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${selectedAccountType === opt.id ? 'bg-blue-50 border-[#1F5EFF] text-[#1F5EFF]' : 'bg-gray-50 border-gray-200 text-gray-700'}`}
+                    className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${selectedAccountType === opt.id ? 'bg-blue-50 border-[var(--sw-brand)] text-[var(--sw-brand)]' : 'bg-gray-50 border-gray-200 text-gray-700'}`}
                   >
                     {opt.label}
                   </button>
@@ -188,13 +188,13 @@ export const AndroidSearchPage: React.FC = () => {
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-bold text-gray-700">
                 <span>最大预算区间</span>
-                <span className="text-[#1F5EFF] font-mono">¥{maxPrice} 以内</span>
+                <span className="text-[var(--sw-brand)] font-mono">¥{maxPrice} 以内</span>
               </div>
-              <input type="range" min="50" max="3000" step="50" value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} className="w-full accent-[#1F5EFF] cursor-pointer" />
+              <input type="range" min="50" max="3000" step="50" value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} className="w-full accent-[var(--sw-brand)] cursor-pointer" />
             </div>
 
             {/* Apply Button */}
-            <button onClick={() => setShowBottomSheet(false)} className="w-full bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-2xl shadow-md cursor-pointer">
+            <button onClick={() => setShowBottomSheet(false)} className="w-full bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-2xl shadow-md cursor-pointer">
               完成并应用筛选
             </button>
           </div>

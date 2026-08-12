@@ -8,7 +8,7 @@ export const HeaderEnterpriseBar: React.FC = () => {
   return (
     <>
       {/* 1. 顶部公共服务栏 */}
-      <div className="hidden md:block bg-[#143A8F] text-white text-xs py-1.5 px-4">
+      <div className="hidden md:block bg-[var(--sw-brand-dark)] text-white text-xs py-1.5 px-4">
         <div className="max-w-[1280px] mx-auto flex items-center justify-between">
           {/* 左侧：当前所属企业与商城切换 */}
           <div className="flex items-center gap-4">
@@ -37,13 +37,13 @@ export const HeaderEnterpriseBar: React.FC = () => {
                         switchMall(m.id);
                         setShowMallDropdown(false);
                       }}
-                      className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50 flex items-center justify-between transition-colors ${m.id === currentMall.id ? 'bg-blue-50/80 text-[#1F5EFF] font-semibold' : 'text-gray-700'}`}
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50 flex items-center justify-between transition-colors ${m.id === currentMall.id ? 'bg-blue-50/80 text-[var(--sw-brand)] font-semibold' : 'text-gray-700'}`}
                     >
                       <div>
                         <div className="font-medium">{m.mallName}</div>
                         <div className="text-[11px] text-gray-400">{m.enterpriseName}</div>
                       </div>
-                      {m.id === currentMall.id && <span className="text-[10px] bg-[#1F5EFF] text-white px-1.5 py-0.5 rounded">当前</span>}
+                      {m.id === currentMall.id && <span className="text-[10px] bg-[var(--sw-brand)] text-white px-1.5 py-0.5 rounded">当前</span>}
                     </button>
                   ))}
                 </div>

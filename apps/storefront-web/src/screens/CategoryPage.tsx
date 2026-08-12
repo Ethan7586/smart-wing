@@ -60,7 +60,7 @@ export const CategoryPage: React.FC = () => {
   return (
     <div className="max-w-[1280px] mx-auto px-4 py-4 space-y-4 font-sans">
       <div className="flex items-center gap-1.5 text-xs text-gray-500">
-        <button onClick={() => navigateTo('home')} className="hover:text-[#1F5EFF] transition-colors">
+        <button onClick={() => navigateTo('home')} className="hover:text-[var(--sw-brand)] transition-colors">
           首页
         </button>
         <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
@@ -77,7 +77,7 @@ export const CategoryPage: React.FC = () => {
           <span>
             已应用 {activeFilterCount} 项筛选条件，精确到 {finalProducts.length} 件商品
           </span>
-          <button onClick={resetFilters} className="text-[11px] text-[#1F5EFF] font-bold hover:underline">
+          <button onClick={resetFilters} className="text-[11px] text-[var(--sw-brand)] font-bold hover:underline">
             清空筛选
           </button>
         </div>
@@ -100,7 +100,7 @@ export const CategoryPage: React.FC = () => {
                 setSelectedCategory('all');
                 resetToFirstPage();
               }}
-              className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${selectedCategory === 'all' ? 'bg-[#1F5EFF] text-white font-bold' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${selectedCategory === 'all' ? 'bg-[var(--sw-brand)] text-white font-bold' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
             >
               全部品类
             </button>
@@ -111,7 +111,7 @@ export const CategoryPage: React.FC = () => {
                   setSelectedCategory(cat.id);
                   resetToFirstPage();
                 }}
-                className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${selectedCategory === cat.id ? 'bg-[#1F5EFF] text-white font-bold' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${selectedCategory === cat.id ? 'bg-[var(--sw-brand)] text-white font-bold' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
               >
                 {cat.name}
               </button>
@@ -161,7 +161,7 @@ export const CategoryPage: React.FC = () => {
                   setSelectedItemType(t.id);
                   resetToFirstPage();
                 }}
-                className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${selectedItemType === t.id ? 'bg-[#143A8F] text-white font-bold' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${selectedItemType === t.id ? 'bg-[var(--sw-brand-dark)] text-white font-bold' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
               >
                 {t.label}
               </button>
@@ -172,12 +172,12 @@ export const CategoryPage: React.FC = () => {
           <div className="flex items-center gap-4">
             <span className="w-20 font-bold text-gray-700 flex-shrink-0">支持账户：</span>
             <div className="flex items-center gap-1.5">
-              <button onClick={() => setSelectedAccount('all')} className={`px-2.5 py-1 rounded cursor-pointer ${selectedAccount === 'all' ? 'bg-blue-50 border border-blue-300 font-bold text-[#1F5EFF]' : 'bg-gray-100 text-gray-700'}`}>
+              <button onClick={() => setSelectedAccount('all')} className={`px-2.5 py-1 rounded cursor-pointer ${selectedAccount === 'all' ? 'bg-blue-50 border border-blue-300 font-bold text-[var(--sw-brand)]' : 'bg-gray-100 text-gray-700'}`}>
                 不限账户
               </button>
               <button
                 onClick={() => setSelectedAccount('welfare')}
-                className={`px-2.5 py-1 rounded cursor-pointer flex items-center gap-1 ${selectedAccount === 'welfare' ? 'bg-blue-100 border border-blue-400 font-bold text-[#1F5EFF]' : 'bg-gray-100 text-gray-700'}`}
+                className={`px-2.5 py-1 rounded cursor-pointer flex items-center gap-1 ${selectedAccount === 'welfare' ? 'bg-blue-100 border border-blue-400 font-bold text-[var(--sw-brand)]' : 'bg-gray-100 text-gray-700'}`}
               >
                 <CreditCard className="w-3.5 h-3.5" /> Welfare Balance
               </button>
@@ -225,7 +225,7 @@ export const CategoryPage: React.FC = () => {
               <input type="number" placeholder="最高价" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} className="w-16 border border-gray-300 rounded px-2 py-1 text-xs bg-gray-50" />
             </div>
             <label className="flex items-center gap-1.5 cursor-pointer text-gray-700 font-medium">
-              <input type="checkbox" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} className="rounded text-[#1F5EFF]" />
+              <input type="checkbox" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} className="rounded text-[var(--sw-brand)]" />
               <span>仅看有货</span>
             </label>
           </div>
@@ -238,10 +238,10 @@ export const CategoryPage: React.FC = () => {
       <div className="bg-white border border-gray-200 rounded-md p-3 shadow-xs flex items-center justify-between text-xs">
         <div className="flex items-center gap-2">
           <span className="font-bold text-gray-500">排序：</span>
-          <button onClick={() => setSortBy('default')} className={`px-3 py-1 rounded cursor-pointer font-medium ${sortBy === 'default' ? 'bg-[#1F5EFF] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+          <button onClick={() => setSortBy('default')} className={`px-3 py-1 rounded cursor-pointer font-medium ${sortBy === 'default' ? 'bg-[var(--sw-brand)] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
             综合
           </button>
-          <button onClick={() => setSortBy('sales')} className={`px-3 py-1 rounded cursor-pointer font-medium ${sortBy === 'sales' ? 'bg-[#1F5EFF] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+          <button onClick={() => setSortBy('sales')} className={`px-3 py-1 rounded cursor-pointer font-medium ${sortBy === 'sales' ? 'bg-[var(--sw-brand)] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
             按销量
           </button>
           <button
@@ -250,26 +250,26 @@ export const CategoryPage: React.FC = () => {
               setSortBy(sortBy === 'priceAsc' ? 'priceDesc' : 'priceAsc');
             }}
             disabled={isPriceRangeInvalid}
-            className={`px-3 py-1 rounded cursor-pointer font-medium ${sortBy.startsWith('price') ? 'bg-[#1F5EFF] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} ${isPriceRangeInvalid ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`px-3 py-1 rounded cursor-pointer font-medium ${sortBy.startsWith('price') ? 'bg-[var(--sw-brand)] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} ${isPriceRangeInvalid ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             价格 {sortBy === 'priceAsc' ? '↑' : sortBy === 'priceDesc' ? '↓' : ''}
           </button>
-          <button onClick={() => setSortBy('newest')} className={`px-3 py-1 rounded cursor-pointer font-medium ${sortBy === 'newest' ? 'bg-[#1F5EFF] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+          <button onClick={() => setSortBy('newest')} className={`px-3 py-1 rounded cursor-pointer font-medium ${sortBy === 'newest' ? 'bg-[var(--sw-brand)] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
             新品上架
           </button>
-          <button onClick={() => setSortBy('rating')} className={`px-3 py-1 rounded cursor-pointer font-medium flex items-center gap-1 ${sortBy === 'rating' ? 'bg-[#1F5EFF] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+          <button onClick={() => setSortBy('rating')} className={`px-3 py-1 rounded cursor-pointer font-medium flex items-center gap-1 ${sortBy === 'rating' ? 'bg-[var(--sw-brand)] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
             <Star className="w-3.5 h-3.5" /> 评分
           </button>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-gray-500">
-            共找到 <strong className="text-[#1F5EFF]">{finalProducts.length}</strong> 件符合福利采购条件的商品
+            共找到 <strong className="text-[var(--sw-brand)]">{finalProducts.length}</strong> 件符合福利采购条件的商品
           </span>
           <div className="flex items-center border border-gray-300 rounded overflow-hidden">
-            <button onClick={() => setViewMode('grid')} className={`p-1.5 transition-colors cursor-pointer ${viewMode === 'grid' ? 'bg-[#1F5EFF] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`} title="网格平铺 (5列)">
+            <button onClick={() => setViewMode('grid')} className={`p-1.5 transition-colors cursor-pointer ${viewMode === 'grid' ? 'bg-[var(--sw-brand)] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`} title="网格平铺 (5列)">
               <Grid className="w-4 h-4" />
             </button>
-            <button onClick={() => setViewMode('list')} className={`p-1.5 transition-colors cursor-pointer ${viewMode === 'list' ? 'bg-[#1F5EFF] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`} title="列表展示">
+            <button onClick={() => setViewMode('list')} className={`p-1.5 transition-colors cursor-pointer ${viewMode === 'list' ? 'bg-[var(--sw-brand)] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`} title="列表展示">
               <List className="w-4 h-4" />
             </button>
           </div>

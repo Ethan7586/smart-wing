@@ -24,7 +24,7 @@ export const MobileBottomNav: React.FC = () => {
           const Icon = item.icon;
           const active = currentPage === item.page;
           return (
-            <button key={item.page} type="button" onClick={() => navigateTo(item.page)} className={`relative flex flex-col items-center justify-center gap-1 text-[11px] ${active ? 'text-[#1F5EFF] font-bold' : 'text-gray-500'}`}>
+            <button key={item.page} type="button" onClick={() => navigateTo(item.page)} className={`relative flex flex-col items-center justify-center gap-1 text-[11px] ${active ? 'text-[var(--sw-brand)] font-bold' : 'text-gray-500'}`}>
               <Icon className="w-5 h-5" />
               <span>{item.label}</span>
               {item.page === 'cart' && cartCount > 0 && <span className="absolute top-1.5 left-1/2 ml-1 rounded-full bg-[#FF7A00] px-1.5 text-[9px] leading-4 text-white">{cartCount > 99 ? '99+' : cartCount}</span>}

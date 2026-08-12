@@ -214,7 +214,7 @@ export function App() {
   }[visibleWorkstation];
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#f8fafc] font-sans text-[13px] text-slate-700 antialiased selection:bg-[#1769ff] selection:text-white">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#f8fafc] font-sans text-[13px] text-slate-700 antialiased selection:bg-[var(--sw-brand)] selection:text-white">
       {/* 1. Deep Navy Sidebar Navigation */}
       <Sidebar
         activeTab={visibleWorkstation}

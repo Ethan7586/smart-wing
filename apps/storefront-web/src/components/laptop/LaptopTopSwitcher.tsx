@@ -1,6 +1,6 @@
 import React from 'react';
 import { useMall, AppMode, LaptopPage } from '../../context/MallContext';
-import { Monitor, Laptop, Smartphone, AppWindow, Tablet, Sparkles, Layers, Maximize2 } from 'lucide-react';
+import { Monitor, Laptop, Smartphone, AppWindow, Tablet, Layers, Maximize2 } from 'lucide-react';
 
 export const LaptopTopSwitcher: React.FC = () => {
   const { appMode, setAppMode, laptopPage, setLaptopPage, setTabletOrientation } = useMall();
@@ -19,13 +19,11 @@ export const LaptopTopSwitcher: React.FC = () => {
   ];
 
   return (
-    <div className="bg-[#143A8F] text-white border-b border-blue-900 shadow-md py-2 px-3 sm:px-6 sticky top-0 z-50 font-sans">
+    <div className="bg-[var(--sw-brand-dark)] text-white border-b border-blue-900 shadow-md py-2 px-3 sm:px-6 sticky top-0 z-50 font-sans">
       <div className="max-w-[1366px] mx-auto flex flex-col xl:flex-row items-center justify-between gap-2.5 text-xs">
         {/* Left Branding */}
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-md bg-gradient-to-br from-[#1F5EFF] to-blue-700 flex items-center justify-center text-yellow-300 shadow-xs flex-shrink-0">
-            <Sparkles className="w-4 h-4" />
-          </div>
+          <img src="/icon.svg" alt="" className="h-7 w-7 flex-shrink-0 rounded-md shadow-xs" />
           <div>
             <div className="flex items-center gap-2">
               <span className="font-black text-sm tracking-tight text-white">智慧翼企业福利商城</span>
@@ -56,7 +54,7 @@ export const LaptopTopSwitcher: React.FC = () => {
               setLaptopPage('home-1366');
             }}
             className={`px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer text-[11px] ${
-              appMode === 'laptop-web' && laptopPage === 'home-1366' ? 'bg-[#1F5EFF] text-white shadow-sm' : 'text-blue-200 hover:text-white hover:bg-white/10'
+              appMode === 'laptop-web' && laptopPage === 'home-1366' ? 'bg-[var(--sw-brand)] text-white shadow-sm' : 'text-blue-200 hover:text-white hover:bg-white/10'
             }`}
           >
             <Laptop className="w-3.5 h-3.5 text-cyan-300" />
@@ -69,7 +67,7 @@ export const LaptopTopSwitcher: React.FC = () => {
               setLaptopPage('home-1440');
             }}
             className={`px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer text-[11px] ${
-              appMode === 'laptop-web' && laptopPage === 'home-1440' ? 'bg-[#1F5EFF] text-white shadow-sm' : 'text-blue-200 hover:text-white hover:bg-white/10'
+              appMode === 'laptop-web' && laptopPage === 'home-1440' ? 'bg-[var(--sw-brand)] text-white shadow-sm' : 'text-blue-200 hover:text-white hover:bg-white/10'
             }`}
           >
             <Laptop className="w-3.5 h-3.5 text-blue-300" />

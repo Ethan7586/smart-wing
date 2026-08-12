@@ -89,7 +89,7 @@ export const GuardrailModal: React.FC<GuardrailModalProps> = ({ options, onClose
                 setErrorText('');
               }}
               placeholder="请输入明确且严谨的操作业务原因（例如：大客户协议让利调整 / 客服纠纷退款 / 校验清单确认通过）..."
-              className="w-full p-2.5 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1769ff]/30 focus:border-[#1769ff] text-slate-800 placeholder-slate-400"
+              className="w-full p-2.5 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)]/30 focus:border-[var(--sw-brand)] text-slate-800 placeholder-slate-400"
             />
             {errorText && <p className="text-[11px] text-rose-600 font-semibold mt-1">{errorText}</p>}
           </div>
@@ -107,7 +107,7 @@ export const GuardrailModal: React.FC<GuardrailModalProps> = ({ options, onClose
                 value={evidence}
                 onChange={(e) => setEvidence(e.target.value)}
                 placeholder={options.evidencePlaceholder || '例如：CONTRACT-2026-0811 或 微信沟通截图工单 #9910'}
-                className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1769ff]/30 focus:border-[#1769ff] text-slate-800"
+                className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)]/30 focus:border-[var(--sw-brand)] text-slate-800"
               />
             </div>
           </div>
@@ -119,7 +119,7 @@ export const GuardrailModal: React.FC<GuardrailModalProps> = ({ options, onClose
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-[#1769ff] to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-md shadow-blue-500/20 flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-[var(--sw-brand)] to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-md shadow-blue-500/20 flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>确认执行并生成审计流水</span>

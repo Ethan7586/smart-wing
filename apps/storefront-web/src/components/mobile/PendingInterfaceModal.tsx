@@ -30,7 +30,7 @@ export const PendingInterfaceModal: React.FC = () => {
           </p>
 
           <div className="w-full pt-2 flex items-center gap-2">
-            <button onClick={closePendingFeatureModal} className="w-full bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer">
+            <button onClick={closePendingFeatureModal} className="w-full bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer">
               已知晓 (高保真交互预览)
             </button>
           </div>

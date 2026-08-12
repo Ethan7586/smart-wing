@@ -13,11 +13,11 @@ export const LaptopAccountPane1366: React.FC<{
         {/* 员工账户与余额卡 */}
         <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-2xs">
           <div className="flex items-center gap-2.5 pb-2.5 border-b border-gray-100">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#143A8F] to-[#1F5EFF] text-white flex items-center justify-center font-bold text-sm shadow-2xs">{user.name[0]}</div>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[var(--sw-brand-dark)] to-[var(--sw-brand)] text-white flex items-center justify-center font-bold text-sm shadow-2xs">{user.name[0]}</div>
             <div className="min-w-0 flex-1">
               <div className="font-extrabold text-xs text-gray-900 truncate">{user.name}</div>
               <div className="text-[10px] text-gray-500 truncate">{user.department}</div>
-              <div className="text-[9px] text-[#1F5EFF] font-bold mt-0.5">工号：{user.id.toUpperCase()}</div>
+              <div className="text-[9px] text-[var(--sw-brand)] font-bold mt-0.5">工号：{user.id.toUpperCase()}</div>
             </div>
           </div>
 
@@ -26,12 +26,12 @@ export const LaptopAccountPane1366: React.FC<{
             <div className="bg-blue-50/80 border border-blue-200/80 rounded-md p-2">
               <div className="flex items-center justify-between text-[10px] text-gray-500">
                 <span className="flex items-center gap-1">
-                  <CreditCard className="w-3 h-3 text-[#1F5EFF]" />
+                  <CreditCard className="w-3 h-3 text-[var(--sw-brand)]" />
                   <span>福利卡可用余额</span>
                 </span>
                 <span className="text-[9px] bg-blue-600 text-white font-bold px-1 rounded">通用抵扣</span>
               </div>
-              <div className="text-base font-black text-[#143A8F] mt-0.5">¥{user.welfareBalance.toFixed(2)}</div>
+              <div className="text-base font-black text-[var(--sw-brand-dark)] mt-0.5">¥{user.welfareBalance.toFixed(2)}</div>
             </div>
 
             <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-md p-2">
@@ -50,13 +50,13 @@ export const LaptopAccountPane1366: React.FC<{
           <div className="grid grid-cols-2 gap-1.5 mt-2.5 pt-2 border-t border-gray-100 text-[11px]">
             <button
               onClick={() => triggerPendingFeature('卡券包', '查询您的已领福利券与纸质卡券密码')}
-              className="p-1.5 bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-[#1F5EFF] rounded text-center font-bold transition-colors cursor-pointer"
+              className="p-1.5 bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-[var(--sw-brand)] rounded text-center font-bold transition-colors cursor-pointer"
             >
               我的卡券包 (3)
             </button>
             <button
               onClick={() => triggerPendingFeature('账户明细', '查询福利卡与餐卡扣减消费流水记录')}
-              className="p-1.5 bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-[#1F5EFF] rounded text-center font-bold transition-colors cursor-pointer"
+              className="p-1.5 bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-[var(--sw-brand)] rounded text-center font-bold transition-colors cursor-pointer"
             >
               账户流水
             </button>
@@ -67,7 +67,7 @@ export const LaptopAccountPane1366: React.FC<{
         <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-2xs">
           <div className="flex items-center justify-between mb-2 text-xs font-bold text-gray-800">
             <span>我的订单状态</span>
-            <button onClick={() => onSelectTab('orders')} className="text-[10px] text-[#1F5EFF] hover:underline cursor-pointer">
+            <button onClick={() => onSelectTab('orders')} className="text-[10px] text-[var(--sw-brand)] hover:underline cursor-pointer">
               全部订单 &gt;
             </button>
           </div>
@@ -78,7 +78,7 @@ export const LaptopAccountPane1366: React.FC<{
               <div className="text-[10px] text-gray-500">待付款</div>
             </div>
             <div onClick={() => onSelectTab('orders')} className="p-1.5 bg-gray-50 hover:bg-blue-50 rounded cursor-pointer transition-colors">
-              <div className="text-xs font-black text-[#1F5EFF]">1</div>
+              <div className="text-xs font-black text-[var(--sw-brand)]">1</div>
               <div className="text-[10px] text-gray-500">待发货</div>
             </div>
             <div onClick={() => onSelectTab('orders')} className="p-1.5 bg-gray-50 hover:bg-blue-50 rounded cursor-pointer transition-colors">

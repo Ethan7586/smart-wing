@@ -49,7 +49,7 @@ export const EnterpriseWelfareWorkstation: React.FC<EnterpriseWelfareProps> = ({
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
       {/* Top Value Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-[#10294d] to-[#1769ff] text-white p-5 rounded-[14px] shadow-lg flex items-center justify-between">
+      <div className="bg-gradient-to-r from-slate-900 via-[var(--sw-sidebar-top)] to-[var(--sw-brand)] text-white p-5 rounded-[14px] shadow-lg flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2 py-0.5 rounded bg-blue-500/30 text-blue-200 text-[10px] font-bold uppercase tracking-wider">Enterprise Welfare Hub</span>
@@ -60,7 +60,7 @@ export const EnterpriseWelfareWorkstation: React.FC<EnterpriseWelfareProps> = ({
         </div>
 
         <button onClick={handleExportAttributionReport} className="px-4 py-2.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100 font-semibold text-xs shadow-md flex items-center gap-2 transition-all cursor-pointer">
-          <Download className="w-4 h-4 text-[#1769ff]" />
+          <Download className="w-4 h-4 text-[var(--sw-brand)]" />
           <span>导出企业预算归属明细报表</span>
         </button>
       </div>
@@ -81,7 +81,7 @@ export const EnterpriseWelfareWorkstation: React.FC<EnterpriseWelfareProps> = ({
                 <div
                   key={ent.id}
                   onClick={() => setSelectedEnterpriseId(ent.id)}
-                  className={`p-3.5 rounded-xl border text-xs transition-all cursor-pointer space-y-2 ${isSelected ? 'bg-white border-[#1769ff] shadow-md ring-2 ring-blue-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}
+                  className={`p-3.5 rounded-xl border text-xs transition-all cursor-pointer space-y-2 ${isSelected ? 'bg-white border-[var(--sw-brand)] shadow-md ring-2 ring-blue-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-slate-900 text-xs">{ent.name}</span>
@@ -122,7 +122,7 @@ export const EnterpriseWelfareWorkstation: React.FC<EnterpriseWelfareProps> = ({
               </div>
 
               <div className="flex items-center gap-2">
-                <button onClick={handleTriggerHrSync} className="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#1769ff] border border-blue-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
+                <button onClick={handleTriggerHrSync} className="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[var(--sw-brand)] border border-blue-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>HR 组织架构同步</span>
                 </button>
@@ -131,24 +131,24 @@ export const EnterpriseWelfareWorkstation: React.FC<EnterpriseWelfareProps> = ({
 
             {/* Workplace Tabs */}
             <div className="flex items-center gap-2 border-b border-slate-200 pb-2 text-xs font-semibold">
-              <button onClick={() => setActiveTab('PLANS')} className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${activeTab === 'PLANS' ? 'bg-[#1769ff] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'}`}>
+              <button onClick={() => setActiveTab('PLANS')} className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${activeTab === 'PLANS' ? 'bg-[var(--sw-brand)] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'}`}>
                 福利计划列表 ({selectedEnterprise.welfarePlans.length})
               </button>
 
               <button
                 onClick={() => setActiveTab('DEPT_BUDGETS')}
-                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${activeTab === 'DEPT_BUDGETS' ? 'bg-[#1769ff] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'}`}
+                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${activeTab === 'DEPT_BUDGETS' ? 'bg-[var(--sw-brand)] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'}`}
               >
                 部门/人群预算消耗进度 ({selectedEnterprise.deptBudgets.length})
               </button>
 
-              <button onClick={() => setActiveTab('HR_SYNC')} className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${activeTab === 'HR_SYNC' ? 'bg-[#1769ff] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'}`}>
+              <button onClick={() => setActiveTab('HR_SYNC')} className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${activeTab === 'HR_SYNC' ? 'bg-[var(--sw-brand)] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'}`}>
                 员工资格与 HR 同步
               </button>
 
               <button
                 onClick={() => setActiveTab('EXCLUSIVE_PRICES')}
-                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${activeTab === 'EXCLUSIVE_PRICES' ? 'bg-[#1769ff] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'}`}
+                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${activeTab === 'EXCLUSIVE_PRICES' ? 'bg-[var(--sw-brand)] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'}`}
               >
                 企业专属价格配置
               </button>

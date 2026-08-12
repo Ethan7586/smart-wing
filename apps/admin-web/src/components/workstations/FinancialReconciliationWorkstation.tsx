@@ -79,7 +79,7 @@ export const FinancialReconciliationWorkstation: React.FC<FinancialReconciliatio
 
         <div className="bg-white rounded-[14px] p-4 border border-slate-200/90 shadow-xs">
           <span className="text-xs text-slate-500 font-medium block">通道手续费成本 (微信/支付宝/银联)</span>
-          <span className="text-xl font-[#1769ff] font-bold mt-1 block">¥110,550.00</span>
+          <span className="mt-1 block text-xl font-bold text-[var(--sw-brand)]">¥110,550.00</span>
           <span className="text-[10px] text-slate-400 block mt-1">平均费率 0.6%</span>
         </div>
 

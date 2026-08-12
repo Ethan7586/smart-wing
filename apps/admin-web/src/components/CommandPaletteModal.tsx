@@ -58,7 +58,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({ isOpen
               <X className="w-4 h-4" />
             </button>
           )}
-          <button type="submit" className="px-3 py-1.5 rounded-xl bg-[#1769ff] text-white text-xs font-semibold shadow-xs flex items-center gap-1 cursor-pointer">
+          <button type="submit" className="px-3 py-1.5 rounded-xl bg-[var(--sw-brand)] text-white text-xs font-semibold shadow-xs flex items-center gap-1 cursor-pointer">
             <span>执行指令</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>

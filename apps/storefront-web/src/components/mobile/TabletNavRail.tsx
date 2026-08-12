@@ -25,7 +25,7 @@ export const TabletNavRail: React.FC = () => {
               key={item.key}
               onClick={() => setTabletPage(item.key)}
               className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer relative min-h-[44px] min-w-[56px] justify-center ${
-                isActive ? 'text-[#1F5EFF] bg-blue-50 font-bold' : 'text-gray-500 hover:text-gray-900 font-medium'
+                isActive ? 'text-[var(--sw-brand)] bg-blue-50 font-bold' : 'text-gray-500 hover:text-gray-900 font-medium'
               }`}
             >
               <div className="relative">
@@ -42,11 +42,11 @@ export const TabletNavRail: React.FC = () => {
 
   // Left Navigation Rail for Tablet Landscape (1280x800)
   return (
-    <div className="w-56 bg-[#143A8F] text-white flex flex-col justify-between p-3 border-r border-blue-900/50 shadow-md select-none shrink-0">
+    <div className="w-56 bg-[var(--sw-brand-dark)] text-white flex flex-col justify-between p-3 border-r border-blue-900/50 shadow-md select-none shrink-0">
       {/* Top Header & Enterprise Info */}
       <div className="space-y-4">
         <div className="flex items-center gap-2.5 px-2 py-1 border-b border-blue-800/60 pb-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#1F5EFF] to-blue-400 flex items-center justify-center font-black text-white shadow-sm">翼</div>
+          <img src="/icon.svg" alt="" className="h-9 w-9 rounded-xl shadow-sm" />
           <div className="overflow-hidden">
             <div className="text-xs font-black tracking-wide text-white truncate">智慧翼企业福利</div>
             <div className="text-[10px] text-blue-200 truncate">Tablet App 专属版</div>
@@ -62,7 +62,7 @@ export const TabletNavRail: React.FC = () => {
                 key={item.key}
                 onClick={() => setTabletPage(item.key)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all cursor-pointer text-xs min-h-[44px] ${
-                  isActive ? 'bg-white text-[#143A8F] font-bold shadow-md transform translate-x-1' : 'text-blue-100 hover:bg-white/10 font-medium'
+                  isActive ? 'bg-white text-[var(--sw-brand-dark)] font-bold shadow-md transform translate-x-1' : 'text-blue-100 hover:bg-white/10 font-medium'
                 }`}
               >
                 <div className="relative">

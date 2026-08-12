@@ -48,7 +48,7 @@ export const AuthCallbackScreen: React.FC = () => {
     <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-lg bg-slate-800 rounded-2xl p-6 sm:p-8 border border-slate-700 shadow-2xl space-y-6 relative overflow-hidden">
         {/* 顶栏渐变装饰 */}
-        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#1F5EFF] via-[#143A8F] to-emerald-500" />
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[var(--sw-brand)] via-[var(--sw-brand-dark)] to-emerald-500" />
 
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
@@ -74,7 +74,7 @@ export const AuthCallbackScreen: React.FC = () => {
 
         {exchanging && (
           <div className="py-8 text-center space-y-3">
-            <RefreshCw className="w-8 h-8 text-[#1F5EFF] animate-spin mx-auto" />
+            <RefreshCw className="w-8 h-8 text-[var(--sw-brand)] animate-spin mx-auto" />
             <p className="text-sm font-medium text-slate-200">正在与运营后台服务端校验 Ticket 并换取管理 Session...</p>
             <p className="text-xs font-mono text-slate-500 break-all px-4">Ticket: {ticket}</p>
           </div>
@@ -114,7 +114,7 @@ export const AuthCallbackScreen: React.FC = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => navigateTo('admin_dashboard', { membership })}
-                className="flex-1 py-3 px-4 bg-[#1F5EFF] hover:bg-[#143A8F] text-white font-medium text-xs rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
+                className="flex-1 py-3 px-4 bg-[var(--sw-brand)] hover:bg-[var(--sw-brand-dark)] text-white font-medium text-xs rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
               >
                 进入运营后台控制面板 (smart.hbbtzn.com)
                 <ExternalLink className="w-3.5 h-3.5" />
