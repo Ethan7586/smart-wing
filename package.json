@@ -19,7 +19,7 @@
     "build:storefront": "npm run build --workspace @smart-wing/storefront-web",
     "build:admin": "npm run build --workspace @smart-wing/admin-web",
     "build:auth": "npm run build --workspace @smart-wing/auth-web",
-    "build:commerce-api": "esbuild services/commerce-api/src/adminServer.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=services/commerce-api/dist/admin-server.cjs",
+    "build:commerce-api": "esbuild services/commerce-api/src/adminServer.ts --bundle --platform=node --format=cjs --external:@google/genai --external:dotenv --external:express --sourcemap --outfile=services/commerce-api/dist/admin-server.cjs",
     "build": "npm run build:storefront && npm run build:admin && npm run build:auth && npm run build:commerce-api",
     "start:storefront": "npm run start --workspace @smart-wing/storefront-web",
     "start:admin-api": "node services/commerce-api/dist/admin-server.cjs",
