@@ -10,7 +10,7 @@ import { handleHomeSnapshot } from './homeRoutes';
 import { handleSimulationBenefitIssue, handleSimulationMixedPayment, handleSimulationRecharge, handleSimulationWallet } from './paymentSimulationRoutes';
 import { handleMembershipAccess, handleMembershipStatus, handlePermissionCommandCenter } from './permissionAdminRoutes';
 import { handleStepUp } from './stepUpRoutes';
-import { handleQualificationCenter } from './qualificationAdminRoutes';
+import { handleQualificationCenter, handleQualificationConfig } from './qualificationAdminRoutes';
 import type { WorkerEnv } from './types';
 
 const API_PREFIX = '/api/v1';
@@ -96,6 +96,9 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     if (url.pathname === `${API_PREFIX}/admin/qualification-center`) {
       return await handleQualificationCenter(request, env, authorization, requestId);
     }
+    if (url.pathname === `${API_PREFIX}/admin/qualification-center/config`) {
+      return await handleQualificationConfig(request, env, authorization, requestId);
+    }
     const membershipAccessMatch = url.pathname.match(/^\/api\/v1\/admin\/memberships\/([^/]+)\/access$/);
     if (membershipAccessMatch) {
       return await handleMembershipAccess(request, env, authorization, decodeURIComponent(membershipAccessMatch[1]), requestId);
@@ -175,6 +178,16 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
       ['MEMBERSHIP_SCOPE_OUTSIDE_TENANT', 422, 'MEMBERSHIP_SCOPE_OUTSIDE_TENANT', '数据范围不属于当前会员上下文'],
       ['ROLE_NOT_FOUND', 422, 'ROLE_NOT_FOUND', '角色不存在或不属于当前平台'],
       ['PERMISSION_NOT_FOUND', 422, 'PERMISSION_NOT_FOUND', '权限代码不存在'],
+      ['QUALIFICATION_CONFIG_NOT_FOUND', 404, 'QUALIFICATION_CONFIG_NOT_FOUND', '资格配置不存在或不属于当前商城'],
+      ['QUALIFICATION_VERSION_CONFLICT', 409, 'QUALIFICATION_VERSION_CONFLICT', '配置已被其他管理员修改，请刷新后重试'],
+      ['QUALIFICATION_CODE_CONFLICT', 409, 'QUALIFICATION_CODE_CONFLICT', '编码已存在，请更换编码后重试'],
+      ['QUALIFICATION_CHANGE_REASON_REQUIRED', 422, 'QUALIFICATION_CHANGE_REASON_REQUIRED', '必须填写至少四个字的变更原因'],
+      ['QUALIFICATION_ACTIVE_RESOURCE_EMPTY', 422, 'QUALIFICATION_ACTIVE_RESOURCE_EMPTY', '发布前必须配置适用对象和资源范围'],
+      ['QUALIFICATION_LIMIT_REQUIRED', 422, 'QUALIFICATION_LIMIT_REQUIRED', '限售模板至少需要一个有效限额'],
+      ['QUALIFICATION_RESOURCE_OUTSIDE_MALL', 403, 'QUALIFICATION_RESOURCE_OUTSIDE_MALL', '所选资源不属于当前商城或管理范围'],
+      ['QUALIFICATION_CONFIG_INVALID', 422, 'QUALIFICATION_CONFIG_INVALID', '资格配置内容无效'],
+      ['QUALIFICATION_CONFIG_KIND_INVALID', 422, 'QUALIFICATION_CONFIG_KIND_INVALID', '资格配置类型无效'],
+      ['QUALIFICATION_STATUS_INVALID', 422, 'QUALIFICATION_STATUS_INVALID', '资格配置状态无效'],
     ] as const) {
       if (message.includes(needle)) return apiError(status, code, text, requestId);
     }

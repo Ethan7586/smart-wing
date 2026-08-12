@@ -46,7 +46,7 @@ create table if not exists public.brands (
   tenant_id text not null references public.tenants(id) on delete restrict,
   code text not null,
   name text not null,
-  status text not null default 'active' check (status in ('active','disabled')),
+  status text not null default 'active' check (status in ('draft','active','disabled')),
   metadata_json jsonb not null default '{}'::jsonb check (jsonb_typeof(metadata_json) = 'object'),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -62,7 +62,7 @@ create table if not exists public.stores (
   province_code text,
   city_code text,
   address_text text,
-  status text not null default 'active' check (status in ('active','disabled')),
+  status text not null default 'active' check (status in ('draft','active','disabled')),
   metadata_json jsonb not null default '{}'::jsonb check (jsonb_typeof(metadata_json) = 'object'),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -263,6 +263,7 @@ create table if not exists public.employee_qualification_tags (
 create table if not exists public.city_zones (
   id text primary key,
   tenant_id text not null references public.tenants(id) on delete restrict,
+  mall_id text references public.malls(id) on delete cascade,
   code text not null,
   name text not null,
   applies_to text not null default 'both' check (applies_to in ('visible','purchasable','both')),
@@ -302,6 +303,7 @@ on public.city_zone_catalog_items (zone_id, sku_id) where sku_id is not null;
 create table if not exists public.entitlement_policies (
   id text primary key,
   tenant_id text not null references public.tenants(id) on delete restrict,
+  mall_id text references public.malls(id) on delete cascade,
   name text not null,
   action text not null check (action in ('visible','purchasable')),
   effect text not null check (effect in ('allow','deny')),
@@ -338,6 +340,7 @@ create table if not exists public.entitlement_policy_resources (
 create table if not exists public.purchase_limit_templates (
   id text primary key,
   tenant_id text not null references public.tenants(id) on delete restrict,
+  mall_id text references public.malls(id) on delete cascade,
   code text not null,
   name text not null,
   count_scope text not null default 'sku' check (count_scope in ('sku','product')),
@@ -728,7 +731,8 @@ begin
     coalesce(max(policy.version), 0)
   into v_visible_allow_defined, v_visible_allow_matched, v_visible_deny_matched, v_policy_ids, v_policy_version
   from public.entitlement_policies policy
-  where policy.tenant_id = p_tenant_id and policy.action = 'visible' and policy.status = 'active'
+  where policy.tenant_id = p_tenant_id and (policy.mall_id is null or policy.mall_id = p_mall_id)
+    and policy.action = 'visible' and policy.status = 'active'
     and (policy.starts_at is null or policy.starts_at <= now()) and (policy.ends_at is null or policy.ends_at > now())
     and exists (
       select 1 from public.entitlement_policy_resources resource
@@ -780,7 +784,8 @@ begin
     )), false)
   into v_purchase_allow_defined, v_purchase_allow_matched, v_purchase_deny_matched
   from public.entitlement_policies policy
-  where policy.tenant_id = p_tenant_id and policy.action = 'purchasable' and policy.status = 'active'
+  where policy.tenant_id = p_tenant_id and (policy.mall_id is null or policy.mall_id = p_mall_id)
+    and policy.action = 'purchasable' and policy.status = 'active'
     and (policy.starts_at is null or policy.starts_at <= now()) and (policy.ends_at is null or policy.ends_at > now())
     and exists (
       select 1 from public.entitlement_policy_resources resource
@@ -793,7 +798,8 @@ begin
   )), '{}'::text[]), greatest(v_policy_version, coalesce(max(policy.version), 0))
   into v_policy_ids, v_policy_version
   from public.entitlement_policies policy
-  where policy.tenant_id = p_tenant_id and policy.action = 'purchasable' and policy.status = 'active'
+  where policy.tenant_id = p_tenant_id and (policy.mall_id is null or policy.mall_id = p_mall_id)
+    and policy.action = 'purchasable' and policy.status = 'active'
     and (policy.starts_at is null or policy.starts_at <= now()) and (policy.ends_at is null or policy.ends_at > now())
     and exists (
       select 1 from public.entitlement_policy_resources resource
@@ -812,7 +818,8 @@ begin
     for v_template in
       select template.*
       from public.purchase_limit_templates template
-      where template.tenant_id = p_tenant_id and template.status = 'active'
+      where template.tenant_id = p_tenant_id and (template.mall_id is null or template.mall_id = p_mall_id)
+        and template.status = 'active'
         and (template.starts_at is null or template.starts_at <= now()) and (template.ends_at is null or template.ends_at > now())
         and exists (
           select 1 from public.purchase_limit_subjects subject
