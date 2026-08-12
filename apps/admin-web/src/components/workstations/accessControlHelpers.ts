@@ -1,7 +1,7 @@
 import type { AccessMember, AccessPermission, AccessRole, AccessScope, PermissionRisk } from '../../services/accessControl';
 
 export const RISK_LABELS: Record<PermissionRisk, string> = { low: '普通', elevated: '关注', high: '高风险', critical: '核心风险' };
-export const SCOPE_LABELS: Record<AccessScope['kind'], string> = { tenant: '整个平台', distributor: '分销商', enterprise: '集团企业', mall: '商城', supplier: '供应商', brand: '品牌', store: '门店', department: '部门', self: '仅本人' };
+export const SCOPE_LABELS: Record<AccessScope['kind'], string> = { platform: '全局平台', tenant: '安全租户', distributor: '分销商', enterprise: '集团企业', mall: '商城', supplier: '供应商', brand: '品牌', store: '门店', department: '部门', self: '仅本人' };
 
 export function effectivePermissionCodes(member: AccessMember, roles: AccessRole[]): Set<string> {
   const denied = new Set(member.deniedPermissions);

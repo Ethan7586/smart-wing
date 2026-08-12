@@ -48,6 +48,94 @@ describe('authorization decisions', () => {
     expect(decide(employee, PERMISSIONS.orderRead, { ...ownOrder, tenantId: 'tenant-b' })).toMatchObject({ allowed: false, reason: 'TENANT_MISMATCH' });
   });
 
+  it('uses a server-derived organization path for ancestor scope inheritance', () => {
+    const enterpriseOperator: Membership = {
+      ...employee,
+      target: 'admin',
+      scopeBindings: [{ kind: 'enterprise', resourceId: 'enterprise-a' }],
+    };
+    const descendant: ResourceScope = {
+      tenantId: 'tenant-a',
+      mallId: 'mall-a',
+      orgUnitPath: [
+        { kind: 'platform', resourceId: 'org-platform-smart-wing' },
+        { kind: 'tenant', resourceId: 'tenant-a' },
+        { kind: 'distributor', resourceId: 'org-distributor-a' },
+        { kind: 'enterprise', resourceId: 'enterprise-a' },
+        { kind: 'mall', resourceId: 'mall-a' },
+      ],
+    };
+    expect(decide(enterpriseOperator, PERMISSIONS.orderRead, descendant)).toMatchObject({ allowed: true, reason: 'ALLOWED' });
+  });
+
+  it('allows an explicit global hierarchy scope across tenant boundaries', () => {
+    const platformOperator: Membership = {
+      ...employee,
+      target: 'admin',
+      scopeBindings: [{ kind: 'platform', resourceId: 'org-platform-smart-wing' }],
+    };
+    const otherTenantResource: ResourceScope = {
+      tenantId: 'tenant-b',
+      mallId: 'mall-b',
+      orgUnitPath: [
+        { kind: 'platform', resourceId: 'org-platform-smart-wing' },
+        { kind: 'tenant', resourceId: 'tenant-b' },
+        { kind: 'enterprise', resourceId: 'enterprise-b' },
+        { kind: 'mall', resourceId: 'mall-b' },
+      ],
+    };
+    expect(decide(platformOperator, PERMISSIONS.orderRead, otherTenantResource)).toMatchObject({ allowed: true, reason: 'ALLOWED' });
+  });
+
+  it('selects the global grant when a lower grant also matches a cross-tenant path', () => {
+    const platformOperator: Membership = {
+      ...employee,
+      target: 'admin',
+      scopeBindings: [
+        { kind: 'enterprise', resourceId: 'enterprise-b' },
+        { kind: 'platform', resourceId: 'org-platform-smart-wing' },
+      ],
+    };
+    expect(
+      decide(platformOperator, PERMISSIONS.orderRead, {
+        tenantId: 'tenant-b',
+        orgUnitPath: [
+          { kind: 'platform', resourceId: 'org-platform-smart-wing' },
+          { kind: 'tenant', resourceId: 'tenant-b' },
+          { kind: 'enterprise', resourceId: 'enterprise-b' },
+        ],
+      })
+    ).toMatchObject({ allowed: true, reason: 'ALLOWED', evidence: { scope: { kind: 'platform' } } });
+  });
+
+  it('does not let an enterprise ancestor bypass the tenant boundary', () => {
+    const enterpriseOperator: Membership = {
+      ...employee,
+      target: 'admin',
+      scopeBindings: [{ kind: 'enterprise', resourceId: 'enterprise-b' }],
+    };
+    expect(
+      decide(enterpriseOperator, PERMISSIONS.orderRead, {
+        tenantId: 'tenant-b',
+        orgUnitPath: [{ kind: 'enterprise', resourceId: 'enterprise-b' }],
+      })
+    ).toMatchObject({ allowed: false, reason: 'TENANT_MISMATCH' });
+  });
+
+  it('does not treat non-hierarchical path entries as supplier or self grants', () => {
+    const operator: Membership = {
+      ...employee,
+      target: 'admin',
+      scopeBindings: [{ kind: 'supplier', resourceId: 'supplier-a' }],
+    };
+    expect(
+      decide(operator, PERMISSIONS.orderRead, {
+        tenantId: 'tenant-a',
+        orgUnitPath: [{ kind: 'supplier', resourceId: 'supplier-a' }],
+      })
+    ).toMatchObject({ allowed: false, reason: 'SCOPE_MISMATCH' });
+  });
+
   it('requires step-up for a refund even when the permission is present', () => {
     const refundOperator: Membership = { ...employee, id: 'membership-admin', target: 'admin', permissions: [PERMISSIONS.orderRefund], scopeBindings: [{ kind: 'mall', resourceId: 'mall-a' }] };
     expect(decide(refundOperator, PERMISSIONS.orderRefund, ownOrder)).toMatchObject({ allowed: false, reason: 'STEP_UP_REQUIRED' });

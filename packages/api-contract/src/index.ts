@@ -8,7 +8,7 @@ export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 export type MembershipStatus = 'invited' | 'active' | 'suspended' | 'offboarded' | 'expired';
 export type MembershipTarget = 'storefront' | 'admin';
 /** Reserved kinds stay in the contract but fail closed until their resource tables are connected. */
-export type ScopeKind = 'tenant' | 'distributor' | 'enterprise' | 'mall' | 'supplier' | 'brand' | 'store' | 'department' | 'self';
+export type ScopeKind = 'platform' | 'tenant' | 'distributor' | 'enterprise' | 'mall' | 'supplier' | 'brand' | 'store' | 'department' | 'self';
 
 /** The tenant context that is fixed when a membership is activated. */
 export interface MembershipContextScope {
@@ -40,6 +40,12 @@ export interface ResourceScope {
   storeId?: string;
   departmentId?: string;
   ownerUserId?: string;
+  /**
+   * Server-derived ancestors for hierarchical organization resources. Browser
+   * input must never populate this path. Legacy flat IDs remain supported
+   * during migration.
+   */
+  orgUnitPath?: ScopeBinding[];
 }
 
 export interface Membership {

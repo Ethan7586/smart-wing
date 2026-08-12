@@ -1,5 +1,5 @@
 export type PermissionRisk = 'low' | 'elevated' | 'high' | 'critical';
-export type ScopeKind = 'tenant' | 'distributor' | 'enterprise' | 'mall' | 'supplier' | 'brand' | 'store' | 'department' | 'self';
+export type ScopeKind = 'platform' | 'tenant' | 'distributor' | 'enterprise' | 'mall' | 'supplier' | 'brand' | 'store' | 'department' | 'self';
 export interface AccessRole {
   id: string;
   code: string;

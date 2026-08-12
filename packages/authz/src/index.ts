@@ -21,12 +21,16 @@ export function decide(membership: Membership, permission: Permission, resourceS
   if (!isActiveMembership(membership, now)) return { allowed: false, reason: 'MEMBERSHIP_INACTIVE' };
   if (membership.deniedPermissions?.includes(permission)) return { allowed: false, reason: 'PERMISSION_DENIED' };
   if (!membership.permissions.includes(permission)) return { allowed: false, reason: 'PERMISSION_MISSING' };
-  if (membership.context.tenantId !== resourceScope.tenantId) return { allowed: false, reason: 'TENANT_MISMATCH' };
+  const tenantMismatch = membership.context.tenantId !== resourceScope.tenantId;
+  const binding = membership.scopeBindings.find(
+    (candidate) => scopeMatches(candidate, membership, resourceScope) && (!tenantMismatch || isCrossTenantHierarchyBinding(candidate))
+  );
+  // A cross-tenant decision is only possible through a server-validated global
+  // hierarchy binding. Tenant and lower-level bindings remain hard isolated.
+  if (tenantMismatch && !isCrossTenantHierarchyBinding(binding)) return { allowed: false, reason: 'TENANT_MISMATCH' };
   if (requiresStepUp(permission) && !hasFreshStepUp(options.stepUpAt, now, options.stepUpMaxAgeSeconds ?? 15 * 60)) {
     return { allowed: false, reason: 'STEP_UP_REQUIRED' };
   }
-
-  const binding = membership.scopeBindings.find((candidate) => scopeMatches(candidate, membership, resourceScope));
   if (!binding) return { allowed: false, reason: 'SCOPE_MISMATCH' };
 
   return {
@@ -47,7 +51,10 @@ function hasFreshStepUp(stepUpAt: string | null | undefined, now: Date, maximumA
 }
 
 function scopeMatches(binding: ScopeBinding, membership: Membership, resource: ResourceScope): boolean {
+  if (isHierarchicalScopeKind(binding.kind) && resource.orgUnitPath?.some((ancestor) => ancestor.kind === binding.kind && ancestor.resourceId === binding.resourceId)) return true;
   switch (binding.kind) {
+    case 'platform':
+      return false;
     case 'tenant':
       return resource.tenantId === binding.resourceId;
     case 'enterprise':
@@ -67,4 +74,12 @@ function scopeMatches(binding: ScopeBinding, membership: Membership, resource: R
     case 'self':
       return membership.context.userId === binding.resourceId && resource.ownerUserId === binding.resourceId;
   }
+}
+
+function isCrossTenantHierarchyBinding(binding: ScopeBinding | undefined): boolean {
+  return binding?.kind === 'platform' || binding?.kind === 'distributor';
+}
+
+function isHierarchicalScopeKind(kind: ScopeBinding['kind']): boolean {
+  return ['platform', 'tenant', 'distributor', 'enterprise', 'mall', 'department'].includes(kind);
 }

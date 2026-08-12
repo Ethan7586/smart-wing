@@ -27,7 +27,7 @@ function scopeBindings(value: unknown): ScopeBinding[] | null {
     if (!isRecord(item)) return null;
     const kind = optionalString(item.kind);
     const resourceId = optionalString(item.resourceId);
-    if (!kind || !resourceId || !['tenant', 'distributor', 'enterprise', 'mall', 'supplier', 'brand', 'store', 'department', 'self'].includes(kind)) return null;
+    if (!kind || !resourceId || !['platform', 'tenant', 'distributor', 'enterprise', 'mall', 'supplier', 'brand', 'store', 'department', 'self'].includes(kind)) return null;
     bindings.push({ kind: kind as ScopeBinding['kind'], resourceId });
   }
   return bindings;
@@ -75,6 +75,7 @@ export function resourceScopeFromDatabaseRow(row: unknown): ResourceScope | null
   if (!isRecord(row)) return null;
   const tenantId = optionalString(row.tenant_id);
   if (!tenantId) return null;
+  const path = scopeBindings(row.org_unit_path);
   return {
     tenantId,
     ...(optionalString(row.enterprise_id) ? { enterpriseId: optionalString(row.enterprise_id) } : {}),
@@ -85,6 +86,7 @@ export function resourceScopeFromDatabaseRow(row: unknown): ResourceScope | null
     ...(optionalString(row.store_id) ? { storeId: optionalString(row.store_id) } : {}),
     ...(optionalString(row.department_id) ? { departmentId: optionalString(row.department_id) } : {}),
     ...(optionalString(row.user_id) ? { ownerUserId: optionalString(row.user_id) } : {}),
+    ...(path ? { orgUnitPath: path } : {}),
   };
 }
 
