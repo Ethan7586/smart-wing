@@ -77,22 +77,20 @@ describe('qualification center read boundary', () => {
   });
 
   it('removes commercial, limit and employee-selector data on the server for an entitlement-only reader', async () => {
-    const fetchRpc = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            catalogPools: [{ id: 'pool-a' }],
-            cityZones: [{ id: 'zone-a' }],
-            policies: [{ id: 'policy-a' }],
-            limitTemplates: [{ id: 'limit-a' }],
-            commercialResources: { agreements: [{ id: 'agreement-a' }], brands: [], stores: [] },
-            commercialSummary: { brands: 1 },
-            selectors: { users: [{ id: 'user-secret' }], products: [{ id: 'product-a' }] },
-          }),
-          { status: 200, headers: { 'content-type': 'application/json' } }
-        )
-      );
+    const fetchRpc = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          catalogPools: [{ id: 'pool-a' }],
+          cityZones: [{ id: 'zone-a' }],
+          policies: [{ id: 'policy-a' }],
+          limitTemplates: [{ id: 'limit-a' }],
+          commercialResources: { agreements: [{ id: 'agreement-a' }], brands: [], stores: [] },
+          commercialSummary: { brands: 1 },
+          selectors: { users: [{ id: 'user-secret' }], products: [{ id: 'product-a' }] },
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } }
+      )
+    );
     try {
       const response = await handleQualificationCenter(
         new Request('https://smart.example/api/v1/admin/qualification-center'),
@@ -149,7 +147,10 @@ describe('qualification center write boundary', () => {
   });
 
   it('publishes with fresh step-up and the permission dedicated to its kind', async () => {
-    const fetchRpc = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(JSON.stringify({ id: 'policy-a', version: 2, status: 'active' }), { status: 200, headers: { 'content-type': 'application/json' } }));
+    const fetchRpc = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify({ requiresApproval: false, affectedEmployees: 2, affectedSkus: 1 }), { status: 200, headers: { 'content-type': 'application/json' } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'policy-a', version: 2, status: 'active' }), { status: 200, headers: { 'content-type': 'application/json' } }));
     try {
       const input = {
         kind: 'entitlement_policy',
@@ -165,7 +166,29 @@ describe('qualification center write boundary', () => {
         'publish'
       );
       expect(response.status).toBe(200);
-      expect(JSON.parse(String(fetchRpc.mock.calls[0]?.[1]?.body))).toMatchObject({ p_kind: 'entitlement_policy', p_entity_id: 'policy-a', p_expected_version: 1 });
+      expect(fetchRpc.mock.calls[0]?.[0]).toContain('api_qualification_change_preview');
+      expect(JSON.parse(String(fetchRpc.mock.calls[1]?.[1]?.body))).toMatchObject({ p_kind: 'entitlement_policy', p_entity_id: 'policy-a', p_expected_version: 1 });
+    } finally {
+      fetchRpc.mockRestore();
+    }
+  });
+
+  it('queues a high-risk publish instead of applying it directly', async () => {
+    const fetchRpc = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify({ requiresApproval: true, riskLevel: 'critical', affectedEmployees: 120, affectedSkus: 10 }), { status: 200, headers: { 'content-type': 'application/json' } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ approvalRequired: true, changeRequestId: 'change-a', status: 'pending' }), { status: 200, headers: { 'content-type': 'application/json' } }));
+    try {
+      const input = { ...draftPool(), payload: { ...draftPool().payload, status: 'active', skuIds: Array.from({ length: 50 }, (_, index) => `sku-${index}`) } };
+      const response = await handleQualificationConfig(
+        configRequest(input),
+        { SUPABASE_URL: 'https://supabase.example', SUPABASE_SERVICE_ROLE_KEY: 'service-role' },
+        context([PERMISSIONS.commercialResourceManage], 'admin', new Date().toISOString()),
+        'queue-high-risk'
+      );
+      expect(response.status).toBe(202);
+      expect(fetchRpc.mock.calls[1]?.[0]).toContain('api_request_qualification_change');
+      expect(fetchRpc.mock.calls.some(([url]) => String(url).includes('api_apply_qualification_config'))).toBe(false);
     } finally {
       fetchRpc.mockRestore();
     }

@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Layers3, MapPinned, RefreshCw, ShieldCheck, ShoppingCart } from 'lucide-react';
 import { verifyCurrentPassword } from '../../services/accessControl';
-import { loadQualificationCenter, saveQualificationConfig, type QualificationCenterData, type QualificationConfigKind } from '../../services/qualification';
+import { loadQualificationCenter, loadQualificationGovernance, saveQualificationConfig, type QualificationCenterData, type QualificationConfigKind, type QualificationGovernanceData } from '../../services/qualification';
 import { QualificationCenterSections } from './QualificationCenterSections';
 import { QualificationConfigDialog } from './QualificationConfigDialog';
+import { QualificationGovernancePanel } from './QualificationGovernancePanel';
 import { StepUpModal } from './StepUpModal';
 
 type EditTarget = { kind: QualificationConfigKind; entity: Record<string, unknown> | null };
@@ -15,11 +16,24 @@ const emptyData: QualificationCenterData = {
   commercialResources: { agreements: [], brands: [], stores: [] },
   selectors: { enterprises: [], suppliers: [], products: [], skus: [], departments: [], users: [], memberships: [] },
   commercialSummary: { brands: 0, stores: 0, supplierAgreements: 0, brandAuthorizations: 0 },
-  capabilities: { readCommercialResources: false, manageCommercialResources: false, readEntitlements: false, manageEntitlements: false, readPurchaseLimits: false, managePurchaseLimits: false },
+  capabilities: {
+    readCommercialResources: false,
+    manageCommercialResources: false,
+    readEntitlements: false,
+    manageEntitlements: false,
+    readPurchaseLimits: false,
+    managePurchaseLimits: false,
+    readEmployees: false,
+    manageEmployees: false,
+    approveChanges: false,
+    simulate: false,
+  },
 };
+const emptyGovernance: QualificationGovernanceData = { changeRequests: [], employees: [], currentMembershipId: '', capabilities: { readEmployees: false, manageEmployees: false, approveChanges: false, simulate: false } };
 
 export const QualificationCenterWorkstation: React.FC = () => {
   const [data, setData] = useState<QualificationCenterData>(emptyData);
+  const [governance, setGovernance] = useState<QualificationGovernanceData>(emptyGovernance);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -31,7 +45,20 @@ export const QualificationCenterWorkstation: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      setData(await loadQualificationCenter());
+      const center = await loadQualificationCenter();
+      setData(center);
+      if (
+        center.capabilities.readEmployees ||
+        center.capabilities.manageEmployees ||
+        center.capabilities.approveChanges ||
+        center.capabilities.manageCommercialResources ||
+        center.capabilities.manageEntitlements ||
+        center.capabilities.managePurchaseLimits
+      ) {
+        setGovernance(await loadQualificationGovernance());
+      } else {
+        setGovernance(emptyGovernance);
+      }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '资格中心暂时无法读取');
     } finally {
@@ -47,9 +74,11 @@ export const QualificationCenterWorkstation: React.FC = () => {
       setError('');
       setNotice('');
       try {
-        await saveQualificationConfig(input);
+        const result = await saveQualificationConfig(input);
         setEditing(null);
-        setNotice(input.payload.status === 'draft' ? '草稿已保存，不影响员工端。' : input.payload.status === 'active' ? '规则已发布，员工端资格已更新。' : '规则已停用。');
+        setNotice(
+          result.approvalRequired === true ? '已进入双人审批队列，尚未影响员工端。' : input.payload.status === 'draft' ? '草稿已保存，不影响员工端。' : input.payload.status === 'active' ? '规则已发布，员工端资格已更新。' : '规则已停用。'
+        );
         await refresh();
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : '资格配置保存失败');
@@ -62,6 +91,10 @@ export const QualificationCenterWorkstation: React.FC = () => {
       return;
     }
     pendingAction.current = execute;
+    setStepUpOpen(true);
+  };
+  const runProtected = (action: () => Promise<void>) => {
+    pendingAction.current = action;
     setStepUpOpen(true);
   };
   const open = (kind: QualificationConfigKind, entity: object | null = null) => setEditing({ kind, entity: entity as Record<string, unknown> | null });
@@ -90,6 +123,7 @@ export const QualificationCenterWorkstation: React.FC = () => {
           <Metric label="限售模板" value={data.limitTemplates.length} icon={ShoppingCart} />
         </div>
         <QualificationCenterSections data={data} open={open} />
+        <QualificationGovernancePanel data={data} governance={governance} refresh={refresh} runProtected={runProtected} setNotice={setNotice} setError={setError} />
       </section>
       <QualificationConfigDialog kind={editing?.kind ?? null} entity={editing?.entity ?? null} data={data} saving={saving} onClose={() => setEditing(null)} onSave={save} />
       <StepUpModal

@@ -61,6 +61,45 @@ export type StoreResource = {
   version: number;
   brandIds: string[];
 };
+export type QualificationImpactPreview = { requiresApproval: boolean; riskLevel: 'elevated' | 'high' | 'critical'; affectedEmployees: number; affectedSkus: number; currentStatus: string | null; requestedStatus: string; reasons: string[] };
+export type QualificationChangeRequest = {
+  id: string;
+  kind: QualificationConfigKind;
+  entityId: string | null;
+  expectedVersion: number;
+  requestedStatus: QualificationStatus;
+  reason: string;
+  riskLevel: string;
+  status: 'pending' | 'rejected' | 'applied' | 'stale' | 'cancelled';
+  preview: QualificationImpactPreview;
+  requesterName: string;
+  requesterMembershipId: string;
+  reviewerName: string | null;
+  reviewReason: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+};
+export type EmployeeQualificationTag = { code: string; startsAt: string | null; endsAt: string | null; source: string };
+export type EmployeeQualification = {
+  userId: string;
+  membershipId: string;
+  name: string;
+  employeeNo: string;
+  departmentId: string | null;
+  departmentName: string | null;
+  cityCode: string | null;
+  cityName: string | null;
+  status: 'active' | 'disabled';
+  version: number;
+  tags: EmployeeQualificationTag[];
+};
+export type QualificationGovernanceData = {
+  changeRequests: QualificationChangeRequest[];
+  employees: EmployeeQualification[];
+  currentMembershipId: string;
+  capabilities: { readEmployees: boolean; manageEmployees: boolean; approveChanges: boolean; simulate: boolean };
+};
+export type QualificationHistoryItem = { auditId: string; version: number; status: QualificationStatus; config: Record<string, unknown>; reason: string; actorUserId: string; actorMembershipId: string; createdAt: string };
 
 export interface QualificationCenterData {
   catalogPools: CatalogPool[];
@@ -77,6 +116,10 @@ export interface QualificationCenterData {
     manageEntitlements: boolean;
     readPurchaseLimits: boolean;
     managePurchaseLimits: boolean;
+    readEmployees: boolean;
+    manageEmployees: boolean;
+    approveChanges: boolean;
+    simulate: boolean;
   };
 }
 
@@ -90,6 +133,44 @@ export async function saveQualificationConfig(input: { kind: QualificationConfig
     headers: { 'content-type': 'application/json', 'idempotency-key': crypto.randomUUID() },
     body: JSON.stringify(input),
   });
+}
+
+export async function previewQualificationConfig(input: { kind: QualificationConfigKind; entityId: string | null; expectedVersion: number; payload: Record<string, unknown>; reason: string }): Promise<QualificationImpactPreview> {
+  return requestJson('/api/v1/admin/qualification-center/preview', jsonRequest(input));
+}
+export async function loadQualificationGovernance(): Promise<QualificationGovernanceData> {
+  return requestJson('/api/v1/admin/qualification-center/governance');
+}
+export async function reviewQualificationChange(input: { changeRequestId: string; decision: 'approve' | 'reject'; reason: string }): Promise<Record<string, unknown>> {
+  return requestJson('/api/v1/admin/qualification-center/review', jsonRequest(input));
+}
+export async function loadQualificationHistory(kind: QualificationConfigKind, entityId: string): Promise<QualificationHistoryItem[]> {
+  const payload = await requestJson<{ history: QualificationHistoryItem[] }>(`/api/v1/admin/qualification-center/history?kind=${encodeURIComponent(kind)}&entityId=${encodeURIComponent(entityId)}`);
+  return payload.history;
+}
+export async function rollbackQualificationConfig(input: { kind: QualificationConfigKind; entityId: string; auditId: string; expectedVersion: number; reason: string }): Promise<Record<string, unknown>> {
+  return requestJson('/api/v1/admin/qualification-center/rollback', { ...jsonRequest(input), headers: { 'content-type': 'application/json', 'idempotency-key': crypto.randomUUID() } });
+}
+export async function simulateQualification(input: { userId: string; membershipId: string; skuId: string; quantity: number; cityCode?: string | null; cityName?: string | null }): Promise<Record<string, unknown>> {
+  return requestJson('/api/v1/admin/qualification-center/simulate', jsonRequest(input));
+}
+export async function updateEmployeeQualification(
+  userId: string,
+  input: {
+    expectedVersion: number;
+    cityCode: string | null;
+    cityName: string | null;
+    status: 'active' | 'disabled';
+    attributes: Record<string, unknown>;
+    tags: Array<{ code: string; startsAt: string | null; endsAt: string | null }>;
+    reason: string;
+  }
+): Promise<Record<string, unknown>> {
+  return requestJson(`/api/v1/admin/qualification-center/employees/${encodeURIComponent(userId)}`, { ...jsonRequest(input), method: 'PUT' });
+}
+
+function jsonRequest(input: unknown): RequestInit {
+  return { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) };
 }
 
 async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {

@@ -31,7 +31,18 @@ export function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
   if (has('tenant.manage')) allowed.add('supplier');
   if (has('finance.reconcile')) allowed.add('finance');
   if (has('member.read') && has('role.read')) allowed.add('membership');
-  if (has('commercial_resource.read') || has('commercial_resource.manage') || has('entitlement.read') || has('entitlement.manage') || has('purchase_limit.read') || has('purchase_limit.manage')) allowed.add('qualification');
+  if (
+    has('commercial_resource.read') ||
+    has('commercial_resource.manage') ||
+    has('entitlement.read') ||
+    has('entitlement.manage') ||
+    has('purchase_limit.read') ||
+    has('purchase_limit.manage') ||
+    has('employee_qualification.read') ||
+    has('employee_qualification.manage') ||
+    has('qualification.approve')
+  )
+    allowed.add('qualification');
   if (has('tenant.manage') || has('role.grant')) allowed.add('system');
   return [...allowed];
 }

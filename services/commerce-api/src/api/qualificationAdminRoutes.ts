@@ -18,7 +18,10 @@ export async function handleQualificationCenter(request: Request, env: WorkerEnv
   const canManageEntitlements = manageAllowed(authorization, PERMISSIONS.entitlementManage);
   const canManageLimits = manageAllowed(authorization, PERMISSIONS.purchaseLimitManage);
   const canManageResources = manageAllowed(authorization, PERMISSIONS.commercialResourceManage);
-  if (!canReadEntitlements && !canReadLimits && !canReadResources && !canManageEntitlements && !canManageLimits && !canManageResources) {
+  const canReadEmployees = authorize(authorization, PERMISSIONS.employeeQualificationRead).allowed;
+  const canManageEmployees = manageAllowed(authorization, PERMISSIONS.employeeQualificationManage);
+  const canApproveChanges = manageAllowed(authorization, PERMISSIONS.qualificationApprove);
+  if (!canReadEntitlements && !canReadLimits && !canReadResources && !canManageEntitlements && !canManageLimits && !canManageResources && !canReadEmployees && !canManageEmployees && !canApproveChanges) {
     return apiError(403, 'FORBIDDEN', '没有查看商业资源或员工资格策略的权限', requestId);
   }
   const hasMallScope = authorization.membership.scopeBindings.some(
@@ -66,6 +69,10 @@ export async function handleQualificationCenter(request: Request, env: WorkerEnv
       manageEntitlements: canManageEntitlements,
       readPurchaseLimits: canReadLimits,
       managePurchaseLimits: canManageLimits,
+      readEmployees: canReadEmployees,
+      manageEmployees: canManageEmployees,
+      approveChanges: canApproveChanges,
+      simulate: canReadEmployees || canManageEmployees,
     },
     requestId,
   });
@@ -76,7 +83,7 @@ function manageAllowed(authorization: AuthorizationContext, permission: Permissi
   return decision.allowed || decision.reason === 'STEP_UP_REQUIRED';
 }
 
-const CONFIG_PERMISSIONS: Record<QualificationConfigKind, Permission> = {
+export const CONFIG_PERMISSIONS: Record<QualificationConfigKind, Permission> = {
   catalog_pool: PERMISSIONS.commercialResourceManage,
   supplier_agreement: PERMISSIONS.commercialResourceManage,
   brand: PERMISSIONS.commercialResourceManage,
@@ -85,8 +92,8 @@ const CONFIG_PERMISSIONS: Record<QualificationConfigKind, Permission> = {
   entitlement_policy: PERMISSIONS.entitlementManage,
   purchase_limit: PERMISSIONS.purchaseLimitManage,
 };
-type QualificationConfigKind = 'catalog_pool' | 'supplier_agreement' | 'brand' | 'store' | 'city_zone' | 'entitlement_policy' | 'purchase_limit';
-type ConfigInput = { kind: QualificationConfigKind; entityId: string | null; expectedVersion: number; payload: Record<string, unknown>; reason: string };
+export type QualificationConfigKind = 'catalog_pool' | 'supplier_agreement' | 'brand' | 'store' | 'city_zone' | 'entitlement_policy' | 'purchase_limit';
+export type ConfigInput = { kind: QualificationConfigKind; entityId: string | null; expectedVersion: number; payload: Record<string, unknown>; reason: string };
 
 export async function handleQualificationConfig(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
@@ -104,7 +111,21 @@ export async function handleQualificationConfig(request: Request, env: WorkerEnv
   if (!idempotencyKey || idempotencyKey.length < 8 || idempotencyKey.length > 120) {
     return apiError(400, 'IDEMPOTENCY_KEY_REQUIRED', '保存配置必须提供有效的 Idempotency-Key', requestId);
   }
-  const result = await callRpc<Record<string, unknown>>(env, 'api_apply_qualification_config', {
+  const result = await persistQualificationConfig(request, env, authorization, requestId, input, decision, idempotencyKey);
+  const approvalRequired = result.approvalRequired === true;
+  return json({ ...result, requestId }, { status: approvalRequired ? 202 : input.entityId ? 200 : 201 });
+}
+
+export async function persistQualificationConfig(
+  request: Request,
+  env: WorkerEnv,
+  authorization: AuthorizationContext,
+  requestId: string,
+  input: ConfigInput,
+  decision = authorize(authorization, CONFIG_PERMISSIONS[input.kind]),
+  idempotencyKey = request.headers.get('idempotency-key') ?? ''
+): Promise<Record<string, unknown>> {
+  const shared = {
     p_tenant_id: authorization.tenantId,
     p_enterprise_id: authorization.enterpriseId,
     p_mall_id: authorization.mallId,
@@ -115,16 +136,39 @@ export async function handleQualificationConfig(request: Request, env: WorkerEnv
     p_expected_version: input.expectedVersion,
     p_payload: input.payload,
     p_reason: input.reason,
+  };
+  const requestHash = await sha256(JSON.stringify(input));
+  if (input.payload.status !== 'draft') {
+    const preview = await callRpc<Record<string, unknown>>(env, 'api_qualification_change_preview', {
+      p_tenant_id: authorization.tenantId,
+      p_enterprise_id: authorization.enterpriseId,
+      p_mall_id: authorization.mallId,
+      p_kind: input.kind,
+      p_entity_id: input.entityId ?? '',
+      p_payload: input.payload,
+    });
+    if (preview.requiresApproval === true) {
+      return callRpc<Record<string, unknown>>(env, 'api_request_qualification_change', {
+        ...shared,
+        p_idempotency_key: idempotencyKey,
+        p_request_hash: requestHash,
+        p_request_id: requestId,
+        p_user_agent: (request.headers.get('user-agent') ?? '').slice(0, 300),
+        p_granted_via: authorizationEvidence(authorization, decision),
+      });
+    }
+  }
+  return callRpc<Record<string, unknown>>(env, 'api_apply_qualification_config', {
+    ...shared,
     p_idempotency_key: idempotencyKey,
-    p_request_hash: await sha256(JSON.stringify(input)),
+    p_request_hash: requestHash,
     p_request_id: requestId,
     p_user_agent: (request.headers.get('user-agent') ?? '').slice(0, 300),
     p_granted_via: authorizationEvidence(authorization, decision),
   });
-  return json({ ...result, requestId }, { status: input.entityId ? 200 : 201 });
 }
 
-function parseConfigInput(value: unknown): ConfigInput | null {
+export function parseConfigInput(value: unknown): ConfigInput | null {
   if (!isRecord(value) || typeof value.kind !== 'string' || !(value.kind in CONFIG_PERMISSIONS) || !isRecord(value.payload)) return null;
   const expectedVersion = value.expectedVersion;
   const entityId = value.entityId == null ? null : typeof value.entityId === 'string' ? value.entityId.trim() : '';
@@ -135,7 +179,7 @@ function parseConfigInput(value: unknown): ConfigInput | null {
   return { kind: value.kind as QualificationConfigKind, entityId, expectedVersion: expectedVersion as number, payload: value.payload, reason };
 }
 
-function hasFreshStepUp(stepUpAt: string | null): boolean {
+export function hasFreshStepUp(stepUpAt: string | null): boolean {
   if (!stepUpAt) return false;
   const timestamp = new Date(stepUpAt).getTime();
   return Number.isFinite(timestamp) && timestamp <= Date.now() && Date.now() - timestamp <= 15 * 60 * 1000;

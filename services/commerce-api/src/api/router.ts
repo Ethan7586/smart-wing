@@ -11,6 +11,15 @@ import { handleSimulationBenefitIssue, handleSimulationMixedPayment, handleSimul
 import { handleMembershipAccess, handleMembershipStatus, handlePermissionCommandCenter } from './permissionAdminRoutes';
 import { handleStepUp } from './stepUpRoutes';
 import { handleQualificationCenter, handleQualificationConfig } from './qualificationAdminRoutes';
+import {
+  handleEmployeeQualification,
+  handleQualificationGovernance,
+  handleQualificationHistory,
+  handleQualificationPreview,
+  handleQualificationReview,
+  handleQualificationRollback,
+  handleQualificationSimulation,
+} from './qualificationGovernanceRoutes';
 import type { WorkerEnv } from './types';
 
 const API_PREFIX = '/api/v1';
@@ -98,6 +107,28 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     }
     if (url.pathname === `${API_PREFIX}/admin/qualification-center/config`) {
       return await handleQualificationConfig(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/admin/qualification-center/governance`) {
+      return await handleQualificationGovernance(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/admin/qualification-center/preview`) {
+      return await handleQualificationPreview(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/admin/qualification-center/review`) {
+      return await handleQualificationReview(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/admin/qualification-center/history`) {
+      return await handleQualificationHistory(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/admin/qualification-center/rollback`) {
+      return await handleQualificationRollback(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/admin/qualification-center/simulate`) {
+      return await handleQualificationSimulation(request, env, authorization, requestId);
+    }
+    const employeeQualificationMatch = url.pathname.match(/^\/api\/v1\/admin\/qualification-center\/employees\/([^/]+)$/);
+    if (employeeQualificationMatch) {
+      return await handleEmployeeQualification(request, env, authorization, decodeURIComponent(employeeQualificationMatch[1]), requestId);
     }
     const membershipAccessMatch = url.pathname.match(/^\/api\/v1\/admin\/memberships\/([^/]+)\/access$/);
     if (membershipAccessMatch) {
@@ -188,6 +219,15 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
       ['QUALIFICATION_CONFIG_INVALID', 422, 'QUALIFICATION_CONFIG_INVALID', '资格配置内容无效'],
       ['QUALIFICATION_CONFIG_KIND_INVALID', 422, 'QUALIFICATION_CONFIG_KIND_INVALID', '资格配置类型无效'],
       ['QUALIFICATION_STATUS_INVALID', 422, 'QUALIFICATION_STATUS_INVALID', '资格配置状态无效'],
+      ['QUALIFICATION_APPROVAL_ALREADY_PENDING', 409, 'QUALIFICATION_APPROVAL_ALREADY_PENDING', '该配置已有待审批变更'],
+      ['QUALIFICATION_APPROVAL_NOT_FOUND', 404, 'QUALIFICATION_APPROVAL_NOT_FOUND', '审批申请不存在'],
+      ['QUALIFICATION_APPROVAL_NOT_PENDING', 409, 'QUALIFICATION_APPROVAL_NOT_PENDING', '审批申请已处理或失效'],
+      ['QUALIFICATION_SELF_APPROVAL_FORBIDDEN', 409, 'QUALIFICATION_SELF_APPROVAL_FORBIDDEN', '申请人与审批人必须是不同人员'],
+      ['QUALIFICATION_APPROVER_INVALID', 403, 'QUALIFICATION_APPROVER_INVALID', '当前身份没有资格审批权限'],
+      ['QUALIFICATION_HISTORY_NOT_FOUND', 404, 'QUALIFICATION_HISTORY_NOT_FOUND', '历史版本不存在'],
+      ['EMPLOYEE_QUALIFICATION_USER_NOT_FOUND', 404, 'EMPLOYEE_QUALIFICATION_USER_NOT_FOUND', '员工不属于当前商城'],
+      ['EMPLOYEE_QUALIFICATION_TAG_SOURCE_CONFLICT', 409, 'EMPLOYEE_QUALIFICATION_TAG_SOURCE_CONFLICT', '标签由外部系统维护，不能手工覆盖'],
+      ['EMPLOYEE_QUALIFICATION_INVALID', 422, 'EMPLOYEE_QUALIFICATION_INVALID', '员工资格内容无效'],
     ] as const) {
       if (message.includes(needle)) return apiError(status, code, text, requestId);
     }
