@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveAdminAccount } from './App';
+import { allowedWorkstationsFor, resolveAdminAccount } from './App';
 
 describe('admin account profile resolution', () => {
   it.each([
@@ -17,5 +17,10 @@ describe('admin account profile resolution', () => {
 
   it('rejects an unknown profile', () => {
     expect(resolveAdminAccount('unknown', ['role-unknown'])).toBeNull();
+  });
+
+  it('shows the membership command center only with both read permissions', () => {
+    expect(allowedWorkstationsFor(['member.read', 'role.read'])).toContain('membership');
+    expect(allowedWorkstationsFor(['member.read'])).not.toContain('membership');
   });
 });

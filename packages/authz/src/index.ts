@@ -1,6 +1,7 @@
-import { PERMISSIONS, type AuthorizationDecision, type Membership, type Permission, type ResourceScope, type ScopeBinding } from '@smart-wing/api-contract';
+import { PERMISSION_CATALOG, type AuthorizationDecision, type Membership, type Permission, type ResourceScope, type ScopeBinding } from '@smart-wing/api-contract';
 
-export const HIGH_RISK_PERMISSIONS = new Set<Permission>([PERMISSIONS.orderRefund, PERMISSIONS.roleGrant, PERMISSIONS.tenantManage]);
+/** Critical actions always require a recent identity verification. */
+export const HIGH_RISK_PERMISSIONS = new Set<Permission>(PERMISSION_CATALOG.filter((permission) => permission.risk === 'critical').map((permission) => permission.code));
 
 export function isActiveMembership(membership: Membership, now = new Date()): boolean {
   return membership.status === 'active' && (!membership.expiresAt || new Date(membership.expiresAt) > now);
@@ -18,6 +19,7 @@ export function requiresStepUp(permission: Permission): boolean {
 export function decide(membership: Membership, permission: Permission, resourceScope: ResourceScope, options: { stepUpAt?: string | null; now?: Date; stepUpMaxAgeSeconds?: number } = {}): AuthorizationDecision {
   const now = options.now ?? new Date();
   if (!isActiveMembership(membership, now)) return { allowed: false, reason: 'MEMBERSHIP_INACTIVE' };
+  if (membership.deniedPermissions?.includes(permission)) return { allowed: false, reason: 'PERMISSION_DENIED' };
   if (!membership.permissions.includes(permission)) return { allowed: false, reason: 'PERMISSION_MISSING' };
   if (membership.context.tenantId !== resourceScope.tenantId) return { allowed: false, reason: 'TENANT_MISMATCH' };
   if (requiresStepUp(permission) && !hasFreshStepUp(options.stepUpAt, now, options.stepUpMaxAgeSeconds ?? 15 * 60)) {
@@ -54,6 +56,14 @@ function scopeMatches(binding: ScopeBinding, membership: Membership, resource: R
       return resource.mallId === binding.resourceId;
     case 'supplier':
       return resource.supplierId === binding.resourceId;
+    case 'distributor':
+      return resource.distributorId === binding.resourceId;
+    case 'brand':
+      return resource.brandId === binding.resourceId;
+    case 'store':
+      return resource.storeId === binding.resourceId;
+    case 'department':
+      return resource.departmentId === binding.resourceId;
     case 'self':
       return membership.context.userId === binding.resourceId && resource.ownerUserId === binding.resourceId;
   }

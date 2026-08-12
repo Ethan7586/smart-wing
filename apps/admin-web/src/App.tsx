@@ -14,13 +14,14 @@ import { EnterpriseWelfareWorkstation } from './components/workstations/Enterpri
 import { SupplierGovernanceWorkstation } from './components/workstations/SupplierGovernanceWorkstation';
 import { FinancialReconciliationWorkstation } from './components/workstations/FinancialReconciliationWorkstation';
 import { SystemControlWorkstation } from './components/workstations/SystemControlWorkstation';
+import { MembershipPermissionWorkstation } from './components/workstations/MembershipPermissionWorkstation';
 
 // Mock Datasets
 import { ADMIN_PROFILES, INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIERS, INITIAL_CASES, INITIAL_FINANCE_DISCREPANCIES, INITIAL_SYSTEM_CONFIG } from './data/mockData';
 
 import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStatus, FinanceDiscrepancyRow, SystemConfig, GuardrailActionOptions, AdminProfile } from './types';
 
-function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
+export function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
   const allowed = new Set<WorkstationId>(['cockpit']);
   const has = (permission: string) => permissions.includes(permission);
   if (has('catalog.read') || has('product.publish')) allowed.add('product');
@@ -28,6 +29,7 @@ function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
   if (has('tenant.manage') || has('role.grant') || has('audit.read')) allowed.add('enterprise');
   if (has('tenant.manage')) allowed.add('supplier');
   if (has('finance.reconcile')) allowed.add('finance');
+  if (has('member.read') && has('role.read')) allowed.add('membership');
   if (has('tenant.manage') || has('role.grant')) allowed.add('system');
   return [...allowed];
 }
@@ -35,13 +37,14 @@ function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
 export function resolveAdminAccount(employeeNo: unknown, roles: unknown): AdminProfile | null {
   if (!Array.isArray(roles)) return null;
   const roleCodes = new Set(roles.filter((role): role is string => typeof role === 'string'));
-  const username = roleCodes.has('role-platform-owner-v2') || roleCodes.has('platform_owner')
-    ? 'onewr'
-    : roleCodes.has('role-enterprise-manager-v2') || roleCodes.has('enterprise_manager')
-      ? '经理1'
-      : roleCodes.has('role-mall-admin') || roleCodes.has('mall_admin')
-        ? '福宝'
-        : null;
+  const username =
+    roleCodes.has('role-platform-owner-v2') || roleCodes.has('platform_owner')
+      ? 'onewr'
+      : roleCodes.has('role-enterprise-manager-v2') || roleCodes.has('enterprise_manager')
+        ? '经理1'
+        : roleCodes.has('role-mall-admin') || roleCodes.has('mall_admin')
+          ? '福宝'
+          : null;
   if (username) return ADMIN_PROFILES.find((account) => account.username === username) ?? null;
 
   if (typeof employeeNo !== 'string') return null;
@@ -206,6 +209,7 @@ export function App() {
     enterprise: isEn ? 'Enterprises' : '企业福利台',
     supplier: isEn ? 'Suppliers' : '供应商协同台',
     finance: isEn ? 'Finance' : '财务与对账台',
+    membership: isEn ? 'Members & Access' : '会员与权限中心',
     system: isEn ? 'System Control' : '系统治理台',
   }[visibleWorkstation];
 
@@ -285,6 +289,14 @@ export function App() {
 
           {visibleWorkstation === 'finance' && (
             <FinancialReconciliationWorkstation discrepancies={discrepancies} onUpdateDiscrepancies={setDiscrepancies} onOpenGuardrail={handleOpenGuardrail} initialFilterDiscrepancyOnly={filterParams.key === 'discrepancy'} />
+          )}
+
+          {visibleWorkstation === 'membership' && (
+            <MembershipPermissionWorkstation
+              canManageAccess={sessionPermissions.includes('role.grant') && sessionPermissions.includes('scope.grant')}
+              canManageStatus={sessionPermissions.includes('member.disable')}
+              canOffboard={sessionPermissions.includes('member.offboard')}
+            />
           )}
 
           {visibleWorkstation === 'system' && <SystemControlWorkstation config={systemConfig} onUpdateConfig={setSystemConfig} onOpenGuardrail={handleOpenGuardrail} />}

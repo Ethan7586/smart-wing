@@ -26,6 +26,24 @@ describe('authorization decisions', () => {
     expect(decide(employee, PERMISSIONS.orderRead, { ...ownOrder, ownerUserId: 'user-b' })).toMatchObject({ allowed: false, reason: 'SCOPE_MISMATCH' });
   });
 
+  it('lets an explicit deny override a permission inherited from any role', () => {
+    expect(decide({ ...employee, deniedPermissions: [PERMISSIONS.orderRead] }, PERMISSIONS.orderRead, ownOrder)).toMatchObject({ allowed: false, reason: 'PERMISSION_DENIED' });
+  });
+
+  it('supports reserved store and department scopes without widening them', () => {
+    const storeOperator: Membership = {
+      ...employee,
+      target: 'admin',
+      permissions: [PERMISSIONS.orderRead],
+      scopeBindings: [
+        { kind: 'store', resourceId: 'store-a' },
+        { kind: 'department', resourceId: 'department-a' },
+      ],
+    };
+    expect(decide(storeOperator, PERMISSIONS.orderRead, { ...ownOrder, storeId: 'store-a' })).toMatchObject({ allowed: true });
+    expect(decide(storeOperator, PERMISSIONS.orderRead, { ...ownOrder, storeId: 'store-b', departmentId: 'department-b' })).toMatchObject({ allowed: false, reason: 'SCOPE_MISMATCH' });
+  });
+
   it('rejects a resource from another tenant before scope evaluation', () => {
     expect(decide(employee, PERMISSIONS.orderRead, { ...ownOrder, tenantId: 'tenant-b' })).toMatchObject({ allowed: false, reason: 'TENANT_MISMATCH' });
   });
@@ -34,6 +52,11 @@ describe('authorization decisions', () => {
     const refundOperator: Membership = { ...employee, id: 'membership-admin', target: 'admin', permissions: [PERMISSIONS.orderRefund], scopeBindings: [{ kind: 'mall', resourceId: 'mall-a' }] };
     expect(decide(refundOperator, PERMISSIONS.orderRefund, ownOrder)).toMatchObject({ allowed: false, reason: 'STEP_UP_REQUIRED' });
     expect(decide(refundOperator, PERMISSIONS.orderRefund, ownOrder, { stepUpAt: new Date().toISOString() })).toMatchObject({ allowed: true, reason: 'ALLOWED' });
+  });
+
+  it('derives critical step-up behavior from the shared permission catalogue', () => {
+    const administrator: Membership = { ...employee, target: 'admin', permissions: [PERMISSIONS.roleGrant], scopeBindings: [{ kind: 'tenant', resourceId: 'tenant-a' }] };
+    expect(decide(administrator, PERMISSIONS.roleGrant, ownOrder)).toMatchObject({ allowed: false, reason: 'STEP_UP_REQUIRED' });
   });
 
   it('rejects an expired step-up verification', () => {

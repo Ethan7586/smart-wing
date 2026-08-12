@@ -8,6 +8,8 @@ import { handleAdminCatalog, handleAdminOverview, handleSetProductStatus } from 
 import { handleHealth, handleLogin, handleLogout, handleProducts } from './publicRoutes';
 import { handleHomeSnapshot } from './homeRoutes';
 import { handleSimulationBenefitIssue, handleSimulationMixedPayment, handleSimulationRecharge, handleSimulationWallet } from './paymentSimulationRoutes';
+import { handleMembershipAccess, handleMembershipStatus, handlePermissionCommandCenter } from './permissionAdminRoutes';
+import { handleStepUp } from './stepUpRoutes';
 import type { WorkerEnv } from './types';
 
 const API_PREFIX = '/api/v1';
@@ -42,6 +44,9 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     }
     if (url.pathname === `${API_PREFIX}/auth/session`) {
       return json({ authenticated: true, authorization: publicAuthorization(authorization), requestId });
+    }
+    if (url.pathname === `${API_PREFIX}/auth/step-up`) {
+      return await handleStepUp(request, env, authorization, requestId);
     }
     if (url.pathname === `${API_PREFIX}/accounts`) {
       return await handleAccounts(request, env, authorization, requestId);
@@ -83,6 +88,17 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     }
     if (url.pathname === `${API_PREFIX}/admin/overview`) {
       return await handleAdminOverview(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/admin/access-control`) {
+      return await handlePermissionCommandCenter(request, env, authorization, requestId);
+    }
+    const membershipAccessMatch = url.pathname.match(/^\/api\/v1\/admin\/memberships\/([^/]+)\/access$/);
+    if (membershipAccessMatch) {
+      return await handleMembershipAccess(request, env, authorization, decodeURIComponent(membershipAccessMatch[1]), requestId);
+    }
+    const membershipStatusMatch = url.pathname.match(/^\/api\/v1\/admin\/memberships\/([^/]+)\/status$/);
+    if (membershipStatusMatch) {
+      return await handleMembershipStatus(request, env, authorization, decodeURIComponent(membershipStatusMatch[1]), requestId);
     }
     const productStatusMatch = url.pathname.match(/^\/api\/v1\/admin\/products\/([^/]+)\/status$/);
     if (productStatusMatch) {
@@ -139,6 +155,19 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
       ['REFUND_AMOUNT_EXCEEDED', 422, 'REFUND_AMOUNT_EXCEEDED', '退款金额超过可退金额'],
       ['REFUND_CHANNEL_UNSUPPORTED', 422, 'REFUND_CHANNEL_UNSUPPORTED', '订单含未接入退款通道，不能自动退款'],
       ['IDEMPOTENCY_KEY_INVALID', 422, 'IDEMPOTENCY_KEY_INVALID', '退款幂等键无效'],
+      ['SELF_ACCESS_MUTATION_FORBIDDEN', 409, 'SELF_ACCESS_MUTATION_FORBIDDEN', '不能修改自己的会员权限'],
+      ['OWNER_MEMBERSHIP_PROTECTED', 409, 'OWNER_MEMBERSHIP_PROTECTED', 'Owner 身份受保护，不能通过日常后台修改'],
+      ['OWNER_ROLE_PROTECTED', 409, 'OWNER_ROLE_PROTECTED', 'Owner 角色受保护，不能通过日常后台授予或撤销'],
+      ['ROLE_GRANT_EXCEEDS_ACTOR', 403, 'ROLE_GRANT_EXCEEDS_ACTOR', '不能授予自己尚未拥有的角色权限'],
+      ['SCOPE_GRANT_EXCEEDS_ACTOR', 403, 'SCOPE_GRANT_EXCEEDS_ACTOR', '不能授予超出自己管理范围的数据范围'],
+      ['TARGET_MEMBERSHIP_OUTSIDE_ACTOR_SCOPE', 403, 'TARGET_MEMBERSHIP_OUTSIDE_ACTOR_SCOPE', '目标会员不在当前管理员的数据范围内'],
+      ['ACCESS_CHANGE_REASON_REQUIRED', 422, 'ACCESS_CHANGE_REASON_REQUIRED', '必须填写有效的变更原因'],
+      ['MEMBERSHIP_STATUS_INVALID', 422, 'MEMBERSHIP_STATUS_INVALID', '会员状态无效'],
+      ['MEMBERSHIP_NOT_FOUND', 404, 'MEMBERSHIP_NOT_FOUND', '会员身份不存在或不在当前管理范围'],
+      ['MEMBERSHIP_SCOPE_KIND_RESERVED', 422, 'MEMBERSHIP_SCOPE_KIND_RESERVED', '该数据范围尚未启用'],
+      ['MEMBERSHIP_SCOPE_OUTSIDE_TENANT', 422, 'MEMBERSHIP_SCOPE_OUTSIDE_TENANT', '数据范围不属于当前会员上下文'],
+      ['ROLE_NOT_FOUND', 422, 'ROLE_NOT_FOUND', '角色不存在或不属于当前平台'],
+      ['PERMISSION_NOT_FOUND', 422, 'PERMISSION_NOT_FOUND', '权限代码不存在'],
     ] as const) {
       if (message.includes(needle)) return apiError(status, code, text, requestId);
     }

@@ -1,4 +1,4 @@
-export type WorkstationId = 'cockpit' | 'product' | 'order' | 'enterprise' | 'supplier' | 'finance' | 'system';
+export type WorkstationId = 'cockpit' | 'product' | 'order' | 'enterprise' | 'supplier' | 'finance' | 'membership' | 'system';
 
 export interface WorkstationMeta {
   id: WorkstationId;
