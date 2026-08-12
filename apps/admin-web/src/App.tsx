@@ -316,6 +316,9 @@ export function App() {
               canInvite={sessionPermissions.includes('member.invite')}
               canUpdate={sessionPermissions.includes('member.update')}
               canImport={sessionPermissions.includes('member.import')}
+              canCreateRole={sessionPermissions.includes('role.create')}
+              canUpdateRole={sessionPermissions.includes('role.update')}
+              canDisableRole={sessionPermissions.includes('role.delete')}
             />
           )}
 

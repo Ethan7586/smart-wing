@@ -22,7 +22,7 @@ export function MemberAccessEditor({ member, data, saving, readOnly = false, onS
     setDeniedPermissions(member.deniedPermissions);
     setReason('');
   }, [member]);
-  const editableRoles = data.roles.filter((role) => !role.isOwner);
+  const editableRoles = data.roles.filter((role) => !role.isOwner && role.status === 'active');
   const grantedCodes = useMemo(() => new Set(data.roles.filter((role) => roleIds.includes(role.id)).flatMap((role) => role.permissions)), [data.roles, roleIds]);
   const protectedMember = member.isOwner || member.isSelf || readOnly;
   return (

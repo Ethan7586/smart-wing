@@ -10,6 +10,7 @@ import { handleRegistration, handleRegistrationOtp, handleUsernameRegistration }
 import { handleHomeSnapshot } from './homeRoutes';
 import { handleSimulationBenefitIssue, handleSimulationMixedPayment, handleSimulationRecharge, handleSimulationWallet } from './paymentSimulationRoutes';
 import { handleMembershipAccess, handleMembershipStatus, handlePermissionCommandCenter } from './permissionAdminRoutes';
+import { handleCreateCustomRole, handleCustomRoleCenter, handleSetCustomRoleStatus, handleUpdateCustomRole } from './customRoleRoutes';
 import { handleAdminCreateMember, handleCreateMemberInvite, handleDisableMemberInvite, handleMemberImport, handleMemberOperations, handleUpdateMemberProfile } from './memberOperationsRoutes';
 import { handleStepUp } from './stepUpRoutes';
 import { handleChangePassword, handleChangePhone, handleResetPassword, handleRevokeOtherSessions, handleRevokeSession, handleSecurityCenter, handleSecurityOtp } from './securityCenterRoutes';
@@ -142,6 +143,17 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     if (url.pathname === `${API_PREFIX}/admin/access-control`) {
       return await handlePermissionCommandCenter(request, env, authorization, requestId);
     }
+    if (url.pathname === `${API_PREFIX}/admin/roles`) {
+      return request.method === 'POST' ? await handleCreateCustomRole(request, env, authorization, requestId) : await handleCustomRoleCenter(request, env, authorization, requestId);
+    }
+    const roleStatusMatch = url.pathname.match(/^\/api\/v1\/admin\/roles\/([^/]+)\/status$/);
+    if (roleStatusMatch) {
+      return await handleSetCustomRoleStatus(request, env, authorization, decodeURIComponent(roleStatusMatch[1]), requestId);
+    }
+    const roleMatch = url.pathname.match(/^\/api\/v1\/admin\/roles\/([^/]+)$/);
+    if (roleMatch) {
+      return await handleUpdateCustomRole(request, env, authorization, decodeURIComponent(roleMatch[1]), requestId);
+    }
     if (url.pathname === `${API_PREFIX}/admin/member-operations`) {
       return await handleMemberOperations(request, env, authorization, requestId);
     }
@@ -269,6 +281,11 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
       ['MEMBERSHIP_SCOPE_KIND_RESERVED', 422, 'MEMBERSHIP_SCOPE_KIND_RESERVED', '该数据范围尚未启用'],
       ['MEMBERSHIP_SCOPE_OUTSIDE_TENANT', 422, 'MEMBERSHIP_SCOPE_OUTSIDE_TENANT', '数据范围不属于当前会员上下文'],
       ['ROLE_NOT_FOUND', 422, 'ROLE_NOT_FOUND', '角色不存在或不属于当前平台'],
+      ['ROLE_CODE_CONFLICT', 409, 'ROLE_CODE_CONFLICT', '角色编码已存在'],
+      ['CUSTOM_ROLE_INPUT_INVALID', 422, 'CUSTOM_ROLE_INPUT_INVALID', '自定义角色资料无效'],
+      ['CUSTOM_ROLE_STATUS_INVALID', 422, 'CUSTOM_ROLE_STATUS_INVALID', '角色状态或变更原因无效'],
+      ['SYSTEM_ROLE_READ_ONLY', 409, 'SYSTEM_ROLE_READ_ONLY', '系统角色只能查看，不能直接修改'],
+      ['SELF_ROLE_MUTATION_FORBIDDEN', 409, 'SELF_ROLE_MUTATION_FORBIDDEN', '不能编辑或停用自己正在使用的角色'],
       ['PERMISSION_NOT_FOUND', 422, 'PERMISSION_NOT_FOUND', '权限代码不存在'],
       ['QUALIFICATION_CONFIG_NOT_FOUND', 404, 'QUALIFICATION_CONFIG_NOT_FOUND', '资格配置不存在或不属于当前商城'],
       ['QUALIFICATION_VERSION_CONFLICT', 409, 'QUALIFICATION_VERSION_CONFLICT', '配置已被其他管理员修改，请刷新后重试'],

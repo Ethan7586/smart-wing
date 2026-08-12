@@ -5,6 +5,7 @@ import { effectivePermissionCodes, memberSearchText, RISK_LABELS, SCOPE_LABELS }
 import { MemberAccessEditor } from './MemberAccessEditor';
 import { StepUpModal } from './StepUpModal';
 import { MemberOperationsPanel } from './MemberOperationsPanel';
+import { CustomRoleCenterPanel } from './CustomRoleCenterPanel';
 
 interface Props {
   canManageAccess: boolean;
@@ -13,9 +14,12 @@ interface Props {
   canInvite: boolean;
   canUpdate: boolean;
   canImport: boolean;
+  canCreateRole: boolean;
+  canUpdateRole: boolean;
+  canDisableRole: boolean;
 }
 
-export function MembershipPermissionWorkstation({ canManageAccess, canManageStatus, canOffboard, canInvite, canUpdate, canImport }: Props) {
+export function MembershipPermissionWorkstation({ canManageAccess, canManageStatus, canOffboard, canInvite, canUpdate, canImport, canCreateRole, canUpdateRole, canDisableRole }: Props) {
   const [data, setData] = useState<AccessControlData | null>(null);
   const [selectedId, setSelectedId] = useState('');
   const [query, setQuery] = useState('');
@@ -24,7 +28,7 @@ export function MembershipPermissionWorkstation({ canManageAccess, canManageStat
   const [error, setError] = useState('');
   const [verifiedUntil, setVerifiedUntil] = useState(0);
   const [stepUpOpen, setStepUpOpen] = useState(false);
-  const [section, setSection] = useState<'operations' | 'permissions'>('operations');
+  const [section, setSection] = useState<'operations' | 'permissions' | 'roles'>('operations');
   const pendingAction = useRef<null | (() => Promise<void>)>(null);
   const refresh = async () => {
     setLoading(true);
@@ -124,8 +128,12 @@ export function MembershipPermissionWorkstation({ canManageAccess, canManageStat
           <button onClick={() => setSection('permissions')} className={`px-4 py-2 text-xs border-b-2 ${section === 'permissions' ? 'border-blue-500 text-blue-700 font-bold' : 'border-transparent text-slate-500'}`}>
             授权与状态
           </button>
+          <button onClick={() => setSection('roles')} className={`px-4 py-2 text-xs border-b-2 ${section === 'roles' ? 'border-blue-500 text-blue-700 font-bold' : 'border-transparent text-slate-500'}`}>
+            自定义角色
+          </button>
         </div>
         <MemberOperationsPanel active={section === 'operations'} canInvite={canInvite} canUpdate={canUpdate} canImport={canImport} runProtected={runProtected} />
+        <CustomRoleCenterPanel active={section === 'roles'} canCreate={canCreateRole} canUpdate={canUpdateRole} canDisable={canDisableRole} runProtected={runProtected} onChanged={refresh} />
         {error && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700">{error}</div>}
         {section === 'permissions' && (
           <div className="grid grid-cols-12 gap-5 items-start">

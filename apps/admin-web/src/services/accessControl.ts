@@ -8,6 +8,7 @@ export interface AccessRole {
   isSystem: boolean;
   isOwner: boolean;
   isEditable: boolean;
+  status: 'active' | 'disabled';
   permissions: string[];
 }
 export interface AccessPermission {
