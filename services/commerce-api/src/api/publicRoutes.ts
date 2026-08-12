@@ -4,7 +4,7 @@ import { apiError, json, methodNotAllowed } from './http';
 import { isTestLoginRateLimitBypassed, readTrustedClientIp } from './loginRateLimitBypass';
 import { resolveMembershipRuntimeByIds, type MembershipRuntime } from './membershipContext';
 import { localPhoneSubject } from './registrationRoutes';
-import { normalizeChineseMobile, verifyPassword } from './registrationSecurity';
+import { normalizeChineseMobile, normalizeLocalUsername, verifyPassword } from './registrationSecurity';
 import { readJsonBody } from './routerSupport';
 import { clearSessionCookie, createTrackedSessionCookie, readSession, targetForRequest } from './session';
 import { callRpc, isSupabaseConfigured } from './supabase';
@@ -161,8 +161,11 @@ const DUMMY_PASSWORD_HASH = `pbkdf2-sha256$310000$AAAAAAAAAAAAAAAAAAAAAA==$${'A'
 
 async function authenticateLocalMember(identifier: string, password: string, target: 'storefront' | 'admin' | undefined, env: WorkerEnv): Promise<{ runtime: MembershipRuntime | null; credentialFound: boolean }> {
   const mobile = normalizeChineseMobile(identifier);
-  const provider = mobile ? 'local_phone' : isDemoAuthEnabled(env) ? 'test' : null;
-  const subject = mobile ? await localPhoneSubject(mobile, env) : identifier.trim().toLowerCase();
+  const username = normalizeLocalUsername(identifier);
+  const normalizedIdentifier = identifier.trim().toLowerCase();
+  const demoAlias = isDemoAuthEnabled(env) && getDemoAccounts(env).some((candidate) => candidate.username.trim().toLowerCase() === normalizedIdentifier);
+  const provider = mobile ? 'local_phone' : demoAlias ? 'test' : username ? 'local_username' : isDemoAuthEnabled(env) ? 'test' : null;
+  const subject = mobile ? await localPhoneSubject(mobile, env) : (username ?? identifier.trim().toLowerCase());
   if (!provider || !subject) return { runtime: null, credentialFound: false };
   const candidate = await callRpc<RegisteredCandidate | null>(env, 'api_local_login_candidate', {
     p_provider: provider,

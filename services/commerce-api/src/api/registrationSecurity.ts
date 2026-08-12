@@ -43,12 +43,18 @@ export async function verifyPassword(password: string, encoded: string): Promise
 
 export function validRegistrationPassword(value: string): boolean {
   if (value.length < 10 || value.length > 128) return false;
+  if (value !== value.trim()) return false;
   return /[A-Za-z]/.test(value) && /\d/.test(value);
 }
 
 export function normalizeChineseMobile(value: unknown): string | null {
   const mobile = typeof value === 'string' ? value.trim() : '';
   return /^1[3-9]\d{9}$/.test(mobile) ? mobile : null;
+}
+
+export function normalizeLocalUsername(value: unknown): string | null {
+  const username = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  return /^[a-z][a-z0-9._-]{3,31}$/.test(username) ? username : null;
 }
 
 export function maskMobile(mobile: string): string {

@@ -434,6 +434,23 @@ export async function registerMember(input: { mobile: string; challengeId: strin
   return payload;
 }
 
+export async function registerUsernameMember(input: {
+  username: string;
+  password: string;
+  displayName: string;
+  inviteCode: string;
+  acceptedTerms: true;
+}): Promise<{ registered: true; username: string; employeeNo: string; phoneBound: false }> {
+  const response = await fetch('/api/v1/auth/register/username', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error?.message || '注册失败');
+  return payload;
+}
+
 /**
  * 4. 接受邀请 API
  */

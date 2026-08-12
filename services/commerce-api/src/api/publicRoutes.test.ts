@@ -95,6 +95,52 @@ describe('health endpoint', () => {
     await expect(response.json()).resolves.toMatchObject({ authenticated: true, authorization: { membershipId: 'membership-new', target: 'storefront' } });
   });
 
+  it('authenticates a registered username through the local username alias', async () => {
+    const passwordHash = await hashPassword('SmartWing2026');
+    const responses = [
+      true,
+      { memberId: 'member-username', membershipId: 'membership-username', target: 'storefront', passwordHash },
+      {
+        id: 'membership-username',
+        memberId: 'member-username',
+        target: 'storefront',
+        status: 'active',
+        roleIds: ['role-employee'],
+        permissions: ['catalog.read'],
+        deniedPermissions: [],
+        context: { tenantId: 'tenant-smart-wing', enterpriseId: 'enterprise-demo', mallId: 'mall-demo', userId: 'user-username' },
+        scopeBindings: [{ kind: 'self', resourceId: 'user-username' }],
+        expiresAt: null,
+        authzVersion: 1,
+        actor: { tenantId: 'tenant-smart-wing', enterpriseId: 'enterprise-demo', mallId: 'mall-demo', mallCode: 'SMART_WING_DEMO', userId: 'user-username', employeeNo: 'REG-USERNAME' },
+      },
+      true,
+      true,
+    ];
+    const fetchMock = vi.fn(async (_input: unknown, _init?: unknown) => new Response(JSON.stringify(responses.shift()), { status: 200, headers: { 'content-type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetchMock);
+    const response = await handleLogin(
+      new Request('https://hbbtzn.com/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-real-ip': '203.0.113.18' },
+        body: JSON.stringify({ username: 'New.Employee', password: 'SmartWing2026' }),
+      }),
+      {
+        APP_ENV: 'production',
+        AUTH_MODE: 'membership',
+        SUPABASE_URL: 'https://db.example',
+        SUPABASE_SERVICE_ROLE_KEY: 'service-role',
+        SESSION_SIGNING_KEY: 'session-key-that-is-longer-than-thirty-two-bytes',
+      },
+      'username-login'
+    );
+
+    expect(response.status).toBe(200);
+    const calls = fetchMock.mock.calls as unknown as Array<[unknown, { body?: unknown }?]>;
+    expect(JSON.parse(String(calls[1]?.[1]?.body))).toMatchObject({ p_provider: 'local_username', p_subject: 'new.employee' });
+    await expect(response.json()).resolves.toMatchObject({ authenticated: true, authorization: { membershipId: 'membership-username' } });
+  });
+
   it('does not restore the old demo password after a test account changes its password', async () => {
     const passwordHash = await hashPassword('ChangedBuyer2026');
     const responses = [

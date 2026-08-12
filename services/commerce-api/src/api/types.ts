@@ -10,6 +10,8 @@ export interface WorkerEnv {
   AUTH_MODE?: string;
   /** Public member registration is fail-closed in production unless enabled. */
   SELF_REGISTRATION_ENABLED?: string;
+  /** Username/password registration has its own production release switch. */
+  USERNAME_REGISTRATION_ENABLED?: string;
   /** Debug OTP is permitted only outside production. A real SMS provider follows. */
   SMS_PROVIDER?: string;
   /** Exact test-client IPs that may skip only the login failure limiter. */

@@ -6,7 +6,7 @@ import { apiError, json } from './http';
 import { handleAfterSales, handleCreateAfterSale, handleCreateOrder, handleExecuteRefund, handleFinanceReconciliation, handleInternalPayment, handleOrders, handleShipOrder } from './orderRoutes';
 import { handleAdminCatalog, handleAdminOverview, handleSetProductStatus } from './adminRoutes';
 import { handleHealth, handleLogin, handleLogout, handleProducts, handleRegisteredCredentialDiscovery } from './publicRoutes';
-import { handleRegistration, handleRegistrationOtp } from './registrationRoutes';
+import { handleRegistration, handleRegistrationOtp, handleUsernameRegistration } from './registrationRoutes';
 import { handleHomeSnapshot } from './homeRoutes';
 import { handleSimulationBenefitIssue, handleSimulationMixedPayment, handleSimulationRecharge, handleSimulationWallet } from './paymentSimulationRoutes';
 import { handleMembershipAccess, handleMembershipStatus, handlePermissionCommandCenter } from './permissionAdminRoutes';
@@ -48,6 +48,9 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     }
     if (url.pathname === `${API_PREFIX}/auth/register`) {
       return await handleRegistration(request, env, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/auth/register/username`) {
+      return await handleUsernameRegistration(request, env, requestId);
     }
     if (url.pathname === `${API_PREFIX}/auth/security/otp`) {
       return await handleSecurityOtp(request, env, requestId);

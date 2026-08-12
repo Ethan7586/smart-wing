@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 import { useMallContext } from '../context/MallContext';
 import { LoginMethod, Membership, PreAuthContext } from '../types';
-import { requestOtp, loginWithOtp, loginWithPassword, verifyStepUp, getLockoutState, acceptInvitation, registerMember, requestRegistrationOtp } from '../services/auth';
+import { requestOtp, loginWithOtp, loginWithPassword, verifyStepUp, getLockoutState, acceptInvitation, registerUsernameMember } from '../services/auth';
 
 export const LoginPage: React.FC = () => {
   const { currentDomain, navigateTo, acceptedTerms, setAcceptedTerms, setActiveSession } = useMallContext();
@@ -54,8 +54,7 @@ export const LoginPage: React.FC = () => {
   const [ssoDomain, setSsoDomain] = useState<string>('tencent.hbbtzn.com');
   const [totpCode, setTotpCode] = useState<string>('123456');
   const [registrationOpen, setRegistrationOpen] = useState(false);
-  const [registration, setRegistration] = useState({ mobile: '', code: '', displayName: '', inviteCode: '', password: '', confirmPassword: '' });
-  const [registrationChallengeId, setRegistrationChallengeId] = useState('');
+  const [registration, setRegistration] = useState({ username: '', displayName: '', inviteCode: '', password: '', confirmPassword: '' });
   const [registrationNotice, setRegistrationNotice] = useState('');
   const [resetOpen, setResetOpen] = useState(false);
   const [resetForm, setResetForm] = useState({ mobile: '', code: '', challengeId: '', password: '', confirm: '' });
@@ -215,7 +214,7 @@ export const LoginPage: React.FC = () => {
       }
     } else if (activeTab === 'password') {
       if (!identifier.trim()) {
-        errors.identifier = '请输入工号或企业邮箱';
+        errors.identifier = '请输入登录账号或已绑定手机号';
       }
       if (!password.trim()) {
         errors.password = '请输入密码';
@@ -253,52 +252,26 @@ export const LoginPage: React.FC = () => {
     setFormError('');
   };
 
-  const handleSendRegistrationOtp = async () => {
-    if (!/^1[3-9]\d{9}$/.test(registration.mobile.trim())) {
-      setFormError('请输入正确的11位手机号码');
-      return;
-    }
-    setLoading(true);
-    setFormError('');
-    try {
-      const result = await requestRegistrationOtp(registration.mobile.trim());
-      setRegistrationChallengeId(result.challengeId);
-      setOtpCountdown(result.resendAfterSeconds);
-      if (result.debugCode) {
-        updateRegistration('code', result.debugCode);
-        setRegistrationNotice(`开发环境验证码：${result.debugCode}（生产环境不会显示）`);
-      } else {
-        setRegistrationNotice('验证码已发送，请在5分钟内完成注册');
-      }
-    } catch (error: any) {
-      setFormError(error.message || '验证码发送失败');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleRegistrationSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!acceptedTerms) return setFormError('请先阅读并同意用户协议和隐私政策');
-    if (!registrationChallengeId) return setFormError('请先获取短信验证码');
     if (registration.password !== registration.confirmPassword) return setFormError('两次输入的密码不一致');
     setLoading(true);
     setFormError('');
     try {
-      await registerMember({
-        mobile: registration.mobile.trim(),
-        challengeId: registrationChallengeId,
-        code: registration.code.trim(),
+      await registerUsernameMember({
+        username: registration.username.trim(),
         password: registration.password,
         displayName: registration.displayName.trim(),
         inviteCode: registration.inviteCode.trim(),
+        acceptedTerms: true,
       });
-      setIdentifier(registration.mobile.trim());
+      setIdentifier(registration.username.trim().toLowerCase());
       setPassword(registration.password);
       setActiveTab('password');
       setRegistrationOpen(false);
       setRegistrationNotice('');
-      setFormError('注册成功。已为你建立普通员工会员身份，请直接登录。');
+      setFormError('注册成功。已为你建立普通员工会员身份；手机号开通前无法自助找回密码，请妥善保管。');
     } catch (error: any) {
       setFormError(error.message || '注册失败');
     } finally {
@@ -1125,20 +1098,20 @@ export const LoginPage: React.FC = () => {
                         </form>
                       )}
 
-                      {/* Tab 2: 工号/企业邮箱 + 密码 */}
+                      {/* Tab 2: 登录账号/已绑定手机号 + 密码 */}
                       {activeTab === 'password' && (
                         <form onSubmit={handleStage1Submit} className="space-y-4">
                           <div className="space-y-1.5">
                             <label className="text-xs font-medium text-slate-700 flex items-center gap-1">
-                              <Building2 className="w-3.5 h-3.5 text-slate-400" /> 手机号、工号或企业邮箱
+                              <Building2 className="w-3.5 h-3.5 text-slate-400" /> 登录账号或已绑定手机号
                             </label>
                             <input
                               type="text"
                               value={identifier}
                               onChange={(e) => handleIdentifierChange(e.target.value)}
-                              placeholder="手机号、工号或企业邮箱"
+                              placeholder="输入登录账号或已绑定手机号"
                               className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)] focus:border-[var(--sw-brand)] transition-all"
-                              aria-label="手机号、工号或企业邮箱"
+                              aria-label="登录账号或已绑定手机号"
                               disabled={lockoutSeconds > 0 || loading}
                             />
                             {fieldErrors.identifier && <p className="text-[11px] text-rose-500">{fieldErrors.identifier}</p>}
@@ -1466,7 +1439,7 @@ export const LoginPage: React.FC = () => {
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--sw-brand)]">Member Registration</p>
                 <h3 className="mt-1 text-2xl font-bold text-slate-950">注册员工会员</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-500">注册只会建立普通员工身份。商家、运营、客服、管理员须由后台邀请；Owner 不开放注册。</p>
+                <p className="mt-2 text-sm leading-6 text-slate-500">先用账号密码建立普通员工会员。手机号、微信和企业微信以后可绑定到同一个账号；管理员与 Owner 不开放自助注册。</p>
               </div>
               <button type="button" onClick={() => setRegistrationOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="关闭注册">
                 <X className="h-5 w-5" />
@@ -1480,6 +1453,7 @@ export const LoginPage: React.FC = () => {
                   value={registration.displayName}
                   onChange={(e) => updateRegistration('displayName', e.target.value)}
                   maxLength={60}
+                  required
                   placeholder="请输入真实姓名"
                   className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
                 />
@@ -1490,40 +1464,24 @@ export const LoginPage: React.FC = () => {
                   value={registration.inviteCode}
                   onChange={(e) => updateRegistration('inviteCode', e.target.value.toUpperCase())}
                   maxLength={80}
+                  required
                   placeholder="由企业福利管理员提供"
                   className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-mono uppercase outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
                 />
               </label>
               <label className="space-y-1.5 text-xs font-medium text-slate-700 sm:col-span-2">
-                手机号码
+                登录账号
                 <input
-                  type="tel"
-                  value={registration.mobile}
-                  onChange={(e) => updateRegistration('mobile', e.target.value)}
-                  maxLength={11}
-                  placeholder="一个手机号对应一个自然人账号"
+                  value={registration.username}
+                  onChange={(e) => updateRegistration('username', e.target.value.toLowerCase())}
+                  minLength={4}
+                  maxLength={32}
+                  pattern="[A-Za-z][A-Za-z0-9._-]{3,31}"
+                  required
+                  autoComplete="username"
+                  placeholder="4–32位，以字母开头，可含数字、点、横线和下划线"
                   className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
                 />
-              </label>
-              <label className="space-y-1.5 text-xs font-medium text-slate-700 sm:col-span-2">
-                手机验证码
-                <span className="flex gap-2">
-                  <input
-                    value={registration.code}
-                    onChange={(e) => updateRegistration('code', e.target.value.replace(/\D/g, ''))}
-                    maxLength={6}
-                    placeholder="6位验证码"
-                    className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-mono outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSendRegistrationOtp}
-                    disabled={loading || otpCountdown > 0}
-                    className="rounded-xl border border-blue-200 bg-blue-50 px-4 text-xs font-semibold text-[var(--sw-brand)] disabled:opacity-50"
-                  >
-                    {otpCountdown > 0 ? `${otpCountdown}s` : '获取验证码'}
-                  </button>
-                </span>
               </label>
               <label className="space-y-1.5 text-xs font-medium text-slate-700">
                 设置密码
@@ -1531,7 +1489,9 @@ export const LoginPage: React.FC = () => {
                   type="password"
                   value={registration.password}
                   onChange={(e) => updateRegistration('password', e.target.value)}
+                  minLength={10}
                   maxLength={128}
+                  required
                   placeholder="至少10位，含字母和数字"
                   className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
                 />
@@ -1542,7 +1502,9 @@ export const LoginPage: React.FC = () => {
                   type="password"
                   value={registration.confirmPassword}
                   onChange={(e) => updateRegistration('confirmPassword', e.target.value)}
+                  minLength={10}
                   maxLength={128}
+                  required
                   placeholder="再次输入密码"
                   className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
                 />
@@ -1553,7 +1515,7 @@ export const LoginPage: React.FC = () => {
             {formError && <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{formError}</p>}
             <label className="mt-5 flex cursor-pointer items-start gap-2 text-xs leading-5 text-slate-500">
               <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 accent-[var(--sw-brand)]" />
-              <span>我已阅读并同意《用户服务协议》和《隐私保护政策》，并确认使用本人手机号注册。</span>
+              <span>我已阅读并同意《用户服务协议》和《隐私保护政策》，并确认使用本人账号注册。</span>
             </label>
             <button
               type="submit"
@@ -1563,7 +1525,7 @@ export const LoginPage: React.FC = () => {
               {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4" />}
               创建普通员工会员账号
             </button>
-            <p className="mt-3 text-center text-[11px] text-slate-400">企业管理员只负责确认员工归属，不能查看你的密码和短信验证码。</p>
+            <p className="mt-3 text-center text-[11px] leading-5 text-slate-400">企业管理员不能查看你的密码。手机号与微信绑定入口已预留；未绑定手机前无法自助找回密码。</p>
           </form>
         </div>
       )}
