@@ -231,7 +231,15 @@ const ROLE_TEST_MEMBERSHIP_DEFINITIONS: ReadonlyArray<{
   { prefix: 'seller', target: 'admin', roleName: '测试商家', dataScope: '央企供应链', subjectScope: '供应商', keyPermissions: ['catalog.read', 'product.publish', 'order.read', 'order.ship'], requiresStepUp: false },
   { prefix: 'ops', target: 'admin', roleName: '测试运营', dataScope: '智慧翼企业福利商城', subjectScope: '商城', keyPermissions: ['catalog.read', 'product.publish', 'order.read', 'order.ship', 'audit.read'], requiresStepUp: false },
   { prefix: 'cs', target: 'admin', roleName: '测试客服', dataScope: '智慧翼企业福利商城', subjectScope: '商城', keyPermissions: ['catalog.read', 'order.read', 'member.read'], requiresStepUp: false },
-  { prefix: 'admin', target: 'admin', roleName: '测试企业管理员', dataScope: '示范企业 / 智慧翼企业福利商城', subjectScope: '企业', keyPermissions: ['member.invite', 'member.disable', 'finance.reconcile', 'audit.read'], requiresStepUp: false },
+  {
+    prefix: 'admin',
+    target: 'admin',
+    roleName: '测试企业管理员',
+    dataScope: '示范企业 / 智慧翼企业福利商城',
+    subjectScope: '企业',
+    keyPermissions: ['member.invite', 'member.disable', 'finance.reconcile', 'audit.read'],
+    requiresStepUp: false,
+  },
 ];
 
 for (const definition of ROLE_TEST_MEMBERSHIP_DEFINITIONS) {
@@ -362,55 +370,38 @@ export async function loginWithPassword(identifier: string, password: string): P
     throw new Error(`账号已被锁定，请在 ${Math.ceil(lockout.remainingSeconds / 60)} 分钟后再试`);
   }
 
-  if (/^1[3-9]\d{9}$/.test(cleanId)) {
-    const response = await fetch('/api/v1/auth/login', {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ username: cleanId, password: cleanPw }),
-    });
-    const payload = await response.json().catch(() => null);
-    if (!response.ok) throw new Error(payload?.error?.message || '账号或密码不正确');
-    const membershipId = payload?.authorization?.membershipId;
-    if (typeof membershipId !== 'string') throw new Error('会员身份未正确建立');
-    return {
-      preAuthToken: `SERVER_SESSION_${Date.now()}`,
-      identifier: cleanId,
-      loginMethod: 'password',
-      memberships: [{
-        id: membershipId,
-        target: 'storefront',
-        status: 'active',
-        enterpriseName: '已绑定企业',
-        storeName: '智慧翼企业福利商城',
-        roleName: '企业员工会员',
-        dataScope: '个人福利账户',
-        accountTypeLabel: '福利账户',
-      }],
-    };
-  }
-
-  await new Promise((resolve) => setTimeout(resolve, 800));
-
-  const testMemberships = TEST_ACCOUNT_MEMBERSHIPS[cleanId];
-  const isMatch = Boolean(testMemberships) && cleanPw === '123456';
-
-  if (!isMatch) {
+  const response = await fetch('/api/v1/auth/credential/discover', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ username: cleanId, password: cleanPw }),
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
     await reportLoginFailure(cleanId, '密码验证失败');
-    // 安全红线：统一文案 "账号或密码不正确"
-    throw new Error('账号或密码不正确');
+    throw new Error(payload?.error?.message || '账号或密码不正确');
   }
-
+  const membershipId = payload?.authorization?.membershipId;
+  const target = payload?.authorization?.target;
+  if (typeof membershipId !== 'string' || (target !== 'storefront' && target !== 'admin')) throw new Error('会员身份未正确建立');
   delete failureMap[cleanId];
-
-  const memberships = testMemberships ?? [];
-
+  const fixture = TEST_ACCOUNT_MEMBERSHIPS[cleanId]?.find((item) => item.id === membershipId);
   return {
     preAuthToken: `PAT_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
     identifier: cleanId,
     loginMethod: 'password',
-    requiresPasswordReset: cleanId === '13400134000' || cleanId === 'force_user',
-    memberships: JSON.parse(JSON.stringify(memberships)),
+    memberships: [
+      fixture ?? {
+        id: membershipId,
+        target,
+        status: 'active',
+        enterpriseName: '已绑定企业',
+        storeName: target === 'admin' ? '智慧翼运营后台' : '智慧翼企业福利商城',
+        roleName: target === 'admin' ? '企业管理会员' : '企业员工会员',
+        dataScope: target === 'admin' ? '已授权业务范围' : '个人福利账户',
+        accountTypeLabel: target === 'storefront' ? '福利账户' : undefined,
+      },
+    ],
   };
 }
 
@@ -432,14 +423,7 @@ export async function requestRegistrationOtp(mobile: string): Promise<Registrati
   return payload as RegistrationOtpResult;
 }
 
-export async function registerMember(input: {
-  mobile: string;
-  challengeId: string;
-  code: string;
-  password: string;
-  displayName: string;
-  inviteCode: string;
-}): Promise<{ registered: true; employeeNo: string }> {
+export async function registerMember(input: { mobile: string; challengeId: string; code: string; password: string; displayName: string; inviteCode: string }): Promise<{ registered: true; employeeNo: string }> {
   const response = await fetch('/api/v1/auth/register', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

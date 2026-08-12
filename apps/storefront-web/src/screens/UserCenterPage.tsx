@@ -7,9 +7,10 @@
 import React from 'react';
 import { useMall } from '../context/MallContext';
 import { CreditCard, Utensils, Package, MapPin, Heart, Ticket, Headphones, ChevronRight, Building2, Clock, Truck, ShieldAlert, ArrowRight } from 'lucide-react';
+import { AccountSecurityCenter } from '../components/security/AccountSecurityCenter';
 
 export const UserCenterPage: React.FC = () => {
-  const { user, currentMall, navigateTo, orders } = useMall();
+  const { user, currentMall, navigateTo, orders, sessionStatus, logout } = useMall();
 
   const pendingShipment = orders.filter((o) => o.status === 'pending_shipment').length;
   const pendingReceipt = orders.filter((o) => o.status === 'pending_receipt').length;
@@ -137,6 +138,7 @@ export const UserCenterPage: React.FC = () => {
           <ChevronRight className="w-4 h-4 text-gray-400" />
         </div>
       </div>
+      {sessionStatus === 'authenticated' && <AccountSecurityCenter onSignedOut={() => void logout()} />}
     </div>
   );
 };

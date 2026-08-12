@@ -101,6 +101,21 @@ export interface ApiActor {
   roles: string[];
   permissions: string[];
 }
+export interface ApiSecuritySession {
+  id: string;
+  target: 'storefront' | 'admin';
+  deviceLabel: string;
+  createdAt: string;
+  lastSeenAt: string;
+  expiresAt: string;
+  current: boolean;
+}
+export interface ApiSecurityCenter {
+  hasLocalCredential: boolean;
+  phoneMasked: string | null;
+  passwordChangedAt: string | null;
+  sessions: ApiSecuritySession[];
+}
 export interface LoginRequest {
   accessCode?: string;
   username?: string;

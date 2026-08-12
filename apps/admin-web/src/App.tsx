@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
+import { AccountSecurityModal } from './components/AccountSecurityModal';
 import { GuardrailModal } from './components/GuardrailModal';
 import { CaseCenterDrawer } from './components/CaseCenterDrawer';
 import { CommandPaletteModal } from './components/CommandPaletteModal';
@@ -85,6 +86,7 @@ export function App() {
   const [isLiveCatalog, setIsLiveCatalog] = useState(false);
   const [liveOperations, setLiveOperations] = useState<LiveOperationsSummary | null>(null);
   const [authChecking, setAuthChecking] = useState(true);
+  const [isSecurityCenterOpen, setIsSecurityCenterOpen] = useState(false);
 
   // Application Domain State (In-Memory Mock Single Source of Truth)
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
@@ -269,6 +271,7 @@ export function App() {
           onToggleLanguage={handleToggleLanguage}
           currentUser={currentUser}
           onLogout={handleLogout}
+          onOpenSecurityCenter={() => setIsSecurityCenterOpen(true)}
         />
 
         {/* 3. Main Workstation Area */}
@@ -317,6 +320,7 @@ export function App() {
 
           {visibleWorkstation === 'system' && <SystemControlWorkstation config={systemConfig} onUpdateConfig={setSystemConfig} onOpenGuardrail={handleOpenGuardrail} />}
         </main>
+        <AccountSecurityModal open={isSecurityCenterOpen} onClose={() => setIsSecurityCenterOpen(false)} onSignedOut={handleLogout} />
 
         {/* System Footer Bar */}
         <footer className="h-9 bg-white border-t border-slate-200/80 px-6 flex items-center justify-between text-[11px] text-slate-400 shrink-0">

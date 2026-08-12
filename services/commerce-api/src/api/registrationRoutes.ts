@@ -1,7 +1,7 @@
 import { encryptJson, sha256 } from './crypto';
 import { apiError, json, methodNotAllowed } from './http';
 import { readTrustedClientIp } from './loginRateLimitBypass';
-import { generateOtp, hashPassword, maskMobile, normalizeChineseMobile, validRegistrationPassword } from './registrationSecurity';
+import { generateOtp, hashPassword, maskMobile, normalizeChineseMobile, phoneLookupSubject, validRegistrationPassword, verificationCodeHash } from './registrationSecurity';
 import { readJsonBody } from './routerSupport';
 import { callRpc } from './supabase';
 import type { WorkerEnv } from './types';
@@ -19,13 +19,13 @@ export async function handleRegistrationOtp(request: Request, env: WorkerEnv, re
 
   const challengeId = crypto.randomUUID();
   const code = generateOtp();
-  const subject = await phoneSubject(mobile, env.IDENTITY_LOOKUP_KEY);
+  const subject = await phoneLookupSubject(mobile, env.IDENTITY_LOOKUP_KEY);
   const clientIp = readTrustedClientIp(request);
   const created = await callRpc<boolean>(env, 'api_create_registration_challenge', {
     p_challenge_id: challengeId,
     p_phone_subject: subject,
     p_phone_masked: maskMobile(mobile),
-    p_code_hash: await otpHash(challengeId, code, env.IDENTITY_LOOKUP_KEY),
+    p_code_hash: await verificationCodeHash('registration', challengeId, code, env.IDENTITY_LOOKUP_KEY),
     p_ip_hash: await sha256(`${clientIp ?? 'unknown'}:${env.SESSION_SIGNING_KEY}`),
     p_expires_at: new Date(Date.now() + 5 * 60 * 1_000).toISOString(),
   });
@@ -50,11 +50,11 @@ export async function handleRegistration(request: Request, env: WorkerEnv, reque
   if (!validRegistrationPassword(password)) return apiError(422, 'WEAK_PASSWORD', '密码至少10位，并同时包含字母和数字', requestId);
   if (!env.IDENTITY_LOOKUP_KEY || !env.PII_ENCRYPTION_KEY) return apiError(503, 'REGISTRATION_SECURITY_NOT_CONFIGURED', '注册安全配置尚未完成', requestId);
 
-  const subject = await phoneSubject(mobile, env.IDENTITY_LOOKUP_KEY);
+  const subject = await phoneLookupSubject(mobile, env.IDENTITY_LOOKUP_KEY);
   const result = await callRpc<RegisterResult>(env, 'api_register_storefront_member', {
     p_challenge_id: challengeId,
     p_phone_subject: subject,
-    p_code_hash: await otpHash(challengeId, code!, env.IDENTITY_LOOKUP_KEY),
+    p_code_hash: await verificationCodeHash('registration', challengeId, code!, env.IDENTITY_LOOKUP_KEY),
     p_phone_masked: maskMobile(mobile),
     p_phone_cipher: JSON.parse(await encryptJson({ mobile }, env.PII_ENCRYPTION_KEY)),
     p_password_hash: await hashPassword(password),
@@ -68,7 +68,7 @@ export async function handleRegistration(request: Request, env: WorkerEnv, reque
 }
 
 export async function localPhoneSubject(mobile: string, env: WorkerEnv): Promise<string | null> {
-  return env.IDENTITY_LOOKUP_KEY ? phoneSubject(mobile, env.IDENTITY_LOOKUP_KEY) : null;
+  return env.IDENTITY_LOOKUP_KEY ? phoneLookupSubject(mobile, env.IDENTITY_LOOKUP_KEY) : null;
 }
 
 function registrationEnabled(env: WorkerEnv): boolean {
@@ -76,12 +76,6 @@ function registrationEnabled(env: WorkerEnv): boolean {
 }
 function debugSmsEnabled(env: WorkerEnv): boolean {
   return (env.APP_ENV === 'development' || env.APP_ENV === 'test') && (env.SMS_PROVIDER === undefined || env.SMS_PROVIDER === 'debug');
-}
-function phoneSubject(mobile: string, secret: string): Promise<string> {
-  return sha256(`local_phone:${mobile}:${secret}`);
-}
-function otpHash(challengeId: string, code: string, secret: string): Promise<string> {
-  return sha256(`registration:${challengeId}:${code}:${secret}`);
 }
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);

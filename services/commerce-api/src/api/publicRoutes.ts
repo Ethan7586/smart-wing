@@ -6,7 +6,7 @@ import { resolveMembershipRuntimeByIds, type MembershipRuntime } from './members
 import { localPhoneSubject } from './registrationRoutes';
 import { normalizeChineseMobile, verifyPassword } from './registrationSecurity';
 import { readJsonBody } from './routerSupport';
-import { clearSessionCookie, createSessionCookie, targetForRequest } from './session';
+import { clearSessionCookie, createTrackedSessionCookie, readSession, targetForRequest } from './session';
 import { callRpc, isSupabaseConfigured } from './supabase';
 import type { AuthorizationContext, WorkerEnv } from './types';
 
@@ -92,8 +92,9 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
     return apiError(400, 'INVALID_LOGIN_INPUT', '账号或密码缺失', requestId);
   }
   const target = targetForRequest(request);
-  const registeredRuntime = registeredAuthEnabled ? await authenticateRegisteredMember(username, password, target, env) : null;
-  const account = registeredRuntime ? null : getDemoAccounts(env).find((candidate) => candidate.username.trim().toLowerCase() === username.trim().toLowerCase());
+  const localLogin = registeredAuthEnabled ? await authenticateLocalMember(username, password, target, env) : { runtime: null, credentialFound: false };
+  const registeredRuntime = localLogin.runtime;
+  const account = registeredRuntime || localLogin.credentialFound ? null : getDemoAccounts(env).find((candidate) => candidate.username.trim().toLowerCase() === username.trim().toLowerCase());
   const demoRuntime = account && (await verifyDemoPassword(password, account.password)) ? await resolveDemoMembership(env, account, target) : null;
   const runtime = registeredRuntime ?? demoRuntime;
   if (!runtime) {
@@ -105,7 +106,7 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
     return apiError(401, 'INVALID_USERNAME_PASSWORD', '账号或密码不正确', requestId);
   }
   await callRpc<boolean>(env, 'api_clear_login_failures', { p_ip_hash: ipHash });
-  const cookie = await createSessionCookie(env, runtime.authorization.employeeNo, runtime.authorization.mallCode, {
+  const cookie = await createTrackedSessionCookie(request, env, runtime.authorization.employeeNo, runtime.authorization.mallCode, {
     target,
     memberId: runtime.membership.memberId,
     membershipId: runtime.membership.id,
@@ -124,29 +125,61 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
   return json({ authenticated: true, authorization: publicAuthorization(runtime.authorization), requestId }, { headers: { 'set-cookie': cookie } });
 }
 
-type RegisteredCandidate = { memberId?: string; membershipId?: string; passwordHash?: string; mustResetPassword?: boolean };
+export async function handleRegisteredCredentialDiscovery(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
+  if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
+  if (!isSupabaseConfigured(env)) {
+    return apiError(503, 'AUTH_PROVIDER_NOT_CONFIGURED', '会员账号服务尚未配置', requestId);
+  }
+  const input = await readLoginInput(request);
+  const username = typeof input?.username === 'string' ? input.username : '';
+  const password = typeof input?.password === 'string' ? input.password : '';
+  if (!username || !password) return apiError(400, 'INVALID_LOGIN_INPUT', '登录信息不完整', requestId);
+
+  const clientIp = readTrustedClientIp(request);
+  const ipHash = await sha256(`${clientIp ?? 'unknown'}:${env.SESSION_SIGNING_KEY ?? ''}`);
+  const bypassRateLimit = isTestLoginRateLimitBypassed(clientIp, env);
+  if (!bypassRateLimit) {
+    const loginAllowed = await callRpc<boolean>(env, 'api_login_allowed', { p_ip_hash: ipHash });
+    if (!loginAllowed) return apiError(429, 'LOGIN_RATE_LIMITED', '登录尝试过多，请15分钟后重试', requestId);
+  }
+
+  const localLogin = await authenticateLocalMember(username, password, undefined, env);
+  const demoAccount = localLogin.credentialFound ? null : getDemoAccounts(env).find((candidate) => candidate.username.trim().toLowerCase() === username.trim().toLowerCase());
+  const demoTarget = demoAccount?.adminMembershipId ? 'admin' : 'storefront';
+  const demoRuntime = demoAccount && (await verifyDemoPassword(password, demoAccount.password)) ? await resolveDemoMembership(env, demoAccount, demoTarget) : null;
+  const runtime = localLogin.runtime ?? demoRuntime;
+  if (!runtime) {
+    if (!bypassRateLimit) await callRpc<string | null>(env, 'api_record_login_failure', { p_ip_hash: ipHash });
+    return apiError(401, 'INVALID_USERNAME_PASSWORD', '账号或密码不正确', requestId);
+  }
+  await callRpc<boolean>(env, 'api_clear_login_failures', { p_ip_hash: ipHash });
+  return json({ authenticated: true, authorization: publicAuthorization(runtime.authorization), requestId });
+}
+
+type RegisteredCandidate = { memberId?: string; membershipId?: string; target?: 'storefront' | 'admin'; passwordHash?: string; mustResetPassword?: boolean };
 const DUMMY_PASSWORD_HASH = `pbkdf2-sha256$310000$AAAAAAAAAAAAAAAAAAAAAA==$${'A'.repeat(43)}=`;
 
-async function authenticateRegisteredMember(
-  identifier: string,
-  password: string,
-  target: 'storefront' | 'admin',
-  env: WorkerEnv
-): Promise<MembershipRuntime | null> {
+async function authenticateLocalMember(identifier: string, password: string, target: 'storefront' | 'admin' | undefined, env: WorkerEnv): Promise<{ runtime: MembershipRuntime | null; credentialFound: boolean }> {
   const mobile = normalizeChineseMobile(identifier);
-  if (!mobile) return null;
-  const subject = await localPhoneSubject(mobile, env);
-  if (!subject) return null;
-  const candidate = await callRpc<RegisteredCandidate | null>(env, 'api_registered_login_candidate', {
-    p_phone_subject: subject,
-    p_target: target,
+  const provider = mobile ? 'local_phone' : isDemoAuthEnabled(env) ? 'test' : null;
+  const subject = mobile ? await localPhoneSubject(mobile, env) : identifier.trim().toLowerCase();
+  if (!provider || !subject) return { runtime: null, credentialFound: false };
+  const candidate = await callRpc<RegisteredCandidate | null>(env, 'api_local_login_candidate', {
+    p_provider: provider,
+    p_subject: subject,
+    p_target: target ?? null,
   });
   if (!candidate?.memberId || !candidate.membershipId || !candidate.passwordHash) {
     await verifyPassword(password, DUMMY_PASSWORD_HASH);
-    return null;
+    return { runtime: null, credentialFound: false };
   }
-  if (!(await verifyPassword(password, candidate.passwordHash))) return null;
-  return resolveMembershipRuntimeByIds(env, candidate.memberId, candidate.membershipId, target);
+  if (!(await verifyPassword(password, candidate.passwordHash))) return { runtime: null, credentialFound: true };
+  const resolvedTarget = candidate.target ?? target;
+  if (!resolvedTarget) return { runtime: null, credentialFound: true };
+  return {
+    runtime: await resolveMembershipRuntimeByIds(env, candidate.memberId, candidate.membershipId, resolvedTarget),
+    credentialFound: true,
+  };
 }
 
 async function readLoginInput(request: Request): Promise<Record<string, unknown> | null> {
@@ -178,8 +211,10 @@ function publicAuthorization(context: import('./types').AuthorizationContext) {
   };
 }
 
-export async function handleLogout(request: Request, requestId: string): Promise<Response> {
+export async function handleLogout(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
   if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
+  const session = await readSession(request, env);
+  if (session) await callRpc<boolean>(env, 'api_revoke_auth_session', { p_actor_member_id: session.memberId, p_session_id: session.sessionId, p_reason: 'logout' });
   return json({ authenticated: false, requestId }, { headers: { 'set-cookie': clearSessionCookie(request) } });
 }
 

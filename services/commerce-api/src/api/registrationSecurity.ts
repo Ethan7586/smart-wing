@@ -18,11 +18,7 @@ function fromBase64(value: string): Uint8Array | null {
 
 async function derive(password: string, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', hash: 'SHA-256', salt: Uint8Array.from(salt).buffer, iterations },
-    key,
-    PASSWORD_BYTES * 8
-  );
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: Uint8Array.from(salt).buffer, iterations }, key, PASSWORD_BYTES * 8);
   return new Uint8Array(bits);
 }
 
@@ -62,4 +58,17 @@ export function maskMobile(mobile: string): string {
 export function generateOtp(): string {
   const bytes = crypto.getRandomValues(new Uint32Array(1));
   return String(bytes[0] % 1_000_000).padStart(6, '0');
+}
+
+export function phoneLookupSubject(mobile: string, secret: string): Promise<string> {
+  return sha256Text(`local_phone:${mobile}:${secret}`);
+}
+
+export function verificationCodeHash(purpose: 'registration' | 'password_reset' | 'phone_change', challengeId: string, code: string, secret: string): Promise<string> {
+  return sha256Text(`${purpose}:${challengeId}:${code}:${secret}`);
+}
+
+async function sha256Text(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+  return toBase64(new Uint8Array(digest));
 }

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { handleHealth, handleLogin } from './publicRoutes';
+import { handleHealth, handleLogin, handleRegisteredCredentialDiscovery } from './publicRoutes';
 import { hashPassword } from './registrationSecurity';
 import type { WorkerEnv } from './types';
 afterEach(() => vi.unstubAllGlobals());
@@ -52,26 +52,105 @@ describe('health endpoint', () => {
     const passwordHash = await hashPassword('SmartWing2026');
     const responses = [
       true,
-      { memberId: 'member-new', membershipId: 'membership-new', passwordHash },
+      { memberId: 'member-new', membershipId: 'membership-new', target: 'storefront', passwordHash },
       {
-        id: 'membership-new', memberId: 'member-new', target: 'storefront', status: 'active',
-        roleIds: ['role-employee'], permissions: ['catalog.read'], deniedPermissions: [],
+        id: 'membership-new',
+        memberId: 'member-new',
+        target: 'storefront',
+        status: 'active',
+        roleIds: ['role-employee'],
+        permissions: ['catalog.read'],
+        deniedPermissions: [],
         context: { tenantId: 'tenant-smart-wing', enterpriseId: 'enterprise-demo', mallId: 'mall-demo', userId: 'user-new' },
-        scopeBindings: [{ kind: 'self', resourceId: 'user-new' }], expiresAt: null, authzVersion: 1,
+        scopeBindings: [{ kind: 'self', resourceId: 'user-new' }],
+        expiresAt: null,
+        authzVersion: 1,
         actor: { tenantId: 'tenant-smart-wing', enterpriseId: 'enterprise-demo', mallId: 'mall-demo', mallCode: 'SMART_WING_DEMO', userId: 'user-new', employeeNo: 'REG-NEW' },
       },
       true,
+      true,
     ];
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(responses.shift()), { status: 200, headers: { 'content-type': 'application/json' } })));
-    const response = await handleLogin(new Request('https://hbbtzn.com/api/v1/auth/login', {
-      method: 'POST', headers: { 'content-type': 'application/json', 'x-real-ip': '203.0.113.8' },
-      body: JSON.stringify({ username: '13800138000', password: 'SmartWing2026' }),
-    }), {
-      APP_ENV: 'production', AUTH_MODE: 'membership', SUPABASE_URL: 'https://db.example', SUPABASE_SERVICE_ROLE_KEY: 'service-role',
-      SESSION_SIGNING_KEY: 'session-key-that-is-longer-than-thirty-two-bytes', IDENTITY_LOOKUP_KEY: 'identity-key-that-is-longer-than-thirty-two-bytes',
-    }, 'registered-login');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify(responses.shift()), { status: 200, headers: { 'content-type': 'application/json' } }))
+    );
+    const response = await handleLogin(
+      new Request('https://hbbtzn.com/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-real-ip': '203.0.113.8' },
+        body: JSON.stringify({ username: '13800138000', password: 'SmartWing2026' }),
+      }),
+      {
+        APP_ENV: 'production',
+        AUTH_MODE: 'membership',
+        SUPABASE_URL: 'https://db.example',
+        SUPABASE_SERVICE_ROLE_KEY: 'service-role',
+        SESSION_SIGNING_KEY: 'session-key-that-is-longer-than-thirty-two-bytes',
+        IDENTITY_LOOKUP_KEY: 'identity-key-that-is-longer-than-thirty-two-bytes',
+      },
+      'registered-login'
+    );
     expect(response.status).toBe(200);
     expect(response.headers.get('set-cookie')).toContain('__Host-hbbtzn_store_session=');
     await expect(response.json()).resolves.toMatchObject({ authenticated: true, authorization: { membershipId: 'membership-new', target: 'storefront' } });
+  });
+
+  it('does not restore the old demo password after a test account changes its password', async () => {
+    const passwordHash = await hashPassword('ChangedBuyer2026');
+    const responses = [
+      true,
+      {
+        memberId: 'member-test-buyer-001',
+        membershipId: 'membership-test-buyer-001',
+        target: 'storefront',
+        passwordHash,
+      },
+      null,
+    ];
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify(responses.shift()), { status: 200, headers: { 'content-type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const response = await handleLogin(
+      new Request('https://hbbtzn.com/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-real-ip': '203.0.113.9' },
+        body: JSON.stringify({ username: 'buyer001', password: '123456' }),
+      }),
+      {
+        APP_ENV: 'test',
+        AUTH_MODE: 'test',
+        SUPABASE_URL: 'https://db.example',
+        SUPABASE_SERVICE_ROLE_KEY: 'service-role',
+        SESSION_SIGNING_KEY: 'session-key-that-is-longer-than-thirty-two-bytes',
+      },
+      'changed-test-password'
+    );
+
+    expect(response.status).toBe(401);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    await expect(response.json()).resolves.toMatchObject({ error: { code: 'INVALID_USERNAME_PASSWORD' } });
+  });
+
+  it('rate-limits credential discovery before verifying a registered password', async () => {
+    const fetchMock = vi.fn(async () => new Response('false', { status: 200, headers: { 'content-type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetchMock);
+    const response = await handleRegisteredCredentialDiscovery(
+      new Request('https://hbbtzn.com/api/v1/auth/credential/discover', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-real-ip': '203.0.113.10' },
+        body: JSON.stringify({ username: '13800138000', password: 'WrongPassword2026' }),
+      }),
+      {
+        APP_ENV: 'production',
+        AUTH_MODE: 'membership',
+        SUPABASE_URL: 'https://db.example',
+        SUPABASE_SERVICE_ROLE_KEY: 'service-role',
+        SESSION_SIGNING_KEY: 'session-key-that-is-longer-than-thirty-two-bytes',
+        IDENTITY_LOOKUP_KEY: 'identity-key-that-is-longer-than-thirty-two-bytes',
+      },
+      'credential-discovery'
+    );
+    expect(response.status).toBe(429);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

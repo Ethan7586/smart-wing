@@ -13,6 +13,7 @@ interface HeaderProps {
   onToggleLanguage?: () => void;
   currentUser?: AdminProfile;
   onLogout?: () => void;
+  onOpenSecurityCenter?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -26,6 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleLanguage,
   currentUser,
   onLogout,
+  onOpenSecurityCenter,
 }) => {
   const isEn = language === 'en';
   const displayName = currentUser?.displayName ?? (isEn ? 'Zhang Li' : '张立');
@@ -122,9 +124,15 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
             {onLogout && (
-              <button type="button" onClick={onLogout} className="text-[10px] text-blue-600 hover:text-blue-800 hover:underline cursor-pointer mt-0.5">
-                {isEn ? 'Logout' : '退出登录'}
-              </button>
+              <div className="mt-0.5 flex items-center gap-2">
+                <button type="button" onClick={onOpenSecurityCenter} className="text-[10px] text-blue-600 hover:text-blue-800 hover:underline">
+                  {isEn ? 'Security' : '账号安全'}
+                </button>
+                <span className="text-slate-300">·</span>
+                <button type="button" onClick={onLogout} className="text-[10px] text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
+                  {isEn ? 'Logout' : '退出登录'}
+                </button>
+              </div>
             )}
           </div>
         </div>

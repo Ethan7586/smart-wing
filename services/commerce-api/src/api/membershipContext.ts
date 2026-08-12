@@ -51,8 +51,17 @@ export async function resolveMembershipContext(request: Request, env: WorkerEnv)
 export async function resolveMembershipRuntime(request: Request, env: WorkerEnv): Promise<MembershipRuntime | null> {
   const session = await readSession(request, env);
   if (!session?.memberId || !session.membershipId) return null;
-  const runtime = await resolveMembershipRuntimeByIds(env, session.memberId, session.membershipId, session.target, session.authzVersion, session.stepUpAt);
-  return runtime;
+  const raw = await callRpc<unknown>(env, 'api_resolve_session_membership_context', {
+    p_session_id: session.sessionId,
+    p_member_id: session.memberId,
+    p_membership_id: session.membershipId,
+    p_target: session.target,
+  });
+  const membership = parseMembership(raw);
+  const authorization = parseAuthorizationContext(raw, membership, session.stepUpAt);
+  if (!membership || !authorization) return null;
+  if (membership.authzVersion !== session.authzVersion || membership.memberId !== session.memberId || membership.id !== session.membershipId || membership.target !== session.target) return null;
+  return { membership, authorization };
 }
 
 /** Used by the development-only test fixture before its signed cookie exists. */

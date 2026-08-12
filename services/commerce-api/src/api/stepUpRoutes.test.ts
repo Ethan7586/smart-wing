@@ -40,8 +40,8 @@ describe('step-up route', () => {
         'step-wrong'
       );
       expect(response.status).toBe(401);
-      expect(fetchRpc).toHaveBeenCalledTimes(2);
-      expect(String(fetchRpc.mock.calls[1]?.[0])).toContain('api_record_login_failure');
+      expect(fetchRpc).toHaveBeenCalledTimes(3);
+      expect(String(fetchRpc.mock.calls[2]?.[0])).toContain('api_record_login_failure');
     } finally {
       fetchRpc.mockRestore();
     }
@@ -53,7 +53,7 @@ describe('step-up route', () => {
       const response = await handleStepUp(new Request('https://smart.hbbtzn.com/api/v1/auth/step-up', { method: 'POST', body: JSON.stringify({ password: '123456' }) }), env, authorization, 'step-ok');
       expect(response.status).toBe(200);
       expect(response.headers.get('set-cookie')).toContain('__Host-hbbtzn_admin_session=');
-      expect(fetchRpc).toHaveBeenCalledTimes(3);
+      expect(fetchRpc).toHaveBeenCalledTimes(5);
       await expect(response.json()).resolves.toMatchObject({ verified: true });
     } finally {
       fetchRpc.mockRestore();

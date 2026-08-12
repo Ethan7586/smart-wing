@@ -1,4 +1,7 @@
 import type { WorkerEnv } from './types';
+import { sha256 } from './crypto';
+import { readTrustedClientIp } from './loginRateLimitBypass';
+import { callRpc } from './supabase';
 
 export type SessionTarget = 'storefront' | 'admin';
 
@@ -26,6 +29,7 @@ export interface SessionOptions {
   memberId: string;
   authzVersion: number;
   stepUpAt?: number;
+  sessionId?: string;
 }
 
 function toBase64Url(bytes: Uint8Array): string {
@@ -64,7 +68,7 @@ export async function createSessionCookie(env: WorkerEnv, employeeNo: string, ma
   if (!secret || secret.length < 32) throw new Error('SESSION_SIGNING_KEY_NOT_CONFIGURED');
 
   const payload: SessionPayload = {
-    sessionId: crypto.randomUUID(),
+    sessionId: options.sessionId ?? crypto.randomUUID(),
     employeeNo,
     mallCode,
     target,
@@ -77,6 +81,33 @@ export async function createSessionCookie(env: WorkerEnv, employeeNo: string, ma
   const encodedPayload = toBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
   const signature = await crypto.subtle.sign('HMAC', await signingKey(secret), new TextEncoder().encode(encodedPayload));
   return `${COOKIE_NAMES[target]}=${encodedPayload}.${toBase64Url(new Uint8Array(signature))}; ${cookieAttributes(SESSION_SECONDS)}`;
+}
+
+export async function createTrackedSessionCookie(request: Request, env: WorkerEnv, employeeNo: string, mallCode: string, options: SessionOptions): Promise<string> {
+  const sessionId = crypto.randomUUID();
+  const target = options.target ?? 'storefront';
+  const userAgent = (request.headers.get('user-agent') ?? '').slice(0, 300);
+  const clientIp = readTrustedClientIp(request);
+  // Sign first so a signing-key error cannot leave an unreachable active row.
+  const cookie = await createSessionCookie(env, employeeNo, mallCode, { ...options, target, sessionId });
+  const created = await callRpc<boolean>(env, 'api_create_auth_session', {
+    p_session_id: sessionId,
+    p_member_id: options.memberId,
+    p_membership_id: options.membershipId,
+    p_target: target,
+    p_ip_hash: await sha256(`${clientIp ?? 'unknown'}:${env.SESSION_SIGNING_KEY ?? ''}`),
+    p_user_agent: userAgent,
+    p_device_label: deviceLabel(userAgent),
+    p_expires_at: new Date(Date.now() + SESSION_SECONDS * 1_000).toISOString(),
+  });
+  if (!created) throw new Error('AUTH_SESSION_CREATE_FAILED');
+  return cookie;
+}
+
+function deviceLabel(userAgent: string): string {
+  const browser = /Edg\//.test(userAgent) ? 'Edge' : /Chrome\//.test(userAgent) ? 'Chrome' : /Firefox\//.test(userAgent) ? 'Firefox' : /Safari\//.test(userAgent) ? 'Safari' : '未知浏览器';
+  const system = /Windows/.test(userAgent) ? 'Windows' : /Android/.test(userAgent) ? 'Android' : /iPhone|iPad/.test(userAgent) ? 'iOS' : /Mac OS/.test(userAgent) ? 'macOS' : /Linux/.test(userAgent) ? 'Linux' : '未知设备';
+  return `${browser} · ${system}`;
 }
 
 export function clearSessionCookie(request: Request): string {

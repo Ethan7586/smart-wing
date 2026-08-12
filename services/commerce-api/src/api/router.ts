@@ -5,12 +5,13 @@ import { handleAddresses, handleDeleteAddress } from './addressRoutes';
 import { apiError, json } from './http';
 import { handleAfterSales, handleCreateAfterSale, handleCreateOrder, handleExecuteRefund, handleFinanceReconciliation, handleInternalPayment, handleOrders, handleShipOrder } from './orderRoutes';
 import { handleAdminCatalog, handleAdminOverview, handleSetProductStatus } from './adminRoutes';
-import { handleHealth, handleLogin, handleLogout, handleProducts } from './publicRoutes';
+import { handleHealth, handleLogin, handleLogout, handleProducts, handleRegisteredCredentialDiscovery } from './publicRoutes';
 import { handleRegistration, handleRegistrationOtp } from './registrationRoutes';
 import { handleHomeSnapshot } from './homeRoutes';
 import { handleSimulationBenefitIssue, handleSimulationMixedPayment, handleSimulationRecharge, handleSimulationWallet } from './paymentSimulationRoutes';
 import { handleMembershipAccess, handleMembershipStatus, handlePermissionCommandCenter } from './permissionAdminRoutes';
 import { handleStepUp } from './stepUpRoutes';
+import { handleChangePassword, handleChangePhone, handleResetPassword, handleRevokeOtherSessions, handleRevokeSession, handleSecurityCenter, handleSecurityOtp } from './securityCenterRoutes';
 import { handleQualificationCenter, handleQualificationConfig } from './qualificationAdminRoutes';
 import {
   handleEmployeeQualification,
@@ -36,14 +37,23 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     if (url.pathname === `${API_PREFIX}/auth/login`) {
       return await handleLogin(request, env, requestId);
     }
+    if (url.pathname === `${API_PREFIX}/auth/credential/discover`) {
+      return await handleRegisteredCredentialDiscovery(request, env, requestId);
+    }
     if (url.pathname === `${API_PREFIX}/auth/logout`) {
-      return await handleLogout(request, requestId);
+      return await handleLogout(request, env, requestId);
     }
     if (url.pathname === `${API_PREFIX}/auth/registration/otp`) {
       return await handleRegistrationOtp(request, env, requestId);
     }
     if (url.pathname === `${API_PREFIX}/auth/register`) {
       return await handleRegistration(request, env, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/auth/security/otp`) {
+      return await handleSecurityOtp(request, env, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/auth/password/reset`) {
+      return await handleResetPassword(request, env, requestId);
     }
 
     const authorization = await resolveAuthorizationContext(request, env);
@@ -64,6 +74,22 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     }
     if (url.pathname === `${API_PREFIX}/auth/step-up`) {
       return await handleStepUp(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/auth/security-center`) {
+      return await handleSecurityCenter(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/auth/password/change`) {
+      return await handleChangePassword(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/auth/phone/change`) {
+      return await handleChangePhone(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/auth/sessions/revoke-others`) {
+      return await handleRevokeOtherSessions(request, env, authorization, requestId);
+    }
+    const authSessionMatch = url.pathname.match(/^\/api\/v1\/auth\/sessions\/([0-9a-f-]{36})$/i);
+    if (authSessionMatch) {
+      return await handleRevokeSession(request, env, authorization, authSessionMatch[1], requestId);
     }
     if (url.pathname === `${API_PREFIX}/accounts`) {
       return await handleAccounts(request, env, authorization, requestId);

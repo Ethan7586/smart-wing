@@ -57,6 +57,8 @@ export const LoginPage: React.FC = () => {
   const [registration, setRegistration] = useState({ mobile: '', code: '', displayName: '', inviteCode: '', password: '', confirmPassword: '' });
   const [registrationChallengeId, setRegistrationChallengeId] = useState('');
   const [registrationNotice, setRegistrationNotice] = useState('');
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetForm, setResetForm] = useState({ mobile: '', code: '', challengeId: '', password: '', confirm: '' });
 
   // UI 视觉交互状态
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -304,6 +306,47 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  const sendResetCode = async () => {
+    setLoading(true);
+    setFormError('');
+    try {
+      const response = await fetch('/api/v1/auth/security/otp', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mobile: resetForm.mobile, purpose: 'password_reset' }) });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error?.message || '验证码发送失败');
+      setResetForm((current) => ({ ...current, challengeId: payload.challengeId, code: payload.debugCode ?? current.code }));
+      setRegistrationNotice(payload.debugCode ? `开发环境验证码：${payload.debugCode}` : '验证码已发送');
+    } catch (error: any) {
+      setFormError(error.message || '验证码发送失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitPasswordReset = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (resetForm.password !== resetForm.confirm) return setFormError('两次输入的新密码不一致');
+    setLoading(true);
+    setFormError('');
+    try {
+      const response = await fetch('/api/v1/auth/password/reset', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ mobile: resetForm.mobile, challengeId: resetForm.challengeId, code: resetForm.code, newPassword: resetForm.password }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error?.message || '密码重置失败');
+      setIdentifier(resetForm.mobile);
+      setPassword(resetForm.password);
+      setResetOpen(false);
+      setRegistrationNotice('');
+      setFormError('密码已重置，所有旧设备均已下线，请重新登录。');
+    } catch (error: any) {
+      setFormError(error.message || '密码重置失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 1. 提交第一段认证
   const handleStage1Submit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -351,12 +394,8 @@ export const LoginPage: React.FC = () => {
 
   // 处理 PreAuth 上下文并路由到第2段或自动跳转
   const completeEmbeddedStorefrontLogin = async (membershipId: string) => {
-    // A registered phone login already created the host-only session during
-    // credential verification. Test fixtures still need the final API POST.
-    if (/^1[3-9]\d{9}$/.test(identifier.trim())) {
-      window.parent.postMessage({ type: 'smart-wing:storefront-login-complete', membershipId }, window.location.origin);
-      return;
-    }
+    // Credential discovery never creates a cookie. The final login is the only
+    // place that establishes the tracked, revocable HttpOnly device session.
     const response = await fetch('/api/v1/auth/login', {
       method: 'POST',
       credentials: 'same-origin',
@@ -1135,10 +1174,24 @@ export const LoginPage: React.FC = () => {
                           </div>
 
                           <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-                            <button type="button" onClick={() => setFormError('重置密码请联系企业管理员发送重置链接')} className="hover:text-[var(--sw-brand)] transition-colors">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setResetOpen(true);
+                                setFormError('');
+                              }}
+                              className="hover:text-[var(--sw-brand)] transition-colors"
+                            >
                               忘记密码？
                             </button>
-                            <button type="button" onClick={() => { setRegistrationOpen(true); setFormError(''); }} className="font-semibold text-[var(--sw-brand)] hover:underline">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRegistrationOpen(true);
+                                setFormError('');
+                              }}
+                              className="font-semibold text-[var(--sw-brand)] hover:underline"
+                            >
                               新用户注册
                             </button>
                           </div>
@@ -1423,32 +1476,76 @@ export const LoginPage: React.FC = () => {
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="space-y-1.5 text-xs font-medium text-slate-700">
                 姓名
-                <input value={registration.displayName} onChange={(e) => updateRegistration('displayName', e.target.value)} maxLength={60} placeholder="请输入真实姓名" className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]" />
+                <input
+                  value={registration.displayName}
+                  onChange={(e) => updateRegistration('displayName', e.target.value)}
+                  maxLength={60}
+                  placeholder="请输入真实姓名"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
+                />
               </label>
               <label className="space-y-1.5 text-xs font-medium text-slate-700">
                 企业邀请码
-                <input value={registration.inviteCode} onChange={(e) => updateRegistration('inviteCode', e.target.value.toUpperCase())} maxLength={80} placeholder="由企业福利管理员提供" className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-mono uppercase outline-none focus:ring-2 focus:ring-[var(--sw-brand)]" />
+                <input
+                  value={registration.inviteCode}
+                  onChange={(e) => updateRegistration('inviteCode', e.target.value.toUpperCase())}
+                  maxLength={80}
+                  placeholder="由企业福利管理员提供"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-mono uppercase outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
+                />
               </label>
               <label className="space-y-1.5 text-xs font-medium text-slate-700 sm:col-span-2">
                 手机号码
-                <input type="tel" value={registration.mobile} onChange={(e) => updateRegistration('mobile', e.target.value)} maxLength={11} placeholder="一个手机号对应一个自然人账号" className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]" />
+                <input
+                  type="tel"
+                  value={registration.mobile}
+                  onChange={(e) => updateRegistration('mobile', e.target.value)}
+                  maxLength={11}
+                  placeholder="一个手机号对应一个自然人账号"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
+                />
               </label>
               <label className="space-y-1.5 text-xs font-medium text-slate-700 sm:col-span-2">
                 手机验证码
                 <span className="flex gap-2">
-                  <input value={registration.code} onChange={(e) => updateRegistration('code', e.target.value.replace(/\D/g, ''))} maxLength={6} placeholder="6位验证码" className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-mono outline-none focus:ring-2 focus:ring-[var(--sw-brand)]" />
-                  <button type="button" onClick={handleSendRegistrationOtp} disabled={loading || otpCountdown > 0} className="rounded-xl border border-blue-200 bg-blue-50 px-4 text-xs font-semibold text-[var(--sw-brand)] disabled:opacity-50">
+                  <input
+                    value={registration.code}
+                    onChange={(e) => updateRegistration('code', e.target.value.replace(/\D/g, ''))}
+                    maxLength={6}
+                    placeholder="6位验证码"
+                    className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-mono outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSendRegistrationOtp}
+                    disabled={loading || otpCountdown > 0}
+                    className="rounded-xl border border-blue-200 bg-blue-50 px-4 text-xs font-semibold text-[var(--sw-brand)] disabled:opacity-50"
+                  >
                     {otpCountdown > 0 ? `${otpCountdown}s` : '获取验证码'}
                   </button>
                 </span>
               </label>
               <label className="space-y-1.5 text-xs font-medium text-slate-700">
                 设置密码
-                <input type="password" value={registration.password} onChange={(e) => updateRegistration('password', e.target.value)} maxLength={128} placeholder="至少10位，含字母和数字" className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]" />
+                <input
+                  type="password"
+                  value={registration.password}
+                  onChange={(e) => updateRegistration('password', e.target.value)}
+                  maxLength={128}
+                  placeholder="至少10位，含字母和数字"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
+                />
               </label>
               <label className="space-y-1.5 text-xs font-medium text-slate-700">
                 确认密码
-                <input type="password" value={registration.confirmPassword} onChange={(e) => updateRegistration('confirmPassword', e.target.value)} maxLength={128} placeholder="再次输入密码" className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]" />
+                <input
+                  type="password"
+                  value={registration.confirmPassword}
+                  onChange={(e) => updateRegistration('confirmPassword', e.target.value)}
+                  maxLength={128}
+                  placeholder="再次输入密码"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
+                />
               </label>
             </div>
 
@@ -1458,11 +1555,52 @@ export const LoginPage: React.FC = () => {
               <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 accent-[var(--sw-brand)]" />
               <span>我已阅读并同意《用户服务协议》和《隐私保护政策》，并确认使用本人手机号注册。</span>
             </label>
-            <button type="submit" disabled={loading || !acceptedTerms} className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--sw-brand)] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/15 disabled:bg-slate-300">
+            <button
+              type="submit"
+              disabled={loading || !acceptedTerms}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--sw-brand)] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/15 disabled:bg-slate-300"
+            >
               {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4" />}
               创建普通员工会员账号
             </button>
             <p className="mt-3 text-center text-[11px] text-slate-400">企业管理员只负责确认员工归属，不能查看你的密码和短信验证码。</p>
+          </form>
+        </div>
+      )}
+
+      {resetOpen && (
+        <div className="fixed inset-0 z-[75] flex items-center justify-center bg-slate-950/65 p-4 backdrop-blur-sm">
+          <form onSubmit={submitPasswordReset} className="w-full max-w-md space-y-4 rounded-3xl border bg-white p-7 shadow-2xl">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[.18em] text-[var(--sw-brand)]">Password Recovery</p>
+                <h3 className="mt-1 text-xl font-bold text-slate-950">找回密码</h3>
+                <p className="mt-1 text-xs text-slate-500">验证绑定手机号后重置密码，所有旧设备会立即下线。</p>
+              </div>
+              <button type="button" onClick={() => setResetOpen(false)} aria-label="关闭找回密码" className="rounded-xl p-2 text-slate-400 hover:bg-slate-100">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <input value={resetForm.mobile} onChange={(e) => setResetForm({ ...resetForm, mobile: e.target.value })} placeholder="绑定手机号" className="w-full rounded-xl border px-3.5 py-2.5 text-sm" />
+            <div className="flex gap-2">
+              <input value={resetForm.code} onChange={(e) => setResetForm({ ...resetForm, code: e.target.value })} placeholder="6位验证码" className="min-w-0 flex-1 rounded-xl border px-3.5 py-2.5 text-sm" />
+              <button type="button" onClick={sendResetCode} className="rounded-xl border border-blue-200 bg-blue-50 px-4 text-xs font-bold text-[var(--sw-brand)]">
+                获取验证码
+              </button>
+            </div>
+            <input
+              type="password"
+              value={resetForm.password}
+              onChange={(e) => setResetForm({ ...resetForm, password: e.target.value })}
+              placeholder="新密码（至少10位，含字母和数字）"
+              className="w-full rounded-xl border px-3.5 py-2.5 text-sm"
+            />
+            <input type="password" value={resetForm.confirm} onChange={(e) => setResetForm({ ...resetForm, confirm: e.target.value })} placeholder="确认新密码" className="w-full rounded-xl border px-3.5 py-2.5 text-sm" />
+            {registrationNotice && <p className="rounded-xl bg-blue-50 px-3 py-2 text-xs text-blue-700">{registrationNotice}</p>}
+            {formError && <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">{formError}</p>}
+            <button disabled={loading || !resetForm.challengeId} className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--sw-brand)] px-4 py-3 text-sm font-bold text-white disabled:bg-slate-300">
+              {loading && <RefreshCw className="h-4 w-4 animate-spin" />}重置密码并下线全部设备
+            </button>
           </form>
         </div>
       )}
