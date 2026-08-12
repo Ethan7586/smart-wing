@@ -231,7 +231,7 @@ const ROLE_TEST_MEMBERSHIP_DEFINITIONS: ReadonlyArray<{
   { prefix: 'seller', target: 'admin', roleName: '测试商家', dataScope: '央企供应链', subjectScope: '供应商', keyPermissions: ['catalog.read', 'product.publish', 'order.read', 'order.ship'], requiresStepUp: false },
   { prefix: 'ops', target: 'admin', roleName: '测试运营', dataScope: '智慧翼企业福利商城', subjectScope: '商城', keyPermissions: ['catalog.read', 'product.publish', 'order.read', 'order.ship', 'audit.read'], requiresStepUp: false },
   { prefix: 'cs', target: 'admin', roleName: '测试客服', dataScope: '智慧翼企业福利商城', subjectScope: '商城', keyPermissions: ['catalog.read', 'order.read', 'member.read'], requiresStepUp: false },
-  { prefix: 'admin', target: 'admin', roleName: '测试管理员', dataScope: '全租户', subjectScope: '租户', keyPermissions: ['tenant.manage', 'role.grant', 'audit.read'], requiresStepUp: false },
+  { prefix: 'admin', target: 'admin', roleName: '测试企业管理员', dataScope: '示范企业 / 智慧翼企业福利商城', subjectScope: '企业', keyPermissions: ['member.invite', 'member.disable', 'finance.reconcile', 'audit.read'], requiresStepUp: false },
 ];
 
 for (const definition of ROLE_TEST_MEMBERSHIP_DEFINITIONS) {

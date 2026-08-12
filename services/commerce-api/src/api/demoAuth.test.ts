@@ -35,7 +35,7 @@ describe('role-based public test account roster', () => {
     ['seller001', 'admin', 'role-test-seller', ['catalog.read', 'product.publish', 'order.read', 'order.ship']],
     ['ops001', 'admin', 'role-test-operations', ['audit.read', 'catalog.read', 'order.read', 'order.ship', 'product.publish']],
     ['cs001', 'admin', 'role-test-customer-service', ['catalog.read', 'member.read', 'order.read']],
-    ['admin001', 'admin', 'role-test-admin', ['audit.read', 'catalog.read', 'finance.reconcile', 'member.disable', 'member.invite', 'member.read', 'order.create', 'order.read', 'order.refund', 'order.ship', 'product.publish', 'role.grant', 'role.read', 'tenant.manage']],
+    ['admin001', 'admin', 'role-test-admin', ['audit.read', 'catalog.read', 'finance.reconcile', 'member.disable', 'member.invite', 'member.read', 'order.read', 'order.refund', 'order.ship', 'product.publish', 'role.read']],
   ] as const)('binds %s to its database-backed role and permissions', async (username, target, roleId, permissions) => {
     const account = getDemoAccounts({ APP_ENV: 'test', AUTH_MODE: 'test' }).find((candidate) => candidate.username === username);
     expect(account).toBeDefined();
@@ -49,7 +49,11 @@ describe('role-based public test account roster', () => {
           roleIds: [roleId],
           permissions,
           context: { tenantId: 'tenant-smart-wing', enterpriseId: 'enterprise-demo', mallId: 'mall-demo', userId: `user-test-${username.slice(0, -3)}-${username.slice(-3)}` },
-          scopeBindings: [{ kind: target === 'storefront' ? 'self' : username.startsWith('admin') ? 'tenant' : 'mall', resourceId: target === 'storefront' ? `user-test-buyer-${username.slice(-3)}` : username.startsWith('admin') ? 'tenant-smart-wing' : 'mall-demo' }],
+          scopeBindings: target === 'storefront'
+            ? [{ kind: 'self', resourceId: `user-test-buyer-${username.slice(-3)}` }]
+            : username.startsWith('admin')
+              ? [{ kind: 'enterprise', resourceId: 'enterprise-demo' }, { kind: 'mall', resourceId: 'mall-demo' }]
+              : [{ kind: 'mall', resourceId: 'mall-demo' }],
           expiresAt: null,
           authzVersion: 1,
           actor: { tenantId: 'tenant-smart-wing', enterpriseId: 'enterprise-demo', mallId: 'mall-demo', mallCode: 'SMART_WING_DEMO', userId: `user-test-${username.slice(0, -3)}-${username.slice(-3)}`, employeeNo: username },

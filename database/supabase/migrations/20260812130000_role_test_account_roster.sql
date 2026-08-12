@@ -7,7 +7,7 @@ insert into public.roles (id, tenant_id, code, name) values
   ('role-test-seller', 'tenant-smart-wing', 'test_seller', '测试商家'),
   ('role-test-operations', 'tenant-smart-wing', 'test_operations', '测试运营'),
   ('role-test-customer-service', 'tenant-smart-wing', 'test_customer_service', '测试客服'),
-  ('role-test-admin', 'tenant-smart-wing', 'test_admin', '测试管理员')
+  ('role-test-admin', 'tenant-smart-wing', 'test_admin', '测试企业管理员')
 on conflict (tenant_id, code) do update set name = excluded.name;
 
 insert into public.role_permissions (role_id, permission_id)
@@ -35,7 +35,6 @@ from (
 
     ('role-test-admin', 'catalog.read'),
     ('role-test-admin', 'product.publish'),
-    ('role-test-admin', 'order.create'),
     ('role-test-admin', 'order.read'),
     ('role-test-admin', 'order.ship'),
     ('role-test-admin', 'order.refund'),
@@ -44,9 +43,7 @@ from (
     ('role-test-admin', 'member.invite'),
     ('role-test-admin', 'member.disable'),
     ('role-test-admin', 'role.read'),
-    ('role-test-admin', 'role.grant'),
-    ('role-test-admin', 'audit.read'),
-    ('role-test-admin', 'tenant.manage')
+    ('role-test-admin', 'audit.read')
 ) as grants(role_id, permission_code)
 join public.permissions on permissions.code = grants.permission_code
 on conflict do nothing;
@@ -70,7 +67,7 @@ select
     when 'seller' then '测试商家'
     when 'ops' then '测试运营'
     when 'cs' then '测试客服'
-    else '测试管理员'
+    else '测试企业管理员'
   end || lpad(account_index::text, 3, '0'),
   username || '@test.smart-wing.invalid',
   'test:' || username,
@@ -151,13 +148,21 @@ with roster as (
 insert into public.membership_scopes (membership_id, scope_kind, resource_id)
 select
   'membership-test-' || role_prefix || '-' || lpad(account_index::text, 3, '0'),
-  case when role_prefix = 'buyer' then 'self' when role_prefix = 'admin' then 'tenant' else 'mall' end,
+  case when role_prefix = 'buyer' then 'self' when role_prefix = 'admin' then 'enterprise' else 'mall' end,
   case
     when role_prefix = 'buyer' then 'user-test-buyer-' || lpad(account_index::text, 3, '0')
-    when role_prefix = 'admin' then 'tenant-smart-wing'
+    when role_prefix = 'admin' then 'enterprise-demo'
     else 'mall-demo'
   end
 from roster
+on conflict do nothing;
+
+insert into public.membership_scopes (membership_id, scope_kind, resource_id)
+select
+  'membership-test-admin-' || lpad(account_index::text, 3, '0'),
+  'mall',
+  'mall-demo'
+from generate_series(1, 5) as indices(account_index)
 on conflict do nothing;
 
 with roster as (

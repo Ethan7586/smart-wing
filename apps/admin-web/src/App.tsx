@@ -49,7 +49,7 @@ export function resolveAdminAccount(employeeNo: unknown, roles: unknown): AdminP
     { pattern: /^seller00[1-5]$/, role: '测试商家', permissionTags: ['商品发布', '订单履约', '仓储发货'] },
     { pattern: /^ops00[1-5]$/, role: '测试运营', permissionTags: ['商品运营', '订单履约', '审计查看'] },
     { pattern: /^cs00[1-5]$/, role: '测试客服', permissionTags: ['订单查看', '售后处理', '成员查看'] },
-    { pattern: /^admin00[1-5]$/, role: '测试管理员', permissionTags: ['全量管理', '角色授权', '审计查看'] },
+    { pattern: /^admin00[1-5]$/, role: '测试企业管理员', permissionTags: ['成员管理', '支付对账', '审计查看'] },
   ].find((candidate) => candidate.pattern.test(employeeNo));
   return profile ? { username: employeeNo, displayName: employeeNo, role: profile.role, permissionTags: profile.permissionTags } : null;
 }

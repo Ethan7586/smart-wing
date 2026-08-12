@@ -6,7 +6,7 @@ describe('admin account profile resolution', () => {
     ['seller001', 'role-test-seller', '测试商家'],
     ['ops001', 'role-test-operations', '测试运营'],
     ['cs001', 'role-test-customer-service', '测试客服'],
-    ['admin001', 'role-test-admin', '测试管理员'],
+    ['admin001', 'role-test-admin', '测试企业管理员'],
   ])('recognizes %s as %s', (employeeNo, roleId, roleLabel) => {
     expect(resolveAdminAccount(employeeNo, [roleId])).toMatchObject({ username: employeeNo, role: roleLabel });
   });
