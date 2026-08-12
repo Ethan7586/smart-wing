@@ -390,6 +390,7 @@ export async function loginWithPassword(identifier: string, password: string): P
     preAuthToken: `PAT_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
     identifier: cleanId,
     loginMethod: 'password',
+    requiresPasswordReset: payload.requiresPasswordReset === true,
     memberships: [
       fixture ?? {
         id: membershipId,
@@ -403,6 +404,16 @@ export async function loginWithPassword(identifier: string, password: string): P
       },
     ],
   };
+}
+
+export async function changeInitialPassword(username: string, password: string, newPassword: string): Promise<void> {
+  const response = await fetch('/api/v1/auth/password/initial-change', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ username, password, newPassword }),
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error?.message || '初始密码修改失败');
 }
 
 export interface RegistrationOtpResult {

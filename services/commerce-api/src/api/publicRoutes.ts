@@ -4,7 +4,7 @@ import { apiError, json, methodNotAllowed } from './http';
 import { isTestLoginRateLimitBypassed, readTrustedClientIp } from './loginRateLimitBypass';
 import { resolveMembershipRuntimeByIds, type MembershipRuntime } from './membershipContext';
 import { localPhoneSubject } from './registrationRoutes';
-import { normalizeChineseMobile, normalizeLocalUsername, verifyPassword } from './registrationSecurity';
+import { hashPassword, normalizeChineseMobile, normalizeLocalUsername, validRegistrationPassword, verifyPassword } from './registrationSecurity';
 import { readJsonBody } from './routerSupport';
 import { clearSessionCookie, createTrackedSessionCookie, readSession, targetForRequest } from './session';
 import { callRpc, isSupabaseConfigured } from './supabase';
@@ -92,7 +92,7 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
     return apiError(400, 'INVALID_LOGIN_INPUT', '账号或密码缺失', requestId);
   }
   const target = targetForRequest(request);
-  const localLogin = registeredAuthEnabled ? await authenticateLocalMember(username, password, target, env) : { runtime: null, credentialFound: false };
+  const localLogin = registeredAuthEnabled ? await authenticateLocalMember(username, password, target, env) : { runtime: null, credentialFound: false, mustResetPassword: false, passwordHash: null };
   const registeredRuntime = localLogin.runtime;
   const account = registeredRuntime || localLogin.credentialFound ? null : getDemoAccounts(env).find((candidate) => candidate.username.trim().toLowerCase() === username.trim().toLowerCase());
   const demoRuntime = account && (await verifyDemoPassword(password, account.password)) ? await resolveDemoMembership(env, account, target) : null;
@@ -104,6 +104,9 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
       });
     }
     return apiError(401, 'INVALID_USERNAME_PASSWORD', '账号或密码不正确', requestId);
+  }
+  if (registeredRuntime && localLogin.mustResetPassword) {
+    return apiError(403, 'PASSWORD_RESET_REQUIRED', '首次登录必须先修改临时密码', requestId);
   }
   await callRpc<boolean>(env, 'api_clear_login_failures', { p_ip_hash: ipHash });
   const cookie = await createTrackedSessionCookie(request, env, runtime.authorization.employeeNo, runtime.authorization.mallCode, {
@@ -153,20 +156,48 @@ export async function handleRegisteredCredentialDiscovery(request: Request, env:
     return apiError(401, 'INVALID_USERNAME_PASSWORD', '账号或密码不正确', requestId);
   }
   await callRpc<boolean>(env, 'api_clear_login_failures', { p_ip_hash: ipHash });
-  return json({ authenticated: true, authorization: publicAuthorization(runtime.authorization), requestId });
+  return json({ authenticated: true, requiresPasswordReset: localLogin.mustResetPassword, authorization: publicAuthorization(runtime.authorization), requestId });
+}
+
+export async function handleInitialPasswordChange(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
+  if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
+  const input = await readLoginInput(request);
+  const username = typeof input?.username === 'string' ? input.username : '';
+  const currentPassword = typeof input?.password === 'string' ? input.password : '';
+  const newPassword = typeof input?.newPassword === 'string' ? input.newPassword : '';
+  if (!username || !currentPassword || !validRegistrationPassword(newPassword)) return apiError(422, 'INVALID_PASSWORD_CHANGE', '新密码至少10位，并同时包含字母和数字', requestId);
+  const clientIp = readTrustedClientIp(request);
+  const ipHash = await sha256(`${clientIp ?? 'unknown'}:${env.SESSION_SIGNING_KEY ?? ''}`);
+  if (!(await callRpc<boolean>(env, 'api_login_allowed', { p_ip_hash: ipHash }))) return apiError(429, 'LOGIN_RATE_LIMITED', '登录尝试过多，请15分钟后重试', requestId);
+  const localLogin = await authenticateLocalMember(username, currentPassword, undefined, env);
+  if (!localLogin.runtime || !localLogin.mustResetPassword || !localLogin.passwordHash) {
+    await callRpc<string | null>(env, 'api_record_login_failure', { p_ip_hash: ipHash });
+    return apiError(401, 'INVALID_USERNAME_PASSWORD', '账号或临时密码不正确', requestId);
+  }
+  if (await verifyPassword(newPassword, localLogin.passwordHash)) return apiError(422, 'PASSWORD_REUSE_FORBIDDEN', '新密码不能与临时密码相同', requestId);
+  const changed = await callRpc<boolean>(env, 'api_initial_change_local_password', {
+    p_member_id: localLogin.runtime.membership.memberId,
+    p_password_hash: await hashPassword(newPassword),
+    p_request_id: requestId,
+    p_user_agent: (request.headers.get('user-agent') ?? '').slice(0, 300),
+  });
+  if (!changed) return apiError(409, 'PASSWORD_RESET_STATE_CHANGED', '初始密码状态已变化，请重新登录', requestId);
+  await callRpc<boolean>(env, 'api_clear_login_failures', { p_ip_hash: ipHash });
+  return json({ changed: true, loginRequired: true, requestId });
 }
 
 type RegisteredCandidate = { memberId?: string; membershipId?: string; target?: 'storefront' | 'admin'; passwordHash?: string; mustResetPassword?: boolean };
+type LocalLogin = { runtime: MembershipRuntime | null; credentialFound: boolean; mustResetPassword: boolean; passwordHash: string | null };
 const DUMMY_PASSWORD_HASH = `pbkdf2-sha256$310000$AAAAAAAAAAAAAAAAAAAAAA==$${'A'.repeat(43)}=`;
 
-async function authenticateLocalMember(identifier: string, password: string, target: 'storefront' | 'admin' | undefined, env: WorkerEnv): Promise<{ runtime: MembershipRuntime | null; credentialFound: boolean }> {
+async function authenticateLocalMember(identifier: string, password: string, target: 'storefront' | 'admin' | undefined, env: WorkerEnv): Promise<LocalLogin> {
   const mobile = normalizeChineseMobile(identifier);
   const username = normalizeLocalUsername(identifier);
   const normalizedIdentifier = identifier.trim().toLowerCase();
   const demoAlias = isDemoAuthEnabled(env) && getDemoAccounts(env).some((candidate) => candidate.username.trim().toLowerCase() === normalizedIdentifier);
   const provider = mobile ? 'local_phone' : demoAlias ? 'test' : username ? 'local_username' : isDemoAuthEnabled(env) ? 'test' : null;
   const subject = mobile ? await localPhoneSubject(mobile, env) : (username ?? identifier.trim().toLowerCase());
-  if (!provider || !subject) return { runtime: null, credentialFound: false };
+  if (!provider || !subject) return { runtime: null, credentialFound: false, mustResetPassword: false, passwordHash: null };
   const candidate = await callRpc<RegisteredCandidate | null>(env, 'api_local_login_candidate', {
     p_provider: provider,
     p_subject: subject,
@@ -174,14 +205,16 @@ async function authenticateLocalMember(identifier: string, password: string, tar
   });
   if (!candidate?.memberId || !candidate.membershipId || !candidate.passwordHash) {
     await verifyPassword(password, DUMMY_PASSWORD_HASH);
-    return { runtime: null, credentialFound: false };
+    return { runtime: null, credentialFound: false, mustResetPassword: false, passwordHash: null };
   }
-  if (!(await verifyPassword(password, candidate.passwordHash))) return { runtime: null, credentialFound: true };
+  if (!(await verifyPassword(password, candidate.passwordHash))) return { runtime: null, credentialFound: true, mustResetPassword: false, passwordHash: null };
   const resolvedTarget = candidate.target ?? target;
-  if (!resolvedTarget) return { runtime: null, credentialFound: true };
+  if (!resolvedTarget) return { runtime: null, credentialFound: true, mustResetPassword: false, passwordHash: null };
   return {
     runtime: await resolveMembershipRuntimeByIds(env, candidate.memberId, candidate.membershipId, resolvedTarget),
     credentialFound: true,
+    mustResetPassword: candidate.mustResetPassword === true,
+    passwordHash: candidate.passwordHash,
   };
 }
 

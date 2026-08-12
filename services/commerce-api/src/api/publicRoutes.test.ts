@@ -199,4 +199,41 @@ describe('health endpoint', () => {
     expect(response.status).toBe(429);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it('never creates a session while a registered member must reset the initial password', async () => {
+    const passwordHash = await hashPassword('Temporary2026');
+    const responses = [
+      true,
+      { memberId: 'member-new', membershipId: 'membership-new', target: 'storefront', passwordHash, mustResetPassword: true },
+      {
+        id: 'membership-new',
+        memberId: 'member-new',
+        target: 'storefront',
+        status: 'active',
+        roleIds: ['role-employee'],
+        permissions: ['catalog.read'],
+        deniedPermissions: [],
+        context: { tenantId: 'tenant-smart-wing', enterpriseId: 'enterprise-demo', mallId: 'mall-demo', userId: 'user-new' },
+        scopeBindings: [{ kind: 'self', resourceId: 'user-new' }],
+        expiresAt: null,
+        authzVersion: 1,
+        actor: { tenantId: 'tenant-smart-wing', enterpriseId: 'enterprise-demo', mallId: 'mall-demo', mallCode: 'SMART_WING_DEMO', userId: 'user-new', employeeNo: 'REG-NEW' },
+      },
+      null,
+    ];
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify(responses.shift()), { status: 200, headers: { 'content-type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetchMock);
+    const response = await handleLogin(
+      new Request('https://hbbtzn.com/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-real-ip': '203.0.113.24' },
+        body: JSON.stringify({ username: 'new.employee', password: 'Temporary2026' }),
+      }),
+      { SUPABASE_URL: 'https://db.example', SUPABASE_SERVICE_ROLE_KEY: 'service-role', SESSION_SIGNING_KEY: 'session-key-that-is-longer-than-thirty-two-bytes' },
+      'must-reset'
+    );
+    expect(response.status).toBe(403);
+    expect(response.headers.get('set-cookie')).toBeNull();
+    await expect(response.json()).resolves.toMatchObject({ error: { code: 'PASSWORD_RESET_REQUIRED' } });
+  });
 });

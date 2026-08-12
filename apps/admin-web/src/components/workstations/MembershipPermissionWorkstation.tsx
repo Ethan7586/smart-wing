@@ -4,14 +4,18 @@ import { loadAccessControl, updateMemberAccess, updateMemberStatus, verifyCurren
 import { effectivePermissionCodes, memberSearchText, RISK_LABELS, SCOPE_LABELS } from './accessControlHelpers';
 import { MemberAccessEditor } from './MemberAccessEditor';
 import { StepUpModal } from './StepUpModal';
+import { MemberOperationsPanel } from './MemberOperationsPanel';
 
 interface Props {
   canManageAccess: boolean;
   canManageStatus: boolean;
   canOffboard: boolean;
+  canInvite: boolean;
+  canUpdate: boolean;
+  canImport: boolean;
 }
 
-export function MembershipPermissionWorkstation({ canManageAccess, canManageStatus, canOffboard }: Props) {
+export function MembershipPermissionWorkstation({ canManageAccess, canManageStatus, canOffboard, canInvite, canUpdate, canImport }: Props) {
   const [data, setData] = useState<AccessControlData | null>(null);
   const [selectedId, setSelectedId] = useState('');
   const [query, setQuery] = useState('');
@@ -20,6 +24,7 @@ export function MembershipPermissionWorkstation({ canManageAccess, canManageStat
   const [error, setError] = useState('');
   const [verifiedUntil, setVerifiedUntil] = useState(0);
   const [stepUpOpen, setStepUpOpen] = useState(false);
+  const [section, setSection] = useState<'operations' | 'permissions'>('operations');
   const pendingAction = useRef<null | (() => Promise<void>)>(null);
   const refresh = async () => {
     setLoading(true);
@@ -112,53 +117,64 @@ export function MembershipPermissionWorkstation({ canManageAccess, canManageStat
           <Metric icon={UserRoundCheck} label="当前有效" value={active} />
           <Metric icon={ShieldCheck} label="角色模板" value={data.roles.length} />
         </div>
-        {error && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700">{error}</div>}
-        <div className="grid grid-cols-12 gap-5 items-start">
-          <section className="col-span-12 xl:col-span-4 bg-white border border-slate-200 rounded-[14px] overflow-hidden">
-            <div className="p-4 border-b border-slate-200">
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索姓名、账号或角色" className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs outline-none" />
-              </div>
-            </div>
-            <div className="max-h-[720px] overflow-y-auto">
-              {members.map((member) => (
-                <button
-                  key={member.membershipId}
-                  onClick={() => setSelectedId(member.membershipId)}
-                  className={`w-full p-4 text-left border-b border-slate-100 ${selectedId === member.membershipId ? 'bg-blue-50 border-l-2 border-l-blue-500' : 'hover:bg-slate-50'}`}
-                >
-                  <div className="flex justify-between gap-2">
-                    <b className="text-slate-900">{member.displayName}</b>
-                    <Status status={member.status} />
-                  </div>
-                  <div className="text-[10px] text-slate-400 mt-1 font-mono">
-                    {member.employeeNo} · {member.target}
-                  </div>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {member.isOwner && <Tag text="OWNER" tone="amber" />}
-                    {member.isSelf && <Tag text="本人" tone="blue" />}
-                    {member.roles.map((role) => (
-                      <Tag key={role.id} text={role.name} />
-                    ))}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
-          <section className="col-span-12 xl:col-span-8 bg-white border border-slate-200 rounded-[14px] overflow-hidden">
-            {selected ? (
-              <>
-                <MemberHeader member={selected} data={data} saving={saving} canManageStatus={canManageStatus} canOffboard={canOffboard} onStatus={changeStatus} />
-                <div className="p-5">
-                  <MemberAccessEditor member={selected} data={data} saving={saving} readOnly={!canManageAccess} onSave={save} />
-                </div>
-              </>
-            ) : (
-              <StateCard text="请选择会员身份" />
-            )}
-          </section>
+        <div className="flex gap-2 border-b border-slate-200">
+          <button onClick={() => setSection('operations')} className={`px-4 py-2 text-xs border-b-2 ${section === 'operations' ? 'border-blue-500 text-blue-700 font-bold' : 'border-transparent text-slate-500'}`}>
+            会员运营
+          </button>
+          <button onClick={() => setSection('permissions')} className={`px-4 py-2 text-xs border-b-2 ${section === 'permissions' ? 'border-blue-500 text-blue-700 font-bold' : 'border-transparent text-slate-500'}`}>
+            授权与状态
+          </button>
         </div>
+        <MemberOperationsPanel active={section === 'operations'} canInvite={canInvite} canUpdate={canUpdate} canImport={canImport} runProtected={runProtected} />
+        {error && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700">{error}</div>}
+        {section === 'permissions' && (
+          <div className="grid grid-cols-12 gap-5 items-start">
+            <section className="col-span-12 xl:col-span-4 bg-white border border-slate-200 rounded-[14px] overflow-hidden">
+              <div className="p-4 border-b border-slate-200">
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                  <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索姓名、账号或角色" className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs outline-none" />
+                </div>
+              </div>
+              <div className="max-h-[720px] overflow-y-auto">
+                {members.map((member) => (
+                  <button
+                    key={member.membershipId}
+                    onClick={() => setSelectedId(member.membershipId)}
+                    className={`w-full p-4 text-left border-b border-slate-100 ${selectedId === member.membershipId ? 'bg-blue-50 border-l-2 border-l-blue-500' : 'hover:bg-slate-50'}`}
+                  >
+                    <div className="flex justify-between gap-2">
+                      <b className="text-slate-900">{member.displayName}</b>
+                      <Status status={member.status} />
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-1 font-mono">
+                      {member.employeeNo} · {member.target}
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {member.isOwner && <Tag text="OWNER" tone="amber" />}
+                      {member.isSelf && <Tag text="本人" tone="blue" />}
+                      {member.roles.map((role) => (
+                        <Tag key={role.id} text={role.name} />
+                      ))}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </section>
+            <section className="col-span-12 xl:col-span-8 bg-white border border-slate-200 rounded-[14px] overflow-hidden">
+              {selected ? (
+                <>
+                  <MemberHeader member={selected} data={data} saving={saving} canManageStatus={canManageStatus} canOffboard={canOffboard} onStatus={changeStatus} />
+                  <div className="p-5">
+                    <MemberAccessEditor member={selected} data={data} saving={saving} readOnly={!canManageAccess} onSave={save} />
+                  </div>
+                </>
+              ) : (
+                <StateCard text="请选择会员身份" />
+              )}
+            </section>
+          </div>
+        )}
       </div>
       <StepUpModal
         open={stepUpOpen}

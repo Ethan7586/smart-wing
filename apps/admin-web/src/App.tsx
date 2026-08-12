@@ -313,6 +313,9 @@ export function App() {
               canManageAccess={sessionPermissions.includes('role.grant') && sessionPermissions.includes('scope.grant')}
               canManageStatus={sessionPermissions.includes('member.disable')}
               canOffboard={sessionPermissions.includes('member.offboard')}
+              canInvite={sessionPermissions.includes('member.invite')}
+              canUpdate={sessionPermissions.includes('member.update')}
+              canImport={sessionPermissions.includes('member.import')}
             />
           )}
 

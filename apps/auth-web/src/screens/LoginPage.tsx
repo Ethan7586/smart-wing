@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 import { useMallContext } from '../context/MallContext';
 import { LoginMethod, Membership, PreAuthContext } from '../types';
-import { requestOtp, loginWithOtp, loginWithPassword, verifyStepUp, getLockoutState, acceptInvitation, registerUsernameMember } from '../services/auth';
+import { requestOtp, loginWithOtp, loginWithPassword, verifyStepUp, getLockoutState, acceptInvitation, changeInitialPassword, registerUsernameMember } from '../services/auth';
 
 export const LoginPage: React.FC = () => {
   const { currentDomain, navigateTo, acceptedTerms, setAcceptedTerms, setActiveSession } = useMallContext();
@@ -1599,17 +1599,28 @@ export const LoginPage: React.FC = () => {
                 取消
               </button>
               <button
-                onClick={() => {
-                  if (newPassword.length < 8) {
-                    alert('新密码不能少于8位');
+                onClick={async () => {
+                  if (newPassword.length < 10 || !/[A-Za-z]/.test(newPassword) || !/\d/.test(newPassword)) {
+                    setFormError('新密码至少10位，并同时包含字母和数字');
                     return;
                   }
-                  setShowForcePasswordModal(false);
-                  if (preAuthContext) {
-                    void processPreAuthContext(preAuthContext);
+                  setLoading(true);
+                  setFormError('');
+                  try {
+                    await changeInitialPassword(identifier, password, newPassword);
+                    setShowForcePasswordModal(false);
+                    setNewPassword('');
+                    setPassword('');
+                    setPreAuthContext(null);
+                    setFormError('初始密码已修改，请使用新密码重新登录');
+                  } catch (cause) {
+                    setFormError(cause instanceof Error ? cause.message : '初始密码修改失败');
+                  } finally {
+                    setLoading(false);
                   }
                 }}
-                className="flex-1 py-2 text-xs font-medium text-white bg-[var(--sw-brand)] rounded-xl"
+                disabled={loading}
+                className="flex-1 py-2 text-xs font-medium text-white bg-[var(--sw-brand)] rounded-xl disabled:bg-slate-300"
               >
                 确认并提交
               </button>

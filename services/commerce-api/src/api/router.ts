@@ -5,11 +5,12 @@ import { handleAddresses, handleDeleteAddress } from './addressRoutes';
 import { apiError, json } from './http';
 import { handleAfterSales, handleCreateAfterSale, handleCreateOrder, handleExecuteRefund, handleFinanceReconciliation, handleInternalPayment, handleOrders, handleShipOrder } from './orderRoutes';
 import { handleAdminCatalog, handleAdminOverview, handleSetProductStatus } from './adminRoutes';
-import { handleHealth, handleLogin, handleLogout, handleProducts, handleRegisteredCredentialDiscovery } from './publicRoutes';
+import { handleHealth, handleInitialPasswordChange, handleLogin, handleLogout, handleProducts, handleRegisteredCredentialDiscovery } from './publicRoutes';
 import { handleRegistration, handleRegistrationOtp, handleUsernameRegistration } from './registrationRoutes';
 import { handleHomeSnapshot } from './homeRoutes';
 import { handleSimulationBenefitIssue, handleSimulationMixedPayment, handleSimulationRecharge, handleSimulationWallet } from './paymentSimulationRoutes';
 import { handleMembershipAccess, handleMembershipStatus, handlePermissionCommandCenter } from './permissionAdminRoutes';
+import { handleAdminCreateMember, handleCreateMemberInvite, handleDisableMemberInvite, handleMemberImport, handleMemberOperations, handleUpdateMemberProfile } from './memberOperationsRoutes';
 import { handleStepUp } from './stepUpRoutes';
 import { handleChangePassword, handleChangePhone, handleResetPassword, handleRevokeOtherSessions, handleRevokeSession, handleSecurityCenter, handleSecurityOtp } from './securityCenterRoutes';
 import { handleQualificationCenter, handleQualificationConfig } from './qualificationAdminRoutes';
@@ -39,6 +40,9 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     }
     if (url.pathname === `${API_PREFIX}/auth/credential/discover`) {
       return await handleRegisteredCredentialDiscovery(request, env, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/auth/password/initial-change`) {
+      return await handleInitialPasswordChange(request, env, requestId);
     }
     if (url.pathname === `${API_PREFIX}/auth/logout`) {
       return await handleLogout(request, env, requestId);
@@ -137,6 +141,26 @@ export async function routeApi(request: Request, env: WorkerEnv): Promise<Respon
     }
     if (url.pathname === `${API_PREFIX}/admin/access-control`) {
       return await handlePermissionCommandCenter(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/admin/member-operations`) {
+      return await handleMemberOperations(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/admin/member-operations/invitations`) {
+      return await handleCreateMemberInvite(request, env, authorization, requestId);
+    }
+    const invitationMatch = url.pathname.match(/^\/api\/v1\/admin\/member-operations\/invitations\/([^/]+)$/);
+    if (invitationMatch) {
+      return await handleDisableMemberInvite(request, env, authorization, decodeURIComponent(invitationMatch[1]), requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/admin/member-operations/members`) {
+      return await handleAdminCreateMember(request, env, authorization, requestId);
+    }
+    if (url.pathname === `${API_PREFIX}/admin/member-operations/imports`) {
+      return await handleMemberImport(request, env, authorization, requestId);
+    }
+    const memberProfileMatch = url.pathname.match(/^\/api\/v1\/admin\/member-operations\/members\/([^/]+)$/);
+    if (memberProfileMatch) {
+      return await handleUpdateMemberProfile(request, env, authorization, decodeURIComponent(memberProfileMatch[1]), requestId);
     }
     if (url.pathname === `${API_PREFIX}/admin/qualification-center`) {
       return await handleQualificationCenter(request, env, authorization, requestId);
