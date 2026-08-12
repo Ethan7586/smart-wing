@@ -2,7 +2,7 @@ begin;
 
 do $$
 declare
-  invite jsonb; created jsonb; updated jsonb; report jsonb; center jsonb;
+  invite jsonb; created jsonb; updated jsonb; report jsonb; center jsonb; password_changed boolean;
   test_username text:='contract.member.'||substr(replace(gen_random_uuid()::text,'-',''),1,8);
   target_membership text;
 begin
@@ -27,6 +27,14 @@ begin
   if exists(select 1 from public.memberships where id=target_membership and target<>'storefront') then raise exception 'CONTRACT_ADMIN_MEMBERSHIP_CREATED'; end if;
   if exists(select 1 from public.membership_roles mr join public.roles r on r.id=mr.role_id where mr.membership_id=target_membership and r.is_owner) then raise exception 'CONTRACT_OWNER_CREATED'; end if;
   if not exists(select 1 from public.member_credentials c join public.memberships m on m.member_id=c.member_id where m.id=target_membership and c.must_reset_password) then raise exception 'CONTRACT_PASSWORD_RESET_NOT_REQUIRED'; end if;
+
+  password_changed:=public.api_initial_change_local_password(
+    created->>'memberId','pbkdf2-sha256$310000$BBBBBBBBBBBBBBBBBBBBBB==$BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=',
+    'member-ops-initial-password','contract-test'
+  );
+  if not password_changed or exists(select 1 from public.member_credentials c where c.member_id=created->>'memberId' and c.must_reset_password) then
+    raise exception 'CONTRACT_INITIAL_PASSWORD_CHANGE_FAILED';
+  end if;
 
   updated:=public.api_update_member_profile(
     'membership-test-owner-admin','user-test-owner','tenant-smart-wing','enterprise-demo','mall-demo',
