@@ -20,7 +20,7 @@
         <view class="mc-disc">
           <view class="mc-mark sw-membercode-mark"></view>
         </view>
-        <text class="tab-label tab-label-center is-on">{{item.label}}</text>
+        <text class="tab-label tab-label-center {{selected === index ? 'is-on' : ''}}">{{item.label}}</text>
       </block>
 
       <block wx:else>

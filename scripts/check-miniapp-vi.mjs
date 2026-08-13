@@ -20,7 +20,8 @@ import { execFileSync } from 'node:child_process';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const MP = join(ROOT, 'apps/wechat-miniapp/miniprogram');
-const GENERATED = ['styles/tokens.wxss', 'styles/icons.wxss'];
+const GENERATED = ['styles/tokens.wxss', 'styles/icons.wxss', 'data/assets.generated.js'];
+const TEXT_EXTENSIONS = new Set(['js', 'json', 'wxml', 'wxss']);
 
 const tokens = JSON.parse(readFileSync(join(ROOT, 'packages/design-system/src/tokens.json'), 'utf8'));
 
@@ -54,7 +55,8 @@ function stripComments(source, extension) {
   return source.replace(/\/\*[\s\S]*?\*\//g, blank).replace(/(^|[^:])\/\/[^\n]*/g, (m, p) => p + blank(m.slice(p.length)));
 }
 
-const files = walk(MP).map((full) => ({ full, rel: relative(MP, full).split('\\').join('/') }));
+const allFiles = walk(MP).map((full) => ({ full, rel: relative(MP, full).split('\\').join('/') }));
+const files = allFiles.filter(({ rel }) => TEXT_EXTENSIONS.has(rel.split('.').pop()));
 
 for (const { full, rel } of files) {
   const extension = rel.split('.').pop();
@@ -86,12 +88,12 @@ for (const { full, rel } of files) {
 
     // 06 事故 #3 — hardcoded values instead of tokens. WeChat config JSON cannot
     // reference variables, so there the literal must at least be a real token.
-    const hex = code.match(/#[0-9a-fA-F]{3,8}\b/);
-    if (hex && !generated) {
+    const colour = code.match(/#[0-9a-fA-F]{3,8}\b|\b(?:rgb|hsl)a?\s*\([^)]*\)/i);
+    if (colour && !generated) {
       if (extension === 'json') {
-        check('untokenized-color', !TOKEN_COLOURS.has(hex[0].toUpperCase()), `${hex[0]} 不在 tokens.json 的调色板内`);
+        check('untokenized-color', !TOKEN_COLOURS.has(colour[0].toUpperCase()), `${colour[0]} 不在 tokens.json 的调色板内`);
       } else {
-        check('hardcoded-color', true, `${hex[0]} — 请改用 var(--sw-*)`);
+        check('hardcoded-color', true, `${colour[0]} — 请改用 var(--sw-*)`);
       }
     }
 
@@ -115,6 +117,7 @@ for (const { full, rel } of files) {
 
     // Flex gap is unreliable on older WeChat Android base libraries.
     check('flex-gap', /^\s*(row-|column-)?gap:/.test(code), '低版本安卓基础库对 flex gap 支持不稳定，请改用 margin');
+
   });
 
   if (generated && !source.startsWith('/* GENERATED')) {
@@ -122,14 +125,12 @@ for (const { full, rel } of files) {
   }
 }
 
-// Regenerating must be a no-op; otherwise the committed assets are stale.
-const before = GENERATED.map((rel) => readFileSync(join(MP, rel), 'utf8'));
-execFileSync(process.execPath, [join(ROOT, 'scripts/build-miniapp-assets.mjs')], { stdio: 'pipe' });
-GENERATED.forEach((rel, index) => {
-  if (readFileSync(join(MP, rel), 'utf8') !== before[index]) {
-    fail(rel, 1, 'stale-generated', '生成结果与仓库不一致，请提交 npm run build:miniapp-assets 的输出');
-  }
-});
+// Compare in memory. A check must never rewrite or "repair" the working tree.
+try {
+  execFileSync(process.execPath, [join(ROOT, 'scripts/build-miniapp-assets.mjs'), '--check'], { stdio: 'pipe' });
+} catch {
+  fail('styles/', 1, 'stale-generated', '生成结果与仓库不一致，请运行 npm run build:miniapp-assets 并提交输出');
+}
 
 // Every literal .i-<name>-<role> used in markup must exist in the generated sheet.
 const iconSheet = readFileSync(join(MP, 'styles/icons.wxss'), 'utf8');
@@ -148,7 +149,8 @@ for (const { full, rel } of files.filter((f) => f.rel.endsWith('.wxml'))) {
  * that never got generated renders as an empty box in the simulator — the exact
  * symptom of the previous builds. Check every data-driven name too.
  */
-for (const { full, rel } of files.filter((f) => f.rel.startsWith('data/'))) {
+const DATA_DRIVEN_ICON_FILES = new Set(['data/demo.js', 'custom-tab-bar/index.js']);
+for (const { full, rel } of files.filter((f) => DATA_DRIVEN_ICON_FILES.has(f.rel))) {
   const source = stripComments(readFileSync(full, 'utf8'), 'js');
   for (const match of source.matchAll(/\bicon:\s*'([a-z0-9-]+)'/g)) {
     if (!iconSheet.includes(`.i-${match[1]}-`)) {
@@ -158,7 +160,7 @@ for (const { full, rel } of files.filter((f) => f.rel.startsWith('data/'))) {
 }
 
 if (failures.length === 0) {
-  console.log(`miniapp VI check passed — ${files.length} files`);
+  console.log(`miniapp VI check passed — ${files.length} source files / ${allFiles.length} total files`);
   process.exit(0);
 }
 

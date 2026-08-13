@@ -11,6 +11,7 @@
  */
 
 var IS_DEMO = true;
+var generatedAssets = require('./assets.generated');
 
 module.exports = {
   IS_DEMO: IS_DEMO,
@@ -51,16 +52,17 @@ module.exports = {
 
   /**
    * Partner retailers. Smart Wing stays the primary brand; until a logo file is
-   * dropped into assets/partners/, each renders as a neutral text label.
+   * supplied later under assets/partners/, its path can replace `null` without
+   * changing the component or layout. Until then each renders as neutral text.
    * DESIGN.md lists 全部 / 麦德龙 / 沃尔玛 / 山姆 / 大润发 / 永辉.
    */
   partners: [
     { key: 'all', label: '全部', logo: null },
-    { key: 'metro', label: '麦德龙', logo: null },
-    { key: 'walmart', label: '沃尔玛', logo: null },
-    { key: 'sams', label: '山姆', logo: null },
-    { key: 'rt-mart', label: '大润发', logo: null },
-    { key: 'yonghui', label: '永辉', logo: null },
+    { key: 'metro', label: '麦德龙', logo: generatedAssets.partners.metro },
+    { key: 'walmart', label: '沃尔玛', logo: generatedAssets.partners.walmart },
+    { key: 'sams', label: '山姆', logo: generatedAssets.partners.sams },
+    { key: 'rt-mart', label: '大润发', logo: generatedAssets.partners['rt-mart'] },
+    { key: 'yonghui', label: '永辉', logo: generatedAssets.partners.yonghui },
   ],
 
   segments: [

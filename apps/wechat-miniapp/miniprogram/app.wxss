@@ -100,11 +100,11 @@ page {
 
 /* Slot on a brand-coloured surface needs inverted treatment. */
 .sw-slot-on-brand {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: var(--sw-inverse-faint);
+  border-color: var(--sw-inverse-soft);
 }
 
-.sw-slot-on-brand .sw-slot-label { color: rgba(255, 255, 255, 0.85); }
+.sw-slot-on-brand .sw-slot-label { color: var(--sw-inverse-label); }
 
 /* Demo-data banner. Never let seed numbers pass as the member's own. */
 .sw-demo-flag {

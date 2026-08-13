@@ -3,9 +3,16 @@ import { extname, join, relative, sep } from 'node:path';
 
 const ROOT = process.cwd();
 const LIMIT = 299;
-const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.css', '.md', '.json', '.toml', '.yml', '.yaml', '.sql']);
+const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.css', '.wxml', '.wxss', '.md', '.json', '.toml', '.yml', '.yaml', '.sql']);
 const IGNORED_DIRECTORIES = new Set(['.git', '.next', '.open-next', '.wrangler', 'dist', 'node_modules', 'deliverables', 'tools']);
-const GENERATED_OR_IMMUTABLE = [/(^|\/)package-lock\.json$/, /^.*\.tsbuildinfo$/, /^database\/supabase\/config\.toml$/, /^database\/supabase\/migrations\/.+\.sql$/, /^database\/supabase\/\.temp\//];
+const GENERATED_OR_IMMUTABLE = [
+  /(^|\/)package-lock\.json$/,
+  /^.*\.tsbuildinfo$/,
+  /^database\/supabase\/config\.toml$/,
+  /^database\/supabase\/migrations\/.+\.sql$/,
+  /^database\/supabase\/\.temp\//,
+  /^apps\/wechat-miniapp\/miniprogram\/styles\/(tokens|icons)\.wxss$/,
+];
 const IMPORTED_ADMIN_LEGACY = new Set([
   'apps/admin-web/src/App.tsx',
   'apps/admin-web/src/components/CaseCenterDrawer.tsx',

@@ -37,10 +37,8 @@
 
 .tab-label {
   margin-top: 4rpx;
-  /* No tab-label size exists in tokens.json; 20rpx matches the platform norm
-     and the approved board. Logged as a token gap, not invented styling. */
-  font-size: 20rpx;
-  line-height: 28rpx;
+  font-size: var(--sw-tab-label-size);
+  line-height: var(--sw-tab-label-line-height);
   color: var(--sw-text-secondary);
 }
 

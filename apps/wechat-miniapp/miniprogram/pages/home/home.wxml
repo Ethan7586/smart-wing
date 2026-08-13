@@ -119,6 +119,7 @@
           <view class="i i-md i-image-off-muted"></view>
           <text class="sw-slot-label">主视觉待供图</text>
         </view>
+        <image wx:else class="hero-illustration" src="{{hero.illustration}}" mode="aspectFit" />
         <view class="hero-dots">
           <view wx:for="{{hero.slideCount}}" wx:key="*this" class="dot {{index === 0 ? 'dot-on' : ''}}"></view>
         </view>
