@@ -45,7 +45,7 @@ export function useDeviceNavigation() {
     }
   };
 
-  const scrollTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+  const scrollTop = (behavior: ScrollBehavior = 'smooth') => window.scrollTo({ top: 0, behavior });
   const setMpPage = (page: MiniProgramPage, productId?: string) => {
     setMpPageState(page);
     if (productId) setMobileProductId(productId);
@@ -72,7 +72,7 @@ export function useDeviceNavigation() {
   const navigateTo = (page: PageRoute, params: RouteParams = {}) => {
     setCurrentPage(page);
     setRouteParams(params);
-    scrollTop();
+    scrollTop('auto');
     const query = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) query.set(key, String(value));

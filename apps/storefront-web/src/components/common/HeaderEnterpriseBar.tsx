@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Building2, ChevronDown, Headphones, Heart, ShieldCheck, Sparkles, Ticket, User, Wallet } from 'lucide-react';
+import { Building2, ChevronDown, Headphones, LogOut, User } from 'lucide-react';
 import { useMall } from '../../context/MallContext';
 
 export const HeaderEnterpriseBar: React.FC = () => {
-  const { user, currentMall, malls, switchMall, navigateTo, sessionStatus } = useMall();
+  const { user, currentMall, malls, switchMall, navigateTo, sessionStatus, logout } = useMall();
   const [showMallDropdown, setShowMallDropdown] = useState(false);
   return (
     <>
@@ -80,9 +80,14 @@ export const HeaderEnterpriseBar: React.FC = () => {
             </button>
 
             {sessionStatus === 'authenticated' && (
-              <button onClick={() => navigateTo('mvp-console')} className="hover:text-white transition-colors cursor-pointer flex items-center gap-1 font-bold">
-                MVP验收台
-              </button>
+              <>
+                <button onClick={() => navigateTo('mvp-console')} className="hover:text-white transition-colors cursor-pointer flex items-center gap-1 font-bold">
+                  MVP验收台
+                </button>
+                <button onClick={() => void logout()} className="rounded border border-white/25 px-2 py-0.5 text-white hover:bg-white/15 transition-colors cursor-pointer flex items-center gap-1 font-bold">
+                  <LogOut className="w-3.5 h-3.5" /> 退出
+                </button>
+              </>
             )}
 
             <div className="h-3 w-[1px] bg-blue-400/40" />

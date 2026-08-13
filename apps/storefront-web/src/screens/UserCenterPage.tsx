@@ -6,11 +6,11 @@
 
 import React from 'react';
 import { useMall } from '../context/MallContext';
-import { CreditCard, Utensils, Package, MapPin, Heart, Ticket, Headphones, ChevronRight, Building2, Clock, Truck, ShieldAlert, ArrowRight } from 'lucide-react';
+import { CreditCard, Package, Heart, Ticket, ChevronRight, Building2, Clock, Truck, ShieldAlert, LogOut } from 'lucide-react';
 import { AccountSecurityCenter } from '../components/security/AccountSecurityCenter';
 
 export const UserCenterPage: React.FC = () => {
-  const { user, currentMall, navigateTo, orders, sessionStatus, logout, refreshProductionData } = useMall();
+  const { user, navigateTo, orders, sessionStatus, logout, refreshProductionData } = useMall();
 
   const pendingShipment = orders.filter((o) => o.status === 'pending_shipment').length;
   const pendingReceipt = orders.filter((o) => o.status === 'pending_receipt').length;
@@ -48,18 +48,25 @@ export const UserCenterPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 双账户快捷面板 */}
-        <div className="flex items-center gap-4 text-xs">
-          <div onClick={() => navigateTo('balance', { accountTab: 'welfare' })} className="bg-white/10 hover:bg-white/20 p-3 rounded-md border border-white/20 cursor-pointer transition-colors text-center min-w-[140px]">
-            <div className="text-blue-100 font-medium">福利卡账户余额</div>
-            <div className="text-xl font-black mt-1 font-mono text-white">¥{user.welfareBalance.toFixed(2)}</div>
-            <div className="text-[10px] text-yellow-300 mt-1">点击查看流水 &gt;</div>
-          </div>
+        {/* 双账户快捷面板与显式退出入口 */}
+        <div className="flex flex-col items-end gap-3 text-xs">
+          {sessionStatus === 'authenticated' && (
+            <button onClick={() => void logout()} className="flex items-center gap-1.5 rounded border border-white/30 bg-white/10 px-3 py-1.5 font-bold text-white transition-colors hover:bg-white/20">
+              <LogOut className="h-3.5 w-3.5" /> 退出登录
+            </button>
+          )}
+          <div className="flex items-center gap-4">
+            <div onClick={() => navigateTo('balance', { accountTab: 'welfare' })} className="bg-white/10 hover:bg-white/20 p-3 rounded-md border border-white/20 cursor-pointer transition-colors text-center min-w-[140px]">
+              <div className="text-blue-100 font-medium">福利卡账户余额</div>
+              <div className="text-xl font-black mt-1 font-mono text-white">¥{user.welfareBalance.toFixed(2)}</div>
+              <div className="text-[10px] text-yellow-300 mt-1">点击查看流水 &gt;</div>
+            </div>
 
-          <div onClick={() => navigateTo('balance', { accountTab: 'meal' })} className="bg-white/10 hover:bg-white/20 p-3 rounded-md border border-white/20 cursor-pointer transition-colors text-center min-w-[140px]">
-            <div className="text-orange-200 font-medium">餐卡专享余额</div>
-            <div className="text-xl font-black mt-1 font-mono text-orange-300">¥{user.mealBalance.toFixed(2)}</div>
-            <div className="text-[10px] text-orange-200 mt-1">点击查看流水 &gt;</div>
+            <div onClick={() => navigateTo('balance', { accountTab: 'meal' })} className="bg-white/10 hover:bg-white/20 p-3 rounded-md border border-white/20 cursor-pointer transition-colors text-center min-w-[140px]">
+              <div className="text-orange-200 font-medium">餐卡专享余额</div>
+              <div className="text-xl font-black mt-1 font-mono text-orange-300">¥{user.mealBalance.toFixed(2)}</div>
+              <div className="text-[10px] text-orange-200 mt-1">点击查看流水 &gt;</div>
+            </div>
           </div>
         </div>
       </div>

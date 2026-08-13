@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { UserProfile, EnterpriseMall, Product, CartItem, Order, DeliveryAddress, AccountLog } from '../types';
 import { mallService } from '../services/mallService';
 import { productionApi, ProductionApiError } from '../services/productionApi';
@@ -23,21 +23,29 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [products, setProducts] = useState<Product[]>(() => mallService.getProducts());
   const [accountLogs, setAccountLogs] = useState<AccountLog[]>([]);
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>('checking');
+  const [catalogSyncStatus, setCatalogSyncStatus] = useState<'idle' | 'syncing' | 'ready' | 'error'>('idle');
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [addresses, setAddresses] = useState<DeliveryAddress[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const sessionGenerationRef = useRef(0);
   const { toasts, showToast, removeToast } = useToasts();
   const presentationProducts = useMemo(() => toFrontendProducts(products), [products]);
   const presentationOrders = useMemo(() => toFrontendOrders(orders, presentationProducts), [orders, presentationProducts]);
 
   const refreshServerCart = useCallback(async () => {
+    const sessionGeneration = sessionGenerationRef.current;
     const response = await productionApi.listCart();
+    if (sessionGeneration !== sessionGenerationRef.current) return;
     setCart(mapApiCartItems(response.items, products));
   }, [products]);
-  const refreshServerAddresses = useCallback(async () => setAddresses((await productionApi.listAddresses()).items), []);
-  const { refreshProductionData } = useProductionSync({
+  const refreshServerAddresses = useCallback(async () => {
+    const sessionGeneration = sessionGenerationRef.current;
+    const response = await productionApi.listAddresses();
+    if (sessionGeneration === sessionGenerationRef.current) setAddresses(response.items);
+  }, []);
+  const { refreshProductionData, cancelProductionSync } = useProductionSync({
     setProducts,
     setUser,
     setCurrentMall,
@@ -45,6 +53,7 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setOrders,
     setAccountLogs,
     setSessionStatus,
+    setCatalogSyncStatus,
   });
   useEffect(() => {
     if (sessionStatus !== 'authenticated') return;
@@ -75,26 +84,38 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSessionError(null);
     try {
       await productionApi.login(credentials);
-      setSessionStatus('authenticated');
       await refreshProductionData();
       showToast('安全登录成功，已同步福利账户与订单', 'success');
       return true;
     } catch (error) {
       const message = error instanceof ProductionApiError ? error.message : '登录服务暂时不可用';
+      setSessionStatus('guest');
       setSessionError(message);
       return false;
     }
   };
   const logout = async () => {
+    const revokeRequest = productionApi.logout();
+    sessionGenerationRef.current += 1;
+    cancelProductionSync();
+    setSessionStatus('guest');
+    setSessionError(null);
+    setUser(guestStorefrontProfile(mallService.getUserProfile()));
+    setCurrentMall(mallService.getCurrentMall());
+    setMalls(mallService.getMalls());
+    setProducts(mallService.getProducts());
+    setCart([]);
+    setOrders([]);
+    setAccountLogs([]);
+    setFavorites([]);
+    setAddresses([]);
+    setQuickViewProduct(null);
+    navigation.navigateTo('home');
+    showToast('已退出登录，服务器会话正在安全撤销', 'info');
     try {
-      await productionApi.logout();
-    } finally {
-      setSessionStatus('guest');
-      setSessionError(null);
-      setUser(guestStorefrontProfile(mallService.getUserProfile()));
-      setOrders([]);
-      setAccountLogs([]);
-      showToast('已安全退出MVP会话', 'info');
+      await revokeRequest;
+    } catch {
+      showToast('页面已退出；服务器会话撤销失败，请刷新页面确认', 'warning');
     }
   };
 
@@ -131,6 +152,10 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch {
         showToast('购物车保存失败，请稍后重试', 'error');
       }
+      return;
+    }
+    if (sessionStatus === 'authenticated') {
+      showToast('商品资格正在后台同步，请稍后再加入购物车', 'info');
       return;
     }
     setCart(mallService.addToCart(product, quantity, selectedSpec));
@@ -264,6 +289,7 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         presentationCategories: MOCK_CATEGORIES,
         accountLogs,
         sessionStatus,
+        catalogSyncStatus,
         sessionError,
         login,
         logout,

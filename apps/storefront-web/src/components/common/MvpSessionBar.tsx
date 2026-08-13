@@ -3,7 +3,7 @@ import { LogIn, LogOut, ShieldCheck } from 'lucide-react';
 import { useMall } from '../../context/MallContext';
 
 export const MvpSessionBar: React.FC = () => {
-  const { sessionStatus, logout } = useMall();
+  const { sessionStatus, catalogSyncStatus, logout } = useMall();
   const [showLoginDrawer, setShowLoginDrawer] = useState(false);
   const [loginUrl, setLoginUrl] = useState('/login?embed=storefront');
   const loginFrameRef = useRef<HTMLIFrameElement>(null);
@@ -60,7 +60,13 @@ export const MvpSessionBar: React.FC = () => {
         <div className="max-w-[1280px] mx-auto flex items-center justify-between gap-3">
           <span className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4" />
-            {sessionStatus === 'authenticated' ? 'MVP安全会话已连接，账户与订单数据来自生产型数据库' : '当前为商品访客预览；登录后可体验福利账户、下单和订单查询'}
+            {sessionStatus === 'authenticated'
+              ? catalogSyncStatus === 'syncing'
+                ? '账户与订单已连接，商品资格正在后台更新'
+                : catalogSyncStatus === 'error'
+                  ? '账户已连接；商品资格同步失败，可刷新重试'
+                  : '安全会话已连接，账户与订单数据来自生产型数据库'
+              : '当前为商品访客预览；登录后可体验福利账户、下单和订单查询'}
           </span>
           {sessionStatus === 'authenticated' ? (
             <button onClick={() => void logout()} className="font-bold flex items-center gap-1 hover:underline">

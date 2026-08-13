@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { AccountLog, EnterpriseMall, Order, Product, UserProfile } from '../types';
 import { productionApi, type ApiProduct } from '../services/productionApi';
 import { mapApiOrder, mapApiProduct } from './mallMappers';
-import type { SessionStatus } from './MallContext.types';
+import type { CatalogSyncStatus, SessionStatus } from './MallContext.types';
 import { mergeAuthenticatedMemberProfile } from './storefrontMemberProfile';
 
 interface ProductionSyncSetters {
@@ -14,6 +14,7 @@ interface ProductionSyncSetters {
   setOrders: Dispatch<SetStateAction<Order[]>>;
   setAccountLogs: Dispatch<SetStateAction<AccountLog[]>>;
   setSessionStatus: Dispatch<SetStateAction<SessionStatus>>;
+  setCatalogSyncStatus: Dispatch<SetStateAction<CatalogSyncStatus>>;
 }
 
 async function loadCompleteCatalog(): Promise<ApiProduct[]> {
@@ -35,9 +36,25 @@ async function loadCompleteCatalog(): Promise<ApiProduct[]> {
 }
 
 export function useProductionSync(setters: ProductionSyncSetters) {
+  const syncVersionRef = useRef(0);
+
   const refreshProductionData = async () => {
+    const syncVersion = ++syncVersionRef.current;
+    setters.setCatalogSyncStatus('syncing');
     const catalogRequest = loadCompleteCatalog();
-    const snapshot = await productionApi.getHomeSnapshot();
+    let snapshot: Awaited<ReturnType<typeof productionApi.getHomeSnapshot>>;
+    try {
+      snapshot = await productionApi.getHomeSnapshot();
+    } catch (error) {
+      void catalogRequest.catch(() => undefined);
+      if (syncVersion !== syncVersionRef.current) return;
+      setters.setCatalogSyncStatus('idle');
+      throw error;
+    }
+    if (syncVersion !== syncVersionRef.current) {
+      void catalogRequest.catch(() => undefined);
+      return;
+    }
     const { bootstrap, accounts, orders: orderResult, accountLedgers: ledgerResult } = snapshot;
     const welfare = accounts.items.find((account) => account.type === 'welfare');
     const meal = accounts.items.find((account) => account.type === 'meal');
@@ -72,24 +89,38 @@ export function useProductionSync(setters: ProductionSyncSetters) {
         balanceAfter: ledger.balanceAfterCents / 100,
       }))
     );
-    setters.setProducts((await catalogRequest).map(mapApiProduct));
+    // Account identity, balances and orders are enough to make the shell
+    // interactive. The qualified catalog is heavier and can finish in the
+    // background without hiding account actions such as logout.
+    setters.setSessionStatus('authenticated');
+    void catalogRequest
+      .then((items) => {
+        if (syncVersion !== syncVersionRef.current) return;
+        setters.setProducts(items.map(mapApiProduct));
+        setters.setCatalogSyncStatus('ready');
+      })
+      .catch(() => {
+        if (syncVersion === syncVersionRef.current) setters.setCatalogSyncStatus('error');
+      });
+  };
+
+  const cancelProductionSync = () => {
+    syncVersionRef.current += 1;
+    setters.setCatalogSyncStatus('idle');
   };
 
   useEffect(() => {
     let active = true;
     // /home is both the authorization check and the initial data snapshot.
     // Avoid a separate /auth/session round trip before loading the page.
-    void refreshProductionData()
-      .then(() => {
-        if (active) setters.setSessionStatus('authenticated');
-      })
-      .catch(() => {
-        if (active) setters.setSessionStatus('guest');
-      });
+    void refreshProductionData().catch(() => {
+      if (active) setters.setSessionStatus('guest');
+    });
     return () => {
       active = false;
+      syncVersionRef.current += 1;
     };
   }, []);
 
-  return { refreshProductionData };
+  return { refreshProductionData, cancelProductionSync };
 }
