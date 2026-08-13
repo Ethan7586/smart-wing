@@ -366,7 +366,7 @@ export const LoginPage: React.FC = () => {
   };
 
   // 处理 PreAuth 上下文并路由到第2段或自动跳转
-  const completeEmbeddedStorefrontLogin = async (membershipId: string) => {
+  const completeStorefrontLogin = async (membershipId: string) => {
     // Credential discovery never creates a cookie. The final login is the only
     // place that establishes the tracked, revocable HttpOnly device session.
     const response = await fetch('/api/v1/auth/login', {
@@ -381,8 +381,14 @@ export const LoginPage: React.FC = () => {
       throw new Error(payload?.error?.message || '登录失败，请检查测试账号与密码');
     }
 
-    // iframe 与商城同源；只通知父窗口刷新已建立的 HttpOnly 会话，不传递密码或票据。
-    window.parent.postMessage({ type: 'smart-wing:storefront-login-complete', membershipId }, window.location.origin);
+    if (isStorefrontEmbed) {
+      // iframe 与商城同源；只通知父窗口刷新已建立的 HttpOnly 会话，不传递密码或票据。
+      window.parent.postMessage({ type: 'smart-wing:storefront-login-complete', membershipId }, window.location.origin);
+      return;
+    }
+
+    // 独立登录页必须离开认证壳，进入已经建立真实会话的商城首页。
+    window.location.replace('/');
   };
 
   const completeAdminTestLogin = () => {
@@ -423,8 +429,8 @@ export const LoginPage: React.FC = () => {
     if (validMemberships.length === 1) {
       const singleMem = validMemberships[0];
       if (singleMem.target === 'storefront' && singleMem.status === 'active') {
-        if (isStorefrontEmbed && activeTab === 'password') {
-          await completeEmbeddedStorefrontLogin(singleMem.id);
+        if (activeTab === 'password') {
+          await completeStorefrontLogin(singleMem.id);
           return;
         }
         // 员工端单身份，无需 step-up，直接登录成功
@@ -477,8 +483,8 @@ export const LoginPage: React.FC = () => {
       setStage(3);
     } else {
       // 嵌入员工商城时，认证页只负责完成身份选择；不在右侧抽屉渲染另一套商城。
-      if (isStorefrontEmbed && mem.target === 'storefront') {
-        await completeEmbeddedStorefrontLogin(mem.id);
+      if (activeTab === 'password' && mem.target === 'storefront') {
+        await completeStorefrontLogin(mem.id);
         return;
       }
 
