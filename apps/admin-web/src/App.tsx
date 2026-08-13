@@ -308,8 +308,9 @@ export function App() {
             <FinancialReconciliationWorkstation discrepancies={discrepancies} onUpdateDiscrepancies={setDiscrepancies} onOpenGuardrail={handleOpenGuardrail} initialFilterDiscrepancyOnly={filterParams.key === 'discrepancy'} />
           )}
 
-          {visibleWorkstation === 'membership' && (
+          {allowedWorkstations.includes('membership') && (
             <MembershipPermissionWorkstation
+              active={visibleWorkstation === 'membership'}
               canManageAccess={sessionPermissions.includes('role.grant') && sessionPermissions.includes('scope.grant')}
               canManageStatus={sessionPermissions.includes('member.disable')}
               canOffboard={sessionPermissions.includes('member.offboard')}

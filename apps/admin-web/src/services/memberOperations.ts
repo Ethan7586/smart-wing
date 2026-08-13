@@ -1,3 +1,5 @@
+import { createMemoryResource } from './memoryResource';
+
 export interface MemberProfile {
   membershipId: string;
   memberId: string;
@@ -72,8 +74,16 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
 }
 const jsonBody = (value: unknown): RequestInit => ({ method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(value) });
 
-export function loadMemberOperations() {
-  return requestJson<MemberOperationsData>('/api/v1/admin/member-operations');
+const memberOperationsResource = createMemoryResource(() => requestJson<MemberOperationsData>('/api/v1/admin/member-operations'));
+
+export function cachedMemberOperations(): MemberOperationsData | null {
+  return memberOperationsResource.peek();
+}
+export function preloadMemberOperations(): void {
+  memberOperationsResource.prefetch();
+}
+export function loadMemberOperations(options?: { force?: boolean }) {
+  return memberOperationsResource.load(options);
 }
 export function createInvitation(value: { label: string; maxUses: number; expiresAt: string }) {
   return requestJson<MemberInvitation & { code: string }>('/api/v1/admin/member-operations/invitations', jsonBody(value));

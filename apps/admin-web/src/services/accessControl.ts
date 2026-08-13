@@ -1,3 +1,5 @@
+import { createMemoryResource } from './memoryResource';
+
 export type PermissionRisk = 'low' | 'elevated' | 'high' | 'critical';
 export type ScopeKind = 'platform' | 'tenant' | 'distributor' | 'enterprise' | 'mall' | 'supplier' | 'brand' | 'store' | 'department' | 'self';
 export interface AccessRole {
@@ -63,8 +65,16 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
   return payload as T;
 }
 
-export function loadAccessControl(): Promise<AccessControlData> {
-  return requestJson('/api/v1/admin/access-control');
+const accessControlResource = createMemoryResource(() => requestJson<AccessControlData>('/api/v1/admin/access-control'));
+
+export function cachedAccessControl(): AccessControlData | null {
+  return accessControlResource.peek();
+}
+export function preloadAccessControl(): void {
+  accessControlResource.prefetch();
+}
+export function loadAccessControl(options?: { force?: boolean }): Promise<AccessControlData> {
+  return accessControlResource.load(options);
 }
 
 export function updateMemberAccess(membershipId: string, update: AccessUpdate): Promise<Record<string, unknown>> {

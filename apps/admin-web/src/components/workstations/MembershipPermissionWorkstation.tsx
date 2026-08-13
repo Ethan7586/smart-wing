@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { LockKeyhole, RefreshCw, Search, ShieldCheck, UserRoundCheck, UsersRound } from 'lucide-react';
-import { loadAccessControl, updateMemberAccess, updateMemberStatus, verifyCurrentPassword, type AccessControlData, type AccessMember, type AccessUpdate } from '../../services/accessControl';
+import { cachedAccessControl, loadAccessControl, preloadAccessControl, updateMemberAccess, updateMemberStatus, verifyCurrentPassword, type AccessControlData, type AccessMember, type AccessUpdate } from '../../services/accessControl';
+import { preloadMemberOperations } from '../../services/memberOperations';
 import { effectivePermissionCodes, memberSearchText, RISK_LABELS, SCOPE_LABELS } from './accessControlHelpers';
 import { MemberAccessEditor } from './MemberAccessEditor';
 import { StepUpModal } from './StepUpModal';
@@ -8,6 +9,7 @@ import { MemberOperationsPanel } from './MemberOperationsPanel';
 import { CustomRoleCenterPanel } from './CustomRoleCenterPanel';
 
 interface Props {
+  active: boolean;
   canManageAccess: boolean;
   canManageStatus: boolean;
   canOffboard: boolean;
@@ -19,22 +21,22 @@ interface Props {
   canDisableRole: boolean;
 }
 
-export function MembershipPermissionWorkstation({ canManageAccess, canManageStatus, canOffboard, canInvite, canUpdate, canImport, canCreateRole, canUpdateRole, canDisableRole }: Props) {
-  const [data, setData] = useState<AccessControlData | null>(null);
+export function MembershipPermissionWorkstation({ active: workstationActive, canManageAccess, canManageStatus, canOffboard, canInvite, canUpdate, canImport, canCreateRole, canUpdateRole, canDisableRole }: Props) {
+  const [data, setData] = useState<AccessControlData | null>(() => cachedAccessControl());
   const [selectedId, setSelectedId] = useState('');
   const [query, setQuery] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !cachedAccessControl());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [verifiedUntil, setVerifiedUntil] = useState(0);
   const [stepUpOpen, setStepUpOpen] = useState(false);
   const [section, setSection] = useState<'operations' | 'permissions' | 'roles'>('operations');
   const pendingAction = useRef<null | (() => Promise<void>)>(null);
-  const refresh = async () => {
-    setLoading(true);
+  const refresh = async (force = false) => {
+    if (!data) setLoading(true);
     setError('');
     try {
-      const next = await loadAccessControl();
+      const next = await loadAccessControl({ force });
       setData(next);
       setSelectedId((current) => (next.members.some((member) => member.membershipId === current) ? current : (next.members[0]?.membershipId ?? '')));
     } catch (reason) {
@@ -44,8 +46,12 @@ export function MembershipPermissionWorkstation({ canManageAccess, canManageStat
     }
   };
   useEffect(() => {
-    void refresh();
+    preloadAccessControl();
+    preloadMemberOperations();
   }, []);
+  useEffect(() => {
+    if (workstationActive) void refresh();
+  }, [workstationActive]);
   const members = useMemo(() => data?.members.filter((member) => !query.trim() || memberSearchText(member).includes(query.trim().toLowerCase())) ?? [], [data, query]);
   const selected = data?.members.find((member) => member.membershipId === selectedId) ?? null;
   const runProtected = (action: () => Promise<void>) => {
@@ -74,7 +80,7 @@ export function MembershipPermissionWorkstation({ canManageAccess, canManageStat
       setError('');
       try {
         await updateMemberAccess(selected.membershipId, value);
-        await refresh();
+        await refresh(true);
       } catch (reason) {
         setError(reason instanceof Error ? reason.message : '权限保存失败');
       } finally {
@@ -91,7 +97,7 @@ export function MembershipPermissionWorkstation({ canManageAccess, canManageStat
       setError('');
       try {
         await updateMemberStatus(member.membershipId, status, reason.trim());
-        await refresh();
+        await refresh(true);
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : '会员状态更新失败');
       } finally {
@@ -99,9 +105,8 @@ export function MembershipPermissionWorkstation({ canManageAccess, canManageStat
       }
     });
   };
-  if (loading && !data) return <StateCard text="正在读取真实会员与授权关系…" />;
-  if (!data) return <StateCard text={error || '暂无权限数据'} action={refresh} />;
-  const active = data.members.filter((member) => member.status === 'active').length;
+  if (!workstationActive) return null;
+  const activeMembers = data?.members.filter((member) => member.status === 'active').length ?? null;
   return (
     <>
       <div className="p-6 space-y-5 max-w-[1800px] mx-auto">
@@ -111,15 +116,15 @@ export function MembershipPermissionWorkstation({ canManageAccess, canManageStat
             <h2 className="text-lg font-bold">会员与权限控制中心</h2>
             <p className="text-xs text-slate-400 mt-1">角色叠加、明确禁止、数据范围、Owner 保护与授权审计统一管理</p>
           </div>
-          <button onClick={() => void refresh()} className="px-3 py-2 rounded-xl bg-white/10 text-xs flex gap-2 items-center">
-            <RefreshCw className="w-4 h-4" />
-            刷新
+          <button onClick={() => void refresh(true)} disabled={loading} className="px-3 py-2 rounded-xl bg-white/10 text-xs flex gap-2 items-center disabled:opacity-60">
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            {loading ? '更新中' : '刷新'}
           </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Metric icon={UsersRound} label="会员身份" value={data.members.length} />
-          <Metric icon={UserRoundCheck} label="当前有效" value={active} />
-          <Metric icon={ShieldCheck} label="角色模板" value={data.roles.length} />
+          <Metric icon={UsersRound} label="会员身份" value={data?.members.length ?? null} />
+          <Metric icon={UserRoundCheck} label="当前有效" value={activeMembers} />
+          <Metric icon={ShieldCheck} label="角色模板" value={data?.roles.length ?? null} />
         </div>
         <div className="flex gap-2 border-b border-slate-200">
           <button onClick={() => setSection('operations')} className={`px-4 py-2 text-xs border-b-2 ${section === 'operations' ? 'border-blue-500 text-blue-700 font-bold' : 'border-transparent text-slate-500'}`}>
@@ -133,9 +138,10 @@ export function MembershipPermissionWorkstation({ canManageAccess, canManageStat
           </button>
         </div>
         <MemberOperationsPanel active={section === 'operations'} canInvite={canInvite} canUpdate={canUpdate} canImport={canImport} runProtected={runProtected} />
-        <CustomRoleCenterPanel active={section === 'roles'} canCreate={canCreateRole} canUpdate={canUpdateRole} canDisable={canDisableRole} runProtected={runProtected} onChanged={refresh} />
+        <CustomRoleCenterPanel active={section === 'roles'} canCreate={canCreateRole} canUpdate={canUpdateRole} canDisable={canDisableRole} runProtected={runProtected} onChanged={() => refresh(true)} />
         {error && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700">{error}</div>}
-        {section === 'permissions' && (
+        {section === 'permissions' && !data && <StateCard text={error || '正在读取真实会员与授权关系…'} action={() => void refresh(true)} />}
+        {section === 'permissions' && data && (
           <div className="grid grid-cols-12 gap-5 items-start">
             <section className="col-span-12 xl:col-span-4 bg-white border border-slate-200 rounded-[14px] overflow-hidden">
               <div className="p-4 border-b border-slate-200">
@@ -262,12 +268,12 @@ function MemberHeader({
     </div>
   );
 }
-function Metric({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: number }) {
+function Metric({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: number | null }) {
   return (
     <div className="bg-white rounded-[14px] border border-slate-200 p-4 flex justify-between">
       <div>
         <div className="text-[10px] text-slate-400">{label}</div>
-        <div className="text-2xl font-bold text-slate-900 mt-1">{value}</div>
+        <div className="text-2xl font-bold text-slate-900 mt-1">{value ?? '—'}</div>
       </div>
       <Icon className="w-5 h-5 text-blue-500" />
     </div>

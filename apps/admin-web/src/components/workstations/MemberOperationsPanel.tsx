@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ClipboardCopy, FileUp, History, Link2, Plus, RefreshCw } from 'lucide-react';
-import { createInvitation, createMember, disableInvitation, importMembers, loadMemberOperations, updateMemberProfile, type MemberOperationsData, type MemberProfile, type NewMember } from '../../services/memberOperations';
+import React, { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, ClipboardCopy, FileUp, History, Link2, Plus, RefreshCw, Search } from 'lucide-react';
+import { cachedMemberOperations, createInvitation, createMember, disableInvitation, importMembers, loadMemberOperations, updateMemberProfile, type MemberOperationsData, type MemberProfile, type NewMember } from '../../services/memberOperations';
 
 interface Props {
   active: boolean;
@@ -12,23 +12,27 @@ interface Props {
 type View = 'members' | 'invitations' | 'imports' | 'history';
 
 export function MemberOperationsPanel({ active, canInvite, canUpdate, canImport, runProtected }: Props) {
-  const [data, setData] = useState<MemberOperationsData | null>(null);
+  const [data, setData] = useState<MemberOperationsData | null>(() => cachedMemberOperations());
   const [view, setView] = useState<View>('members');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [newMemberOpen, setNewMemberOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const refresh = async () => {
+  const [loading, setLoading] = useState(() => !cachedMemberOperations());
+  const refresh = async (force = false) => {
+    if (!data) setLoading(true);
     setError('');
     try {
-      setData(await loadMemberOperations());
+      setData(await loadMemberOperations({ force }));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '会员运营数据读取失败');
+    } finally {
+      setLoading(false);
     }
   };
   useEffect(() => {
-    if (active && !data) void refresh();
+    if (active) void refresh();
   }, [active]);
   const stats = useMemo(
     () => ({
@@ -49,7 +53,7 @@ export function MemberOperationsPanel({ active, canInvite, canUpdate, canImport,
         <div className="flex gap-2">
           {canImport && (
             <>
-              <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={(event) => void handleFile(event, runProtected, setNotice, setError, refresh)} />
+              <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={(event) => void handleFile(event, runProtected, setNotice, setError, () => refresh(true))} />
               <button onClick={() => fileRef.current?.click()} className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs flex gap-2 items-center">
                 <FileUp className="w-4 h-4" />
                 批量导入 CSV
@@ -68,8 +72,8 @@ export function MemberOperationsPanel({ active, canInvite, canUpdate, canImport,
               后台建会员
             </button>
           )}
-          <button onClick={() => void refresh()} className="px-3 py-2 rounded-xl border border-slate-200 bg-white">
-            <RefreshCw className="w-4 h-4" />
+          <button onClick={() => void refresh(true)} disabled={loading} className="px-3 py-2 rounded-xl border border-slate-200 bg-white disabled:opacity-60" aria-label="刷新会员运营数据">
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
@@ -94,9 +98,9 @@ export function MemberOperationsPanel({ active, canInvite, canUpdate, canImport,
       {!data ? (
         <div className="py-16 text-center text-sm text-slate-400">正在读取会员运营数据…</div>
       ) : view === 'members' ? (
-        <Members profiles={data.profiles} departments={data.departments} canUpdate={canUpdate} runProtected={runProtected} refresh={refresh} setError={setError} />
+        <Members profiles={data.profiles} departments={data.departments} canUpdate={canUpdate} runProtected={runProtected} refresh={() => refresh(true)} setError={setError} />
       ) : view === 'invitations' ? (
-        <Invitations data={data} canInvite={canInvite} runProtected={runProtected} refresh={refresh} setError={setError} />
+        <Invitations data={data} canInvite={canInvite} runProtected={runProtected} refresh={() => refresh(true)} setError={setError} />
       ) : view === 'imports' ? (
         <Imports data={data} />
       ) : (
@@ -112,7 +116,7 @@ export function MemberOperationsPanel({ active, canInvite, canUpdate, canImport,
                 await createMember(value);
                 setNewMemberOpen(false);
                 setNotice('会员已创建；首次登录后必须修改临时密码。');
-                await refresh();
+                await refresh(true);
               } catch (cause) {
                 setError(message(cause));
               }
@@ -130,7 +134,7 @@ export function MemberOperationsPanel({ active, canInvite, canUpdate, canImport,
                 setInviteOpen(false);
                 setNotice(`邀请码 ${created.code}（关闭提示后系统不再显示明文，请立即复制给员工）`);
                 await navigator.clipboard?.writeText(created.code).catch(() => undefined);
-                await refresh();
+                await refresh(true);
               } catch (cause) {
                 setError(message(cause));
               }
@@ -158,8 +162,34 @@ function Members({
   setError: (value: string) => void;
 }) {
   const [editing, setEditing] = useState<MemberProfile | null>(null);
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const deferredQuery = useDeferredValue(query.trim().toLowerCase());
+  const filtered = useMemo(
+    () => profiles.filter((member) => !deferredQuery || [member.displayName, member.username, member.employeeNo, member.departmentName].some((value) => value?.toLowerCase().includes(deferredQuery))),
+    [deferredQuery, profiles]
+  );
+  const pageSize = 20;
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const visibleProfiles = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   return (
     <>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <label className="relative min-w-[260px] max-w-md flex-1">
+          <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+          <input
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setPage(1);
+            }}
+            placeholder="搜索姓名、账号、工号或部门"
+            className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs outline-none focus:border-blue-400"
+          />
+        </label>
+        <span className="text-[11px] text-slate-400">共 {filtered.length} 人 · 每页 {pageSize} 人</span>
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
@@ -173,7 +203,7 @@ function Members({
             </tr>
           </thead>
           <tbody>
-            {profiles.map((member) => (
+            {visibleProfiles.map((member) => (
               <tr key={member.membershipId} className="border-b border-slate-100">
                 <td className="py-3">
                   <b>{member.displayName}</b>
@@ -198,6 +228,17 @@ function Members({
           </tbody>
         </table>
       </div>
+      {pageCount > 1 && (
+        <div className="flex items-center justify-end gap-2 text-xs text-slate-500">
+          <button disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-lg border p-2 disabled:opacity-40" aria-label="上一页">
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <span>第 {currentPage}/{pageCount} 页</span>
+          <button disabled={currentPage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))} className="rounded-lg border p-2 disabled:opacity-40" aria-label="下一页">
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      )}
       {editing && (
         <EditProfileDialog
           member={editing}
