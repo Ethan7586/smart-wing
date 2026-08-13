@@ -17,7 +17,7 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [user, setUser] = useState<UserProfile>(() => guestStorefrontProfile(mallService.getUserProfile()));
   const [currentMall, setCurrentMall] = useState<EnterpriseMall>(() => mallService.getCurrentMall());
-  const [malls] = useState<EnterpriseMall[]>(() => mallService.getMalls());
+  const [malls, setMalls] = useState<EnterpriseMall[]>(() => mallService.getMalls());
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>(() => mallService.getProducts());
@@ -41,6 +41,7 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProducts,
     setUser,
     setCurrentMall,
+    setMalls,
     setOrders,
     setAccountLogs,
     setSessionStatus,

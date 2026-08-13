@@ -10,6 +10,7 @@ interface ProductionSyncSetters {
   setProducts: Dispatch<SetStateAction<Product[]>>;
   setUser: Dispatch<SetStateAction<UserProfile>>;
   setCurrentMall: Dispatch<SetStateAction<EnterpriseMall>>;
+  setMalls: Dispatch<SetStateAction<EnterpriseMall[]>>;
   setOrders: Dispatch<SetStateAction<Order[]>>;
   setAccountLogs: Dispatch<SetStateAction<AccountLog[]>>;
   setSessionStatus: Dispatch<SetStateAction<SessionStatus>>;
@@ -45,14 +46,17 @@ export function useProductionSync(setters: ProductionSyncSetters) {
       welfareBalance: (welfare?.balanceCents ?? 0) / 100,
       mealBalance: (meal?.balanceCents ?? 0) / 100,
     }));
-    setters.setCurrentMall((previous) => ({
-      ...previous,
+    const resolvedMall: EnterpriseMall = {
       id: bootstrap.scope.mallId,
       enterpriseId: bootstrap.scope.enterpriseId,
       enterpriseName: bootstrap.scope.enterpriseName,
       mallName: bootstrap.scope.mallName,
       logoText: bootstrap.scope.brandName,
-    }));
+      badge: '企业福利专享',
+      welcomeBanner: `${bootstrap.scope.enterpriseName}员工福利商城已开放，实际权益以企业发放为准。`,
+    };
+    setters.setCurrentMall(resolvedMall);
+    setters.setMalls([resolvedMall]);
     setters.setOrders(orderResult.items.map((order) => mapApiOrder(order, bootstrap.scope)));
     setters.setAccountLogs(
       ledgerResult.items.map((ledger) => ({
