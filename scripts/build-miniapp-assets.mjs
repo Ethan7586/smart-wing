@@ -73,7 +73,7 @@ const MANIFEST = {
   ticket: ['brand'],
   store: ['brand', 'secondary'],
   'shopping-basket': ['brand'],
-  'concierge-bell': ['brand'],
+  'house-plus': ['brand'],
   laptop: ['brand'],
   utensils: ['brand'],
   // Home: affordances and states.

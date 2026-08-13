@@ -142,6 +142,21 @@ for (const { full, rel } of files.filter((f) => f.rel.endsWith('.wxml'))) {
   }
 }
 
+/**
+ * Icon names supplied by data resolve through templates such as
+ * `i-{{item.icon}}-brand`, so the literal scan above cannot see them. A name
+ * that never got generated renders as an empty box in the simulator — the exact
+ * symptom of the previous builds. Check every data-driven name too.
+ */
+for (const { full, rel } of files.filter((f) => f.rel.startsWith('data/'))) {
+  const source = stripComments(readFileSync(full, 'utf8'), 'js');
+  for (const match of source.matchAll(/\bicon:\s*'([a-z0-9-]+)'/g)) {
+    if (!iconSheet.includes(`.i-${match[1]}-`)) {
+      fail(rel, 1, 'missing-icon', `数据里用了 "${match[1]}"，但它没有生成任何变体 — 会渲染成空白`);
+    }
+  }
+}
+
 if (failures.length === 0) {
   console.log(`miniapp VI check passed — ${files.length} files`);
   process.exit(0);
