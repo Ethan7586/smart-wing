@@ -7,6 +7,8 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const brandSource = join(repoRoot, 'packages', 'design-system', 'src', 'brand');
 const markSource = join(brandSource, 'brand-mark.svg');
 const lockupSource = join(brandSource, 'brand-lockup-horizontal.svg');
+const wingCodeSource = join(brandSource, 'wing-code-symbol.svg');
+const wingPatternSource = join(brandSource, 'wing-pattern.svg');
 
 const appTargets = [
   {
@@ -62,6 +64,8 @@ async function writeAppAssets(target) {
     copyFile(markSource, join(target.directory, 'brand-mark.svg')),
     copyFile(markSource, join(target.directory, 'favicon.svg')),
     copyFile(lockupSource, join(target.directory, 'brand-lockup-horizontal.svg')),
+    copyFile(wingCodeSource, join(target.directory, 'wing-code-symbol.svg')),
+    copyFile(wingPatternSource, join(target.directory, 'wing-pattern.svg')),
     renderIcon(180, join(target.directory, 'apple-touch-icon.png')),
     renderIcon(192, join(target.directory, 'icon-192.png')),
     renderIcon(512, join(target.directory, 'icon-512.png')),

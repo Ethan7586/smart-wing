@@ -1,8 +1,19 @@
-# 智慧翼 Smart Wing VI 基线
+# 智慧翼 Smart Wing VI 文档入口
+
+## 当前正式基线
+
+1. [智慧翼 Smart Wing 统一 VI 1.0](./SMART-WING-UNIFIED-VI-1.0.md)
+2. [统一移动 VI 1.0 总板](./design-previews/smart-wing-unified-mobile-vi-1.0.png)
+3. 工程令牌：`packages/design-system/src/tokens.css` 与 `tokens.json`
+4. 三端映射：`packages/design-system/src/mobile-platforms.json`
+
+以下原始说明保留用于资产生成和商标原稿替换流程。若与《统一 VI 1.0》冲突，以《统一 VI 1.0》为准。
+
+# 智慧翼 Smart Wing VI 资产说明
 
 本目录定义三个产品端共用的品牌基线：员工商城、统一登录、运营管理后台。
 
-> 当前标志是根据项目既有“蓝色 + W / 翼”方向整理的可替换工程母版，不替代甲方正式商标确认。收到甲方 AI / SVG / EPS 原稿后，只替换 `packages/design-system/src/brand/` 中的母版并重新生成资产，三个应用不再逐页修改。
+> 当前 W/翼形标志已冻结为项目 VI 1.0 工程母版。若未来收到具有更高法律效力的正式商标原稿，只替换 `packages/design-system/src/brand/` 中的母版并重新生成资产，各端不再逐页修改。
 
 ## 统一写法
 

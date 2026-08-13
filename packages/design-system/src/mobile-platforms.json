@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "principle": "同一品牌、同一业务、平台原生",
+  "shared": {
+    "navigation": ["首页", "分类", "翼码", "订单", "我的"],
+    "pageHorizontalInset": 16,
+    "cardRadius": 16,
+    "wingCodeValidSeconds": 45,
+    "financialNumbers": "tabular"
+  },
+  "ios": {
+    "unit": "pt",
+    "minimumTouchTarget": 44,
+    "pageHorizontalInset": 16,
+    "wingCodeButtonSize": 56,
+    "wingCodeProtrusion": 12,
+    "behavior": ["尊重系统安全区", "支持动态字体", "保留系统返回手势", "使用原生触感反馈"]
+  },
+  "android": {
+    "unit": "dp",
+    "minimumTouchTarget": 48,
+    "pageHorizontalInset": 16,
+    "wingCodeButtonSize": 64,
+    "wingCodeProtrusion": 16,
+    "behavior": ["Material 3 触控节奏", "系统返回与预测返回", "edge-to-edge 安全区", "使用系统触感反馈"]
+  },
+  "wechatMiniProgram": {
+    "unit": "rpx",
+    "minimumTouchTarget": 88,
+    "pageHorizontalInset": 32,
+    "wingCodeButtonSize": 112,
+    "wingCodeProtrusion": 24,
+    "behavior": ["动态读取胶囊位置", "自定义 tabBar", "适配底部安全区", "返回后台立即刷新翼码"]
+  }
+}
