@@ -1,0 +1,562 @@
+/* Flexbox with explicit margins throughout — flex `gap` and CSS grid are not
+   dependable across older WeChat Android base libraries, and a silent layout
+   failure there is exactly how the previous build went wrong. */
+
+.home {
+  padding-bottom: 0;
+}
+
+/* ------------------------------------------------------- 1. navigation ---- */
+
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--sw-background);
+}
+
+.nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: var(--sw-page-inset);
+}
+
+.nav-title {
+  font-size: var(--sw-fs-h2);
+  line-height: var(--sw-lh-h2);
+  font-weight: var(--sw-fw-h2);
+  color: var(--sw-text);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+}
+
+.nav-action {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: var(--sw-space-1);
+  /* Full 88rpx height target, narrower box so the title still fits beside the
+     WeChat capsule on a 320pt screen. */
+  min-width: 64rpx;
+  width: 64rpx;
+}
+
+.cart-badge {
+  position: absolute;
+  top: 8rpx;
+  right: 6rpx;
+  min-width: 28rpx;
+  height: 28rpx;
+  padding: 0 6rpx;
+  box-sizing: border-box;
+  border-radius: 14rpx;
+  background: var(--sw-danger);
+  color: var(--sw-text-inverse);
+  font-size: 18rpx;
+  line-height: 28rpx;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------ states ------ */
+
+.state-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: var(--sw-space-6);
+  padding-bottom: var(--sw-space-6);
+}
+
+.state-text {
+  margin-top: var(--sw-space-1);
+  text-align: center;
+}
+
+.retry {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--sw-space-2);
+  padding: 0 var(--sw-space-2);
+  height: var(--sw-touch-min);
+  border: 1rpx solid var(--sw-brand);
+  border-radius: var(--sw-radius-medium);
+}
+
+.retry-text {
+  margin-left: 8rpx;
+  font-size: var(--sw-fs-bodySmall);
+  color: var(--sw-brand);
+}
+
+.skeleton-wrap {
+  padding-top: var(--sw-space-2);
+}
+
+.sk-chip { height: 56rpx; width: 60%; margin-bottom: var(--sw-space-2); }
+.sk-search { height: 80rpx; margin-bottom: var(--sw-space-2); }
+.sk-card { height: 200rpx; margin-bottom: var(--sw-space-2); }
+.sk-entries { height: 160rpx; margin-bottom: var(--sw-space-2); }
+.sk-hero { height: 220rpx; }
+
+/* ------------------------------------------------- 2. enterprise scope ---- */
+
+.scope-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 60rpx;
+  padding: 0 var(--sw-space-1);
+  background: var(--sw-brand-light);
+  border-radius: var(--sw-radius-full);
+}
+
+.scope-mark {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 10rpx;
+}
+
+.scope-text {
+  margin: 0 8rpx;
+  font-size: var(--sw-fs-bodySmall);
+  line-height: var(--sw-lh-bodySmall);
+  color: var(--sw-brand-dark);
+}
+
+/* ------------------------------------------------------- 3. search -------- */
+
+.search-wrap {
+  display: flex;
+  align-items: center;
+  margin-top: var(--sw-space-1_5);
+}
+
+.search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: var(--sw-touch-min);
+  padding: 0 var(--sw-space-1_5);
+  background: var(--sw-surface);
+  border: 1rpx solid var(--sw-border);
+  border-radius: var(--sw-radius-full);
+}
+
+.search-placeholder {
+  margin-left: 12rpx;
+  font-size: var(--sw-fs-bodySmall);
+  color: var(--sw-text-muted);
+}
+
+.scan {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sw-touch-min);
+  height: var(--sw-touch-min);
+  margin-left: var(--sw-space-1);
+  background: var(--sw-surface);
+  border: 1rpx solid var(--sw-border);
+  border-radius: var(--sw-radius-full);
+}
+
+/* --------------------------------------------------- 4. welfare quota ----- */
+
+.quota {
+  margin-top: var(--sw-space-2);
+  padding: var(--sw-space-2);
+}
+
+.quota-label {
+  display: block;
+}
+
+.quota-value {
+  display: flex;
+  align-items: baseline;
+  margin-top: 6rpx;
+}
+
+.quota-symbol {
+  font-family: var(--sw-font-num);
+  font-size: var(--sw-fs-h3);
+  font-weight: var(--sw-fw-amount);
+  color: var(--sw-text);
+  margin-right: 4rpx;
+}
+
+.phone-notice {
+  display: flex;
+  align-items: center;
+  margin-top: var(--sw-space-1_5);
+  padding-top: var(--sw-space-1_5);
+  border-top: 1rpx solid var(--sw-border);
+}
+
+.phone-notice-text {
+  margin-left: 8rpx;
+  font-size: var(--sw-fs-caption);
+  line-height: var(--sw-lh-caption);
+  color: var(--sw-danger);
+}
+
+/* ------------------------------------------------------- 5. entries ------- */
+
+.entries {
+  display: flex;
+  align-items: stretch;
+  margin-top: var(--sw-space-2);
+  padding: var(--sw-space-1_5) 0;
+}
+
+.entry {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.entry-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: var(--sw-radius-medium);
+  background: var(--sw-brand-light);
+}
+
+.entry-label {
+  margin-top: 10rpx;
+  font-size: var(--sw-fs-caption);
+  line-height: var(--sw-lh-caption);
+  color: var(--sw-text);
+}
+
+/* ---------------------------------------------------------- 6. hero ------- */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  margin-top: var(--sw-space-2);
+  padding: var(--sw-space-2);
+  min-height: 200rpx;
+  box-sizing: border-box;
+  border-radius: var(--sw-radius-large);
+  background: var(--sw-brand-gradient);
+}
+
+/* Official wing pattern, not an invented decoration. */
+.hero-pattern {
+  position: absolute;
+  right: -40rpx;
+  bottom: -30rpx;
+  width: 240rpx;
+  height: 240rpx;
+  opacity: 0.18;
+  background-size: contain;
+  background-position: right bottom;
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-title {
+  display: block;
+  font-size: var(--sw-fs-h2);
+  line-height: var(--sw-lh-h2);
+  font-weight: var(--sw-fw-h2);
+  color: var(--sw-text-inverse);
+}
+
+.hero-subtitle {
+  display: block;
+  margin-top: 6rpx;
+  font-size: var(--sw-fs-bodySmall);
+  line-height: var(--sw-lh-bodySmall);
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.hero-slot {
+  position: absolute;
+  right: var(--sw-space-2);
+  top: 50%;
+  margin-top: -60rpx;
+  width: 180rpx;
+  height: 120rpx;
+}
+
+.hero-dots {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  margin-top: var(--sw-space-1_5);
+}
+
+.dot {
+  width: 10rpx;
+  height: 10rpx;
+  margin-right: 8rpx;
+  border-radius: 50%; /* vi-allow: css-drawn-icon — 轮播指示点是几何指示器，不是图标 */
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.dot-on {
+  width: 24rpx;
+  border-radius: 5rpx;
+  background: var(--sw-text-inverse);
+}
+
+/* ------------------------------------------------------- section head ----- */
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: var(--sw-space-3);
+  margin-bottom: var(--sw-space-1_5);
+}
+
+/* ------------------------------------------------------- 7a. partners ----- */
+
+.partner-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.partner-row {
+  display: flex;
+  align-items: flex-start;
+  padding-left: var(--sw-page-inset);
+  padding-right: var(--sw-page-inset);
+}
+
+.partner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 128rpx;
+  margin-right: var(--sw-space-1);
+  flex-shrink: 0;
+}
+
+/* Logo slot. Drop a file into assets/partners/ and it renders instead. */
+.partner-logo,
+.partner-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: var(--sw-radius-medium);
+  background: var(--sw-surface);
+  border: 1rpx solid var(--sw-border);
+  box-sizing: border-box;
+}
+
+.partner-label {
+  margin-top: 10rpx;
+  font-size: var(--sw-fs-caption);
+  line-height: var(--sw-lh-caption);
+  color: var(--sw-text-secondary);
+}
+
+/* ------------------------------------------------------- 7b. segments ----- */
+
+.segment-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-top: var(--sw-space-2);
+}
+
+.segment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: calc(50% - 8rpx);
+  margin-bottom: var(--sw-space-1);
+  padding: var(--sw-space-1_5);
+}
+
+.segment-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.segment-title {
+  display: block;
+  font-size: var(--sw-fs-bodySmall);
+  line-height: var(--sw-lh-bodySmall);
+  font-weight: 600;
+  color: var(--sw-text);
+}
+
+.segment-desc {
+  display: block;
+  margin-top: 2rpx;
+  font-size: 20rpx;
+  line-height: 28rpx;
+  color: var(--sw-text-muted);
+}
+
+.segment-image,
+.segment-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72rpx;
+  height: 72rpx;
+  margin-left: 8rpx;
+  border-radius: var(--sw-radius-small);
+  background: var(--sw-brand-light);
+  flex-shrink: 0;
+}
+
+/* -------------------------------------------------- 8. member code CTA ---- */
+
+.membercode-cta {
+  display: flex;
+  align-items: center;
+  margin-top: var(--sw-space-1);
+  padding: var(--sw-space-1_5);
+  border-radius: var(--sw-radius-large);
+  background: var(--sw-brand-light);
+}
+
+.membercode-cta-mark {
+  width: 64rpx;
+  height: 64rpx;
+  flex-shrink: 0;
+}
+
+.membercode-cta-text {
+  flex: 1;
+  min-width: 0;
+  margin-left: var(--sw-space-1_5);
+}
+
+.membercode-cta-title {
+  display: block;
+  font-size: var(--sw-fs-bodySmall);
+  line-height: var(--sw-lh-bodySmall);
+  font-weight: 600;
+  color: var(--sw-brand-dark);
+}
+
+.membercode-cta-desc {
+  display: block;
+  margin-top: 2rpx;
+  font-size: 20rpx;
+  line-height: 28rpx;
+  color: var(--sw-text-secondary);
+}
+
+/* ------------------------------------------------------- 9. products ------ */
+
+.product-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.product {
+  width: calc(50% - 8rpx);
+  margin-bottom: var(--sw-space-1);
+  overflow: hidden;
+}
+
+/* The image sits flush inside the card, so the slot drops its own rounded
+   dashed frame and keeps only a separator underneath. */
+.product-image,
+.product-slot {
+  width: 100%;
+  height: 240rpx;
+  border: 0;
+  border-bottom: 1rpx solid var(--sw-border);
+  border-radius: 0;
+}
+
+.product-body {
+  padding: var(--sw-space-1);
+}
+
+.product-title {
+  display: block;
+  font-size: var(--sw-fs-bodySmall);
+  line-height: 36rpx;
+  color: var(--sw-text);
+  /* Two-line clamp keeps card heights even. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.product-tag {
+  display: inline-block;
+  margin-top: 8rpx;
+  padding: 0 8rpx;
+  height: 32rpx;
+  border-radius: var(--sw-radius-small);
+  background: var(--sw-brand-light);
+  color: var(--sw-brand-dark);
+  font-size: 20rpx;
+  line-height: 32rpx;
+}
+
+.product-price {
+  display: flex;
+  align-items: baseline;
+  margin-top: 8rpx;
+}
+
+.product-price-symbol {
+  font-family: var(--sw-font-num);
+  font-size: var(--sw-fs-caption);
+  font-weight: 700;
+  color: var(--sw-danger);
+}
+
+.product-price-value {
+  font-family: var(--sw-font-num);
+  font-size: var(--sw-fs-h3);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--sw-danger);
+}
+
+.product-market {
+  margin-left: 8rpx;
+  font-family: var(--sw-font-num);
+  font-size: 20rpx;
+  color: var(--sw-text-disabled);
+  text-decoration: line-through;
+}
+
+.product-source {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  line-height: 28rpx;
+  color: var(--sw-text-muted);
+}
+
+/* ------------------------------------------------------------ spacer ------ */
+
+/* Tab bar 108rpx + member-code protrusion + bottom safe area. */
+.tabbar-spacer {
+  height: calc(108rpx + var(--sw-space-2) + env(safe-area-inset-bottom, 0px));
+}

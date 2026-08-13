@@ -1,0 +1,41 @@
+.stub {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.stub-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 200rpx;
+}
+
+.stub-title {
+  margin-top: var(--sw-space-2);
+  font-size: var(--sw-fs-h2);
+  line-height: var(--sw-lh-h2);
+  font-weight: var(--sw-fw-h2);
+  color: var(--sw-text);
+}
+
+.stub-note {
+  margin-top: var(--sw-space-1);
+  font-size: var(--sw-fs-bodySmall);
+  line-height: var(--sw-lh-bodySmall);
+  color: var(--sw-text-secondary);
+}
+
+.stub-detail {
+  margin-top: 6rpx;
+  font-size: var(--sw-fs-caption);
+  line-height: var(--sw-lh-caption);
+  color: var(--sw-text-muted);
+  text-align: center;
+}
+
+.stub-spacer {
+  height: calc(108rpx + var(--sw-space-2) + env(safe-area-inset-bottom, 0px));
+}

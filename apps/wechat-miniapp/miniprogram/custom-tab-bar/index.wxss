@@ -1,0 +1,77 @@
+/* Sizes come from packages/design-system/src/mobile-platforms.json via
+   styles/tokens.wxss: wingCodeButtonSize 112rpx, wingCodeProtrusion 24rpx. */
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  background: var(--sw-surface);
+  border-top: 1rpx solid var(--sw-border);
+  box-shadow: var(--sw-shadow-overlay);
+  /* The centre disc protrudes above the bar, so it must not be clipped. */
+  overflow: visible;
+}
+
+.tabbar-inner {
+  display: flex;
+  align-items: stretch;
+  height: 108rpx;
+}
+
+.tab {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--sw-touch-min);
+}
+
+.tab-icon {
+  width: var(--sw-icon-standard);
+  height: var(--sw-icon-standard);
+}
+
+.tab-label {
+  margin-top: 4rpx;
+  /* No tab-label size exists in tokens.json; 20rpx matches the platform norm
+     and the approved board. Logged as a token gap, not invented styling. */
+  font-size: 20rpx;
+  line-height: 28rpx;
+  color: var(--sw-text-secondary);
+}
+
+.tab-label.is-on {
+  color: var(--sw-brand);
+}
+
+/* --------------------------------------------------- centre member-code entry */
+
+.mc-disc {
+  position: absolute;
+  top: calc(var(--sw-membercode-protrusion) * -1);
+  left: 50%;
+  margin-left: calc(var(--sw-membercode-size) / -2);
+  width: var(--sw-membercode-size);
+  height: var(--sw-membercode-size);
+  border-radius: 50%; /* vi-allow: css-drawn-icon — VI 规定中央会员码为白色圆形承载，这是容器不是图标；图标本身来自 sw-membercode-mark */
+  background: var(--sw-surface);
+  box-shadow: var(--sw-shadow-membercode);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-mark {
+  width: 56rpx;
+  height: 56rpx;
+}
+
+.tab-label-center {
+  position: absolute;
+  bottom: 10rpx;
+  margin-top: 0;
+}

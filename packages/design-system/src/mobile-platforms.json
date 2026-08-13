@@ -2,7 +2,7 @@
   "version": "1.0.0",
   "principle": "同一品牌、同一业务、平台原生",
   "shared": {
-    "navigation": ["首页", "分类", "翼码", "订单", "我的"],
+    "navigation": ["首页", "分类", "会员码", "订单", "我的"],
     "pageHorizontalInset": 16,
     "cardRadius": 16,
     "wingCodeValidSeconds": 45,
@@ -30,6 +30,6 @@
     "pageHorizontalInset": 32,
     "wingCodeButtonSize": 112,
     "wingCodeProtrusion": 24,
-    "behavior": ["动态读取胶囊位置", "自定义 tabBar", "适配底部安全区", "返回后台立即刷新翼码"]
+    "behavior": ["动态读取胶囊位置", "自定义 tabBar", "适配底部安全区", "返回后台立即刷新会员码"]
   }
 }
