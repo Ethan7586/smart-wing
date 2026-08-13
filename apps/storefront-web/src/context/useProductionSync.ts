@@ -4,6 +4,7 @@ import type { AccountLog, EnterpriseMall, Order, Product, UserProfile } from '..
 import { productionApi, type ApiProduct } from '../services/productionApi';
 import { mapApiOrder, mapApiProduct } from './mallMappers';
 import type { SessionStatus } from './MallContext.types';
+import { mergeAuthenticatedMemberProfile } from './storefrontMemberProfile';
 
 interface ProductionSyncSetters {
   setProducts: Dispatch<SetStateAction<Product[]>>;
@@ -34,21 +35,13 @@ async function loadCompleteCatalog(): Promise<ApiProduct[]> {
 
 export function useProductionSync(setters: ProductionSyncSetters) {
   const refreshProductionData = async () => {
-    const [snapshot, catalog] = await Promise.all([productionApi.getHomeSnapshot(), loadCompleteCatalog()]);
+    const catalogRequest = loadCompleteCatalog();
+    const snapshot = await productionApi.getHomeSnapshot();
     const { bootstrap, accounts, orders: orderResult, accountLedgers: ledgerResult } = snapshot;
-    setters.setProducts(catalog.map(mapApiProduct));
     const welfare = accounts.items.find((account) => account.type === 'welfare');
     const meal = accounts.items.find((account) => account.type === 'meal');
     setters.setUser((previous) => ({
-      ...previous,
-      id: bootstrap.actor.userId,
-      employeeId: bootstrap.actor.employeeNo,
-      enterpriseId: bootstrap.scope.enterpriseId,
-      enterpriseName: bootstrap.scope.enterpriseName,
-      currentMallId: bootstrap.scope.mallId,
-      assuranceLevel: bootstrap.actor.assurance.level,
-      phoneVerified: bootstrap.actor.assurance.phoneVerified,
-      paymentEligible: bootstrap.actor.assurance.paymentEligible,
+      ...mergeAuthenticatedMemberProfile(previous, bootstrap),
       welfareBalance: (welfare?.balanceCents ?? 0) / 100,
       mealBalance: (meal?.balanceCents ?? 0) / 100,
     }));
@@ -75,6 +68,7 @@ export function useProductionSync(setters: ProductionSyncSetters) {
         balanceAfter: ledger.balanceAfterCents / 100,
       }))
     );
+    setters.setProducts((await catalogRequest).map(mapApiProduct));
   };
 
   useEffect(() => {

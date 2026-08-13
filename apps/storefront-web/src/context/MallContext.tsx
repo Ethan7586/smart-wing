@@ -9,23 +9,24 @@ import { checkoutSelectedCartRequest } from './checkoutSelectedCart';
 import { useProductionSync } from './useProductionSync';
 import { useToasts } from './useToasts';
 import { mapApiCartItems } from './mallMappers';
+import { guestStorefrontProfile } from './guestStorefrontProfile';
 export type * from './MallContext.types';
 const MallContext = createContext<MallContextType | undefined>(undefined);
 export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigation = useDeviceNavigation();
 
-  const [user, setUser] = useState<UserProfile>(() => mallService.getUserProfile());
+  const [user, setUser] = useState<UserProfile>(() => guestStorefrontProfile(mallService.getUserProfile()));
   const [currentMall, setCurrentMall] = useState<EnterpriseMall>(() => mallService.getCurrentMall());
   const [malls] = useState<EnterpriseMall[]>(() => mallService.getMalls());
-  const [cart, setCart] = useState<CartItem[]>(() => mallService.getCart());
-  const [orders, setOrders] = useState<Order[]>(() => mallService.getOrders());
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>(() => mallService.getProducts());
-  const [accountLogs, setAccountLogs] = useState<AccountLog[]>(() => mallService.getAccountLogs());
+  const [accountLogs, setAccountLogs] = useState<AccountLog[]>([]);
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>('checking');
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
-  const [favorites, setFavorites] = useState<string[]>(() => mallService.getFavorites());
-  const [addresses, setAddresses] = useState<DeliveryAddress[]>(() => mallService.getAddresses());
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [addresses, setAddresses] = useState<DeliveryAddress[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const { toasts, showToast, removeToast } = useToasts();
   const presentationProducts = useMemo(() => toFrontendProducts(products), [products]);
@@ -46,6 +47,7 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
   useEffect(() => {
     if (sessionStatus !== 'authenticated') return;
+    setFavorites([]);
     // Cart and addresses are non-critical for the first view. Defer their
     // network work until the storefront is interactive instead of delaying a
     // refresh behind two more cross-region authorization round trips.
@@ -62,10 +64,10 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       return;
     }
-    setUser(mallService.getUserProfile());
+    setUser(guestStorefrontProfile(mallService.getUserProfile()));
     setCurrentMall(mallService.getCurrentMall());
-    setCart(mallService.getCart());
-    setOrders(mallService.getOrders());
+    setCart([]);
+    setOrders([]);
   };
 
   const login = async (credentials: LoginCredentials): Promise<boolean> => {
@@ -88,9 +90,9 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setSessionStatus('guest');
       setSessionError(null);
-      setUser(mallService.getUserProfile());
-      setOrders(mallService.getOrders());
-      setAccountLogs(mallService.getAccountLogs());
+      setUser(guestStorefrontProfile(mallService.getUserProfile()));
+      setOrders([]);
+      setAccountLogs([]);
       showToast('已安全退出MVP会话', 'info');
     }
   };
@@ -102,11 +104,11 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     const newMall = mallService.switchMall(mallId);
     setCurrentMall(newMall);
-    setUser(mallService.getUserProfile());
-    setCart(mallService.getCart());
-    setOrders(mallService.getOrders());
-    setFavorites(mallService.getFavorites());
-    setAddresses(mallService.getAddresses());
+    setUser(guestStorefrontProfile(mallService.getUserProfile()));
+    setCart([]);
+    setOrders([]);
+    setFavorites([]);
+    setAddresses([]);
     navigation.navigateTo('home');
     showToast(`已切换至【${newMall.mallName}】`, 'info');
   };
@@ -223,6 +225,7 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const handleToggleFavorite = (productId: string) => {
+    if (sessionStatus === 'authenticated') return void showToast('真实会员收藏功能正在接入，当前不会保存演示收藏', 'info');
     const isFav = mallService.toggleFavorite(productId);
     setFavorites(mallService.getFavorites());
     showToast(isFav ? '已加入收藏夹' : '已取消收藏', isFav ? 'success' : 'info');

@@ -26,7 +26,11 @@ export const AndroidProfilePage: React.FC = () => {
       {/* User Header Profile Card */}
       <div className="bg-[var(--sw-brand-dark)] text-white p-4 pt-2 shadow-sm space-y-3">
         <div className="flex items-center gap-3">
-          <img src={user.avatar} alt={user.name} className="w-14 h-14 rounded-2xl object-cover border-2 border-white/80 shadow-md flex-shrink-0" />
+          {user.avatar ? (
+            <img src={user.avatar} alt={user.name} className="w-14 h-14 rounded-2xl object-cover border-2 border-white/80 shadow-md flex-shrink-0" />
+          ) : (
+            <div className="w-14 h-14 rounded-2xl bg-white/20 text-white flex items-center justify-center text-xl font-black border-2 border-white/80 shadow-md flex-shrink-0">{user.name.slice(0, 1)}</div>
+          )}
           <div className="overflow-hidden space-y-1">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-black text-white">{user.name}</h2>

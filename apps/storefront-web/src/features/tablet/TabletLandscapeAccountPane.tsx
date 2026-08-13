@@ -12,7 +12,11 @@ export const TabletLandscapeAccountPane: React.FC = () => {
         {/* User Card */}
         <div className="bg-gradient-to-br from-[var(--sw-brand-dark)] to-[var(--sw-brand)] text-white rounded-2xl p-3.5 shadow-sm space-y-2">
           <div className="flex items-center gap-3">
-            <img src={user.avatar} alt={user.name} className="w-11 h-11 rounded-2xl object-cover border-2 border-white/80 flex-shrink-0" />
+            {user.avatar ? (
+              <img src={user.avatar} alt={user.name} className="w-11 h-11 rounded-2xl object-cover border-2 border-white/80 flex-shrink-0" />
+            ) : (
+              <div className="w-11 h-11 rounded-2xl bg-white/20 text-white flex items-center justify-center font-black border-2 border-white/80 flex-shrink-0">{user.name.slice(0, 1)}</div>
+            )}
             <div className="overflow-hidden space-y-0.5">
               <div className="flex items-center gap-1.5">
                 <span className="font-black text-sm">{user.name}</span>

@@ -11,12 +11,14 @@ import { UserCoupon } from '../types';
 import { Ticket, QrCode, CheckCircle2, Clock, Building, Store, Sparkles, Copy, X, CreditCard } from 'lucide-react';
 
 export const CouponsPage: React.FC = () => {
-  const { user, showToast, refreshUserData } = useMall();
+  const { user, showToast, refreshUserData, sessionStatus } = useMall();
 
   const [activeTab, setActiveTab] = useState<'unused' | 'used' | 'expired'>('unused');
   const [selectedCoupon, setSelectedCoupon] = useState<UserCoupon | null>(null);
 
-  const coupons = mallService.getUserCoupons();
+  // The coupon API has not shipped yet. Authenticated members must see an
+  // honest empty state rather than coupons owned by the browser demo persona.
+  const coupons = sessionStatus === 'authenticated' ? [] : mallService.getUserCoupons();
   const filteredCoupons = coupons.filter((c) => c.status === activeTab);
 
   const handleSimulateVerification = (couponId: string) => {

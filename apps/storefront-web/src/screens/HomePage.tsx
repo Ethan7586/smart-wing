@@ -113,7 +113,16 @@ export const HomePage: React.FC = () => {
           <div className="space-y-4">
             {/* 用户身份 header */}
             <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
-              <img src={user.avatar} alt={user.name} className="w-12 h-12 rounded-full object-cover border-2 border-blue-100 shadow-xs" />
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.name} className="w-12 h-12 rounded-full object-cover border-2 border-blue-100 shadow-xs" />
+              ) : (
+                <div
+                  aria-label={`${user.name}的默认头像`}
+                  className="w-12 h-12 rounded-full bg-gradient-to-tr from-[var(--sw-brand-dark)] to-[var(--sw-brand)] text-white flex items-center justify-center text-lg font-black border-2 border-blue-100 shadow-xs"
+                >
+                  {user.name.slice(0, 1)}
+                </div>
+              )}
               <div className="overflow-hidden">
                 <div className="font-bold text-gray-900 text-sm flex items-center gap-1.5">
                   <span>{user.name}</span>

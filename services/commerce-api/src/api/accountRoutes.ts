@@ -13,6 +13,13 @@ interface BootstrapRow {
   enterpriseName: string;
 }
 
+interface MemberProfileRow {
+  displayName: string;
+  employeeNo: string;
+  departmentName: string | null;
+  phoneMasked: string | null;
+}
+
 interface AccountRow {
   id: string;
   account_type: string;
@@ -24,14 +31,19 @@ interface AccountRow {
 export async function handleBootstrap(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
   if (!can(authorization, PERMISSIONS.catalogRead)) return apiError(403, 'FORBIDDEN', '没有读取商城初始化信息的权限', requestId);
-  const [scope, assurance] = await Promise.all([
+  const [scope, assurance, profile] = await Promise.all([
     callRpc<BootstrapRow | null>(env, 'api_bootstrap', authorizationScope(authorization)),
     loadMemberAssurance(env, authorization.membership.memberId),
+    callRpc<MemberProfileRow | null>(env, 'api_storefront_member_profile', authorizationScope(authorization, true)),
   ]);
+  if (!profile) return apiError(403, 'MEMBER_PROFILE_UNAVAILABLE', '当前会员资料不可用', requestId);
   return json({
     actor: {
       userId: authorization.userId,
-      employeeNo: authorization.employeeNo,
+      employeeNo: profile.employeeNo,
+      displayName: profile.displayName,
+      departmentName: profile.departmentName,
+      phoneMasked: profile.phoneMasked,
       roles: authorization.roles,
       permissions: authorization.permissions,
       assurance: assurance ?? {

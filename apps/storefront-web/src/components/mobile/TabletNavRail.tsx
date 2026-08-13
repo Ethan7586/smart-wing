@@ -80,7 +80,11 @@ export const TabletNavRail: React.FC = () => {
       <div className="space-y-2 pt-3 border-t border-blue-800/60">
         {/* User Mini Card */}
         <div onClick={() => setTabletPage('profile')} className="p-2.5 rounded-2xl bg-white/10 hover:bg-white/15 transition-colors cursor-pointer flex items-center gap-2.5 border border-white/10">
-          <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-xl object-cover border border-white/30" />
+          {user.avatar ? (
+            <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-xl object-cover border border-white/30" />
+          ) : (
+            <div className="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center font-black border border-white/30">{user.name.slice(0, 1)}</div>
+          )}
           <div className="overflow-hidden flex-1">
             <div className="text-xs font-bold text-white truncate">{user.name}</div>
             <div className="text-[10px] text-yellow-300 font-mono truncate">福利卡 ¥{user.welfareBalance.toFixed(0)}</div>

@@ -22,7 +22,13 @@ export const UserCenterPage: React.FC = () => {
       {/* 1. 员工个人名片 Header */}
       <div className="bg-gradient-to-r from-[var(--sw-brand-dark)] via-[var(--sw-brand)] to-blue-800 text-white rounded-md p-6 shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <img src={user.avatar} alt={user.name} className="w-16 h-16 rounded-full object-cover border-2 border-white/40 shadow-sm" />
+          {user.avatar ? (
+            <img src={user.avatar} alt={user.name} className="w-16 h-16 rounded-full object-cover border-2 border-white/40 shadow-sm" />
+          ) : (
+            <div aria-label={`${user.name}的默认头像`} className="w-16 h-16 rounded-full bg-white/20 text-white flex items-center justify-center text-2xl font-black border-2 border-white/40 shadow-sm">
+              {user.name.slice(0, 1)}
+            </div>
+          )}
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-black">{user.name}</h1>

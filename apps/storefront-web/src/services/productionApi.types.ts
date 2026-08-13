@@ -98,6 +98,9 @@ export interface ApiAfterSale {
 export interface ApiActor {
   userId: string;
   employeeNo: string;
+  displayName: string;
+  departmentName: string | null;
+  phoneMasked: string | null;
   roles: string[];
   permissions: string[];
 }

@@ -15,7 +15,11 @@ export const MPProfilePage: React.FC = () => {
       <div className="bg-gradient-to-b from-[var(--sw-brand-dark)] to-[var(--sw-brand)] text-white p-4 pt-2 shadow-sm space-y-3">
         {/* User Card */}
         <div className="flex items-center gap-3">
-          <img src={user.avatar} alt={user.name} className="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-md flex-shrink-0" />
+          {user.avatar ? (
+            <img src={user.avatar} alt={user.name} className="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-md flex-shrink-0" />
+          ) : (
+            <div className="w-14 h-14 rounded-full bg-white/20 text-white flex items-center justify-center text-xl font-black border-2 border-white/80 shadow-md flex-shrink-0">{user.name.slice(0, 1)}</div>
+          )}
           <div className="overflow-hidden space-y-1">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-black text-white">{user.name}</h2>
@@ -179,9 +183,7 @@ export const MPProfilePage: React.FC = () => {
                 <ShieldCheck className="w-4 h-4 text-blue-600" />
                 <span>企业安全认证凭证</span>
               </div>
-              <span className={`${user.phoneVerified ? 'text-emerald-600' : 'text-amber-600'} font-bold text-[10px]`}>
-                {user.phoneVerified ? '手机已验证' : '手机待验证'} &gt;
-              </span>
+              <span className={`${user.phoneVerified ? 'text-emerald-600' : 'text-amber-600'} font-bold text-[10px]`}>{user.phoneVerified ? '手机已验证' : '手机待验证'} &gt;</span>
             </button>
           </div>
         </div>
