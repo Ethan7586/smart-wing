@@ -855,7 +855,7 @@ export const LoginPage: React.FC = () => {
 
             {/* 顶部 Logo 品牌 */}
             <div className="relative z-10 flex items-center gap-3">
-              <img src="./brand/brand-mark.svg" alt="" className="h-12 w-12 shrink-0 rounded-2xl shadow-md" />
+              <img src={`${import.meta.env.BASE_URL}brand/brand-mark.svg`} alt="" className="h-12 w-12 shrink-0 rounded-2xl shadow-md" />
               <div>
                 <span className="text-2xl font-bold tracking-tight text-white block">智慧翼 Smart Wing</span>
                 <span className="text-[10px] font-semibold tracking-widest text-blue-200 uppercase">Enterprise Benefits</span>
@@ -913,7 +913,7 @@ export const LoginPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <img src="./brand/brand-mark.svg" alt="" className="h-5 w-5 rounded-md" />
+                  <img src={`${import.meta.env.BASE_URL}brand/brand-mark.svg`} alt="" className="h-5 w-5 rounded-md" />
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
                     {stage === 1 && '账号认证'}
                     {stage === 2 && '选择访问身份'}
