@@ -30,6 +30,8 @@
     "pageHorizontalInset": 32,
     "wingCodeButtonSize": 112,
     "wingCodeProtrusion": 24,
+    "tabLabelSize": 20,
+    "tabLabelLineHeight": 28,
     "behavior": ["动态读取胶囊位置", "自定义 tabBar", "适配底部安全区", "返回后台立即刷新会员码"]
   }
 }
