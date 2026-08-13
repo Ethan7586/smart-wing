@@ -1,7 +1,111 @@
-/* Home commerce sections loaded by home.wxss. Kept separate from the top-shell
-   styling so both files stay within the repository line budget. */
+/* Home commerce sections loaded by home.wxss. */
+.entries {
+  display: flex;
+  align-items: stretch;
+  margin-top: var(--sw-space-2);
+  padding: var(--sw-space-1_5) 0;
+}
+.entry {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.entry-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: var(--sw-radius-medium);
+  background: var(--sw-brand-light);
+}
+.entry-label {
+  margin-top: 10rpx;
+  font-size: var(--sw-fs-caption);
+  line-height: var(--sw-lh-caption);
+  color: var(--sw-text);
+}
 
-.partner-scroll { width: 100%; white-space: nowrap; }
+.hero {
+  position: relative;
+  overflow: hidden;
+  margin-top: var(--sw-space-2);
+  padding: var(--sw-space-2);
+  min-height: 200rpx;
+  box-sizing: border-box;
+  border-radius: var(--sw-radius-large);
+  background: var(--sw-brand-gradient);
+}
+.hero-pattern {
+  position: absolute;
+  right: -40rpx;
+  bottom: -30rpx;
+  width: 240rpx;
+  height: 240rpx;
+  opacity: 0.18;
+  background-size: contain;
+  background-position: right bottom;
+}
+.hero-copy {
+  position: relative;
+  z-index: 1;
+}
+.hero-title {
+  display: block;
+  font-size: var(--sw-fs-h2);
+  line-height: var(--sw-lh-h2);
+  font-weight: var(--sw-fw-h2);
+  color: var(--sw-text-inverse);
+}
+.hero-subtitle {
+  display: block;
+  margin-top: 6rpx;
+  font-size: var(--sw-fs-bodySmall);
+  line-height: var(--sw-lh-bodySmall);
+  color: var(--sw-inverse-strong);
+}
+.hero-slot,
+.hero-illustration {
+  position: absolute;
+  right: var(--sw-space-2);
+  top: 50%;
+  margin-top: -60rpx;
+  width: 180rpx;
+  height: 120rpx;
+}
+.hero-dots {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  margin-top: var(--sw-space-1_5);
+}
+.dot {
+  width: 10rpx;
+  height: 10rpx;
+  margin-right: 8rpx;
+  border-radius: 50%; /* vi-allow: css-drawn-icon — 轮播指示点，不是图标 */
+  background: var(--sw-inverse-muted);
+}
+.dot-on {
+  width: 24rpx;
+  border-radius: 5rpx;
+  background: var(--sw-text-inverse);
+}
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: var(--sw-space-3);
+  margin-bottom: var(--sw-space-1_5);
+}
+
+.partner-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
 .partner-row {
   display: flex;
   align-items: flex-start;
@@ -49,7 +153,10 @@
   margin-bottom: var(--sw-space-1);
   padding: var(--sw-space-1_5);
 }
-.segment-text { flex: 1; min-width: 0; }
+.segment-text {
+  flex: 1;
+  min-width: 0;
+}
 .segment-title {
   display: block;
   font-size: var(--sw-fs-bodySmall);
@@ -85,7 +192,11 @@
   border-radius: var(--sw-radius-large);
   background: var(--sw-brand-light);
 }
-.membercode-cta-mark { width: 64rpx; height: 64rpx; flex-shrink: 0; }
+.membercode-cta-mark {
+  width: 64rpx;
+  height: 64rpx;
+  flex-shrink: 0;
+}
 .membercode-cta-text {
   flex: 1;
   min-width: 0;
@@ -124,11 +235,15 @@
   border-bottom: 1rpx solid var(--sw-border);
   border-radius: 0;
 }
-.product-body { padding: var(--sw-space-1); }
+.product-body {
+  padding: var(--sw-space-1);
+}
+/* Two lines reserved whether the title needs them or not, so the tag, price
+   and source rows stay on the same baseline across a row of cards. */
 .product-title {
-  display: block;
   font-size: var(--sw-fs-bodySmall);
   line-height: 36rpx;
+  height: 72rpx;
   color: var(--sw-text);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -147,7 +262,11 @@
   font-size: 20rpx;
   line-height: 32rpx;
 }
-.product-price { display: flex; align-items: baseline; margin-top: 8rpx; }
+.product-price {
+  display: flex;
+  align-items: baseline;
+  margin-top: 8rpx;
+}
 .product-price-symbol {
   font-family: var(--sw-font-num);
   font-size: var(--sw-fs-caption);

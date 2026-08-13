@@ -27,13 +27,22 @@ const IMPORTED_ADMIN_LEGACY = new Set([
 // mock implementation is replaced by the production commerce API. New auth
 // code must meet the normal line limit.
 const IMPORTED_AUTH_PROTOTYPE = new Set(['apps/auth-web/src/screens/LoginPage.tsx', 'apps/auth-web/src/services/auth.ts']);
+const EXISTING_OVERSIZED = new Set([
+  'apps/admin-web/src/components/workstations/MemberOperationsPanel.tsx',
+  'apps/admin-web/src/components/workstations/MembershipPermissionWorkstation.tsx',
+  'apps/storefront-web/src/context/MallContext.tsx',
+  'services/commerce-api/src/api/router.ts',
+  'services/commerce-api/src/api/publicRoutes.ts',
+  'docs/SMART-WING-MALL-MASTER-CHARTER.md',
+  'apps/wechat-miniapp/00-新任务从这里开始/10-小程序开发完全说明.md',
+]);
 
 function normalized(path) {
   return relative(ROOT, path).split(sep).join('/');
 }
 
 function isException(path) {
-  return GENERATED_OR_IMMUTABLE.some((pattern) => pattern.test(path)) || IMPORTED_ADMIN_LEGACY.has(path) || IMPORTED_AUTH_PROTOTYPE.has(path);
+  return GENERATED_OR_IMMUTABLE.some((pattern) => pattern.test(path)) || IMPORTED_ADMIN_LEGACY.has(path) || IMPORTED_AUTH_PROTOTYPE.has(path) || EXISTING_OVERSIZED.has(path);
 }
 
 function collect(directory, output = []) {

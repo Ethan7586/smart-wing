@@ -1,3 +1,5 @@
+@import './home-commerce.wxss';
+
 /* Flexbox with explicit margins throughout — flex `gap` and CSS grid are not
    dependable across older WeChat Android base libraries, and a silent layout
    failure there is exactly how the previous build went wrong. */
@@ -15,6 +17,18 @@
   right: 0;
   z-index: 50;
   background: var(--sw-background);
+  transition: border-color var(--sw-motion-fast) ease;
+  border-bottom: 1rpx solid transparent;
+}
+
+/**
+ * The bar and the page share one background colour, so at rest the boundary is
+ * invisible — which is correct. Once content scrolls underneath, a heading
+ * sliced by that invisible edge reads as broken text. The hairline appears only
+ * while scrolled, so the cut reads as content passing under a bar.
+ */
+.nav.is-scrolled {
+  border-bottom-color: var(--sw-border);
 }
 
 .nav-row {
@@ -100,11 +114,26 @@
   padding-top: var(--sw-space-2);
 }
 
-.sk-chip { height: 56rpx; width: 60%; margin-bottom: var(--sw-space-2); }
-.sk-search { height: 80rpx; margin-bottom: var(--sw-space-2); }
-.sk-card { height: 200rpx; margin-bottom: var(--sw-space-2); }
-.sk-entries { height: 160rpx; margin-bottom: var(--sw-space-2); }
-.sk-hero { height: 220rpx; }
+.sk-chip {
+  height: 56rpx;
+  width: 60%;
+  margin-bottom: var(--sw-space-2);
+}
+.sk-search {
+  height: 80rpx;
+  margin-bottom: var(--sw-space-2);
+}
+.sk-card {
+  height: 200rpx;
+  margin-bottom: var(--sw-space-2);
+}
+.sk-entries {
+  height: 160rpx;
+  margin-bottom: var(--sw-space-2);
+}
+.sk-hero {
+  height: 220rpx;
+}
 
 /* ------------------------------------------------- 2. enterprise scope ---- */
 
@@ -205,126 +234,4 @@
   font-size: var(--sw-fs-caption);
   line-height: var(--sw-lh-caption);
   color: var(--sw-danger);
-}
-
-/* ------------------------------------------------------- 5. entries ------- */
-
-.entries {
-  display: flex;
-  align-items: stretch;
-  margin-top: var(--sw-space-2);
-  padding: var(--sw-space-1_5) 0;
-}
-
-.entry {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.entry-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: var(--sw-radius-medium);
-  background: var(--sw-brand-light);
-}
-
-.entry-label {
-  margin-top: 10rpx;
-  font-size: var(--sw-fs-caption);
-  line-height: var(--sw-lh-caption);
-  color: var(--sw-text);
-}
-
-/* ---------------------------------------------------------- 6. hero ------- */
-
-.hero {
-  position: relative;
-  overflow: hidden;
-  margin-top: var(--sw-space-2);
-  padding: var(--sw-space-2);
-  min-height: 200rpx;
-  box-sizing: border-box;
-  border-radius: var(--sw-radius-large);
-  background: var(--sw-brand-gradient);
-}
-
-/* Official wing pattern, not an invented decoration. */
-.hero-pattern {
-  position: absolute;
-  right: -40rpx;
-  bottom: -30rpx;
-  width: 240rpx;
-  height: 240rpx;
-  opacity: 0.18;
-  background-size: contain;
-  background-position: right bottom;
-}
-
-.hero-copy {
-  position: relative;
-  z-index: 1;
-}
-
-.hero-title {
-  display: block;
-  font-size: var(--sw-fs-h2);
-  line-height: var(--sw-lh-h2);
-  font-weight: var(--sw-fw-h2);
-  color: var(--sw-text-inverse);
-}
-
-.hero-subtitle {
-  display: block;
-  margin-top: 6rpx;
-  font-size: var(--sw-fs-bodySmall);
-  line-height: var(--sw-lh-bodySmall);
-  color: var(--sw-inverse-strong);
-}
-
-.hero-slot,
-.hero-illustration {
-  position: absolute;
-  right: var(--sw-space-2);
-  top: 50%;
-  margin-top: -60rpx;
-  width: 180rpx;
-  height: 120rpx;
-}
-
-.hero-dots {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  margin-top: var(--sw-space-1_5);
-}
-
-.dot {
-  width: 10rpx;
-  height: 10rpx;
-  margin-right: 8rpx;
-  border-radius: 50%; /* vi-allow: css-drawn-icon — 轮播指示点是几何指示器，不是图标 */
-  background: var(--sw-inverse-muted);
-}
-
-.dot-on {
-  width: 24rpx;
-  border-radius: 5rpx;
-  background: var(--sw-text-inverse);
-}
-
-/* ------------------------------------------------------- section head ----- */
-
-.section-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-top: var(--sw-space-3);
-  margin-bottom: var(--sw-space-1_5);
 }

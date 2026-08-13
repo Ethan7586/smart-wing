@@ -38,9 +38,7 @@ function readSafeArea(force) {
     // title stays centred and right-aligned actions never slide underneath it.
     var rightInset = Math.max(windowInfo.windowWidth - capsule.left, 0) + 8;
 
-    var safeAreaBottom = windowInfo.safeArea
-      ? Math.max(windowInfo.screenHeight - windowInfo.safeArea.bottom, 0)
-      : 0;
+    var safeAreaBottom = windowInfo.safeArea ? Math.max(windowInfo.screenHeight - windowInfo.safeArea.bottom, 0) : 0;
 
     cached = {
       statusBarHeight: statusBarHeight,

@@ -17,12 +17,12 @@
  * Generated (never hand-edited):
  *   apps/wechat-miniapp/miniprogram/styles/tokens.wxss
  *   apps/wechat-miniapp/miniprogram/styles/icons.wxss
- *
  * Run: npm run build:miniapp-assets
  */
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CALIBRATE_MEMBER_CODE_STROKE, ICON_MANIFEST, IMAGE_EXTENSIONS, PARTNER_LOGOS, ROLES as ROLE_PATHS } from './miniapp-asset-config.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const MP = join(ROOT, 'apps/wechat-miniapp/miniprogram');
@@ -34,15 +34,6 @@ const PARTNER_ASSETS = join(MP, 'assets/partners');
 const tokens = JSON.parse(readFileSync(join(ROOT, 'packages/design-system/src/tokens.json'), 'utf8'));
 const platforms = JSON.parse(readFileSync(join(ROOT, 'packages/design-system/src/mobile-platforms.json'), 'utf8'));
 const wechat = platforms.wechatMiniProgram;
-
-const PARTNER_LOGOS = {
-  metro: 'metro',
-  walmart: 'walmart',
-  sams: 'sams',
-  'rt-mart': 'rt-mart',
-  yonghui: 'yonghui',
-};
-const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp'];
 
 function optionalLocalImage(directory, stem, publicDirectory) {
   for (const extension of IMAGE_EXTENSIONS) {
@@ -61,53 +52,10 @@ const rpx = (pt) => `${pt * RPX_PER_PT}rpx`;
  * Colour roles used by generated icons. Adding a role here is cheap; drawing an
  * icon by hand is what we are trying to make impossible.
  */
-const ROLES = {
-  ink: tokens.color.text.primary,
-  secondary: tokens.color.text.secondary,
-  muted: tokens.color.text.muted,
-  brand: tokens.color.brand.primary,
-  white: tokens.color.text.inverse,
-  danger: tokens.color.semantic.danger,
-  success: tokens.color.semantic.success,
-};
-
-/**
- * Only icons a built page actually uses are generated. An unbuilt page must not
- * silently acquire assets — a missing icon has to surface as a build error so it
- * gets logged rather than improvised.
- */
-const MANIFEST = {
-  // Bottom navigation: inactive uses secondary, active uses brand.
-  house: ['secondary', 'brand'],
-  'layout-grid': ['secondary', 'brand'],
-  'receipt-text': ['secondary', 'brand'],
-  user: ['secondary', 'brand'],
-  // Home header.
-  'shopping-cart': ['ink'],
-  bell: ['ink'],
-  search: ['muted'],
-  'scan-line': ['muted'],
-  // Home: four entries and four business segments.
-  'building-2': ['brand'],
-  'map-pin': ['brand', 'muted'],
-  ticket: ['brand'],
-  store: ['brand', 'secondary'],
-  'shopping-basket': ['brand'],
-  'house-plus': ['brand'],
-  laptop: ['brand'],
-  utensils: ['brand'],
-  // Home: affordances and states.
-  'chevron-right': ['muted'],
-  'chevron-down': ['secondary'],
-  'shield-alert': ['danger'],
-  'shield-check': ['success'],
-  'circle-alert': ['danger'],
-  'refresh-cw': ['brand'],
-  'wifi-off': ['muted'],
-  'image-off': ['muted'],
-  inbox: ['muted'],
-  'triangle-alert': ['danger'],
-};
+function tokenAt(path) {
+  return path.split('.').reduce((value, key) => value[key], tokens.color);
+}
+const ROLES = Object.fromEntries(Object.entries(ROLE_PATHS).map(([role, path]) => [role, tokenAt(path)]));
 
 function lucideBody(name) {
   const source = readFileSync(join(LUCIDE, `${name}.js`), 'utf8');
@@ -118,10 +66,16 @@ function lucideBody(name) {
     if (source[i] === '[') depth += 1;
     if (source[i] === ']') {
       depth -= 1;
-      if (depth === 0) { end = i; break; }
+      if (depth === 0) {
+        end = i;
+        break;
+      }
     }
   }
-  const literal = source.slice(open, end + 1).replace(/(\w+):/g, '"$1":').replace(/'/g, '"');
+  const literal = source
+    .slice(open, end + 1)
+    .replace(/(\w+):/g, '"$1":')
+    .replace(/'/g, '"');
   return JSON.parse(literal)
     .map(([tag, attributes]) => {
       const pairs = Object.entries(attributes)
@@ -138,9 +92,7 @@ const dataUri = (svg) => `data:image/svg+xml;base64,${Buffer.from(normaliseText(
 
 function lucideUri(name, colour) {
   const stroke = tokens.icon.strokeWidth;
-  return dataUri(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${colour}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round">${lucideBody(name)}</svg>`
-  );
+  return dataUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${colour}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round">${lucideBody(name)}</svg>`);
 }
 
 /**
@@ -150,8 +102,6 @@ function lucideUri(name, colour) {
  * edited; the mini program asset is re-rendered at matching optical weight.
  * Set to false to ship the source weight instead.
  */
-const CALIBRATE_MEMBER_CODE_STROKE = true;
-
 function memberCodeUri() {
   const source = readFileSync(join(BRAND, 'wing-code-symbol.svg'), 'utf8');
   if (!CALIBRATE_MEMBER_CODE_STROKE) return dataUri(source);
@@ -164,8 +114,7 @@ function memberCodeUri() {
 }
 
 const brandUri = (file) => dataUri(readFileSync(join(BRAND, file), 'utf8'));
-const shadow = ({ x, y, blur, color, alpha }) =>
-  `${rpx(x)} ${rpx(y)} ${rpx(blur)} rgba(${color.join(', ')}, ${alpha})`;
+const shadow = ({ x, y, blur, color, alpha }) => `${rpx(x)} ${rpx(y)} ${rpx(blur)} rgba(${color.join(', ')}, ${alpha})`;
 
 // ---------------------------------------------------------------- tokens.wxss
 
@@ -225,15 +174,22 @@ ${Object.entries(t.typography.styles)
   .join('\n')}
 
   /* spacing — token pt values rendered at ${RPX_PER_PT}rpx per pt */
-${Object.entries(t.spacing).map(([name, pt]) => `  --sw-space-${name}: ${rpx(pt)};`).join('\n')}
+${Object.entries(t.spacing)
+  .map(([name, pt]) => `  --sw-space-${name}: ${rpx(pt)};`)
+  .join('\n')}
   --sw-page-inset: ${wechat.pageHorizontalInset}rpx;
 
   /* radius */
-${Object.entries(t.radius).filter(([n]) => n !== 'full').map(([name, pt]) => `  --sw-radius-${name}: ${rpx(pt)};`).join('\n')}
+${Object.entries(t.radius)
+  .filter(([n]) => n !== 'full')
+  .map(([name, pt]) => `  --sw-radius-${name}: ${rpx(pt)};`)
+  .join('\n')}
   --sw-radius-full: 9999rpx;
 
   /* icon */
-${Object.entries(t.icon.sizes).map(([name, pt]) => `  --sw-icon-${name}: ${rpx(pt)};`).join('\n')}
+${Object.entries(t.icon.sizes)
+  .map(([name, pt]) => `  --sw-icon-${name}: ${rpx(pt)};`)
+  .join('\n')}
 
   /* member code entry — from mobile-platforms.json wechatMiniProgram */
   --sw-membercode-size: ${wechat.wingCodeButtonSize}rpx;
@@ -264,10 +220,13 @@ ${Object.entries(t.icon.sizes).map(([name, pt]) => `  --sw-icon-${name}: ${rpx(p
 
 const rules = [];
 const missing = [];
-for (const [name, roles] of Object.entries(MANIFEST)) {
+for (const [name, roles] of Object.entries(ICON_MANIFEST)) {
   for (const role of roles) {
     const colour = ROLES[role];
-    if (!colour) { missing.push(`${name}: unknown role "${role}"`); continue; }
+    if (!colour) {
+      missing.push(`${name}: unknown role "${role}"`);
+      continue;
+    }
     try {
       rules.push(`.i-${name}-${role} { background-image: url("${lucideUri(name, colour)}"); }`);
     } catch {
@@ -300,12 +259,7 @@ const iconsWxss = `/* GENERATED by scripts/build-miniapp-assets.mjs — do not e
 ${rules.join('\n')}
 `;
 
-const partnerAssets = Object.fromEntries(
-  Object.entries(PARTNER_LOGOS).map(([key, stem]) => [
-    key,
-    optionalLocalImage(PARTNER_ASSETS, stem, 'assets/partners'),
-  ])
-);
+const partnerAssets = Object.fromEntries(Object.entries(PARTNER_LOGOS).map(([key, stem]) => [key, optionalLocalImage(PARTNER_ASSETS, stem, 'assets/partners')]));
 const assetsModule = `/* GENERATED by scripts/build-miniapp-assets.mjs — do not edit by hand. */
 module.exports = ${JSON.stringify({ partners: partnerAssets }, null, 2)};
 `;
@@ -340,5 +294,5 @@ for (const [file, content] of Object.entries(outputs)) {
 }
 
 console.log(`tokens.wxss  ${(tokensWxss.length / 1024).toFixed(1)}KB`);
-console.log(`icons.wxss   ${(iconsWxss.length / 1024).toFixed(1)}KB  ${rules.length} rules / ${Object.keys(MANIFEST).length} icons`);
+console.log(`icons.wxss   ${(iconsWxss.length / 1024).toFixed(1)}KB  ${rules.length} rules / ${Object.keys(ICON_MANIFEST).length} icons`);
 console.log(`member code stroke calibrated: ${CALIBRATE_MEMBER_CODE_STROKE}`);

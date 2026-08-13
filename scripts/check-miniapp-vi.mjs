@@ -109,15 +109,10 @@ for (const { full, rel } of files) {
 
     // 11 微信原生适配 — the top inset must be measured, never assumed. A zero
     // initialiser is fine; a non-zero literal is a hardcoded layout.
-    check(
-      'hardcoded-safe-area',
-      /(safe-?top|statusBarHeight|navTotalHeight|capsule\w*)\s*[:=]\s*[1-9]\d*/.test(code) && rel !== 'utils/safeArea.js',
-      '顶部安全区必须来自 wx.getWindowInfo / getMenuButtonBoundingClientRect'
-    );
+    check('hardcoded-safe-area', /(safe-?top|statusBarHeight|navTotalHeight|capsule\w*)\s*[:=]\s*[1-9]\d*/.test(code) && rel !== 'utils/safeArea.js', '顶部安全区必须来自 wx.getWindowInfo / getMenuButtonBoundingClientRect');
 
     // Flex gap is unreliable on older WeChat Android base libraries.
     check('flex-gap', /^\s*(row-|column-)?gap:/.test(code), '低版本安卓基础库对 flex gap 支持不稳定，请改用 margin');
-
   });
 
   if (generated && !source.startsWith('/* GENERATED')) {

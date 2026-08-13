@@ -45,11 +45,33 @@ page {
 
 /* ------------------------------------------------------------------- type */
 
-.sw-h2 { font-size: var(--sw-fs-h2); line-height: var(--sw-lh-h2); font-weight: var(--sw-fw-h2); color: var(--sw-text); }
-.sw-h3 { font-size: var(--sw-fs-h3); line-height: var(--sw-lh-h3); font-weight: var(--sw-fw-h3); color: var(--sw-text); }
-.sw-body { font-size: var(--sw-fs-body); line-height: var(--sw-lh-body); color: var(--sw-text); }
-.sw-small { font-size: var(--sw-fs-bodySmall); line-height: var(--sw-lh-bodySmall); color: var(--sw-text-secondary); }
-.sw-caption { font-size: var(--sw-fs-caption); line-height: var(--sw-lh-caption); color: var(--sw-text-muted); }
+.sw-h2 {
+  font-size: var(--sw-fs-h2);
+  line-height: var(--sw-lh-h2);
+  font-weight: var(--sw-fw-h2);
+  color: var(--sw-text);
+}
+.sw-h3 {
+  font-size: var(--sw-fs-h3);
+  line-height: var(--sw-lh-h3);
+  font-weight: var(--sw-fw-h3);
+  color: var(--sw-text);
+}
+.sw-body {
+  font-size: var(--sw-fs-body);
+  line-height: var(--sw-lh-body);
+  color: var(--sw-text);
+}
+.sw-small {
+  font-size: var(--sw-fs-bodySmall);
+  line-height: var(--sw-lh-bodySmall);
+  color: var(--sw-text-secondary);
+}
+.sw-caption {
+  font-size: var(--sw-fs-caption);
+  line-height: var(--sw-lh-caption);
+  color: var(--sw-text-muted);
+}
 
 /* Financial figures use tabular numerals so columns of money line up. */
 .sw-amount {
@@ -71,8 +93,13 @@ page {
 }
 
 @keyframes sw-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
 }
 
 /**
@@ -104,7 +131,9 @@ page {
   border-color: var(--sw-inverse-soft);
 }
 
-.sw-slot-on-brand .sw-slot-label { color: var(--sw-inverse-label); }
+.sw-slot-on-brand .sw-slot-label {
+  color: var(--sw-inverse-label);
+}
 
 /* Demo-data banner. Never let seed numbers pass as the member's own. */
 .sw-demo-flag {

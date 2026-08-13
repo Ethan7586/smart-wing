@@ -23,6 +23,7 @@ function decorateProducts(list) {
 Page({
   data: {
     nav: { statusBarHeight: 0, navContentHeight: 0, navTotalHeight: 0, rightInset: 0 },
+    scrolled: false,
     loading: true,
     loadError: null,
     isDemo: false,
@@ -106,6 +107,12 @@ Page({
       memberCodeCta: snapshot.memberCodeCta,
       recommendations: decorateProducts(snapshot.recommendations),
     });
+  },
+
+  /** Hairline under the fixed bar, only once content is passing beneath it. */
+  onPageScroll: function (event) {
+    var scrolled = event.scrollTop > 0;
+    if (scrolled !== this.data.scrolled) this.setData({ scrolled: scrolled });
   },
 
   onRetry: function () {
