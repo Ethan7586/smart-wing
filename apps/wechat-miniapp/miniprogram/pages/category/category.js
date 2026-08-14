@@ -1,6 +1,7 @@
 var api = require('../../utils/api');
 var catalog = require('../../utils/catalog');
 var sizeClassUtil = require('../../utils/sizeClass');
+var share = require('../../utils/share');
 
 var app = getApp();
 var FILTERS_PENDING = {
@@ -35,6 +36,7 @@ Page({
   },
 
   onLoad: function () {
+    share.enableMenu();
     var area = app.getSafeArea();
     var size = app.getSizeClass();
     this._loadVersion = 0;
@@ -226,5 +228,13 @@ Page({
       title: (event.currentTarget.dataset.label || '该功能') + '将在阶段 2 后续页面接通',
       icon: 'none',
     });
+  },
+
+  onShareAppMessage: function () {
+    return share.appMessage({ title: '智慧翼福利商城｜公开商品', path: '/pages/category/category' });
+  },
+
+  onShareTimeline: function () {
+    return share.timeline({ title: '智慧翼福利商城｜公开商品' });
   },
 });

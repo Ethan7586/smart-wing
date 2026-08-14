@@ -1,6 +1,7 @@
 var api = require('../../utils/api');
 var accountPresentation = require('../../utils/accountPresentation');
 var sizeClassUtil = require('../../utils/sizeClass');
+var share = require('../../utils/share');
 
 var app = getApp();
 
@@ -125,6 +126,10 @@ Page({
 
   onRetry: function () {
     this.loadProfile();
+  },
+
+  onCopyOfficialUrl: function () {
+    share.copyOfficialUrl();
   },
 
   onPending: function (event) {

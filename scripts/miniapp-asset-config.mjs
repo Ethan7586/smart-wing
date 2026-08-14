@@ -56,6 +56,7 @@ export const ICON_MANIFEST = {
   'image-off': ['muted'],
   inbox: ['muted'],
   'triangle-alert': ['danger'],
+  link: ['brand'],
 };
 
 export const PARTNER_LOGOS = {

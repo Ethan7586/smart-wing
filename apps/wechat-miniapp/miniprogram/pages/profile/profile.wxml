@@ -132,6 +132,11 @@
         <text class="row-text">联系客服</text>
         <view class="i i-chevron-right-muted"></view>
       </view>
+      <view class="sw-card row-link sw-tap" bindtap="onCopyOfficialUrl">
+        <view class="i i-link-brand"></view>
+        <text class="row-text">复制商城网址</text>
+        <view class="i i-chevron-right-muted"></view>
+      </view>
     </view>
 
     <view wx:if="{{signedIn}}" class="sw-inset">

@@ -1,5 +1,6 @@
 var api = require('../../utils/api');
 var sizeClassUtil = require('../../utils/sizeClass');
+var share = require('../../utils/share');
 
 var app = getApp();
 var CACHE_WINDOW_SIZE = 200;
@@ -31,6 +32,7 @@ Page({
   },
 
   onLoad: function (options) {
+    share.enableMenu();
     var area = app.getSafeArea();
     var size = app.getSizeClass();
     this.setData({
@@ -132,5 +134,17 @@ Page({
     if (!product) return;
     wx.setStorageSync('sw-public-product-' + product.id, product);
     wx.navigateTo({ url: '/pages/product-detail/product-detail?id=' + encodeURIComponent(product.id) });
+  },
+
+  onShareAppMessage: function () {
+    var query = '?title=' + encodeURIComponent(this.data.title || '公开商品') + '&category=' + encodeURIComponent(this.data.category || '');
+    return share.appMessage({ title: '智慧翼福利商城｜' + (this.data.title || '公开商品'), path: '/pages/products/products' + query });
+  },
+
+  onShareTimeline: function () {
+    return share.timeline({
+      title: '智慧翼福利商城｜' + (this.data.title || '公开商品'),
+      query: 'title=' + encodeURIComponent(this.data.title || '公开商品') + '&category=' + encodeURIComponent(this.data.category || ''),
+    });
   },
 });

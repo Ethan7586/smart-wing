@@ -2,6 +2,7 @@ var demo = require('../../data/demo');
 var api = require('../../utils/api');
 var accountPresentation = require('../../utils/accountPresentation');
 var sizeClassUtil = require('../../utils/sizeClass');
+var share = require('../../utils/share');
 
 var app = getApp();
 
@@ -55,6 +56,7 @@ Page({
   },
 
   onLoad: function () {
+    share.enableMenu();
     var area = app.getSafeArea();
     var size = app.getSizeClass();
     this.setData({
@@ -153,5 +155,13 @@ Page({
 
   onOpenMemberCode: function () {
     wx.switchTab({ url: '/pages/membercode/membercode' });
+  },
+
+  onShareAppMessage: function () {
+    return share.appMessage({ title: '智慧翼福利商城', path: '/pages/home/home' });
+  },
+
+  onShareTimeline: function () {
+    return share.timeline({ title: '智慧翼福利商城' });
   },
 });
