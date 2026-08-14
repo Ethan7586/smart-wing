@@ -13,14 +13,6 @@ if (!body || !Array.isArray(body.items) || body.items.length === 0 || body.items
   throw new Error('Catalog seed response must contain between 1 and 200 items');
 }
 
-function compactImageUrl(value) {
-  if (typeof value !== 'string') return value;
-  const proxy = value.match(/^https:\/\/hbbtzn\.com\/api\/v1\/catalog\/public\/products\/[^/]+\/image\?(.+)$/);
-  if (!proxy) return value;
-  const source = new URLSearchParams(proxy[1]).get('source');
-  return source && source.startsWith('https://m.media-amazon.com/') ? source : value;
-}
-
 const items = body.items.map((item) => ({
   id: item.id,
   skuId: item.skuId,
@@ -28,7 +20,7 @@ const items = body.items.map((item) => ({
   subtitle: item.subtitle,
   categoryCode: item.categoryCode,
   taxonomy: item.taxonomy,
-  coverUrl: compactImageUrl(item.coverUrl),
+  coverUrl: item.coverUrl,
   priceCents: item.priceCents,
   marketPriceCents: item.marketPriceCents,
   availableStock: item.availableStock,

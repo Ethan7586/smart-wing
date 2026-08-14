@@ -79,8 +79,8 @@ test('large catalog cache writes asynchronously and remains immediately readable
   assert.equal(api.readCachedProducts().items[0].id, 'instant');
 });
 
-test('known public image sources bypass the failing image relay', async () => {
-  const source = 'https://m.media-amazon.com/images/I/product.jpg';
+test('the mini-program preserves the server-selected shared media URL', async () => {
+  const source = 'https://img.hbbtzn.com/catalog/products/image-product/cover-test.webp';
   const api = freshApi({
     getStorageSync: () => '',
     request(options) {
@@ -90,7 +90,7 @@ test('known public image sources bypass the failing image relay', async () => {
           items: [
             {
               id: 'image-product',
-              coverUrl: 'https://hbbtzn.com/api/v1/catalog/public/products/image-product/image?source=' + encodeURIComponent(source),
+              coverUrl: source,
               taxonomy: { l1: 'food' },
             },
           ],

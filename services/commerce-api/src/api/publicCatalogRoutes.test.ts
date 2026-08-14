@@ -142,6 +142,21 @@ describe('public catalog', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it('returns the same configured CDN image URL to Web and mini-program clients', async () => {
+    const cdnRow = {
+      ...catalogRow,
+      cover_url: 'https://img.hbbtzn.com/catalog/products/product-one/cover-abc123.webp',
+    };
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify([cdnRow]), { status: 200, headers: { 'content-type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const response = await handlePublicCatalog(new Request('https://hbbtzn.com/api/v1/catalog/public/products?limit=1'), { ...env, PUBLIC_MEDIA_BASE_URL: 'https://img.hbbtzn.com' }, 'shared-cdn');
+    const body = (await response.json()) as { items: Array<{ coverUrl: string }> };
+
+    expect(body.items[0].coverUrl).toBe(cdnRow.cover_url);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('returns a controlled gateway error when the approved image host is unavailable', async () => {
     const fetchMock = vi
       .fn()

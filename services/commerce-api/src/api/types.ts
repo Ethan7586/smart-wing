@@ -8,6 +8,8 @@ export interface WorkerEnv {
   SUPABASE_SERVICE_ROLE_KEY?: string;
   /** One server-selected public mall shared by Web and mini-program guests. */
   PUBLIC_MALL_SLUG?: string;
+  /** Canonical public media origin shared by Web and the WeChat mini-program. */
+  PUBLIC_MEDIA_BASE_URL?: string;
   APP_ENV?: string;
   AUTH_MODE?: string;
   /** Public member registration is fail-closed in production unless enabled. */

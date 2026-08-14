@@ -46,6 +46,28 @@ function safeSource(value: string | null): URL | null {
   }
 }
 
+function publicMediaBase(env: WorkerEnv): URL | null {
+  const value = env.PUBLIC_MEDIA_BASE_URL?.trim().replace(/\/+$/, '');
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) return null;
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+function isCanonicalMediaUrl(value: string, base: URL): boolean {
+  try {
+    const url = new URL(value);
+    const prefix = base.pathname.replace(/\/+$/, '');
+    return url.origin === base.origin && (!prefix || url.pathname === prefix || url.pathname.startsWith(`${prefix}/`));
+  } catch {
+    return false;
+  }
+}
+
 function publicOrigin(request: Request): string {
   const requestUrl = new URL(request.url);
   if (HTTPS_PUBLIC_HOSTS.has(requestUrl.hostname)) return `https://${requestUrl.hostname}`;
@@ -54,6 +76,8 @@ function publicOrigin(request: Request): string {
 
 export async function publicCatalogCoverUrl(request: Request, env: WorkerEnv, productId: string, coverUrl: string | null): Promise<string | null> {
   if (!coverUrl) return null;
+  const mediaBase = publicMediaBase(env);
+  if (mediaBase && isCanonicalMediaUrl(coverUrl, mediaBase)) return coverUrl;
   const source = safeSource(coverUrl);
   const origin = publicOrigin(request);
   if (!source) return coverUrl.startsWith(origin) ? coverUrl : null;

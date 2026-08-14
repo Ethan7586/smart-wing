@@ -1,5 +1,8 @@
 # 智慧翼微信小程序
 
+Web 与小程序共用的 OSS/CDN 商品图片链路见
+[`docs/ALIYUN-OSS-CDN-SHARED-MEDIA.md`](../../docs/ALIYUN-OSS-CDN-SHARED-MEDIA.md)。
+
 这是可以直接导入微信开发者工具的原生小程序工程。首页会员资产仍使用明确标注的本地演示数据；分类结构与主 Shop 共用同一份机器可读契约，公开商品无需登录即可从同一生产数据库异步读取。
 
 ## 直接预览

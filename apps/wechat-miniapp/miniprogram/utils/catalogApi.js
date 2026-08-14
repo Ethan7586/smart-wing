@@ -26,20 +26,6 @@ function createCatalogApi(performRequest, apiError, storage) {
     return (product && product.taxonomy && product.taxonomy.l1) || (product && product.categoryCode) || '';
   }
 
-  function publicImageUrl(value) {
-    if (typeof value !== 'string') return value;
-    var proxyMatch = value.match(/^https:\/\/hbbtzn\.com\/api\/v1\/catalog\/public\/products\/[^/]+\/image\?(.+)$/);
-    if (!proxyMatch) return value;
-    var sourceMatch = proxyMatch[1].match(/(?:^|&)source=([^&]+)/);
-    if (!sourceMatch) return value;
-    try {
-      var source = decodeURIComponent(sourceMatch[1]);
-      return /^https:\/\/m\.media-amazon\.com\//.test(source) ? source : value;
-    } catch (_error) {
-      return value;
-    }
-  }
-
   function cacheItems(items) {
     return (Array.isArray(items) ? items : []).slice(0, CACHE_LIMIT).map(function (item) {
       return {
@@ -49,7 +35,7 @@ function createCatalogApi(performRequest, apiError, storage) {
         subtitle: item.subtitle,
         categoryCode: item.categoryCode,
         taxonomy: item.taxonomy,
-        coverUrl: publicImageUrl(item.coverUrl),
+        coverUrl: item.coverUrl,
         priceCents: item.priceCents,
         marketPriceCents: item.marketPriceCents,
         availableStock: item.availableStock,
@@ -62,7 +48,7 @@ function createCatalogApi(performRequest, apiError, storage) {
 
   function normalizeItems(items) {
     return (Array.isArray(items) ? items : []).slice(0, CACHE_LIMIT).map(function (item) {
-      return Object.assign({}, item, { coverUrl: publicImageUrl(item.coverUrl) });
+      return Object.assign({}, item);
     });
   }
 

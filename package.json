@@ -15,6 +15,7 @@
     "brand:assets": "node scripts/build-brand-assets.mjs",
     "build:miniapp-assets": "node scripts/build-miniapp-assets.mjs",
     "build:miniapp-catalog-seed": "node scripts/build-miniapp-catalog-seed.mjs",
+    "sync:catalog-media": "node scripts/sync-catalog-media-to-oss.mjs",
     "check:miniapp": "node scripts/check-miniapp-vi.mjs",
     "check:vi": "node scripts/check-vi.mjs --check",
     "update:vi-baseline": "node scripts/check-vi.mjs --update-baseline",
@@ -46,9 +47,11 @@
     "check:web-tokens": "node scripts/build-web-tokens.mjs --check"
   },
   "devDependencies": {
+    "ali-oss": "6.23.0",
     "esbuild": "^0.28.1",
     "lucide-react": "0.546.0",
     "prettier": "^3.5.3",
+    "sharp": "0.35.3",
     "typescript": "5.9.3"
   }
 }
