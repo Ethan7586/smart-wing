@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import type { AccountLog, EnterpriseMall, Order, Product, UserProfile } from '../types';
+import type { AccountLog, CartItem, DeliveryAddress, EnterpriseMall, Order, Product, UserProfile } from '../types';
 import { productionApi, type ApiProduct } from '../services/productionApi';
 import { mapApiOrder, mapApiProduct } from './mallMappers';
 import type { CatalogSyncStatus, SessionStatus } from './MallContext.types';
 import { EMPTY_GUEST_PROFILE, UNRESOLVED_MALL } from './productionStorefrontState';
 import { mergeAuthenticatedMemberProfile } from './storefrontMemberProfile';
+import { createCatalogPublisher } from './catalogSync';
 
 interface ProductionSyncSetters {
   setProducts: Dispatch<SetStateAction<Product[]>>;
@@ -14,6 +15,10 @@ interface ProductionSyncSetters {
   setMalls: Dispatch<SetStateAction<EnterpriseMall[]>>;
   setOrders: Dispatch<SetStateAction<Order[]>>;
   setAccountLogs: Dispatch<SetStateAction<AccountLog[]>>;
+  setCart: Dispatch<SetStateAction<CartItem[]>>;
+  setAddresses: Dispatch<SetStateAction<DeliveryAddress[]>>;
+  setFavorites: Dispatch<SetStateAction<string[]>>;
+  setQuickViewProduct: Dispatch<SetStateAction<Product | null>>;
   setSessionStatus: Dispatch<SetStateAction<SessionStatus>>;
   setCatalogSyncStatus: Dispatch<SetStateAction<CatalogSyncStatus>>;
 }
@@ -47,13 +52,15 @@ export function useProductionSync(setters: ProductionSyncSetters, enabled = true
     setters.setMalls([]);
     setters.setOrders([]);
     setters.setAccountLogs([]);
+    setters.setCart([]);
+    setters.setAddresses([]);
+    setters.setFavorites([]);
+    setters.setQuickViewProduct(null);
   };
 
-  const publishCatalog = (items: ApiProduct[], syncVersion: number) => {
-    if (syncVersion !== syncVersionRef.current) return false;
+  const publishCatalog = (items: ApiProduct[]) => {
     setters.setProducts(items.map(mapApiProduct));
     setters.setCatalogSyncStatus('ready');
-    return true;
   };
 
   const refreshPublicCatalog = async () => {
@@ -61,7 +68,8 @@ export function useProductionSync(setters: ProductionSyncSetters, enabled = true
     setters.setProducts([]);
     setters.setCatalogSyncStatus('syncing');
     try {
-      publishCatalog(await loadCompleteCatalog(productionApi.listProducts), syncVersion);
+      const items = await loadCompleteCatalog(productionApi.listProducts);
+      if (syncVersion === syncVersionRef.current) publishCatalog(items);
     } catch (error) {
       if (syncVersion === syncVersionRef.current) setters.setCatalogSyncStatus('error');
       throw error;
@@ -75,8 +83,9 @@ export function useProductionSync(setters: ProductionSyncSetters, enabled = true
     // upgrades this snapshot with member pricing and purchase qualification.
     setters.setProducts([]);
     setters.setCatalogSyncStatus('syncing');
+    const publisher = createCatalogPublisher(() => syncVersion === syncVersionRef.current, publishCatalog);
     const publicCatalogRequest = loadCompleteCatalog(productionApi.listProducts);
-    void publicCatalogRequest.then((items) => publishCatalog(items, syncVersion)).catch(() => undefined);
+    void publicCatalogRequest.then(publisher.commitPublic).catch(() => undefined);
     let snapshot: Awaited<ReturnType<typeof productionApi.getHomeSnapshot>>;
     try {
       snapshot = await productionApi.getHomeSnapshot();
@@ -85,7 +94,7 @@ export function useProductionSync(setters: ProductionSyncSetters, enabled = true
       closeMemberData();
       setters.setSessionStatus('guest');
       try {
-        publishCatalog(await publicCatalogRequest, syncVersion);
+        publisher.commitPublic(await publicCatalogRequest);
       } catch {
         if (syncVersion === syncVersionRef.current) setters.setCatalogSyncStatus('error');
       }
@@ -134,15 +143,13 @@ export function useProductionSync(setters: ProductionSyncSetters, enabled = true
     // background without hiding account actions such as logout.
     setters.setSessionStatus('authenticated');
     void loadCompleteCatalog(productionApi.listQualifiedProducts)
-      .then((items) => {
-        if (syncVersion !== syncVersionRef.current) return;
-        setters.setProducts(items.map(mapApiProduct));
-        setters.setCatalogSyncStatus('ready');
-      })
-      .catch(() => {
-        if (syncVersion !== syncVersionRef.current) return;
-        setters.setProducts([]);
-        setters.setCatalogSyncStatus('error');
+      .then(publisher.commitQualified)
+      .catch(async () => {
+        try {
+          await publicCatalogRequest;
+        } catch {
+          if (syncVersion === syncVersionRef.current && !publisher.hasPublicFallback()) setters.setCatalogSyncStatus('error');
+        }
       });
   };
 
