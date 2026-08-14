@@ -16,7 +16,7 @@ export const ICON_MANIFEST = {
   sun: ['brand'],
   snowflake: ['danger'],
   'eye-off': ['muted', 'white'],
-  lock: ['danger'],
+  lock: ['danger', 'muted'],
   clock: ['muted'],
   'circle-check-big': ['success'],
   // 阶段 5 我的

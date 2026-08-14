@@ -1,11 +1,13 @@
 var api = require('../../utils/api');
+var accountPresentation = require('../../utils/accountPresentation');
 var sizeClassUtil = require('../../utils/sizeClass');
 
 var app = getApp();
 
 /** Cents to a grouped decimal string. Money maths never happens in WXML. */
 function formatCents(cents) {
-  var value = Number(cents) || 0;
+  if (!Number.isFinite(Number(cents))) return '—';
+  var value = Number(cents);
   var yuan = Math.floor(Math.abs(value) / 100);
   var fraction = String(Math.abs(value) % 100).padStart(2, '0');
   return String(yuan).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + fraction;
@@ -21,10 +23,10 @@ Page({
 
     signedIn: false,
     member: null,
-    welfare: '0.00',
-    meal: '0.00',
-    voucherCount: 0,
-    points: 0,
+    welfare: '—',
+    meal: '—',
+    voucherCount: null,
+    points: null,
 
     orderShortcuts: [
       { key: 'unpaid', label: '待付款', icon: 'credit-card' },
@@ -71,23 +73,19 @@ Page({
     var self = this;
     this.setData({ loading: true, loadError: null });
 
-    if (!api.isWired()) {
-      this.setData({ loading: false, signedIn: false, member: null });
-      return;
-    }
-
     api
-      .getBootstrap()
-      .then(function (bootstrap) {
-        var accounts = (bootstrap && bootstrap.accounts) || {};
+      .getHomeSnapshot()
+      .then(function (home) {
+        var member = accountPresentation.memberSummary(home);
+        if (!member.memberName && !member.employeeNo) throw { code: 'INVALID_PROFILE_RESPONSE', message: '会员资料返回格式异常' };
         self.setData({
           loading: false,
           signedIn: true,
-          member: bootstrap.member || bootstrap.scope || null,
-          welfare: formatCents(accounts.welfareCents),
-          meal: formatCents(accounts.mealCents),
-          voucherCount: accounts.voucherCount || 0,
-          points: accounts.points || 0,
+          member: member,
+          welfare: formatCents(member.welfareCents),
+          meal: formatCents(member.mealCents),
+          voucherCount: null,
+          points: null,
         });
       })
       .catch(function (error) {

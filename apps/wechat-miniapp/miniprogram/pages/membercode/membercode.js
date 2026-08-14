@@ -79,11 +79,6 @@ Page({
     var self = this;
     this.setData({ loading: true, loadError: null });
 
-    if (!api.isWired()) {
-      this.applyCard(null);
-      return;
-    }
-
     api
       .getMemberCard()
       .then(function (card) {

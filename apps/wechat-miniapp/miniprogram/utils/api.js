@@ -7,8 +7,7 @@ var REQUEST_TIMEOUT_MS = 10000;
 var TOKEN_REFRESH_LEEWAY_MS = 30000;
 var activeSessionRequest = null;
 var wechatPayment = require('./wechatPayment');
-// Public browsing must never create a WeChat session. Membership is required
-// only for member pricing, qualification, balances and transactions.
+var accountPresentation = require('./accountPresentation');
 var catalogApi = require('./catalogApi').createCatalogApi(performRequest, apiError, wx);
 
 function accessToken() {
@@ -138,7 +137,6 @@ function performRequest(method, path, data, options) {
   };
   return promise;
 }
-
 function wxLoginCode() {
   return new Promise(function (resolve, reject) {
     var settled = false;
@@ -164,7 +162,6 @@ function wxLoginCode() {
     });
   });
 }
-
 function createWechatSession() {
   return wxLoginCode()
     .then(function (code) {
@@ -241,10 +238,10 @@ module.exports = {
     return performRequest('POST', '/api/v1/auth/wechat/bind', { bindingChallenge: body.bindingChallenge, username: body.username, password: body.password }, { auth: false }).then(storeSession);
   },
   getHomeSnapshot: function () {
-    return performRequest('GET', '/api/v1/home');
+    return authenticatedRequest('GET', '/api/v1/home');
   },
   getBootstrap: function () {
-    return performRequest('GET', '/api/v1/bootstrap');
+    return authenticatedRequest('GET', '/api/v1/bootstrap');
   },
   listProducts: catalogApi.listProducts,
   readCachedProducts: catalogApi.readCachedProducts,
@@ -289,7 +286,11 @@ module.exports = {
     return wechatPayment.pollPaymentStatus(orderId, options, module.exports.getPaymentStatus, apiError);
   },
   getMemberCard: function () {
-    return notWired('/api/v1/member-card (未实现)');
+    return authenticatedRequest('GET', '/api/v1/home').then(function (response) {
+      var card = accountPresentation.memberCard(response);
+      if (!card) throw apiError('INVALID_MEMBER_CARD_RESPONSE', '会员资料返回格式异常');
+      return card;
+    });
   },
   createMemberCodeChallenge: function () {
     return notWired('/api/v1/member-code/challenge (未实现)');
