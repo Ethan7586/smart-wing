@@ -1,9 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { handlePublicCatalog } from './publicCatalogRoutes';
+import { clearPublicCatalogCache, handlePublicCatalog } from './publicCatalogRoutes';
 import { routeApi } from './router';
 import type { WorkerEnv } from './types';
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  clearPublicCatalogCache();
+});
 
 const env: WorkerEnv = {
   SUPABASE_URL: 'https://db.example',
@@ -70,5 +73,29 @@ describe('public catalog', () => {
 
     expect(response.status).toBe(405);
     expect(response.headers.get('allow')).toBe('GET');
+  });
+
+  it('caps public batches at 200 and reuses the short-lived server cache', async () => {
+    const firstPage = Array.from({ length: 100 }, (_, index) => ({ ...catalogRow, id: `product-${index}`, sku_id: `sku-${index}` }));
+    const secondPage = Array.from({ length: 50 }, (_, index) => ({ ...catalogRow, id: `product-${index + 100}`, sku_id: `sku-${index + 100}` }));
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(firstPage), { status: 200, headers: { 'content-type': 'application/json' } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(secondPage), { status: 200, headers: { 'content-type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetchMock);
+    const request = new Request('https://hbbtzn.com/api/v1/catalog/public/products?limit=999');
+
+    const first = await handlePublicCatalog(request, env, 'cache-first');
+    const second = await handlePublicCatalog(request, env, 'cache-second');
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(first.headers.get('x-sw-catalog-cache')).toBe('miss');
+    expect(second.headers.get('x-sw-catalog-cache')).toBe('hit');
+    expect(second.headers.get('cache-control')).toContain('max-age=60');
+    await expect(first.json()).resolves.toMatchObject({ items: { length: 150 }, pagination: { cursor: 0, nextCursor: null, limit: 200 } });
+    const firstRequest = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
+    const secondRequest = JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body));
+    expect(firstRequest).toMatchObject({ p_limit: 100, p_offset: 0 });
+    expect(secondRequest).toMatchObject({ p_limit: 100, p_offset: 100 });
   });
 });

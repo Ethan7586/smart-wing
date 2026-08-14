@@ -9,7 +9,7 @@ var activeSessionRequest = null;
 var wechatPayment = require('./wechatPayment');
 // Public browsing must never create a WeChat session. Membership is required
 // only for member pricing, qualification, balances and transactions.
-var catalogApi = require('./catalogApi').createCatalogApi(performRequest, apiError);
+var catalogApi = require('./catalogApi').createCatalogApi(performRequest, apiError, wx);
 
 function accessToken() {
   try {
@@ -247,7 +247,8 @@ module.exports = {
     return performRequest('GET', '/api/v1/bootstrap');
   },
   listProducts: catalogApi.listProducts,
-  listAllProducts: catalogApi.listAllProducts,
+  readCachedProducts: catalogApi.readCachedProducts,
+  catalogCacheLimit: catalogApi.cacheLimit,
   getCart: function () {
     return performRequest('GET', '/api/v1/cart');
   },

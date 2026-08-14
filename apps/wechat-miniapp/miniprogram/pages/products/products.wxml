@@ -9,7 +9,7 @@
 
   <view class="sw-inset public-note">
     <view class="i i-sm i-shield-check-success"></view>
-    <text>公开浏览 · 购买资格在登录后确认</text>
+    <text>{{cacheText}} · 购买资格登录后确认</text>
   </view>
 
   <view wx:if="{{loading}}" class="sw-inset skeleton-grid">
@@ -42,5 +42,5 @@
 
   <view wx:if="{{loadingMore}}" class="load-more"><view class="i i-sm i-refresh-cw-brand"></view><text>继续载入</text></view>
   <view wx:elif="{{loadError && products.length}}" class="load-more retry-more sw-tap" bindtap="onRetry"><text>载入失败，点此重试</text></view>
-  <view wx:elif="{{products.length && !hasMore}}" class="load-more"><text>已加载全部公开商品</text></view>
+  <view wx:elif="{{products.length && !hasMore}}" class="load-more"><text>本次 200 件缓存已全部展示</text></view>
 </view>

@@ -89,36 +89,63 @@ test('invalid catalog envelopes fail visibly instead of becoming an empty succes
 test('category page loads the public catalog without a member binding gate', () => {
   const source = fs.readFileSync(categoryPagePath, 'utf8');
   assert.doesNotMatch(source, /api\.isWired\(\)/);
-  assert.match(source, /api\.listProducts\(\{ cursor: 0, limit: 100 \}\)/);
+  assert.match(source, /api\.readCachedProducts\(\)/);
+  assert.match(source, /api\.listProducts\(\{ cursor: 0, limit: 200 \}\)/);
   assert.doesNotMatch(source, /bindWechatMember|bindingRequired|WECHAT_BINDING_REQUIRED/);
 });
 
-test('catalog API paginates asynchronously and never calls the nonexistent categories route', async () => {
+test('catalog API fetches one 200-item window and persists at most 200 products', async () => {
   const calls = [];
+  const storage = {};
+  const items = Array.from({ length: 220 }, (_, index) => ({ id: `product-${index}`, taxonomy: { l1: index % 2 ? 'food' : 'welfare' } }));
   const api = freshApi({
-    getStorageSync: (key) => (key.includes('expires_at') ? Date.now() + 600_000 : 'test-access-token'),
+    getStorageSync: (key) => storage[key] || '',
+    setStorageSync: (key, value) => {
+      storage[key] = value;
+    },
     request(options) {
       calls.push(options);
-      const first = calls.length === 1;
       options.success({
         statusCode: 200,
         data: {
-          items: [{ id: first ? 'one' : 'two', taxonomy: { l1: 'food' } }],
-          pagination: { nextCursor: first ? 100 : null },
-          requestId: first ? 'request-one' : 'request-two',
+          items,
+          pagination: { nextCursor: 200 },
+          requestId: 'catalog-window',
         },
       });
     },
   });
-  const response = await api.listAllProducts();
-  assert.deepEqual(
-    response.items.map(({ id }) => id),
-    ['one', 'two']
-  );
-  assert.equal(calls.length, 2);
-  assert.ok(calls.every(({ url }) => url.includes('/api/v1/catalog/public/products?')));
-  assert.ok(calls.every(({ url }) => !url.includes('/api/v1/categories')));
+  const response = await api.listProducts({ cursor: 0, limit: 999 });
+  assert.equal(response.items.length, 200);
+  assert.equal(calls.length, 1);
+  assert.ok(calls[0].url.includes('/api/v1/catalog/public/products?'));
+  assert.ok(calls[0].url.includes('limit=200'));
+  assert.ok(!calls[0].url.includes('/api/v1/categories'));
   assert.equal(calls[0].header.authorization, undefined);
+  assert.equal(api.readCachedProducts().items.length, 200);
+  assert.equal(api.readCachedProducts('food').items.length, 100);
+});
+
+test('expired mini-program cache remains immediately readable while the page revalidates', async () => {
+  const storage = {};
+  const api = freshApi({
+    getStorageSync: (key) => storage[key] || '',
+    setStorageSync: (key, value) => {
+      storage[key] = value;
+    },
+    request(options) {
+      options.success({
+        statusCode: 200,
+        data: { items: [{ id: 'cached', taxonomy: { l1: 'food' } }], pagination: { nextCursor: null }, requestId: 'cache-seed' },
+      });
+    },
+  });
+  await api.listProducts({ cursor: 0, limit: 200 });
+  const key = Object.keys(storage).find((name) => name.includes('public-catalog-window'));
+  storage[key].storedAt = 0;
+  const cached = api.readCachedProducts('food');
+  assert.equal(cached.items[0].id, 'cached');
+  assert.equal(cached.cache.stale, true);
 });
 
 test('a fresh install loads products without creating a WeChat session', async () => {
@@ -131,7 +158,7 @@ test('a fresh install loads products without creating a WeChat session', async (
     },
   });
   assert.equal(api.isWired(), false);
-  const response = await api.listAllProducts();
+  const response = await api.listProducts({ cursor: 0, limit: 200 });
   assert.equal(response.items.length, 1);
   assert.equal(calls.length, 1);
   assert.ok(calls[0].url.includes('/api/v1/catalog/public/products?'));
@@ -147,7 +174,7 @@ test('an unbound WeChat identity is irrelevant to public product browsing', asyn
       options.success({ statusCode: 200, data: { items: [{ id: 'public-one' }], pagination: { nextCursor: null }, requestId: 'public-catalog' } });
     },
   });
-  const response = await api.listAllProducts();
+  const response = await api.listProducts({ cursor: 0, limit: 200 });
   assert.equal(response.items[0].id, 'public-one');
   assert.equal(calls.length, 1);
   assert.ok(calls[0].url.includes('/api/v1/catalog/public/products?'));
@@ -166,7 +193,7 @@ test('an in-flight catalog sync can be aborted on reload or page unload', async 
       };
     },
   });
-  const sync = api.listAllProducts();
+  const sync = api.listProducts({ cursor: 0, limit: 200 });
   await new Promise((resolve) => setImmediate(resolve));
   sync.abort();
   await assert.rejects(sync, ({ code }) => code === 'REQUEST_ABORTED');
