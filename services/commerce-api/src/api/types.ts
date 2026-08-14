@@ -10,6 +10,10 @@ export interface WorkerEnv {
   PUBLIC_MALL_SLUG?: string;
   /** Canonical public media origin shared by Web and the WeChat mini-program. */
   PUBLIC_MEDIA_BASE_URL?: string;
+  /** Loopback/private HTTP endpoint of the Beijing Tair read-cache sidecar. */
+  CORE_READ_CACHE_URL?: string;
+  /** Independent bearer credential for the private read-cache sidecar. */
+  CORE_READ_CACHE_TOKEN?: string;
   APP_ENV?: string;
   AUTH_MODE?: string;
   /** Public member registration is fail-closed in production unless enabled. */

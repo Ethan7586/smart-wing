@@ -8,6 +8,8 @@
 | `hbbtzn.com/login` | `smart-wing-auth-web`   | 3010 | `apps/auth-web`（统一登录）                     |
 | `smart.hbbtzn.com` | `smart-wing-admin-api`  | 3001 | `apps/admin-web` + `services/commerce-api`      |
 
+可选的北京同地域读镜像为第四个 PM2 进程 `smart-wing-core-read-cache`，仅监听 `127.0.0.1:3002`，不经过 Caddy。环境变量完整时，日常发布脚本会自动启动或重载它；未配置 Tair 时不会启动，也不会影响主站回源数据库。
+
 ## 首次迁移
 
 ```bash
@@ -38,6 +40,29 @@ curl -fsS http://127.0.0.1:3000/api/health
 curl -I https://hbbtzn.com
 curl -I https://smart.hbbtzn.com
 ```
+
+## 启用核心读镜像
+
+先在阿里云创建与 ECS 同地域、同 VPC 的高可用 Tair 实例，只开放 ECS 私网白名单并开启 TLS。然后在 `/opt/smart-wing/.env.production` 增加：
+
+```dotenv
+CORE_READ_CACHE_URL=http://127.0.0.1:3002
+CORE_READ_CACHE_TOKEN=独立随机内部令牌
+TAIR_HOST=实例的 VPC 内网地址
+TAIR_PORT=6379
+TAIR_USERNAME=实例账号
+TAIR_PASSWORD=实例密码
+TAIR_TLS_ENABLED=true
+```
+
+不要把 Tair 地址放到小程序、Web 环境或 Caddy。运行日常发布后验证：
+
+```bash
+curl -fsS http://127.0.0.1:3002/health
+curl -sSI 'https://hbbtzn.com/api/v1/catalog/public/products?cursor=0&limit=200' | grep -i 'x-sw-catalog-cache'
+```
+
+第一次可能为 `source`，第二次应为 `memory`；单独重启 Storefront 后应出现 `shared`，证明镜像不依赖 Web 进程内存。
 
 `.env.production` 不进 Git，也不复制到 `apps/`。Cookie 必须保持 host-only，不设置 `.hbbtzn.com` 的共享 Domain。生产必须分别配置 `SESSION_SIGNING_KEY` 与 `ADMIN_SESSION_SIGNING_KEY`（两者不得相同），否则后台域不会签发或接受会话。
 

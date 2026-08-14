@@ -101,6 +101,27 @@ describe('public catalog', () => {
     expect(secondRequest).toMatchObject({ p_limit: 100, p_offset: 100 });
   });
 
+  it('serves a Beijing shared-cache hit without crossing regions to Supabase', async () => {
+    const fetchMock = vi.fn(
+      async (_input: RequestInfo | URL, _init?: RequestInit) =>
+        new Response(
+          JSON.stringify({
+            cache: 'fresh',
+            envelope: { schemaVersion: 1, storedAt: Date.now(), expiresAt: Date.now() + 60_000, staleUntil: Date.now() + 600_000, data: [catalogRow] },
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } }
+        )
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const cacheEnv = { ...env, CORE_READ_CACHE_URL: 'http://127.0.0.1:3002', CORE_READ_CACHE_TOKEN: 'internal-cache-token' };
+
+    const response = await handlePublicCatalog(new Request('https://hbbtzn.com/api/v1/catalog/public/products?limit=20'), cacheEnv, 'shared-hit');
+
+    expect(response.headers.get('x-sw-catalog-cache-tier')).toBe('shared');
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('127.0.0.1:3002/v1/entries/');
+    expect(fetchMock.mock.calls.some((call) => String(call[0]).includes('supabase'))).toBe(false);
+  });
+
   it('keeps category-specific browsing on the canonical taxonomy query', async () => {
     const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(JSON.stringify([catalogRow]), { status: 200, headers: { 'content-type': 'application/json' } }));
     vi.stubGlobal('fetch', fetchMock);

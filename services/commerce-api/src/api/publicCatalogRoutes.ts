@@ -1,4 +1,5 @@
 import { apiError, json, methodNotAllowed } from './http';
+import { readCoreProjection, writeCoreProjection } from './coreReadCache';
 import { publicCatalogCoverUrl } from './publicCatalogImages';
 import { callRpc } from './supabase';
 import type { WorkerEnv } from './types';
@@ -28,12 +29,16 @@ interface PublicCatalogRow {
 const DEFAULT_PUBLIC_MALL_SLUG = 'smart-wing-demo';
 const MALL_SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{0,79}$/;
 const CATALOG_CACHE_TTL_MS = 60_000;
+const SHARED_CACHE_FRESH_SECONDS = 5 * 60;
+const SHARED_CACHE_STALE_SECONDS = 24 * 60 * 60;
 const CATALOG_CACHE_MAX_ENTRIES = 32;
 const CATALOG_RPC_PAGE_SIZE = 100;
 const catalogCache = new Map<string, { rows: PublicCatalogRow[]; expiresAt: number }>();
+const catalogRefreshes = new Map<string, Promise<PublicCatalogRow[]>>();
 
 export function clearPublicCatalogCache(): void {
   catalogCache.clear();
+  catalogRefreshes.clear();
 }
 
 async function queryCatalogRows(env: WorkerEnv, mallSlug: string, category: string | null, limit: number, cursor: number): Promise<PublicCatalogRow[]> {
@@ -49,19 +54,58 @@ async function queryCatalogRows(env: WorkerEnv, mallSlug: string, category: stri
   return rows;
 }
 
-async function cachedCatalogRows(env: WorkerEnv, mallSlug: string, category: string | null, limit: number, cursor: number): Promise<{ rows: PublicCatalogRow[]; hit: boolean }> {
+async function cachedCatalogRows(env: WorkerEnv, mallSlug: string, category: string | null, limit: number, cursor: number): Promise<{ rows: PublicCatalogRow[]; hit: boolean; tier: 'memory' | 'shared' | 'stale' | 'source' }> {
   const key = [env.SUPABASE_URL, mallSlug, category ?? '', limit, cursor].join('|');
   const now = Date.now();
   const cached = catalogCache.get(key);
-  if (cached && cached.expiresAt > now) return { rows: cached.rows, hit: true };
+  if (cached && cached.expiresAt > now) return { rows: cached.rows, hit: true, tier: 'memory' };
   if (cached) catalogCache.delete(key);
-  const rows = await queryCatalogRows(env, mallSlug, category, limit, cursor);
+  const sharedKey = await catalogSharedKey(mallSlug, category, limit, cursor);
+  const shared = await readCoreProjection<PublicCatalogRow[]>(env, sharedKey);
+  if ((shared.status === 'fresh' || shared.status === 'stale') && Array.isArray(shared.data)) {
+    rememberRows(key, shared.data, shared.status === 'fresh' ? CATALOG_CACHE_TTL_MS : 5_000);
+    if (shared.status === 'stale') void refreshCatalogRows(env, key, sharedKey, mallSlug, category, limit, cursor).catch(reportRefreshFailure);
+    return { rows: shared.data, hit: true, tier: shared.status === 'fresh' ? 'shared' : 'stale' };
+  }
+  const rows = await refreshCatalogRows(env, key, sharedKey, mallSlug, category, limit, cursor);
+  return { rows, hit: false, tier: 'source' };
+}
+
+async function refreshCatalogRows(env: WorkerEnv, localKey: string, sharedKey: string, mallSlug: string, category: string | null, limit: number, cursor: number): Promise<PublicCatalogRow[]> {
+  const active = catalogRefreshes.get(localKey);
+  if (active) return active;
+  const refresh = queryCatalogRows(env, mallSlug, category, limit, cursor)
+    .then((rows) => {
+      rememberRows(localKey, rows, CATALOG_CACHE_TTL_MS);
+      void writeCoreProjection(env, sharedKey, rows, jitterSeconds(SHARED_CACHE_FRESH_SECONDS), SHARED_CACHE_STALE_SECONDS);
+      return rows;
+    })
+    .finally(() => catalogRefreshes.delete(localKey));
+  catalogRefreshes.set(localKey, refresh);
+  return refresh;
+}
+
+function jitterSeconds(base: number): number {
+  return Math.max(1, Math.round(base * (0.9 + Math.random() * 0.2)));
+}
+
+function rememberRows(key: string, rows: PublicCatalogRow[], ttlMs: number): void {
   if (catalogCache.size >= CATALOG_CACHE_MAX_ENTRIES) {
     const oldest = catalogCache.keys().next().value;
     if (oldest) catalogCache.delete(oldest);
   }
-  catalogCache.set(key, { rows, expiresAt: now + CATALOG_CACHE_TTL_MS });
-  return { rows, hit: false };
+  catalogCache.set(key, { rows, expiresAt: Date.now() + ttlMs });
+}
+
+async function catalogSharedKey(mallSlug: string, category: string | null, limit: number, cursor: number): Promise<string> {
+  const canonical = JSON.stringify({ mallSlug, category: category ?? '', limit, cursor });
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonical));
+  const shortHash = Array.from(new Uint8Array(digest).slice(0, 12), (byte) => byte.toString(16).padStart(2, '0')).join('');
+  return `sw:v1:catalog:public:${mallSlug}:${shortHash}`;
+}
+
+function reportRefreshFailure(error: unknown): void {
+  console.error(JSON.stringify({ level: 'error', event: 'catalog_cache_refresh_failed', message: error instanceof Error ? error.message : 'unknown' }));
 }
 
 /** Public browsing returns the same active SKU rows as the main Shop.
@@ -123,5 +167,6 @@ export async function handlePublicCatalog(request: Request, env: WorkerEnv, requ
   });
   response.headers.set('cache-control', 'public, max-age=60, stale-while-revalidate=300');
   response.headers.set('x-sw-catalog-cache', catalog.hit ? 'hit' : 'miss');
+  response.headers.set('x-sw-catalog-cache-tier', catalog.tier);
   return response;
 }
