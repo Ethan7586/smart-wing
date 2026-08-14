@@ -90,6 +90,17 @@ function enrichTiles(tilesByKey, products) {
       }
       return tile;
     });
+    if (
+      railKey !== 'featured' &&
+      !result[railKey].some(function (tile) {
+        return tile.productCount > 0;
+      })
+    ) {
+      var categoryProducts = products.filter(function (product) {
+        return product && product.taxonomy && product.taxonomy.l1 === railKey;
+      });
+      if (categoryProducts.length) result[railKey] = categoryProducts.slice(0, 12).map(productTile);
+    }
   });
   return result;
 }

@@ -1,5 +1,6 @@
 import { handleHealth, handleInitialPasswordChange, handleLogin, handleLogout, handleRegisteredCredentialDiscovery } from '../publicRoutes';
 import { handlePublicCatalog } from '../publicCatalogRoutes';
+import { handlePublicCatalogImage, isPublicCatalogImagePath } from '../publicCatalogImages';
 import { handleRegistration, handleRegistrationOtp, handleUsernameRegistration } from '../registrationRoutes';
 import { handleResetPassword, handleSecurityOtp } from '../securityCenterRoutes';
 import type { WorkerEnv } from '../types';
@@ -10,6 +11,7 @@ const API_PREFIX = '/api/v1';
 
 export async function routePublicRequest(request: Request, env: WorkerEnv, requestId: string): Promise<Response | null> {
   const pathname = new URL(request.url).pathname;
+  if (isPublicCatalogImagePath(pathname)) return handlePublicCatalogImage(request, env, requestId);
   switch (pathname) {
     case '/api/health':
       return handleHealth(request, env, requestId);

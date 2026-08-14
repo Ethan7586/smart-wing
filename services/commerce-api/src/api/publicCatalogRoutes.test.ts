@@ -11,6 +11,7 @@ afterEach(() => {
 const env: WorkerEnv = {
   SUPABASE_URL: 'https://db.example',
   SUPABASE_SERVICE_ROLE_KEY: 'service-role',
+  MINIAPP_SESSION_SIGNING_KEY: 'miniapp-test-signing-key-that-is-longer-than-32-bytes',
 };
 
 const catalogRow = {
@@ -27,7 +28,7 @@ const catalogRow = {
   taxonomy_l2: 'food_snack',
   taxonomy_l3: 'food_snack_nuts',
   classification_status: 'approved',
-  cover_url: 'https://mall.hbbtzn.com/product-one.webp',
+  cover_url: 'https://m.media-amazon.com/images/I/product-one.jpg',
   price_cents: 2590,
   market_price_cents: 2990,
   available_stock: 12,
@@ -114,5 +115,30 @@ describe('public catalog', () => {
       p_limit: 20,
       p_offset: 0,
     });
+  });
+
+  it('serves signed first-party image URLs without exposing an open proxy', async () => {
+    const imageBytes = new Uint8Array([255, 216, 255, 217]);
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify([catalogRow]), { status: 200, headers: { 'content-type': 'application/json' } }))
+      .mockResolvedValueOnce(new Response(imageBytes, { status: 200, headers: { 'content-length': String(imageBytes.byteLength), 'content-type': 'image/jpeg' } }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const catalogResponse = await routeApi(new Request('https://hbbtzn.com/api/v1/catalog/public/products?limit=1'), env);
+    const catalogBody = (await catalogResponse?.json()) as { items: Array<{ coverUrl: string }> };
+    expect(catalogBody.items[0].coverUrl).toContain('https://hbbtzn.com/api/v1/catalog/public/products/product-one/image?');
+
+    const imageResponse = await routeApi(new Request(catalogBody.items[0].coverUrl), env);
+    expect(imageResponse?.status).toBe(200);
+    expect(imageResponse?.headers.get('content-type')).toBe('image/jpeg');
+    expect(new Uint8Array(await imageResponse!.arrayBuffer())).toEqual(imageBytes);
+    expect(fetchMock.mock.calls[1]?.[0]).toEqual(new URL(catalogRow.cover_url));
+
+    const tampered = new URL(catalogBody.items[0].coverUrl);
+    tampered.searchParams.set('source', 'https://m.media-amazon.com/images/I/other.jpg');
+    const rejected = await routeApi(new Request(tampered), env);
+    expect(rejected?.status).toBe(404);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

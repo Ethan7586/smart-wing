@@ -52,6 +52,22 @@ test('public main-Shop products enrich their taxonomy tile', () => {
   assert.equal(leaf.productCount, 1);
 });
 
+test('a category still shows real products when an older cache lacks leaf taxonomy', () => {
+  const catalog = loadMiniModule(catalogPath);
+  const snapshot = catalog.createSnapshot([
+    {
+      id: 'legacy-home-product',
+      name: '真实家居商品',
+      coverUrl: 'https://hbbtzn.com/api/v1/catalog/public/products/legacy-home-product/image',
+      taxonomy: { l1: 'home', l2: 'home_furniture', l3: null },
+    },
+  ]);
+  assert.equal(snapshot.tilesByKey.home.length, 1);
+  assert.equal(snapshot.tilesByKey.home[0].productId, 'legacy-home-product');
+  assert.equal(snapshot.tilesByKey.home[0].label, '真实家居商品');
+  assert.equal(catalog.tileProductCount(snapshot.tilesByKey.home), 1);
+});
+
 test('unclassified welfare inventory remains reachable instead of disappearing from mobile browse', () => {
   const catalog = loadMiniModule(catalogPath);
   const snapshot = catalog.createSnapshot([
