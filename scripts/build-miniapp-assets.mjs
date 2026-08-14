@@ -169,8 +169,16 @@ page,
   /* type */
   --sw-font-cn: ${t.typography.families.chinese};
   --sw-font-num: ${t.typography.families.financial};
+  /* rpx scales with the screen, so text authored in rpx shrinks on a 320pt
+     phone and grows on a 430pt one. Layout should scale; text should stay
+     roughly constant in physical size. Every type token is therefore multiplied
+     by a per-size-class factor, defaulting to 1 at the 375pt baseline. */
+  --sw-text-scale: 1;
 ${Object.entries(t.typography.styles)
-  .map(([name, style]) => `  --sw-fs-${name}: ${rpx(style.size)};\n  --sw-lh-${name}: ${rpx(style.lineHeight)};\n  --sw-fw-${name}: ${style.weight};`)
+  .map(
+    ([name, style]) =>
+      `  --sw-fs-${name}: calc(${rpx(style.size)} * var(--sw-text-scale));\n  --sw-lh-${name}: calc(${rpx(style.lineHeight)} * var(--sw-text-scale));\n  --sw-fw-${name}: ${style.weight};`
+  )
   .join('\n')}
 
   /* spacing — token pt values rendered at ${RPX_PER_PT}rpx per pt */
@@ -195,8 +203,12 @@ ${Object.entries(t.icon.sizes)
   --sw-membercode-size: ${wechat.wingCodeButtonSize}rpx;
   --sw-membercode-protrusion: ${wechat.wingCodeProtrusion}rpx;
   --sw-touch-min: ${wechat.minimumTouchTarget}rpx;
-  --sw-tab-label-size: ${wechat.tabLabelSize}rpx;
-  --sw-tab-label-line-height: ${wechat.tabLabelLineHeight}rpx;
+  --sw-tab-label-size: calc(${wechat.tabLabelSize}rpx * var(--sw-text-scale));
+  --sw-tab-label-line-height: calc(${wechat.tabLabelLineHeight}rpx * var(--sw-text-scale));
+
+  /* size-class defaults — overridden by the .sz-* class on the page root */
+  --sw-product-columns: 2;
+  --sw-partner-visible: 5;
 
   /* elevation — shadows are only for overlays, the tab bar, the member code
      entry, the digital card and high-level containers */
@@ -208,6 +220,22 @@ ${Object.entries(t.icon.sizes)
   --sw-motion-fast: ${t.motion.fastMs}ms;
   --sw-motion-standard: ${t.motion.standardMs}ms;
 }
+
+/* Size classes. utils/sizeClass.js measures the device once and puts one of
+   these on the page root; the four are equally official, not a primary plus
+   three fallbacks. Reference widths and rationale live in
+   packages/design-system/src/mobile-platforms.json → sizeClasses. */
+${platforms.sizeClasses
+  .map(
+    (s) => `.sz-${s.key} {
+  /* ${s.label} · ${s.devices} · 参考宽度 ${s.referenceWidthPt}pt */
+  --sw-text-scale: ${s.textScale};
+  --sw-page-inset: ${s.pageHorizontalInset}rpx;
+  --sw-product-columns: ${s.productColumns};
+  --sw-partner-visible: ${s.partnerVisible};
+}`
+  )
+  .join('\n\n')}
 
 /* Brand marks, inlined because WXSS cannot reach packages/design-system. */
 .sw-brand-mark { background-image: url("${brandUri('brand-mark.svg')}"); background-size: contain; background-repeat: no-repeat; background-position: center; }

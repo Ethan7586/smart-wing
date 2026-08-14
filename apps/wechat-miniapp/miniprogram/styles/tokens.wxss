@@ -48,29 +48,34 @@ page,
   /* type */
   --sw-font-cn: PingFang SC, Noto Sans SC, Microsoft YaHei, sans-serif;
   --sw-font-num: Inter, SF Pro Display, Roboto, sans-serif;
-  --sw-fs-display: 64rpx;
-  --sw-lh-display: 80rpx;
+  /* rpx scales with the screen, so text authored in rpx shrinks on a 320pt
+     phone and grows on a 430pt one. Layout should scale; text should stay
+     roughly constant in physical size. Every type token is therefore multiplied
+     by a per-size-class factor, defaulting to 1 at the 375pt baseline. */
+  --sw-text-scale: 1;
+  --sw-fs-display: calc(64rpx * var(--sw-text-scale));
+  --sw-lh-display: calc(80rpx * var(--sw-text-scale));
   --sw-fw-display: 700;
-  --sw-fs-h1: 56rpx;
-  --sw-lh-h1: 72rpx;
+  --sw-fs-h1: calc(56rpx * var(--sw-text-scale));
+  --sw-lh-h1: calc(72rpx * var(--sw-text-scale));
   --sw-fw-h1: 700;
-  --sw-fs-h2: 40rpx;
-  --sw-lh-h2: 56rpx;
+  --sw-fs-h2: calc(40rpx * var(--sw-text-scale));
+  --sw-lh-h2: calc(56rpx * var(--sw-text-scale));
   --sw-fw-h2: 600;
-  --sw-fs-h3: 34rpx;
-  --sw-lh-h3: 48rpx;
+  --sw-fs-h3: calc(34rpx * var(--sw-text-scale));
+  --sw-lh-h3: calc(48rpx * var(--sw-text-scale));
   --sw-fw-h3: 600;
-  --sw-fs-body: 32rpx;
-  --sw-lh-body: 48rpx;
+  --sw-fs-body: calc(32rpx * var(--sw-text-scale));
+  --sw-lh-body: calc(48rpx * var(--sw-text-scale));
   --sw-fw-body: 400;
-  --sw-fs-bodySmall: 28rpx;
-  --sw-lh-bodySmall: 40rpx;
+  --sw-fs-bodySmall: calc(28rpx * var(--sw-text-scale));
+  --sw-lh-bodySmall: calc(40rpx * var(--sw-text-scale));
   --sw-fw-bodySmall: 400;
-  --sw-fs-caption: 24rpx;
-  --sw-lh-caption: 36rpx;
+  --sw-fs-caption: calc(24rpx * var(--sw-text-scale));
+  --sw-lh-caption: calc(36rpx * var(--sw-text-scale));
   --sw-fw-caption: 400;
-  --sw-fs-amount: 56rpx;
-  --sw-lh-amount: 68rpx;
+  --sw-fs-amount: calc(56rpx * var(--sw-text-scale));
+  --sw-lh-amount: calc(68rpx * var(--sw-text-scale));
   --sw-fw-amount: 700;
 
   /* spacing — token pt values rendered at 2rpx per pt */
@@ -104,8 +109,12 @@ page,
   --sw-membercode-size: 112rpx;
   --sw-membercode-protrusion: 24rpx;
   --sw-touch-min: 88rpx;
-  --sw-tab-label-size: 20rpx;
-  --sw-tab-label-line-height: 28rpx;
+  --sw-tab-label-size: calc(20rpx * var(--sw-text-scale));
+  --sw-tab-label-line-height: calc(28rpx * var(--sw-text-scale));
+
+  /* size-class defaults — overridden by the .sz-* class on the page root */
+  --sw-product-columns: 2;
+  --sw-partner-visible: 5;
 
   /* elevation — shadows are only for overlays, the tab bar, the member code
      entry, the digital card and high-level containers */
@@ -116,6 +125,42 @@ page,
   /* motion */
   --sw-motion-fast: 120ms;
   --sw-motion-standard: 200ms;
+}
+
+/* Size classes. utils/sizeClass.js measures the device once and puts one of
+   these on the page root; the four are equally official, not a primary plus
+   three fallbacks. Reference widths and rationale live in
+   packages/design-system/src/mobile-platforms.json → sizeClasses. */
+.sz-compact {
+  /* 紧凑 · iPhone SE 一代 / 5s、小屏安卓、分屏窗口 · 参考宽度 320pt */
+  --sw-text-scale: 1.12;
+  --sw-page-inset: 24rpx;
+  --sw-product-columns: 2;
+  --sw-partner-visible: 4.5;
+}
+
+.sz-standard {
+  /* 标准 · iPhone SE2/SE3、13 mini、多数安卓 · 参考宽度 375pt */
+  --sw-text-scale: 1;
+  --sw-page-inset: 32rpx;
+  --sw-product-columns: 2;
+  --sw-partner-visible: 5;
+}
+
+.sz-regular {
+  /* 常规 · iPhone 14/15/16、主流大屏安卓 · 参考宽度 410pt */
+  --sw-text-scale: 0.94;
+  --sw-page-inset: 32rpx;
+  --sw-product-columns: 2;
+  --sw-partner-visible: 5.5;
+}
+
+.sz-large {
+  /* 宽屏 · Pro Max、大屏安卓、折叠机内屏 · 参考宽度 440pt */
+  --sw-text-scale: 0.9;
+  --sw-page-inset: 40rpx;
+  --sw-product-columns: 3;
+  --sw-partner-visible: 6.5;
 }
 
 /* Brand marks, inlined because WXSS cannot reach packages/design-system. */

@@ -23,6 +23,7 @@ function decorateProducts(list) {
 Page({
   data: {
     nav: { statusBarHeight: 0, navContentHeight: 0, navTotalHeight: 0, rightInset: 0 },
+    sizeClass: '',
     scrolled: false,
     loading: true,
     loadError: null,
@@ -44,7 +45,9 @@ Page({
 
   onLoad: function () {
     var area = app.getSafeArea();
+    var size = app.getSizeClass();
     this.setData({
+      sizeClass: size.className,
       nav: {
         statusBarHeight: area.statusBarHeight,
         navContentHeight: area.navContentHeight,

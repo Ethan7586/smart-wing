@@ -3,7 +3,7 @@
   docs/mobile/design-previews/smart-wing-unified-mall-01-browse-v2-cart-restored.png 第 1 屏。
   顶部所有距离来自 wx.getWindowInfo / wx.getMenuButtonBoundingClientRect，无写死值。
 -->
-<view class="sw-page home">
+<view class="sw-page home {{sizeClass}}">
 
   <!-- 1. 品牌 · 购物车 · 通知 ------------------------------------------------ -->
   <view class="nav {{scrolled ? 'is-scrolled' : ''}}" style="padding-top: {{nav.statusBarHeight}}px;">

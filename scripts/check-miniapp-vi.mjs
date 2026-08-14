@@ -154,6 +154,21 @@ for (const { full, rel } of files.filter((f) => DATA_DRIVEN_ICON_FILES.has(f.rel
   }
 }
 
+/**
+ * utils/sizeClass.js has to duplicate the size-class boundaries because the
+ * mini program cannot import repository files. Two copies of the same numbers
+ * is exactly how tokens.css drifted, so assert they agree.
+ */
+const platforms = JSON.parse(readFileSync(join(ROOT, 'packages/design-system/src/mobile-platforms.json'), 'utf8'));
+const sizeSource = readFileSync(join(MP, 'utils/sizeClass.js'), 'utf8');
+for (const cls of platforms.sizeClasses) {
+  const bound = cls.maxWidthPt === null ? 'Infinity' : String(cls.maxWidthPt);
+  const expected = new RegExp(`key:\\s*'${cls.key}'\\s*,\\s*maxWidthPt:\\s*${bound}\\b`);
+  if (!expected.test(sizeSource)) {
+    fail('utils/sizeClass.js', 1, 'size-class-drift', `${cls.key} 的边界与 mobile-platforms.json 不一致（应为 ${bound}）`);
+  }
+}
+
 if (failures.length === 0) {
   console.log(`miniapp VI check passed — ${files.length} source files / ${allFiles.length} total files`);
   process.exit(0);

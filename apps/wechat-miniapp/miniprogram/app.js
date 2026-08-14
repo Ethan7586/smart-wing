@@ -1,9 +1,11 @@
 var safeArea = require('./utils/safeArea');
+var sizeClass = require('./utils/sizeClass');
 var demo = require('./data/demo');
 
 App({
   globalData: {
     safeArea: null,
+    sizeClass: null,
     /** True while no real API is wired. Pages must surface this, not hide it. */
     isDemo: demo.IS_DEMO,
     cartCount: demo.cartCount,
@@ -11,12 +13,19 @@ App({
 
   onLaunch: function () {
     this.globalData.safeArea = safeArea.readSafeArea(true);
+    this.globalData.sizeClass = sizeClass.resolveSizeClass(true);
   },
 
   onShow: function () {
     // Capsule geometry can change when the mini program is reopened from a
     // different entry, so refresh rather than trusting the launch value.
     this.globalData.safeArea = safeArea.readSafeArea(true);
+  },
+
+  /** Page roots apply this class so the size-class tokens take effect. */
+  getSizeClass: function () {
+    if (!this.globalData.sizeClass) this.globalData.sizeClass = sizeClass.resolveSizeClass(true);
+    return this.globalData.sizeClass;
   },
 
   getSafeArea: function () {

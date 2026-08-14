@@ -112,11 +112,13 @@
   padding-left: var(--sw-page-inset);
   padding-right: var(--sw-page-inset);
 }
+/* Width derives from how many should be visible at once. A fractional value
+   leaves a peeking item that signals the row scrolls. */
 .partner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 128rpx;
+  width: calc((750rpx - var(--sw-page-inset) * 2) / var(--sw-partner-visible) - 16rpx);
   margin-right: var(--sw-space-1);
   flex-shrink: 0;
 }
@@ -217,13 +219,18 @@
   color: var(--sw-text-secondary);
 }
 
+/* space-between spreads a partial last row to both edges — visible as soon as
+   the large size class switches to three columns. A negative container margin
+   carries a fixed gutter instead, and works for any column count. */
 .product-grid {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  margin-right: -16rpx;
 }
+/* Column count comes from the size class; the 16rpx gutter is shared. */
 .product {
-  width: calc(50% - 8rpx);
+  width: calc((100% - (var(--sw-product-columns) - 1) * 16rpx) / var(--sw-product-columns));
+  margin-right: 16rpx;
   margin-bottom: var(--sw-space-1);
   overflow: hidden;
 }
