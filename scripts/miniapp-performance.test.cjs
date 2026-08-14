@@ -6,6 +6,7 @@ const test = require('node:test');
 const root = path.join(__dirname, '..');
 const apiPath = path.join(root, 'apps/wechat-miniapp/miniprogram/utils/api.js');
 const seedPath = path.join(root, 'apps/wechat-miniapp/miniprogram/data/catalog-seed.generated.js');
+const appPath = path.join(root, 'apps/wechat-miniapp/miniprogram/app.js');
 
 function loadMiniModule(file, globals = {}) {
   const module = { exports: {} };
@@ -109,4 +110,12 @@ test('product lists render a small first batch and defer offscreen images', () =
   assert.match(productPage, /RENDER_BATCH_SIZE = 12/);
   assert.match(productView, /lazy-load/);
   assert.match(categoryView, /lazy-load/);
+});
+
+test('app launch does not start catalog, login, home, or order requests', () => {
+  const source = fs.readFileSync(appPath, 'utf8');
+  const launchBlock = source.match(/onLaunch:\s*function\s*\(\)\s*\{([\s\S]*?)\n\s*\},/);
+  assert.ok(launchBlock, 'app.js must expose a readable onLaunch block');
+  assert.doesNotMatch(source, /require\(['"]\.\/utils\/api['"]\)/);
+  assert.doesNotMatch(launchBlock[1], /prefetch|wx\.request|wx\.login|setTimeout/);
 });

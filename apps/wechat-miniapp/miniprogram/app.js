@@ -1,7 +1,6 @@
 var safeArea = require('./utils/safeArea');
 var sizeClass = require('./utils/sizeClass');
 var demo = require('./data/demo');
-var api = require('./utils/api');
 
 App({
   globalData: {
@@ -15,10 +14,6 @@ App({
   onLaunch: function () {
     this.globalData.safeArea = safeArea.readSafeArea(true);
     this.globalData.sizeClass = sizeClass.resolveSizeClass(true);
-    api.prefetchPublicCatalog();
-    setTimeout(function () {
-      api.prefetchAccountData();
-    }, 800);
   },
 
   onShow: function () {
