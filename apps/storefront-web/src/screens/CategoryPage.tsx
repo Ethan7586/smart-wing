@@ -4,7 +4,7 @@
  * 技术服务方：雍彻科技
  */
 import React from 'react';
-import { MOCK_CATEGORIES } from '../mock/data';
+import { CatalogAvailability } from '../components/common/CatalogAvailability';
 import { CategoryResults } from '../features/catalog/CategoryResults';
 import { TaxonomyFilter } from '../features/catalog/TaxonomyFilter';
 import { useCategoryCatalog } from '../features/catalog/useCategoryCatalog';
@@ -16,6 +16,10 @@ export const CategoryPage: React.FC = () => {
     navigateTo,
     routeParams,
     products,
+    presentationCategories,
+    sessionStatus,
+    catalogSyncStatus,
+    refreshProductionData,
     selectedCategory,
     setSelectedCategory,
     selectedTaxonomyL1,
@@ -52,11 +56,14 @@ export const CategoryPage: React.FC = () => {
     isPriceRangeInvalid,
     resetToFirstPage,
   } = model;
-  const availableCategories = MOCK_CATEGORIES.filter((category) => products.some((product) => product.categoryId === category.id));
+  const availableCategories = presentationCategories;
   const taxonomyLevel1Options = buildTaxonomyOptions(availableTaxonomyL1, 'l1');
   const taxonomyLevel2Options = buildTaxonomyOptions(availableTaxonomyL2, 'l2');
   const taxonomyLevel3Options = buildTaxonomyOptions(availableTaxonomyL3, 'l3');
   const itemTypeOptions = buildItemTypeOptions(products);
+
+  const catalogueState = <CatalogAvailability catalogSyncStatus={catalogSyncStatus} sessionStatus={sessionStatus} productCount={products.length} onRetry={() => void refreshProductionData()} />;
+  if (catalogSyncStatus !== 'ready' || products.length === 0) return catalogueState;
   return (
     <div className="max-w-[1280px] mx-auto px-4 py-4 space-y-4 font-sans">
       <div className="flex items-center gap-1.5 text-xs text-gray-500">
@@ -172,7 +179,10 @@ export const CategoryPage: React.FC = () => {
           <div className="flex items-center gap-4">
             <span className="w-20 font-bold text-gray-700 flex-shrink-0">支持账户：</span>
             <div className="flex items-center gap-1.5">
-              <button onClick={() => setSelectedAccount('all')} className={`px-2.5 py-1 rounded cursor-pointer ${selectedAccount === 'all' ? 'bg-blue-50 border border-blue-300 font-bold text-[var(--sw-brand)]' : 'bg-gray-100 text-gray-700'}`}>
+              <button
+                onClick={() => setSelectedAccount('all')}
+                className={`px-2.5 py-1 rounded cursor-pointer ${selectedAccount === 'all' ? 'bg-blue-50 border border-blue-300 font-bold text-[var(--sw-brand)]' : 'bg-gray-100 text-gray-700'}`}
+              >
                 不限账户
               </button>
               <button
@@ -257,7 +267,10 @@ export const CategoryPage: React.FC = () => {
           <button onClick={() => setSortBy('newest')} className={`px-3 py-1 rounded cursor-pointer font-medium ${sortBy === 'newest' ? 'bg-[var(--sw-brand)] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
             新品上架
           </button>
-          <button onClick={() => setSortBy('rating')} className={`px-3 py-1 rounded cursor-pointer font-medium flex items-center gap-1 ${sortBy === 'rating' ? 'bg-[var(--sw-brand)] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+          <button
+            onClick={() => setSortBy('rating')}
+            className={`px-3 py-1 rounded cursor-pointer font-medium flex items-center gap-1 ${sortBy === 'rating' ? 'bg-[var(--sw-brand)] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+          >
             <Star className="w-3.5 h-3.5" /> 评分
           </button>
         </div>

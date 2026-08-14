@@ -5,11 +5,19 @@ import { ProductDetailTabs } from '../features/product/ProductDetailTabs';
 import { Truck, CreditCard, Utensils, ChevronRight, Star, MapPin, Store, AlertCircle } from 'lucide-react';
 import { getInventoryStatus, getOutOfStockActionHint } from '../utils/inventory';
 import { ProductDetailActionPanel } from '../features/product/ProductDetailActionPanel';
-
+import type { Product } from '../types';
+import { MissingCatalogProduct } from '../components/common/CatalogAvailability';
 export const ProductDetailPage: React.FC = () => {
-  const { routeParams, navigateTo, addToCart, user, addresses, favorites, toggleFavorite, products, sessionStatus, showToast } = useMall();
-  const productId = routeParams.productId || products[0]?.id;
-  const product = products.find((item) => item.id === productId) || products[0];
+  const { routeParams, navigateTo, products, catalogSyncStatus } = useMall();
+  const productId = routeParams.productId;
+  const product = productId ? products.find((item) => item.id === productId) : undefined;
+  if (!product) {
+    return <MissingCatalogProduct catalogSyncStatus={catalogSyncStatus} onBack={() => navigateTo('home')} />;
+  }
+  return <ProductDetailContent product={product} />;
+};
+const ProductDetailContent: React.FC<{ product: Product }> = ({ product }) => {
+  const { navigateTo, addToCart, user, addresses, favorites, toggleFavorite, products, sessionStatus, showToast } = useMall();
   const [selectedImgIndex, setSelectedImgIndex] = useState(0);
   const [selectedSpecs, setSelectedSpecs] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
@@ -40,7 +48,6 @@ export const ProductDetailPage: React.FC = () => {
     if (!canCoverByAccounts) return '账户余额不足，建议返回结算页确认支付方式';
     return '';
   }, [addresses.length, canCoverByAccounts, canUsePaymentMethod, inventory, isAuthenticated, selectedAddress, specsMissing]);
-  // Similar products
   const similarProducts = products
     .filter((item) => item.categoryId === product.categoryId)
     .filter((p) => p.id !== product.id)

@@ -6,16 +6,27 @@
 
 import React from 'react';
 import { useMall } from '../context/MallContext';
-import { mallService } from '../services/mallService';
 import { CheckCircle2, Package, CreditCard, Ticket, ChevronRight, ArrowLeft, Building2, QrCode, Copy, Receipt } from 'lucide-react';
 
 export const PaymentResultPage: React.FC = () => {
-  const { routeParams, navigateTo, user, showToast } = useMall();
+  const { routeParams, navigateTo, user, showToast, orders: accountOrders } = useMall();
 
-  const parentOrderNo = routeParams.parentOrderNo || 'PORD202607230001';
+  const parentOrderNo = routeParams.parentOrderNo;
 
-  // Find orders matching this parent order
-  const orders = mallService.getOrders().filter((o) => o.parentOrderNo === parentOrderNo || o.orderNo === parentOrderNo);
+  const orders = parentOrderNo ? accountOrders.filter((order) => order.parentOrderNo === parentOrderNo || order.orderNo === parentOrderNo) : [];
+
+  if (!parentOrderNo || orders.length === 0) {
+    return (
+      <div className="max-w-[960px] mx-auto px-4 py-20 text-center">
+        <Package className="mx-auto h-10 w-10 text-gray-400" />
+        <h1 className="mt-4 text-lg font-black text-gray-900">尚未取得订单结果</h1>
+        <p className="mt-2 text-sm text-gray-500">只有数据库返回并能在当前账户订单中核对到的订单，才会显示支付成功。</p>
+        <button onClick={() => navigateTo('orders')} className="mt-5 rounded bg-[var(--sw-brand)] px-5 py-2 text-sm font-bold text-white">
+          查看真实订单
+        </button>
+      </div>
+    );
+  }
 
   const totalDeductedWelfare = orders.reduce((sum, o) => sum + o.payment.welfareDeducted, 0);
   const totalDeductedMeal = orders.reduce((sum, o) => sum + o.payment.mealDeducted, 0);

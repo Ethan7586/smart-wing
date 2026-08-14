@@ -7,12 +7,24 @@
 import React from 'react';
 import { ArrowLeft, CheckCircle2, Clock, MapPin, Package, QrCode, ShieldCheck, Truck } from 'lucide-react';
 import { useMall } from '../context/MallContext';
-import { mallService } from '../services/mallService';
 
 export const OrderDetailPage: React.FC = () => {
   const { routeParams, navigateTo, showToast, orders } = useMall();
-  const orderId = routeParams.orderId || 'ord_001';
-  const order = orders.find((candidate) => candidate.id === orderId) || mallService.getOrderById(orderId) || mallService.getOrders()[0];
+  const orderId = routeParams.orderId;
+  const order = orderId ? orders.find((candidate) => candidate.id === orderId) : undefined;
+
+  if (!order) {
+    return (
+      <div className="max-w-[960px] mx-auto px-4 py-20 text-center">
+        <Package className="mx-auto h-10 w-10 text-gray-400" />
+        <h1 className="mt-4 text-lg font-black text-gray-900">订单详情不可用</h1>
+        <p className="mt-2 text-sm text-gray-500">数据库返回的当前订单列表中没有这条记录。</p>
+        <button onClick={() => navigateTo('orders')} className="mt-5 rounded bg-[var(--sw-brand)] px-5 py-2 text-sm font-bold text-white">
+          返回订单列表
+        </button>
+      </div>
+    );
+  }
 
   const statusTextMap: Record<string, string> = {
     pending_payment: '待付款',

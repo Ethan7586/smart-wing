@@ -6,7 +6,6 @@
 
 import React, { useState } from 'react';
 import { useMall } from '../../context/MallContext';
-import { MOCK_CATEGORIES } from '../../mock/data';
 import { UtensilsCrossed, Tv, Laptop, Home, Sparkles, Film, CreditCard, ShoppingBag, Store, Gift, ChevronRight, ChevronDown } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
@@ -23,15 +22,15 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
 };
 
 export const CategoryMegaMenu: React.FC<{ isAlwaysOpen?: boolean }> = ({ isAlwaysOpen = true }) => {
-  const { navigateTo } = useMall();
+  const { navigateTo, presentationCategories } = useMall();
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
 
-  const activeCategory = MOCK_CATEGORIES.find((c) => c.id === activeCategoryId);
+  const activeCategory = presentationCategories.find((category) => category.id === activeCategoryId);
 
   return (
     <div className="relative w-56 bg-white border border-gray-200 rounded-b-md shadow-md select-none font-sans z-30" onMouseLeave={() => setActiveCategoryId(null)}>
       <div className="divide-y divide-gray-100">
-        {MOCK_CATEGORIES.map((cat) => {
+        {presentationCategories.map((cat) => {
           const IconComponent = ICON_MAP[cat.iconName] || Gift;
           const isHovered = activeCategoryId === cat.id;
 

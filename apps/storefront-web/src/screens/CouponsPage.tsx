@@ -6,25 +6,22 @@
 
 import React, { useState } from 'react';
 import { useMall } from '../context/MallContext';
-import { mallService } from '../services/mallService';
 import { UserCoupon } from '../types';
 import { Ticket, QrCode, CheckCircle2, Clock, Building, Store, Sparkles, Copy, X, CreditCard } from 'lucide-react';
 
 export const CouponsPage: React.FC = () => {
-  const { user, showToast, refreshUserData, sessionStatus } = useMall();
+  const { user, showToast } = useMall();
 
   const [activeTab, setActiveTab] = useState<'unused' | 'used' | 'expired'>('unused');
   const [selectedCoupon, setSelectedCoupon] = useState<UserCoupon | null>(null);
 
-  // The coupon API has not shipped yet. Authenticated members must see an
-  // honest empty state rather than coupons owned by the browser demo persona.
-  const coupons = sessionStatus === 'authenticated' ? [] : mallService.getUserCoupons();
+  // The coupon API has not shipped yet. Production never falls back to the
+  // browser demo persona's coupon wallet.
+  const coupons: UserCoupon[] = [];
   const filteredCoupons = coupons.filter((c) => c.status === activeTab);
 
   const handleSimulateVerification = (couponId: string) => {
-    mallService.simulateVerifyCoupon(couponId);
-    refreshUserData();
-    showToast('模拟门店POS离线核销成功！核销记录已同步至企业合规日志。', 'success');
+    showToast(`卡券 ${couponId} 的生产核销接口尚未接通，当前未修改任何数据`, 'warning');
     setSelectedCoupon(null);
   };
 

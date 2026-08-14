@@ -66,7 +66,9 @@ export const MvpSessionBar: React.FC = () => {
                 : catalogSyncStatus === 'error'
                   ? '账户已连接；商品资格同步失败，可刷新重试'
                   : '安全会话已连接，账户与订单数据来自生产型数据库'
-              : '当前为商品访客预览；登录后可体验福利账户、下单和订单查询'}
+              : catalogSyncStatus === 'error'
+                ? '商品数据库尚未连接；登录后才能加载真实可购商品'
+                : '当前未登录；主商城不会使用演示商品填充页面'}
           </span>
           {sessionStatus === 'authenticated' ? (
             <button onClick={() => void logout()} className="font-bold flex items-center gap-1 hover:underline">

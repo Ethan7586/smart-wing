@@ -1,8 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { UserProfile, EnterpriseMall, Product, CartItem, Order, DeliveryAddress, AccountLog } from '../types';
-import { mallService } from '../services/mallService';
 import { productionApi, ProductionApiError } from '../services/productionApi';
-import { MOCK_CATEGORIES, toFrontendOrders, toFrontendProducts } from '../adapters/frontendData';
+import { toFrontendCategories, toFrontendOrders, toFrontendProducts } from '../adapters/frontendData';
 import type { AndroidAppPage, AppMode, LaptopPage, LoginCredentials, MallContextType, MiniProgramPage, PageRoute, PendingFeatureInfo, RouteParams, SessionStatus, TabletOrientation, TabletPage, ViewportMode } from './MallContext.types';
 import { useDeviceNavigation } from './useDeviceNavigation';
 import { checkoutSelectedCartRequest } from './checkoutSelectedCart';
@@ -10,29 +9,59 @@ import { useProductionSync } from './useProductionSync';
 import { useToasts } from './useToasts';
 import { mapApiCartItems } from './mallMappers';
 import { guestStorefrontProfile } from './guestStorefrontProfile';
+import { EMPTY_GUEST_PROFILE, UNRESOLVED_MALL } from './productionStorefrontState';
 export type * from './MallContext.types';
 const MallContext = createContext<MallContextType | undefined>(undefined);
-export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const navigation = useDeviceNavigation();
 
-  const [user, setUser] = useState<UserProfile>(() => guestStorefrontProfile(mallService.getUserProfile()));
-  const [currentMall, setCurrentMall] = useState<EnterpriseMall>(() => mallService.getCurrentMall());
-  const [malls, setMalls] = useState<EnterpriseMall[]>(() => mallService.getMalls());
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [products, setProducts] = useState<Product[]>(() => mallService.getProducts());
-  const [accountLogs, setAccountLogs] = useState<AccountLog[]>([]);
-  const [sessionStatus, setSessionStatus] = useState<SessionStatus>('checking');
-  const [catalogSyncStatus, setCatalogSyncStatus] = useState<'idle' | 'syncing' | 'ready' | 'error'>('idle');
+type ShowcaseService = {
+  getUserProfile: () => UserProfile;
+  getCurrentMall: () => EnterpriseMall;
+  getMalls: () => EnterpriseMall[];
+  getProducts: () => Product[];
+  getOrders: () => Order[];
+  getAccountLogs: () => AccountLog[];
+  getCart: () => CartItem[];
+  getFavorites: () => string[];
+  getAddresses: () => DeliveryAddress[];
+  switchMall: (mallId: string) => EnterpriseMall;
+  addToCart: (product: Product, quantity?: number, selectedSpec?: Record<string, string>) => CartItem[];
+  updateCartQuantity: (cartItemId: string, quantity: number) => CartItem[];
+  toggleCartItemSelected: (cartItemId: string) => CartItem[];
+  toggleSelectAllCart: (selected: boolean) => CartItem[];
+  removeCartItem: (cartItemId: string) => CartItem[];
+  toggleFavorite: (productId: string) => boolean;
+  addAddress: (address: Omit<DeliveryAddress, 'id'>) => DeliveryAddress[];
+};
+
+type MallProviderProps = {
+  children: React.ReactNode;
+  /** Only the isolated /[device] visual showcase may inject local demo data. */
+  showcaseService?: ShowcaseService;
+};
+
+export const MallProvider: React.FC<MallProviderProps> = ({ children, showcaseService }) => {
+  const navigation = useDeviceNavigation();
+  const isShowcase = Boolean(showcaseService);
+
+  const [user, setUser] = useState<UserProfile>(() => (showcaseService ? showcaseService.getUserProfile() : { ...EMPTY_GUEST_PROFILE }));
+  const [currentMall, setCurrentMall] = useState<EnterpriseMall>(() => (showcaseService ? showcaseService.getCurrentMall() : { ...UNRESOLVED_MALL }));
+  const [malls, setMalls] = useState<EnterpriseMall[]>(() => (showcaseService ? showcaseService.getMalls() : []));
+  const [cart, setCart] = useState<CartItem[]>(() => (showcaseService ? showcaseService.getCart() : []));
+  const [orders, setOrders] = useState<Order[]>(() => (showcaseService ? showcaseService.getOrders() : []));
+  const [products, setProducts] = useState<Product[]>(() => (showcaseService ? showcaseService.getProducts() : []));
+  const [accountLogs, setAccountLogs] = useState<AccountLog[]>(() => (showcaseService ? showcaseService.getAccountLogs() : []));
+  const [sessionStatus, setSessionStatus] = useState<SessionStatus>(isShowcase ? 'guest' : 'checking');
+  const [catalogSyncStatus, setCatalogSyncStatus] = useState<'idle' | 'syncing' | 'ready' | 'error'>(isShowcase ? 'ready' : 'idle');
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [addresses, setAddresses] = useState<DeliveryAddress[]>([]);
+  const [favorites, setFavorites] = useState<string[]>(() => (showcaseService ? showcaseService.getFavorites() : []));
+  const [addresses, setAddresses] = useState<DeliveryAddress[]>(() => (showcaseService ? showcaseService.getAddresses() : []));
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const sessionGenerationRef = useRef(0);
   const { toasts, showToast, removeToast } = useToasts();
   const presentationProducts = useMemo(() => toFrontendProducts(products), [products]);
   const presentationOrders = useMemo(() => toFrontendOrders(orders, presentationProducts), [orders, presentationProducts]);
+  const presentationCategories = useMemo(() => toFrontendCategories(products), [products]);
 
   const refreshServerCart = useCallback(async () => {
     const sessionGeneration = sessionGenerationRef.current;
@@ -45,16 +74,19 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const response = await productionApi.listAddresses();
     if (sessionGeneration === sessionGenerationRef.current) setAddresses(response.items);
   }, []);
-  const { refreshProductionData, cancelProductionSync } = useProductionSync({
-    setProducts,
-    setUser,
-    setCurrentMall,
-    setMalls,
-    setOrders,
-    setAccountLogs,
-    setSessionStatus,
-    setCatalogSyncStatus,
-  });
+  const { refreshProductionData, cancelProductionSync } = useProductionSync(
+    {
+      setProducts,
+      setUser,
+      setCurrentMall,
+      setMalls,
+      setOrders,
+      setAccountLogs,
+      setSessionStatus,
+      setCatalogSyncStatus,
+    },
+    !isShowcase
+  );
   useEffect(() => {
     if (sessionStatus !== 'authenticated') return;
     setFavorites([]);
@@ -74,8 +106,17 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       return;
     }
-    setUser(guestStorefrontProfile(mallService.getUserProfile()));
-    setCurrentMall(mallService.getCurrentMall());
+    if (showcaseService) {
+      setUser(showcaseService.getUserProfile());
+      setCurrentMall(showcaseService.getCurrentMall());
+      setProducts(showcaseService.getProducts());
+      setOrders(showcaseService.getOrders());
+      return;
+    }
+    setUser(guestStorefrontProfile());
+    setCurrentMall({ ...UNRESOLVED_MALL });
+    setMalls([]);
+    setProducts([]);
     setCart([]);
     setOrders([]);
   };
@@ -100,10 +141,10 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     cancelProductionSync();
     setSessionStatus('guest');
     setSessionError(null);
-    setUser(guestStorefrontProfile(mallService.getUserProfile()));
-    setCurrentMall(mallService.getCurrentMall());
-    setMalls(mallService.getMalls());
-    setProducts(mallService.getProducts());
+    setUser(guestStorefrontProfile());
+    setCurrentMall({ ...UNRESOLVED_MALL });
+    setMalls([]);
+    setProducts([]);
     setCart([]);
     setOrders([]);
     setAccountLogs([]);
@@ -120,19 +161,24 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const switchMall = (mallId: string) => {
+    if (showcaseService) {
+      const newMall = showcaseService.switchMall(mallId);
+      setCurrentMall(newMall);
+      setUser(showcaseService.getUserProfile());
+      setProducts(showcaseService.getProducts());
+      setCart(showcaseService.getCart());
+      setOrders(showcaseService.getOrders());
+      setFavorites(showcaseService.getFavorites());
+      setAddresses(showcaseService.getAddresses());
+      navigation.navigateTo('home');
+      showToast(`已切换至【${newMall.mallName}】`, 'info');
+      return;
+    }
     if (sessionStatus === 'authenticated' && mallId !== currentMall.id) {
       showToast('当前账号未获得其他商城的数据权限', 'warning');
       return;
     }
-    const newMall = mallService.switchMall(mallId);
-    setCurrentMall(newMall);
-    setUser(guestStorefrontProfile(mallService.getUserProfile()));
-    setCart([]);
-    setOrders([]);
-    setFavorites([]);
-    setAddresses([]);
-    navigation.navigateTo('home');
-    showToast(`已切换至【${newMall.mallName}】`, 'info');
+    showToast('请先登录并获取企业商城访问权限', 'warning');
   };
 
   const handleAddToCart = async (product: Product, quantity = 1, selectedSpec: Record<string, string> = {}) => {
@@ -158,8 +204,12 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       showToast('商品资格正在后台同步，请稍后再加入购物车', 'info');
       return;
     }
-    setCart(mallService.addToCart(product, quantity, selectedSpec));
-    showToast(`已将“${product.title.slice(0, 16)}...”加入购物车`, 'success');
+    if (showcaseService) {
+      setCart(showcaseService.addToCart(product, quantity, selectedSpec));
+      showToast(`已将“${product.title.slice(0, 16)}...”加入展示购物车`, 'success');
+      return;
+    }
+    showToast('请先登录，商品与购物车仅接受生产数据库数据', 'warning');
   };
 
   const handleUpdateCartQuantity = (cartItemId: string, quantity: number) => {
@@ -179,8 +229,7 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return;
     }
-    const updatedCart = mallService.updateCartQuantity(cartItemId, quantity);
-    setCart(updatedCart);
+    if (showcaseService) setCart(showcaseService.updateCartQuantity(cartItemId, quantity));
   };
 
   const handleToggleCartItemSelected = (cartItemId: string) => {
@@ -193,8 +242,7 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .catch(() => showToast('购物车更新失败，请稍后重试', 'error'));
       return;
     }
-    const updatedCart = mallService.toggleCartItemSelected(cartItemId);
-    setCart(updatedCart);
+    if (showcaseService) setCart(showcaseService.toggleCartItemSelected(cartItemId));
   };
 
   const handleToggleSelectAllCart = (selected: boolean) => {
@@ -205,8 +253,7 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .catch(() => showToast('购物车更新失败，请稍后重试', 'error'));
       return;
     }
-    const updatedCart = mallService.toggleSelectAllCart(selected);
-    setCart(updatedCart);
+    if (showcaseService) setCart(showcaseService.toggleSelectAllCart(selected));
   };
 
   const handleRemoveCartItem = async (cartItemId: string) => {
@@ -218,9 +265,10 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .catch(() => showToast('购物车更新失败，请稍后重试', 'error'));
       return;
     }
-    const updatedCart = mallService.removeCartItem(cartItemId);
-    setCart(updatedCart);
-    showToast('已从购物车移除该商品', 'info');
+    if (showcaseService) {
+      setCart(showcaseService.removeCartItem(cartItemId));
+      showToast('已从展示购物车移除该商品', 'info');
+    }
   };
 
   const checkoutSelectedCart = async (): Promise<boolean> => {
@@ -231,13 +279,8 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsSubmittingOrder(true);
     try {
       const { selectedItems } = await checkoutSelectedCartRequest(cart, addresses, user);
-      if (sessionStatus === 'authenticated') {
-        await Promise.all(selectedItems.map((item) => productionApi.deleteCartItem(item.id)));
-        await refreshServerCart();
-      } else {
-        selectedItems.forEach((item) => mallService.removeCartItem(item.id));
-        setCart(mallService.getCart());
-      }
+      await Promise.all(selectedItems.map((item) => productionApi.deleteCartItem(item.id)));
+      await refreshServerCart();
       await refreshProductionData();
       showToast('订单已安全写入数据库并完成福利账户支付', 'success');
       return true;
@@ -252,9 +295,13 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleToggleFavorite = (productId: string) => {
     if (sessionStatus === 'authenticated') return void showToast('真实会员收藏功能正在接入，当前不会保存演示收藏', 'info');
-    const isFav = mallService.toggleFavorite(productId);
-    setFavorites(mallService.getFavorites());
-    showToast(isFav ? '已加入收藏夹' : '已取消收藏', isFav ? 'success' : 'info');
+    if (showcaseService) {
+      const isFav = showcaseService.toggleFavorite(productId);
+      setFavorites(showcaseService.getFavorites());
+      showToast(isFav ? '已加入展示收藏夹' : '已取消展示收藏', isFav ? 'success' : 'info');
+      return;
+    }
+    showToast('请先登录后再使用收藏功能', 'warning');
   };
 
   const handleAddAddress = (address: Omit<DeliveryAddress, 'id'>) => {
@@ -266,9 +313,12 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .catch((error) => showToast(error instanceof ProductionApiError ? error.message : '地址簿保存失败，请稍后重试', 'error'));
       return;
     }
-    const list = mallService.addAddress(address);
-    setAddresses(list);
-    showToast('新增收货地址成功', 'success');
+    if (showcaseService) {
+      setAddresses(showcaseService.addAddress(address));
+      showToast('新增展示收货地址成功', 'success');
+      return;
+    }
+    showToast('请先登录后再管理收货地址', 'warning');
   };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -286,7 +336,7 @@ export const MallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         products,
         presentationProducts,
         presentationOrders,
-        presentationCategories: MOCK_CATEGORIES,
+        presentationCategories,
         accountLogs,
         sessionStatus,
         catalogSyncStatus,

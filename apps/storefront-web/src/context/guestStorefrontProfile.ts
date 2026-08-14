@@ -1,6 +1,7 @@
 import type { UserProfile } from '../types';
+import { EMPTY_GUEST_PROFILE } from './productionStorefrontState';
 
-export function guestStorefrontProfile(source: UserProfile): UserProfile {
+export function guestStorefrontProfile(source: UserProfile = EMPTY_GUEST_PROFILE): UserProfile {
   return {
     ...source,
     id: 'guest',

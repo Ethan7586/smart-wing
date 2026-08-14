@@ -124,8 +124,8 @@ export const productionApi = {
     });
   },
 
-  async listProducts(mallSlug: string, options: { category?: string; cursor?: number; limit?: number } = {}): Promise<{ items: ApiProduct[]; pagination: { nextCursor: number | null } }> {
-    const query = new URLSearchParams({ mall: mallSlug });
+  async listProducts(options: { category?: string; cursor?: number; limit?: number } = {}): Promise<{ items: ApiProduct[]; pagination: { nextCursor: number | null } }> {
+    const query = new URLSearchParams();
     if (options.category) query.set('category', options.category);
     if (options.cursor !== undefined) query.set('cursor', String(options.cursor));
     if (options.limit !== undefined) query.set('limit', String(options.limit));

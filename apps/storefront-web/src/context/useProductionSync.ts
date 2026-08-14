@@ -4,6 +4,7 @@ import type { AccountLog, EnterpriseMall, Order, Product, UserProfile } from '..
 import { productionApi, type ApiProduct } from '../services/productionApi';
 import { mapApiOrder, mapApiProduct } from './mallMappers';
 import type { CatalogSyncStatus, SessionStatus } from './MallContext.types';
+import { EMPTY_GUEST_PROFILE, UNRESOLVED_MALL } from './productionStorefrontState';
 import { mergeAuthenticatedMemberProfile } from './storefrontMemberProfile';
 
 interface ProductionSyncSetters {
@@ -23,7 +24,7 @@ async function loadCompleteCatalog(): Promise<ApiProduct[]> {
   let pageCount = 0;
 
   while (cursor !== null && pageCount < 60) {
-    const page = await productionApi.listProducts('smart-wing-demo', {
+    const page = await productionApi.listProducts({
       cursor,
       limit: 100,
     });
@@ -35,11 +36,24 @@ async function loadCompleteCatalog(): Promise<ApiProduct[]> {
   return [...items.values()];
 }
 
-export function useProductionSync(setters: ProductionSyncSetters) {
+export function useProductionSync(setters: ProductionSyncSetters, enabled = true) {
   const syncVersionRef = useRef(0);
 
+  const closeProductionData = () => {
+    setters.setProducts([]);
+    setters.setUser({ ...EMPTY_GUEST_PROFILE });
+    setters.setCurrentMall({ ...UNRESOLVED_MALL });
+    setters.setMalls([]);
+    setters.setOrders([]);
+    setters.setAccountLogs([]);
+  };
+
   const refreshProductionData = async () => {
+    if (!enabled) return;
     const syncVersion = ++syncVersionRef.current;
+    // Never retain a previous or local catalogue while a fresh production
+    // qualification snapshot is being resolved.
+    setters.setProducts([]);
     setters.setCatalogSyncStatus('syncing');
     const catalogRequest = loadCompleteCatalog();
     let snapshot: Awaited<ReturnType<typeof productionApi.getHomeSnapshot>>;
@@ -48,7 +62,8 @@ export function useProductionSync(setters: ProductionSyncSetters) {
     } catch (error) {
       void catalogRequest.catch(() => undefined);
       if (syncVersion !== syncVersionRef.current) return;
-      setters.setCatalogSyncStatus('idle');
+      closeProductionData();
+      setters.setCatalogSyncStatus('error');
       throw error;
     }
     if (syncVersion !== syncVersionRef.current) {
@@ -100,7 +115,9 @@ export function useProductionSync(setters: ProductionSyncSetters) {
         setters.setCatalogSyncStatus('ready');
       })
       .catch(() => {
-        if (syncVersion === syncVersionRef.current) setters.setCatalogSyncStatus('error');
+        if (syncVersion !== syncVersionRef.current) return;
+        setters.setProducts([]);
+        setters.setCatalogSyncStatus('error');
       });
   };
 
@@ -110,6 +127,7 @@ export function useProductionSync(setters: ProductionSyncSetters) {
   };
 
   useEffect(() => {
+    if (!enabled) return;
     let active = true;
     // /home is both the authorization check and the initial data snapshot.
     // Avoid a separate /auth/session round trip before loading the page.
@@ -120,7 +138,7 @@ export function useProductionSync(setters: ProductionSyncSetters) {
       active = false;
       syncVersionRef.current += 1;
     };
-  }, []);
+  }, [enabled]);
 
   return { refreshProductionData, cancelProductionSync };
 }

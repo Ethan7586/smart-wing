@@ -6,12 +6,11 @@
 
 import React, { useState, useMemo } from 'react';
 import { useMall } from '../context/MallContext';
-import { mallService } from '../services/mallService';
 import { OrderStatus } from '../types';
 import { Package, Search, Truck, QrCode, ChevronRight, Clock, Headphones } from 'lucide-react';
 
 export const OrdersPage: React.FC = () => {
-  const { navigateTo, showToast, refreshUserData, orders, routeParams } = useMall();
+  const { navigateTo, showToast, orders, routeParams } = useMall();
 
   const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>(routeParams.statusFilter || 'all');
   const [searchKw, setSearchKw] = useState('');
@@ -56,9 +55,8 @@ export const OrdersPage: React.FC = () => {
   };
 
   const handleConfirmReceipt = (orderId: string) => {
-    mallService.updateOrderStatus(orderId, 'completed');
-    refreshUserData();
-    showToast('已确认收货，感谢使用企业福利商城！', 'success');
+    const order = orders.find((candidate) => candidate.id === orderId);
+    showToast(order ? `订单 ${order.orderNo} 的确认收货接口尚未接通，当前未修改数据库状态` : '订单不存在', 'warning');
   };
 
   return (

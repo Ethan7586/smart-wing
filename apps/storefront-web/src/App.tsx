@@ -16,9 +16,6 @@ import { MobileBottomNav } from './components/common/MobileBottomNav';
 import { MvpSessionBar } from './components/common/MvpSessionBar';
 import { HomePage } from './screens/HomePage';
 
-const MobileFrame = React.lazy(() => import('./components/mobile/MobileFrame').then(({ MobileFrame }) => ({ default: MobileFrame })));
-const TabletFrame = React.lazy(() => import('./components/mobile/TabletFrame').then(({ TabletFrame }) => ({ default: TabletFrame })));
-const LaptopFrame = React.lazy(() => import('./components/laptop/LaptopFrame').then(({ LaptopFrame }) => ({ default: LaptopFrame })));
 const CategoryPage = React.lazy(() => import('./screens/CategoryPage').then(({ CategoryPage }) => ({ default: CategoryPage })));
 const ProductDetailPage = React.lazy(() => import('./screens/ProductDetailPage').then(({ ProductDetailPage }) => ({ default: ProductDetailPage })));
 const CartPage = React.lazy(() => import('./screens/CartPage').then(({ CartPage }) => ({ default: CartPage })));
@@ -38,7 +35,7 @@ const ArchitecturePage = React.lazy(() => import('./screens/ArchitecturePage').t
 const PageLoadingFallback = () => <div className="min-h-[360px] bg-[#F5F7FA]" aria-busy="true" aria-label="正在加载页面" />;
 
 const AppContent: React.FC = () => {
-  const { currentPage, appMode } = useMall();
+  const { currentPage } = useMall();
 
   React.useEffect(() => {
     // The account page contains the security center and is one of the first
@@ -84,30 +81,6 @@ const AppContent: React.FC = () => {
         return <HomePage />;
     }
   };
-
-  if (appMode === 'mini-program' || appMode === 'android-app') {
-    return (
-      <React.Suspense fallback={<PageLoadingFallback />}>
-        <MobileFrame />
-      </React.Suspense>
-    );
-  }
-
-  if (appMode === 'tablet-app') {
-    return (
-      <React.Suspense fallback={<PageLoadingFallback />}>
-        <TabletFrame />
-      </React.Suspense>
-    );
-  }
-
-  if (appMode === 'laptop-web') {
-    return (
-      <React.Suspense fallback={<PageLoadingFallback />}>
-        <LaptopFrame />
-      </React.Suspense>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] text-gray-800 flex flex-col justify-between pb-[calc(var(--sw-mobile-nav-height)_+_env(safe-area-inset-bottom))] md:pb-0 font-sans antialiased selection:bg-[var(--sw-brand)] selection:text-white">

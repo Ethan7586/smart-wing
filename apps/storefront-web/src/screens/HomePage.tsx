@@ -7,12 +7,16 @@
 import React, { useState } from 'react';
 import { useMall } from '../context/MallContext';
 import { CategoryMegaMenu } from '../components/common/CategoryMegaMenu';
+import { CatalogAvailability } from '../components/common/CatalogAvailability';
 import { HomeProductSections } from '../components/home/HomeProductSections';
 import { CreditCard, Utensils, Ticket, ShoppingBag, Zap, Store, Sparkles, Gift, Building2, ChevronRight, Flame, Award, Truck, ArrowRight, User, Clock, ShieldCheck, ChevronLeft } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
-  const { user, currentMall, navigateTo, orders } = useMall();
+  const { user, currentMall, navigateTo, orders, products, sessionStatus, catalogSyncStatus, refreshProductionData } = useMall();
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+
+  const catalogueState = <CatalogAvailability catalogSyncStatus={catalogSyncStatus} sessionStatus={sessionStatus} productCount={products.length} onRetry={() => void refreshProductionData()} />;
+  if (catalogSyncStatus !== 'ready' || products.length === 0) return catalogueState;
 
   const banners = [
     {
