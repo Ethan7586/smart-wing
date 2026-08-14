@@ -45,6 +45,8 @@ export const ICON_MANIFEST = {
   laptop: ['brand'],
   utensils: ['brand'],
   'chevron-right': ['muted'],
+  'arrow-left': ['ink'],
+  package: ['brand'],
   'chevron-down': ['secondary'],
   'shield-alert': ['danger'],
   'shield-check': ['success'],

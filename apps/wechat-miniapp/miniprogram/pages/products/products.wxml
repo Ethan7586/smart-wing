@@ -1,0 +1,46 @@
+<view class="sw-page products {{sizeClass}}" style="{{sizeStyle}}">
+  <view class="nav" style="padding-top: {{nav.statusBarHeight}}px;">
+    <view class="nav-row" style="height: {{nav.navContentHeight}}px; padding-right: {{nav.rightInset}}px;">
+      <view class="back sw-tap" bindtap="onBack"><view class="i i-arrow-left-ink"></view></view>
+      <text class="nav-title">{{title}}</text>
+    </view>
+  </view>
+  <view class="nav-spacer" style="height: {{nav.navTotalHeight}}px;"></view>
+
+  <view class="sw-inset public-note">
+    <view class="i i-sm i-shield-check-success"></view>
+    <text>公开浏览 · 购买资格在登录后确认</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="sw-inset skeleton-grid">
+    <view wx:for="{{[1,2,3,4]}}" wx:key="*this" class="sw-skeleton skeleton-card"></view>
+  </view>
+
+  <view wx:elif="{{loadError && !products.length}}" class="state-block sw-inset">
+    <view class="i i-lg i-wifi-off-muted"></view>
+    <text class="sw-small">{{loadError}}</text>
+    <view class="retry sw-tap" bindtap="onRetry"><text>重试</text></view>
+  </view>
+
+  <view wx:elif="{{!products.length}}" class="state-block sw-inset">
+    <view class="i i-lg i-inbox-muted"></view>
+    <text class="sw-small">当前分类暂无公开商品</text>
+  </view>
+
+  <view wx:else class="product-grid sw-inset">
+    <view wx:for="{{products}}" wx:key="id" class="product-card sw-card sw-tap" data-index="{{index}}" bindtap="onOpenProduct">
+      <image wx:if="{{item.image}}" class="product-image" src="{{item.image}}" mode="aspectFill" data-index="{{index}}" catchtap="onOpenProduct" binderror="onImageError" />
+      <view wx:else class="product-image sw-slot"><view class="i i-lg i-image-off-muted"></view></view>
+      <view class="product-copy">
+        <text class="product-name">{{item.name}}</text>
+        <text class="product-subtitle">{{item.subtitle || item.supplierName}}</text>
+        <text class="product-price">{{item.priceText}}</text>
+        <text class="product-stock">{{item.stockText}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loadingMore}}" class="load-more"><view class="i i-sm i-refresh-cw-brand"></view><text>继续载入</text></view>
+  <view wx:elif="{{loadError && products.length}}" class="load-more retry-more sw-tap" bindtap="onRetry"><text>载入失败，点此重试</text></view>
+  <view wx:elif="{{products.length && !hasMore}}" class="load-more"><text>已加载全部公开商品</text></view>
+</view>

@@ -1,0 +1,44 @@
+<view class="sw-page detail {{sizeClass}}" style="{{sizeStyle}}">
+  <view class="nav" style="padding-top: {{nav.statusBarHeight}}px;">
+    <view class="nav-row" style="height: {{nav.navContentHeight}}px; padding-right: {{nav.rightInset}}px;">
+      <view class="back sw-tap" bindtap="onBack"><view class="i i-arrow-left-ink"></view></view>
+      <text class="nav-title">商品详情</text>
+    </view>
+  </view>
+  <view class="nav-spacer" style="height: {{nav.navTotalHeight}}px;"></view>
+
+  <view wx:if="{{error}}" class="state-block sw-inset">
+    <view class="i i-lg i-inbox-muted"></view>
+    <text class="sw-small">{{error}}</text>
+    <view class="retry sw-tap" bindtap="onBack"><text>返回商品列表</text></view>
+  </view>
+
+  <block wx:elif="{{product}}">
+    <image wx:if="{{product.image}}" class="hero-image" src="{{product.image}}" mode="aspectFit" binderror="onImageError" />
+    <view wx:else class="hero-image sw-slot"><view class="i i-lg i-image-off-muted"></view><text class="sw-slot-label">商品图暂不可用</text></view>
+
+    <view class="sw-inset detail-copy">
+      <view class="sw-card product-main">
+        <text class="product-price">{{product.priceText}}</text>
+        <text wx:if="{{product.marketPriceText}}" class="market-price">{{product.marketPriceText}}</text>
+        <text class="product-name">{{product.name}}</text>
+        <text class="product-subtitle">{{product.subtitle || product.supplierName}}</text>
+      </view>
+
+      <view class="sw-card fact-card">
+        <view class="fact-row"><view class="i i-sm i-package-brand"></view><text class="fact-label">库存</text><text class="fact-value">{{product.stockText}}</text></view>
+        <view class="fact-row"><view class="i i-sm i-store-brand"></view><text class="fact-label">来源</text><text class="fact-value">{{product.sourceText}}</text></view>
+        <view class="fact-row"><view class="i i-sm i-shield-check-success"></view><text class="fact-label">资格</text><text class="fact-value">登录后确认购买资格</text></view>
+      </view>
+
+      <view class="sw-card pending-card">
+        <text class="pending-title">履约信息</text>
+        <text class="pending-copy">配送范围、时效、售后和正式商品说明尚未由商家同步。本页不补造缺失信息。</text>
+      </view>
+    </view>
+
+    <view class="action-bar">
+      <view class="action-disabled"><text>{{product.isTest ? '测试商品不可购买' : '当前商品暂不可购买'}}</text></view>
+    </view>
+  </block>
+</view>

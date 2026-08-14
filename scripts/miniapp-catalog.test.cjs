@@ -30,7 +30,7 @@ test('shared taxonomy fills every approved category rail', () => {
   const snapshot = catalog.createSnapshot([]);
   assert.deepEqual(
     snapshot.rail.map(({ label }) => label),
-    ['精选', '食品饮料', '家用电器', '数码办公', '家居日用', '个护清洁']
+    ['精选', '食品饮料', '家用电器', '数码办公', '家居日用', '个护清洁', '企业福利专区']
   );
   for (const item of snapshot.rail) {
     assert.ok(snapshot.tilesByKey[item.key].length > 0, `${item.label} must not render blank`);
@@ -54,6 +54,20 @@ test('public main-Shop products enrich both featured and taxonomy tiles', () => 
   assert.equal(leaf.image, featured.image);
 });
 
+test('unclassified welfare inventory remains reachable instead of disappearing from mobile browse', () => {
+  const catalog = loadMiniModule(catalogPath);
+  const snapshot = catalog.createSnapshot([
+    {
+      id: 'review-product',
+      coverUrl: 'https://m.media-amazon.com/images/I/review.jpg',
+      taxonomy: { l1: 'welfare', l2: 'welfare_review', l3: 'welfare_review_unclassified' },
+    },
+  ]);
+  const review = snapshot.tilesByKey.welfare.find(({ key }) => key === 'welfare_review_unclassified');
+  assert.equal(review.productCount, 1);
+  assert.equal(review.image, 'https://m.media-amazon.com/images/I/review.jpg');
+});
+
 test('invalid catalog envelopes fail visibly instead of becoming an empty success', () => {
   const catalog = loadMiniModule(catalogPath);
   assert.throws(() => catalog.itemsFromResponse({ products: [] }), /商品目录返回格式异常/);
@@ -62,7 +76,7 @@ test('invalid catalog envelopes fail visibly instead of becoming an empty succes
 test('category page loads the public catalog without a member binding gate', () => {
   const source = fs.readFileSync(categoryPagePath, 'utf8');
   assert.doesNotMatch(source, /api\.isWired\(\)/);
-  assert.match(source, /api\.listAllProducts\(\)/);
+  assert.match(source, /api\.listProducts\(\{ cursor: 0, limit: 100 \}\)/);
   assert.doesNotMatch(source, /bindWechatMember|bindingRequired|WECHAT_BINDING_REQUIRED/);
 });
 

@@ -386,7 +386,8 @@ module.exports = {
       "appliance",
       "digital",
       "home",
-      "personal"
+      "personal",
+      "welfare"
     ],
     "featured": [
       {
