@@ -5,11 +5,11 @@ function createCatalogApi(performRequest, apiError) {
     if (input.category) parts.push('category=' + encodeURIComponent(input.category));
     if (typeof input.cursor === 'number') parts.push('cursor=' + input.cursor);
     parts.push('limit=' + (input.limit || 100));
-    return '/api/v1/products?' + parts.join('&');
+    return '/api/v1/catalog/public/products?' + parts.join('&');
   }
 
   function listProducts(options) {
-    return performRequest('GET', productPath(options));
+    return performRequest('GET', productPath(options), undefined, { auth: false });
   }
 
   function listAllProducts() {

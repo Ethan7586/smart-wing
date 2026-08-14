@@ -74,7 +74,7 @@ export const MallProvider: React.FC<MallProviderProps> = ({ children, showcaseSe
     const response = await productionApi.listAddresses();
     if (sessionGeneration === sessionGenerationRef.current) setAddresses(response.items);
   }, []);
-  const { refreshProductionData, cancelProductionSync } = useProductionSync(
+  const { refreshProductionData, refreshPublicCatalog, cancelProductionSync } = useProductionSync(
     {
       setProducts,
       setUser,
@@ -82,6 +82,10 @@ export const MallProvider: React.FC<MallProviderProps> = ({ children, showcaseSe
       setMalls,
       setOrders,
       setAccountLogs,
+      setCart,
+      setAddresses,
+      setFavorites,
+      setQuickViewProduct,
       setSessionStatus,
       setCatalogSyncStatus,
     },
@@ -116,7 +120,7 @@ export const MallProvider: React.FC<MallProviderProps> = ({ children, showcaseSe
     setUser(guestStorefrontProfile());
     setCurrentMall({ ...UNRESOLVED_MALL });
     setMalls([]);
-    setProducts([]);
+    void refreshPublicCatalog().catch(() => showToast('公开商品目录同步失败，请稍后重试', 'error'));
     setCart([]);
     setOrders([]);
   };
@@ -158,6 +162,7 @@ export const MallProvider: React.FC<MallProviderProps> = ({ children, showcaseSe
     } catch {
       showToast('页面已退出；服务器会话撤销失败，请刷新页面确认', 'warning');
     }
+    void refreshPublicCatalog().catch(() => showToast('公开商品目录同步失败，请稍后重试', 'error'));
   };
 
   const switchMall = (mallId: string) => {
@@ -186,6 +191,10 @@ export const MallProvider: React.FC<MallProviderProps> = ({ children, showcaseSe
       showToast('测试商品仅用于系统验证，不能加入购物车', 'warning');
       return;
     }
+    if (sessionStatus !== 'authenticated' && !showcaseService) {
+      showToast('商品可以直接浏览；登录后才能确认会员价与加入购物车', 'warning');
+      return;
+    }
     if (product.purchasable === false) {
       showToast(product.qualificationReason === 'PURCHASE_LIMIT_EXCEEDED' ? '已达到该商品的限购上限' : '当前资格或城市暂不能购买该商品', 'warning');
       return;
@@ -209,7 +218,7 @@ export const MallProvider: React.FC<MallProviderProps> = ({ children, showcaseSe
       showToast(`已将“${product.title.slice(0, 16)}...”加入展示购物车`, 'success');
       return;
     }
-    showToast('请先登录，商品与购物车仅接受生产数据库数据', 'warning');
+    showToast('请先登录后再加入购物车', 'warning');
   };
 
   const handleUpdateCartQuantity = (cartItemId: string, quantity: number) => {

@@ -1,5 +1,4 @@
 @import './category-content.wxss';
-@import './category-auth.wxss';
 
 /* Flexbox with explicit margins — flex gap is unreliable on older WeChat
    Android base libraries. Widths come from generated size-class tokens; calc()

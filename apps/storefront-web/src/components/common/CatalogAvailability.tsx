@@ -14,23 +14,16 @@ export function CatalogAvailability({ catalogSyncStatus, sessionStatus, productC
     return <CatalogState icon={<LoaderCircle className="h-10 w-10 animate-spin text-[var(--sw-brand)]" />} title="正在从商品数据库同步目录" message="同步完成前不展示本地缓存或演示商品。" tone="border-blue-200" />;
   }
   if (catalogSyncStatus === 'error') {
-    const message = sessionStatus === 'guest' ? '请先登录企业账号，再从数据库读取有权限购买的商品。' : '商品接口同步失败，请稍后刷新重试。';
+    const message = sessionStatus === 'guest' ? '公开商品接口同步失败，请稍后刷新重试。' : '会员商品资格同步失败，请稍后刷新重试。';
     return (
-      <CatalogState
-        icon={<AlertTriangle className="h-10 w-10 text-red-500" />}
-        title="真实商品目录尚未加载"
-        message={message}
-        note="为避免把演示数据误认为真实库存，主 Shop 已关闭演示目录回退。"
-        tone="border-red-200"
-        onRetry={sessionStatus === 'authenticated' ? onRetry : undefined}
-      />
+      <CatalogState icon={<AlertTriangle className="h-10 w-10 text-red-500" />} title="真实商品目录尚未加载" message={message} note="为避免把演示数据误认为真实库存，主 Shop 已关闭演示目录回退。" tone="border-red-200" onRetry={onRetry} />
     );
   }
   if (catalogSyncStatus === 'idle') {
-    return <CatalogState icon={<Database className="h-10 w-10 text-amber-500" />} title="商品数据库等待连接" message="请登录企业账号；主 Shop 不再从浏览器缓存或演示目录补商品。" tone="border-amber-200" />;
+    return <CatalogState icon={<Database className="h-10 w-10 text-amber-500" />} title="商品数据库等待连接" message="公开商品无需登录，正在等待主商城数据库响应。" tone="border-amber-200" />;
   }
   if (productCount === 0) {
-    return <CatalogState icon={<Database className="h-10 w-10 text-gray-400" />} title="数据库暂无可展示商品" message="当前企业与会员资格下没有已上架、可见的商品记录。" tone="border-gray-200" />;
+    return <CatalogState icon={<Database className="h-10 w-10 text-gray-400" />} title="数据库暂无可展示商品" message="当前商城没有已上架且允许公开浏览的商品记录。" tone="border-gray-200" />;
   }
   return null;
 }

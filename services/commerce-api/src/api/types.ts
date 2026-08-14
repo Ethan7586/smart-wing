@@ -6,6 +6,8 @@ export interface WorkerEnv {
   /** Provider region used only for health and operations reporting. */
   SUPABASE_REGION?: string;
   SUPABASE_SERVICE_ROLE_KEY?: string;
+  /** One server-selected public mall shared by Web and mini-program guests. */
+  PUBLIC_MALL_SLUG?: string;
   APP_ENV?: string;
   AUTH_MODE?: string;
   /** Public member registration is fail-closed in production unless enabled. */

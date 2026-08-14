@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import type { AccountLog, EnterpriseMall, Order, Product, UserProfile } from '../types';
+import type { AccountLog, CartItem, DeliveryAddress, EnterpriseMall, Order, Product, UserProfile } from '../types';
 import { productionApi, type ApiProduct } from '../services/productionApi';
 import { mapApiOrder, mapApiProduct } from './mallMappers';
 import type { CatalogSyncStatus, SessionStatus } from './MallContext.types';
 import { EMPTY_GUEST_PROFILE, UNRESOLVED_MALL } from './productionStorefrontState';
 import { mergeAuthenticatedMemberProfile } from './storefrontMemberProfile';
+import { createCatalogPublisher } from './catalogSync';
 
 interface ProductionSyncSetters {
   setProducts: Dispatch<SetStateAction<Product[]>>;
@@ -14,17 +15,23 @@ interface ProductionSyncSetters {
   setMalls: Dispatch<SetStateAction<EnterpriseMall[]>>;
   setOrders: Dispatch<SetStateAction<Order[]>>;
   setAccountLogs: Dispatch<SetStateAction<AccountLog[]>>;
+  setCart: Dispatch<SetStateAction<CartItem[]>>;
+  setAddresses: Dispatch<SetStateAction<DeliveryAddress[]>>;
+  setFavorites: Dispatch<SetStateAction<string[]>>;
+  setQuickViewProduct: Dispatch<SetStateAction<Product | null>>;
   setSessionStatus: Dispatch<SetStateAction<SessionStatus>>;
   setCatalogSyncStatus: Dispatch<SetStateAction<CatalogSyncStatus>>;
 }
 
-async function loadCompleteCatalog(): Promise<ApiProduct[]> {
+type CatalogPageLoader = typeof productionApi.listProducts;
+
+async function loadCompleteCatalog(loadPage: CatalogPageLoader): Promise<ApiProduct[]> {
   const items = new Map<string, ApiProduct>();
   let cursor: number | null = 0;
   let pageCount = 0;
 
   while (cursor !== null && pageCount < 60) {
-    const page = await productionApi.listProducts({
+    const page = await loadPage({
       cursor,
       limit: 100,
     });
@@ -39,35 +46,62 @@ async function loadCompleteCatalog(): Promise<ApiProduct[]> {
 export function useProductionSync(setters: ProductionSyncSetters, enabled = true) {
   const syncVersionRef = useRef(0);
 
-  const closeProductionData = () => {
-    setters.setProducts([]);
+  const closeMemberData = () => {
     setters.setUser({ ...EMPTY_GUEST_PROFILE });
     setters.setCurrentMall({ ...UNRESOLVED_MALL });
     setters.setMalls([]);
     setters.setOrders([]);
     setters.setAccountLogs([]);
+    setters.setCart([]);
+    setters.setAddresses([]);
+    setters.setFavorites([]);
+    setters.setQuickViewProduct(null);
+  };
+
+  const publishCatalog = (items: ApiProduct[]) => {
+    setters.setProducts(items.map(mapApiProduct));
+    setters.setCatalogSyncStatus('ready');
+  };
+
+  const refreshPublicCatalog = async () => {
+    const syncVersion = ++syncVersionRef.current;
+    setters.setProducts([]);
+    setters.setCatalogSyncStatus('syncing');
+    try {
+      const items = await loadCompleteCatalog(productionApi.listProducts);
+      if (syncVersion === syncVersionRef.current) publishCatalog(items);
+    } catch (error) {
+      if (syncVersion === syncVersionRef.current) setters.setCatalogSyncStatus('error');
+      throw error;
+    }
   };
 
   const refreshProductionData = async () => {
     if (!enabled) return;
     const syncVersion = ++syncVersionRef.current;
-    // Never retain a previous or local catalogue while a fresh production
-    // qualification snapshot is being resolved.
+    // Public products are available to every visitor. Authentication only
+    // upgrades this snapshot with member pricing and purchase qualification.
     setters.setProducts([]);
     setters.setCatalogSyncStatus('syncing');
-    const catalogRequest = loadCompleteCatalog();
+    const publisher = createCatalogPublisher(() => syncVersion === syncVersionRef.current, publishCatalog);
+    const publicCatalogRequest = loadCompleteCatalog(productionApi.listProducts);
+    void publicCatalogRequest.then(publisher.commitPublic).catch(() => undefined);
     let snapshot: Awaited<ReturnType<typeof productionApi.getHomeSnapshot>>;
     try {
       snapshot = await productionApi.getHomeSnapshot();
     } catch (error) {
-      void catalogRequest.catch(() => undefined);
       if (syncVersion !== syncVersionRef.current) return;
-      closeProductionData();
-      setters.setCatalogSyncStatus('error');
+      closeMemberData();
+      setters.setSessionStatus('guest');
+      try {
+        publisher.commitPublic(await publicCatalogRequest);
+      } catch {
+        if (syncVersion === syncVersionRef.current) setters.setCatalogSyncStatus('error');
+      }
       throw error;
     }
     if (syncVersion !== syncVersionRef.current) {
-      void catalogRequest.catch(() => undefined);
+      void publicCatalogRequest.catch(() => undefined);
       return;
     }
     const { bootstrap, accounts, orders: orderResult, accountLedgers: ledgerResult } = snapshot;
@@ -108,16 +142,14 @@ export function useProductionSync(setters: ProductionSyncSetters, enabled = true
     // interactive. The qualified catalog is heavier and can finish in the
     // background without hiding account actions such as logout.
     setters.setSessionStatus('authenticated');
-    void catalogRequest
-      .then((items) => {
-        if (syncVersion !== syncVersionRef.current) return;
-        setters.setProducts(items.map(mapApiProduct));
-        setters.setCatalogSyncStatus('ready');
-      })
-      .catch(() => {
-        if (syncVersion !== syncVersionRef.current) return;
-        setters.setProducts([]);
-        setters.setCatalogSyncStatus('error');
+    void loadCompleteCatalog(productionApi.listQualifiedProducts)
+      .then(publisher.commitQualified)
+      .catch(async () => {
+        try {
+          await publicCatalogRequest;
+        } catch {
+          if (syncVersion === syncVersionRef.current && !publisher.hasPublicFallback()) setters.setCatalogSyncStatus('error');
+        }
       });
   };
 
@@ -140,5 +172,5 @@ export function useProductionSync(setters: ProductionSyncSetters, enabled = true
     };
   }, [enabled]);
 
-  return { refreshProductionData, cancelProductionSync };
+  return { refreshProductionData, refreshPublicCatalog, cancelProductionSync };
 }
