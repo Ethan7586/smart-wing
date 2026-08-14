@@ -139,6 +139,8 @@ function miniExpectations() {
     ['--sw-tab-label-line-height', `calc(${wechat.tabLabelLineHeight}rpx * var(--sw-text-scale))`],
     ['--sw-product-columns', String(standard.productColumns)],
     ['--sw-product-width', `calc(100% / ${standard.productColumns} - 16rpx)`],
+    ['--sw-category-columns', String(standard.categoryColumns)],
+    ['--sw-category-width', `calc(100% / ${standard.categoryColumns} - 16rpx)`],
     ['--sw-partner-visible', String(standard.partnerVisible)],
     ['--sw-partner-width', `calc(100% / ${standard.partnerVisible} - 16rpx)`],
     ['--sw-shadow-card', shadow(tokens.elevation.card, 'rpx')],

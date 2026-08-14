@@ -124,6 +124,8 @@ page,
   /* size-class defaults — overridden by the .sz-* class on the page root */
   --sw-product-columns: 2;
   --sw-product-width: calc(100% / 2 - 16rpx);
+  --sw-category-columns: 3;
+  --sw-category-width: calc(100% / 3 - 16rpx);
   --sw-partner-visible: 5;
   --sw-partner-width: calc(100% / 5 - 16rpx);
 
@@ -152,6 +154,8 @@ page,
      the grid silently collapses to auto width. */
   --sw-product-columns: 2;
   --sw-product-width: calc(100% / 2 - 16rpx);
+  --sw-category-columns: 3;
+  --sw-category-width: calc(100% / 3 - 16rpx);
   --sw-partner-visible: 4.5;
   --sw-partner-width: calc(100% / 4.5 - 16rpx);
 }
@@ -166,6 +170,8 @@ page,
      the grid silently collapses to auto width. */
   --sw-product-columns: 2;
   --sw-product-width: calc(100% / 2 - 16rpx);
+  --sw-category-columns: 3;
+  --sw-category-width: calc(100% / 3 - 16rpx);
   --sw-partner-visible: 5;
   --sw-partner-width: calc(100% / 5 - 16rpx);
 }
@@ -180,6 +186,8 @@ page,
      the grid silently collapses to auto width. */
   --sw-product-columns: 2;
   --sw-product-width: calc(100% / 2 - 16rpx);
+  --sw-category-columns: 3;
+  --sw-category-width: calc(100% / 3 - 16rpx);
   --sw-partner-visible: 5.5;
   --sw-partner-width: calc(100% / 5.5 - 16rpx);
 }
@@ -194,6 +202,8 @@ page,
      the grid silently collapses to auto width. */
   --sw-product-columns: 3;
   --sw-product-width: calc(100% / 3 - 16rpx);
+  --sw-category-columns: 4;
+  --sw-category-width: calc(100% / 4 - 16rpx);
   --sw-partner-visible: 6.5;
   --sw-partner-width: calc(100% / 6.5 - 16rpx);
 }
@@ -207,6 +217,8 @@ page,
      the grid silently collapses to auto width. */
   --sw-product-columns: 3;
   --sw-product-width: calc(100% / 3 - 16rpx);
+  --sw-category-columns: 5;
+  --sw-category-width: calc(100% / 5 - 16rpx);
   --sw-partner-visible: 7.5;
   --sw-partner-width: calc(100% / 7.5 - 16rpx);
 }
@@ -220,6 +232,8 @@ page,
      the grid silently collapses to auto width. */
   --sw-product-columns: 4;
   --sw-product-width: calc(100% / 4 - 16rpx);
+  --sw-category-columns: 6;
+  --sw-category-width: calc(100% / 6 - 16rpx);
   --sw-partner-visible: 9;
   --sw-partner-width: calc(100% / 9 - 16rpx);
 }

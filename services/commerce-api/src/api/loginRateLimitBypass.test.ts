@@ -53,6 +53,8 @@ describe('login rate-limit test bypass', () => {
   });
 
   it('skips limiter storage but still rejects a bad password', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(ACTIVE_AT);
     const log = vi.spyOn(console, 'info').mockImplementation(() => undefined);
     const fetchRpc = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('bypass must not access limiter storage'));
     try {
@@ -78,6 +80,7 @@ describe('login rate-limit test bypass', () => {
     } finally {
       fetchRpc.mockRestore();
       log.mockRestore();
+      vi.useRealTimers();
     }
   });
 

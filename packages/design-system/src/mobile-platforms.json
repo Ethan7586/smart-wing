@@ -2,13 +2,7 @@
   "version": "1.0.0",
   "principle": "同一品牌、同一业务、平台原生",
   "shared": {
-    "navigation": [
-      "首页",
-      "分类",
-      "会员码",
-      "订单",
-      "我的"
-    ],
+    "navigation": ["首页", "分类", "会员码", "订单", "我的"],
     "pageHorizontalInset": 16,
     "cardRadius": 16,
     "wingCodeValidSeconds": 45,
@@ -20,12 +14,7 @@
     "pageHorizontalInset": 16,
     "wingCodeButtonSize": 56,
     "wingCodeProtrusion": 12,
-    "behavior": [
-      "尊重系统安全区",
-      "支持动态字体",
-      "保留系统返回手势",
-      "使用原生触感反馈"
-    ]
+    "behavior": ["尊重系统安全区", "支持动态字体", "保留系统返回手势", "使用原生触感反馈"]
   },
   "android": {
     "unit": "dp",
@@ -33,12 +22,7 @@
     "pageHorizontalInset": 16,
     "wingCodeButtonSize": 64,
     "wingCodeProtrusion": 16,
-    "behavior": [
-      "Material 3 触控节奏",
-      "系统返回与预测返回",
-      "edge-to-edge 安全区",
-      "使用系统触感反馈"
-    ]
+    "behavior": ["Material 3 触控节奏", "系统返回与预测返回", "edge-to-edge 安全区", "使用系统触感反馈"]
   },
   "wechatMiniProgram": {
     "unit": "rpx",
@@ -48,12 +32,7 @@
     "wingCodeProtrusion": 24,
     "tabLabelSize": 20,
     "tabLabelLineHeight": 28,
-    "behavior": [
-      "动态读取胶囊位置",
-      "自定义 tabBar",
-      "适配底部安全区",
-      "返回后台立即刷新会员码"
-    ],
+    "behavior": ["动态读取胶囊位置", "自定义 tabBar", "适配底部安全区", "返回后台立即刷新会员码"],
     "tabBarHeight": 136,
     "tabIconTop": 26,
     "tabLabelTop": 82,
@@ -79,7 +58,8 @@
       "note": "文字放大 12% 补偿窄屏；边距收窄让出内容宽度；标题降一级避免与胶囊抢位。",
       "spaceScale": 1,
       "contentMaxWidthPt": null,
-      "deviceKind": "phone"
+      "deviceKind": "phone",
+      "categoryColumns": 3
     },
     {
       "key": "standard",
@@ -97,7 +77,8 @@
       "note": "设计基线。750rpx = 375pt，所有令牌的原始换算档位。",
       "spaceScale": 1,
       "contentMaxWidthPt": null,
-      "deviceKind": "phone"
+      "deviceKind": "phone",
+      "categoryColumns": 3
     },
     {
       "key": "regular",
@@ -115,7 +96,8 @@
       "note": "文字缩 6%，抵消 rpx 在宽屏上的放大，同时多容纳内容。",
       "spaceScale": 1,
       "contentMaxWidthPt": null,
-      "deviceKind": "phone"
+      "deviceKind": "phone",
+      "categoryColumns": 3
     },
     {
       "key": "large",
@@ -133,7 +115,8 @@
       "note": "边距加宽避免内容摊平；推荐位改三列利用横向空间；文字缩 10% 保持物理尺寸。",
       "spaceScale": 1,
       "contentMaxWidthPt": null,
-      "deviceKind": "phone"
+      "deviceKind": "phone",
+      "categoryColumns": 4
     },
     {
       "key": "tablet",
@@ -152,7 +135,8 @@
       "segmentColumns": 2,
       "partnerVisible": 7.5,
       "navTitleStyle": "h2",
-      "note": "两个 scale 由 375/屏宽 在运行时算出，不是固定值。内容列封顶 600pt 居中，两侧留白是有意的，不是没适配。"
+      "note": "两个 scale 由 375/屏宽 在运行时算出，不是固定值。内容列封顶 600pt 居中，两侧留白是有意的，不是没适配。",
+      "categoryColumns": 5
     },
     {
       "key": "tabletWide",
@@ -171,7 +155,8 @@
       "segmentColumns": 2,
       "partnerVisible": 9,
       "navTitleStyle": "h2",
-      "note": "内容列封顶 720pt。底栏同样收窄到内容列宽度并居中，否则五个图标会散在一整条 1024pt 上。"
+      "note": "内容列封顶 720pt。底栏同样收窄到内容列宽度并居中，否则五个图标会散在一整条 1024pt 上。",
+      "categoryColumns": 6
     }
   ],
   "overflowRules": [

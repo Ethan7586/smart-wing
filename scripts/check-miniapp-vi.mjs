@@ -20,7 +20,7 @@ import { execFileSync } from 'node:child_process';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const MP = join(ROOT, 'apps/wechat-miniapp/miniprogram');
-const GENERATED = ['styles/tokens.wxss', 'styles/icons.wxss', 'data/assets.generated.js'];
+const GENERATED = ['styles/tokens.wxss', 'styles/icons.wxss', 'data/assets.generated.js', 'data/catalog-taxonomy.generated.js'];
 const TEXT_EXTENSIONS = new Set(['js', 'json', 'wxml', 'wxss']);
 
 const tokens = JSON.parse(readFileSync(join(ROOT, 'packages/design-system/src/tokens.json'), 'utf8'));

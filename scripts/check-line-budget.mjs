@@ -12,6 +12,7 @@ const GENERATED_OR_IMMUTABLE = [
   /^database\/supabase\/migrations\/.+\.sql$/,
   /^database\/supabase\/\.temp\//,
   /^apps\/wechat-miniapp\/miniprogram\/styles\/(tokens|icons)\.wxss$/,
+  /^apps\/wechat-miniapp\/miniprogram\/data\/catalog-taxonomy\.generated\.js$/,
   /^scripts\/vi-baseline\.json$/,
 ];
 const IMPORTED_ADMIN_LEGACY = new Set([
@@ -36,6 +37,9 @@ const EXISTING_OVERSIZED = new Set([
   'services/commerce-api/src/api/publicRoutes.ts',
   'docs/SMART-WING-MALL-MASTER-CHARTER.md',
   'apps/wechat-miniapp/00-新任务从这里开始/10-小程序开发完全说明.md',
+  'apps/wechat-miniapp/miniprogram/pages/home/home-commerce.wxss',
+  'docs/VI-CONVERGENCE-EXECUTION-PLAN.md',
+  'scripts/build-miniapp-assets.mjs',
 ]);
 
 function normalized(path) {
