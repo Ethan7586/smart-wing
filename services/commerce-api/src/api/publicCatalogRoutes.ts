@@ -146,6 +146,7 @@ function reportRefreshFailure(error: unknown): void {
  * the authenticated /products endpoint and are never inferred here.
  */
 export async function handlePublicCatalog(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
+  const startedAt = Date.now();
   if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
   const url = new URL(request.url);
   const mallSlug = env.PUBLIC_MALL_SLUG?.trim() || DEFAULT_PUBLIC_MALL_SLUG;
@@ -199,7 +200,7 @@ export async function handlePublicCatalog(request: Request, env: WorkerEnv, requ
     generatedAt: catalog.projection.generatedAt,
   };
   if (etagMatches(request.headers.get('if-none-match'), etag)) {
-    return catalogResponseHeaders(new Response(null, { status: 304 }), catalog, etag, catalogVersion);
+    return catalogResponseHeaders(new Response(null, { status: 304 }), catalog, etag, catalogVersion, Date.now() - startedAt);
   }
   const response = json({
     items,
@@ -212,15 +213,16 @@ export async function handlePublicCatalog(request: Request, env: WorkerEnv, requ
     },
     requestId,
   });
-  return catalogResponseHeaders(response, catalog, etag, catalogVersion);
+  return catalogResponseHeaders(response, catalog, etag, catalogVersion, Date.now() - startedAt);
 }
 
-function catalogResponseHeaders(response: Response, catalog: CatalogResult, etag: string, catalogVersion: string): Response {
+function catalogResponseHeaders(response: Response, catalog: CatalogResult, etag: string, catalogVersion: string, durationMs: number): Response {
   response.headers.set('cache-control', 'public, max-age=60, stale-while-revalidate=300');
   response.headers.set('etag', etag);
   response.headers.set('x-sw-catalog-version', catalogVersion);
   response.headers.set('x-sw-catalog-cache', catalog.hit ? 'hit' : 'miss');
   response.headers.set('x-sw-catalog-cache-tier', catalog.tier);
+  response.headers.set('server-timing', `catalog;dur=${Math.max(0, durationMs)}`);
   return response;
 }
 

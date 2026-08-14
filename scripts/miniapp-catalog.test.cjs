@@ -157,23 +157,19 @@ test('catalog API fetches one 200-item window and persists at most 200 products'
   assert.equal(api.readCachedProducts('food').items.length, 100);
 });
 
-test('expired mini-program cache remains immediately readable while the page revalidates', async () => {
-  const storage = {};
+test('expired critical cache remains immediately readable while the page revalidates', () => {
+  const storage = {
+    'sw-public-catalog-critical-v1:all': {
+      version: 4,
+      storedAt: 0,
+      items: [{ id: 'cached', taxonomy: { l1: 'food' } }],
+      complete: false,
+      source: 'storage-critical',
+    },
+  };
   const api = freshApi({
     getStorageSync: (key) => storage[key] || '',
-    setStorageSync: (key, value) => {
-      storage[key] = value;
-    },
-    request(options) {
-      options.success({
-        statusCode: 200,
-        data: { items: [{ id: 'cached', taxonomy: { l1: 'food' } }], pagination: { nextCursor: null }, requestId: 'cache-seed' },
-      });
-    },
   });
-  await api.listProducts({ cursor: 0, limit: 200 });
-  const key = Object.keys(storage).find((name) => name.includes('public-catalog-window'));
-  storage[key].storedAt = 0;
   const cached = api.readCachedProducts('food');
   assert.equal(cached.items[0].id, 'cached');
   assert.equal(cached.cache.stale, true);
@@ -192,7 +188,7 @@ test('a fresh install loads products without creating a WeChat session', async (
   const response = await api.listProducts({ cursor: 0, limit: 200 });
   assert.equal(response.items.length, 1);
   assert.equal(calls.length, 1);
-  assert.ok(calls[0].url.includes('/api/v1/catalog/public/products?'));
+  assert.equal(calls[0].url, 'https://img.hbbtzn.com/catalog/public/v1/latest.json');
   assert.equal(calls[0].header.authorization, undefined);
 });
 
@@ -208,7 +204,47 @@ test('an unbound WeChat identity is irrelevant to public product browsing', asyn
   const response = await api.listProducts({ cursor: 0, limit: 200 });
   assert.equal(response.items[0].id, 'public-one');
   assert.equal(calls.length, 1);
-  assert.ok(calls[0].url.includes('/api/v1/catalog/public/products?'));
+  assert.equal(calls[0].url, 'https://img.hbbtzn.com/catalog/public/v1/latest.json');
+});
+
+test('a CDN miss falls back to the public Commerce API', async () => {
+  const calls = [];
+  const api = freshApi({
+    getStorageSync: () => '',
+    request(options) {
+      calls.push(options.url);
+      if (calls.length === 1) options.fail({ errMsg: 'request:fail timeout' });
+      else options.success({ statusCode: 200, data: { items: [{ id: 'origin' }], pagination: { nextCursor: null } } });
+      return { abort() {} };
+    },
+  });
+  const response = await api.listProducts({ cursor: 0, limit: 200 });
+  assert.equal(response.items[0].id, 'origin');
+  assert.equal(calls[0], 'https://img.hbbtzn.com/catalog/public/v1/latest.json');
+  assert.match(calls[1], /https:\/\/hbbtzn\.com\/api\/v1\/catalog\/public\/products\?/);
+});
+
+test('a complete catalog uses ETag and reuses cached data on 304', async () => {
+  const calls = [];
+  const api = freshApi({
+    getStorageSync: () => '',
+    setStorage() {},
+    request(options) {
+      calls.push(options);
+      if (calls.length === 1) {
+        options.success({
+          statusCode: 200,
+          header: { ETag: '"catalog.version-one"' },
+          data: { items: [{ id: 'etag-product' }], pagination: { nextCursor: null } },
+        });
+      } else options.success({ statusCode: 304, header: { ETag: '"catalog.version-one"' } });
+      return { abort() {} };
+    },
+  });
+  await api.listProducts({ cursor: 0, limit: 200 });
+  const cached = await api.listProducts({ cursor: 0, limit: 200 });
+  assert.equal(cached.items[0].id, 'etag-product');
+  assert.equal(calls[1].header['if-none-match'], '"catalog.version-one"');
 });
 
 test('an in-flight catalog sync can be aborted on reload or page unload', async () => {

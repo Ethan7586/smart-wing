@@ -105,7 +105,9 @@ function networkError(error) {
 function performRequest(method, path, data, options) {
   var settings = options || {};
   var token = settings.auth === false ? '' : accessToken();
-  if (!BASE_URL || (settings.auth !== false && !token)) return notWired(path);
+  var isAbsoluteUrl = /^https:\/\//i.test(path);
+  if ((!BASE_URL && !isAbsoluteUrl) || (settings.auth !== false && !token)) return notWired(path);
+  var requestUrl = isAbsoluteUrl ? path : BASE_URL + path;
   var task = null;
   var promise = new Promise(function (resolve, reject) {
     var headers = {
@@ -117,13 +119,14 @@ function performRequest(method, path, data, options) {
       headers[key] = settings.headers[key];
     });
     task = wx.request({
-      url: BASE_URL + path,
+      url: requestUrl,
       method: method,
       data: data,
       timeout: settings.timeout || REQUEST_TIMEOUT_MS,
       header: headers,
       success: function (response) {
-        if (response.statusCode >= 200 && response.statusCode < 300) resolve(response.data);
+        if (settings.allowNotModified && response.statusCode === 304) resolve(settings.rawResponse ? response : response.data);
+        else if (response.statusCode >= 200 && response.statusCode < 300) resolve(settings.rawResponse ? response : response.data);
         else reject(responseError(response, path));
       },
       fail: function (error) {
@@ -241,6 +244,7 @@ module.exports = Object.assign(
     },
     listProducts: catalogApi.listProducts,
     readCachedProducts: catalogApi.readCachedProducts,
+    hydrateBundledCatalog: catalogApi.hydrateBundledCatalog,
     catalogCacheLimit: catalogApi.cacheLimit,
     getCart: function () {
       return performRequest('GET', '/api/v1/cart');

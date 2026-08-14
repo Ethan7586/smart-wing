@@ -1,17 +1,10 @@
-var CACHE_KEY = 'sw-public-catalog-window-v3';
-var CACHE_VERSION = 3;
-var CACHE_LIMIT = 200;
-var CACHE_TTL_MS = 15 * 60 * 1000;
-var bundledSeed = require('../data/catalog-seed.generated');
+var cacheModule = require('./catalogCache');
+var CACHE_LIMIT = cacheModule.cacheLimit;
+var CDN_CATALOG_URL = 'https://img.hbbtzn.com/catalog/public/v1/latest.json';
 
 function createCatalogApi(performRequest, apiError, storage) {
-  var storageApi = storage || {};
-  var memoryCache = {};
+  var cache = cacheModule.createCatalogCache(storage);
   var activeRequests = {};
-
-  function storageKey(category) {
-    return CACHE_KEY + ':' + (category || 'all');
-  }
 
   function productPath(options) {
     var input = options || {};
@@ -20,111 +13,6 @@ function createCatalogApi(performRequest, apiError, storage) {
     if (typeof input.cursor === 'number') parts.push('cursor=' + input.cursor);
     parts.push('limit=' + Math.min(Math.max(Number(input.limit) || CACHE_LIMIT, 1), CACHE_LIMIT));
     return '/api/v1/catalog/public/products?' + parts.join('&');
-  }
-
-  function productCategory(product) {
-    return (product && product.taxonomy && product.taxonomy.l1) || (product && product.categoryCode) || '';
-  }
-
-  function cacheItems(items) {
-    return (Array.isArray(items) ? items : []).slice(0, CACHE_LIMIT).map(function (item) {
-      return {
-        id: item.id,
-        skuId: item.skuId,
-        name: item.name,
-        subtitle: item.subtitle,
-        categoryCode: item.categoryCode,
-        taxonomy: item.taxonomy,
-        coverUrl: item.coverUrl,
-        priceCents: item.priceCents,
-        marketPriceCents: item.marketPriceCents,
-        availableStock: item.availableStock,
-        supplierName: item.supplierName,
-        isTest: item.isTest,
-        purchasable: item.purchasable,
-      };
-    });
-  }
-
-  function normalizeItems(items) {
-    return (Array.isArray(items) ? items : []).slice(0, CACHE_LIMIT).map(function (item) {
-      return Object.assign({}, item);
-    });
-  }
-
-  function writeCache(response, category) {
-    if (!response || !Array.isArray(response.items)) return;
-    var key = storageKey(category);
-    var envelope = {
-      version: CACHE_VERSION,
-      storedAt: Date.now(),
-      category: category || '',
-      items: cacheItems(response.items),
-      requestId: response.requestId || '',
-    };
-    memoryCache[key] = envelope;
-    if (typeof storageApi.setStorage === 'function') {
-      storageApi.setStorage({ key: key, data: envelope, fail: function () {} });
-      return;
-    }
-    if (typeof storageApi.setStorageSync !== 'function') return;
-    try {
-      storageApi.setStorageSync(key, envelope);
-    } catch (_error) {
-      // Storage pressure must not turn a successful network request into a failure.
-    }
-  }
-
-  function readCachedProducts(category) {
-    try {
-      var key = storageKey(category);
-      var envelope = memoryCache[key];
-      if (!envelope && typeof storageApi.getStorageSync === 'function') {
-        envelope = storageApi.getStorageSync(key);
-        if (envelope) memoryCache[key] = envelope;
-      }
-      if ((!envelope || envelope.version !== CACHE_VERSION) && category) {
-        key = storageKey('');
-        envelope = memoryCache[key];
-        if (!envelope && typeof storageApi.getStorageSync === 'function') {
-          envelope = storageApi.getStorageSync(key);
-          if (envelope) memoryCache[key] = envelope;
-        }
-      }
-      if ((!envelope || envelope.version !== CACHE_VERSION) && bundledSeed && bundledSeed.version === 1 && Array.isArray(bundledSeed.items)) {
-        key = storageKey('');
-        envelope = {
-          version: CACHE_VERSION,
-          storedAt: Date.parse(bundledSeed.generatedAt) || 0,
-          category: '',
-          items: cacheItems(bundledSeed.items),
-          requestId: 'bundled-catalog-seed',
-          source: 'bundle',
-        };
-        memoryCache[key] = envelope;
-      }
-      if (!envelope || envelope.version !== CACHE_VERSION || !Array.isArray(envelope.items)) return null;
-      var items = envelope.items.slice(0, CACHE_LIMIT);
-      if (category) {
-        items = items.filter(function (product) {
-          return productCategory(product) === category;
-        });
-      }
-      if (!items.length) return null;
-      return {
-        items: items,
-        requestId: envelope.requestId || 'miniapp-cache',
-        pagination: { cursor: 0, nextCursor: null, limit: CACHE_LIMIT },
-        cache: {
-          hit: true,
-          stale: Date.now() - Number(envelope.storedAt || 0) > CACHE_TTL_MS,
-          storedAt: Number(envelope.storedAt || 0),
-          source: envelope.source || 'storage',
-        },
-      };
-    } catch (_error) {
-      return null;
-    }
   }
 
   function subscribe(key, createRequest) {
@@ -170,29 +58,70 @@ function createCatalogApi(performRequest, apiError, storage) {
     return consumer;
   }
 
+  function responseEtag(result, body) {
+    var headers = (result && result.header) || {};
+    var header = headers.etag || headers.ETag || '';
+    if (header) return header;
+    var version = body && body.mirror && body.mirror.catalogVersion;
+    return version ? '"' + version + '"' : '';
+  }
+
+  function fetchCatalog(url, cached, timeout) {
+    var headers = {};
+    if (cached && cached.cache && cached.cache.complete && cached.cache.etag) headers['if-none-match'] = cached.cache.etag;
+    return performRequest('GET', url, undefined, {
+      auth: false,
+      allowNotModified: true,
+      rawResponse: true,
+      timeout: timeout,
+      headers: headers,
+    });
+  }
+
   function listProducts(options) {
     var input = options || {};
     var path = productPath(input);
     return subscribe(path, function () {
-      var request = performRequest('GET', path, undefined, { auth: false });
-      var promise = request.then(function (response) {
+      var cached = cache.read(input.category);
+      var active = null;
+      var cancelled = false;
+      var useCdn = !input.category && Number(input.cursor || 0) === 0 && Number(input.limit || CACHE_LIMIT) === CACHE_LIMIT;
+      function run(url, timeout) {
+        if (cancelled) return Promise.reject(apiError('REQUEST_ABORTED', '请求已取消'));
+        active = fetchCatalog(url, cached, timeout);
+        return active;
+      }
+      var network = useCdn
+        ? run(CDN_CATALOG_URL, 1500).catch(function () {
+            return run(path, 10000);
+          })
+        : run(path, 10000);
+      var request = network.then(function (result) {
+        if (result.statusCode === 304 && cached) return cached;
+        var response = result.data;
         if (!response || !Array.isArray(response.items) || !response.pagination) {
           return Promise.reject(apiError('INVALID_CATALOG_RESPONSE', '商品目录返回格式异常'));
         }
-        var bounded = Object.assign({}, response, {
-          items: normalizeItems(response.items),
-        });
-        if (!input.cursor) writeCache(bounded, input.category);
+        var bounded = Object.assign({}, response, { items: cacheModule.cacheItems(response.items) });
+        if (!input.cursor) cache.write(bounded, input.category, responseEtag(result, response));
         return bounded;
       });
-      promise.abort = function () {
-        if (request && typeof request.abort === 'function') request.abort();
+      request.abort = function () {
+        cancelled = true;
+        if (active && typeof active.abort === 'function') active.abort();
       };
-      return promise;
+      return request;
     });
   }
 
-  return { listProducts: listProducts, readCachedProducts: readCachedProducts, cacheLimit: CACHE_LIMIT };
+  return {
+    listProducts: listProducts,
+    readCachedProducts: cache.read,
+    hydrateBundledCatalog: cache.hydrate,
+    cacheLimit: CACHE_LIMIT,
+    criticalLimit: cacheModule.criticalLimit,
+    cdnCatalogUrl: CDN_CATALOG_URL,
+  };
 }
 
 module.exports = { createCatalogApi: createCatalogApi };

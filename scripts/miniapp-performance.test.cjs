@@ -6,6 +6,7 @@ const test = require('node:test');
 const root = path.join(__dirname, '..');
 const apiPath = path.join(root, 'apps/wechat-miniapp/miniprogram/utils/api.js');
 const seedPath = path.join(root, 'apps/wechat-miniapp/miniprogram/data/catalog-seed.generated.js');
+const criticalSeedPath = path.join(root, 'apps/wechat-miniapp/miniprogram/data/catalog-seed-critical.generated.js');
 const appPath = path.join(root, 'apps/wechat-miniapp/miniprogram/app.js');
 
 function loadMiniModule(file, globals = {}) {
@@ -48,24 +49,31 @@ test('parallel consumers share one catalog request and one cache projection', as
   assert.equal(two.items[0].id, 'shared');
 });
 
-test('a fresh install has a complete generated catalog before the network responds', () => {
+test('a fresh install paints a small critical catalog, then hydrates the complete window', async () => {
   const seed = loadMiniModule(seedPath);
+  const criticalSeed = loadMiniModule(criticalSeedPath);
   const api = freshApi({ getStorageSync: () => '' });
   const cached = api.readCachedProducts();
   assert.equal(seed.items.length, 200);
-  assert.equal(cached.items.length, 200);
-  assert.equal(cached.cache.source, 'bundle');
+  assert.equal(criticalSeed.items.length, 24);
+  assert.deepEqual([...new Set(criticalSeed.items.map((item) => item.taxonomy.l1))].sort(), ['appliance', 'digital', 'food', 'home', 'personal', 'welfare']);
+  assert.equal(cached.items.length, 24);
+  assert.equal(cached.cache.source, 'bundle-critical');
+  assert.equal(cached.cache.complete, false);
+  const hydrated = await api.hydrateBundledCatalog();
+  assert.equal(hydrated.items.length, 200);
+  assert.equal(hydrated.cache.complete, true);
 });
 
 test('large catalog cache writes asynchronously and remains immediately readable from memory', async () => {
-  let asyncWrite = null;
+  const asyncWrites = [];
   const api = freshApi({
     getStorageSync: () => '',
     setStorageSync() {
       throw new Error('synchronous storage must not run when async storage is available');
     },
     setStorage(options) {
-      asyncWrite = options;
+      asyncWrites.push(options);
     },
     request(options) {
       options.success({
@@ -75,8 +83,19 @@ test('large catalog cache writes asynchronously and remains immediately readable
     },
   });
   await api.listProducts({ cursor: 0, limit: 200 });
-  assert.ok(asyncWrite && asyncWrite.key.includes('public-catalog-window'));
+  assert.ok(asyncWrites.some((write) => write.key.includes('public-catalog-window')));
   assert.equal(api.readCachedProducts().items[0].id, 'instant');
+});
+
+test('cold-path package budgets keep synchronous catalog work small', () => {
+  const criticalBytes = fs.statSync(criticalSeedPath).size;
+  const completeBytes = fs.statSync(seedPath).size;
+  const miniRoot = path.join(root, 'apps/wechat-miniapp/miniprogram');
+  const files = fs.readdirSync(miniRoot, { recursive: true, withFileTypes: true });
+  const totalBytes = files.filter((entry) => entry.isFile()).reduce((total, entry) => total + fs.statSync(path.join(entry.parentPath, entry.name)).size, 0);
+  assert.ok(criticalBytes < 20_000, `critical catalog is ${criticalBytes} bytes`);
+  assert.ok(completeBytes < 150_000, `complete catalog is ${completeBytes} bytes`);
+  assert.ok(totalBytes < 500_000, `main package is ${totalBytes} bytes`);
 });
 
 test('the mini-program preserves the server-selected shared media URL', async () => {

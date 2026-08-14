@@ -54,6 +54,13 @@ catalog/products/{productId}/{sourceVersion}/cover-{width}.webp
 
 这是“两阶段发布”：先上传不可变对象，后发布数据库引用。任何单张上传失败都不会把数据库指向半套资源；数据库更新中断时重复运行可安全恢复。
 
+图片完成后执行 `npm run publish:catalog-manifest`。它把同一批公开商品写成两类对象：
+
+- `catalog/public/v1/catalog.{contentHash}.json`：一年不可变缓存；
+- `catalog/public/v1/latest.json`：60 秒缓存、允许 300 秒陈旧响应。
+
+发布顺序固定为“不可变版本先、latest 指针后”。因此任意时刻 `latest` 都不会指向不存在的版本；客户端 CDN 失败时自动回源 `hbbtzn.com`。
+
 运行环境：
 
 ```ini
@@ -74,6 +81,8 @@ CATALOG_MEDIA_DEFAULT_WIDTH=640
 npm run test:catalog-media-cache
 npm run sync:catalog-media -- --dry-run --limit 3
 npm run sync:catalog-media -- --limit 200 --concurrency 4
+npm run test:catalog-manifest
+npm run publish:catalog-manifest
 ```
 
 `--width 640` 仍兼容旧单尺寸任务；正式任务不使用它。
@@ -103,6 +112,8 @@ npm run sync:catalog-media -- --limit 200 --concurrency 4
 ```text
 https://img.hbbtzn.com
 ```
+
+由于公开目录 JSON 也从该域名读取，`request 合法域名` 同样必须包含 `https://img.hbbtzn.com`。这与图片下载白名单是两项独立配置。
 
 ## 7. 全球成熟做法对应关系
 

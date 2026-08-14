@@ -30,6 +30,11 @@ function decorateProducts(list) {
   });
 }
 
+function afterFirstPaint(callback) {
+  if (typeof wx.nextTick === 'function') wx.nextTick(callback);
+  else setTimeout(callback, 0);
+}
+
 Page({
   data: {
     nav: { statusBarHeight: 0, navContentHeight: 0, navTotalHeight: 0, rightInset: 0 },
@@ -92,10 +97,23 @@ Page({
     if (cachedCatalog) this.applySnapshot(cachedHome && cachedHome.data, cachedCatalog.items);
     else this.setData({ loading: true, loadError: null });
 
-    var needsCatalog = !cachedCatalog || cachedCatalog.cache.stale;
+    afterFirstPaint(function () {
+      self.refreshHome(cachedHome, cachedCatalog);
+    });
+    return Promise.resolve(true);
+  },
+
+  refreshHome: function (cachedHome, cachedCatalog) {
+    var self = this;
+    var catalogRequest = Promise.resolve(cachedCatalog);
+    if (!cachedCatalog || !cachedCatalog.cache.complete) catalogRequest = api.hydrateBundledCatalog();
+    catalogRequest = catalogRequest.then(function (localCatalog) {
+      if (!localCatalog || (localCatalog.cache && localCatalog.cache.stale)) {
+        return api.listProducts({ cursor: 0, limit: 200 });
+      }
+      return localCatalog;
+    });
     var needsMember = !cachedHome || cachedHome.stale;
-    if (!needsCatalog && !needsMember) return Promise.resolve(true);
-    var catalogRequest = needsCatalog ? api.listProducts({ cursor: 0, limit: 200 }) : Promise.resolve(null);
     var memberRequest = needsMember ? api.getHomeSnapshot() : Promise.resolve(null);
     return Promise.all([
       catalogRequest.catch(function (error) {

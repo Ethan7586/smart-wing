@@ -16,6 +16,11 @@ function syncCopy(error) {
   return { state: 'error', message: (error && error.message) || '商品同步失败，已保留分类结构', retryable: true };
 }
 
+function afterFirstPaint(callback) {
+  if (typeof wx.nextTick === 'function') wx.nextTick(callback);
+  else setTimeout(callback, 0);
+}
+
 Page({
   data: {
     nav: { statusBarHeight: 0, navContentHeight: 0, navTotalHeight: 0, rightInset: 0 },
@@ -82,8 +87,11 @@ Page({
       var cachedProducts = cached ? catalog.itemsFromResponse(cached) : [];
       self.applySnapshot(catalog.createSnapshot(cachedProducts), false);
       if (cached) {
-        self.applySync({ state: 'live', message: '主商城公开商品已缓存 · ' + cachedProducts.length + ' 件可立即浏览', retryable: false });
-        if (!cached.cache.stale) return Promise.resolve(true);
+        self.applySync({ state: 'live', message: '关键商品已就绪 · ' + cachedProducts.length + ' 件立即可见', retryable: false });
+        afterFirstPaint(function () {
+          self.hydrateCatalog(version);
+        });
+        return Promise.resolve(true);
       }
       return self.refreshCatalog(version);
     } catch (error) {
@@ -91,6 +99,24 @@ Page({
       self.setData({ loading: false, loadError: (error && error.message) || '分类结构加载失败，请重试' });
       return Promise.resolve(false);
     }
+  },
+
+  hydrateCatalog: function (version) {
+    var self = this;
+    return api
+      .hydrateBundledCatalog()
+      .then(function (hydrated) {
+        if (version !== self._loadVersion || !hydrated) return false;
+        var products = catalog.itemsFromResponse(hydrated);
+        self.applySnapshot(catalog.createSnapshot(products), true);
+        self.applySync({ state: 'live', message: '完整目录已就绪 · ' + products.length + ' 件已缓存', retryable: false });
+        if (hydrated.cache && hydrated.cache.stale) return self.refreshCatalog(version);
+        return true;
+      })
+      .catch(function (error) {
+        if (version === self._loadVersion) self.applySync(syncCopy(error));
+        return false;
+      });
   },
 
   refreshCatalog: function (version) {

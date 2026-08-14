@@ -105,6 +105,7 @@ describe('public catalog', () => {
     expect(first.headers.get('x-sw-catalog-cache')).toBe('miss');
     expect(second.headers.get('x-sw-catalog-cache')).toBe('hit');
     expect(second.headers.get('cache-control')).toContain('max-age=60');
+    expect(second.headers.get('server-timing')).toMatch(/^catalog;dur=\d+$/);
     await expect(first.json()).resolves.toMatchObject({ items: { length: 150 }, pagination: { cursor: 0, nextCursor: null, limit: 200 } });
     const firstRequest = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
     const secondRequest = JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body));

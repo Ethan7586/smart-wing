@@ -16,6 +16,11 @@ function presentProduct(product) {
   });
 }
 
+function afterFirstPaint(callback) {
+  if (typeof wx.nextTick === 'function') wx.nextTick(callback);
+  else setTimeout(callback, 0);
+}
+
 Page({
   data: {
     nav: {},
@@ -47,11 +52,36 @@ Page({
     var cached = api.readCachedProducts(this.data.category);
     if (cached) {
       this.applyWindow(cached.items, true);
-      this.setData({ cacheText: '已从本地缓存准备 ' + cached.items.length + ' 件商品' });
-      if (cached.cache.stale) this.refreshWindow(false);
+      this.setData({ cacheText: '关键商品已就绪 · ' + cached.items.length + ' 件立即可见' });
+      afterFirstPaint(
+        function () {
+          this.hydrateWindow();
+        }.bind(this)
+      );
     } else {
       this.refreshWindow(true);
     }
+  },
+
+  hydrateWindow: function () {
+    var self = this;
+    return api
+      .hydrateBundledCatalog()
+      .then(function (hydrated) {
+        if (!hydrated) return false;
+        var items = self.data.category
+          ? hydrated.items.filter(function (product) {
+              return product.taxonomy && product.taxonomy.l1 === self.data.category;
+            })
+          : hydrated.items;
+        self.applyWindow(items, true);
+        self.setData({ cacheText: '完整目录已就绪 · ' + items.length + ' 件已缓存' });
+        if (hydrated.cache && hydrated.cache.stale) return self.refreshWindow(false);
+        return true;
+      })
+      .catch(function () {
+        return self.refreshWindow(false);
+      });
   },
 
   onResize: function () {
