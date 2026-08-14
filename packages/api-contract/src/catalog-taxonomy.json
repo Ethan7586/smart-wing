@@ -124,7 +124,7 @@
     { "code": "welfare_review_unclassified", "nameZh": "待审核商品", "l1": "welfare", "l2": "welfare_review" }
   ],
   "mobileBrowse": {
-    "rail": ["food", "appliance", "digital", "home", "personal"],
+    "rail": ["food", "appliance", "digital", "home", "personal", "welfare"],
     "featured": [
       { "code": "featured_snack", "nameZh": "休闲零食", "matchCodes": ["food_snack_nuts"] },
       { "code": "featured_grain", "nameZh": "粮油调味", "matchCodes": ["food_grain_rice", "food_grain_oil"] },

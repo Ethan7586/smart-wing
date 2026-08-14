@@ -94,7 +94,7 @@ Page({
     var activeVersion = typeof version === 'number' ? version : (this._loadVersion || 0) + 1;
     this._loadVersion = activeVersion;
     this.applySync({ state: 'syncing', message: '正在同步主商城公开商品', retryable: false });
-    this._catalogRequest = api.listAllProducts();
+    this._catalogRequest = api.listProducts({ cursor: 0, limit: 100 });
     return this._catalogRequest
       .then(function (response) {
         if (activeVersion !== self._loadVersion) return false;
@@ -102,7 +102,7 @@ Page({
         self.applySnapshot(catalog.createSnapshot(products), true);
         self.applySync({
           state: products.length ? 'live' : 'empty',
-          message: products.length ? '主商城已同步 · ' + products.length + ' 件公开商品' : '主商城当前暂无公开商品',
+          message: products.length ? '主商城公开商品已连接 · 首批 ' + products.length + ' 件已载入' : '主商城当前暂无公开商品',
           retryable: products.length === 0,
         });
         return true;
@@ -147,6 +147,17 @@ Page({
     if (this._tilesByKey[this.data.railKey] && this._tilesByKey[this.data.railKey][index]) {
       this._tilesByKey[this.data.railKey][index].image = null;
     }
+  },
+
+  onOpenProducts: function (event) {
+    var item = event.currentTarget.dataset.item;
+    if (!item || !item.productCount) {
+      wx.showToast({ title: '当前分类暂无公开商品', icon: 'none' });
+      return;
+    }
+    var title = encodeURIComponent(item.label || '公开商品');
+    var category = encodeURIComponent(this.data.railKey === 'featured' ? '' : this.data.railKey);
+    wx.navigateTo({ url: '/pages/products/products?title=' + title + '&category=' + category });
   },
 
   onRetry: function () {
