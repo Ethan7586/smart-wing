@@ -39,12 +39,9 @@ async function queryCatalogRows(env: WorkerEnv, mallSlug: string, category: stri
   const rows: PublicCatalogRow[] = [];
   while (rows.length < limit) {
     const pageLimit = Math.min(CATALOG_RPC_PAGE_SIZE, limit - rows.length);
-    const page = await callRpc<PublicCatalogRow[]>(env, 'api_catalog', {
-      p_mall_slug: mallSlug,
-      p_category: category,
-      p_limit: pageLimit,
-      p_offset: cursor + rows.length,
-    });
+    const rpcName = category ? 'api_catalog' : 'api_public_catalog_window';
+    const args = category ? { p_mall_slug: mallSlug, p_category: category, p_limit: pageLimit, p_offset: cursor + rows.length } : { p_mall_slug: mallSlug, p_limit: pageLimit, p_offset: cursor + rows.length };
+    const page = await callRpc<PublicCatalogRow[]>(env, rpcName, args);
     rows.push(...page);
     if (page.length < pageLimit) break;
   }
