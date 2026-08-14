@@ -4,19 +4,54 @@ var runtimeCacheFactory = require('./runtimeCache').createRuntimeCache;
 function createMemberApi(dependencies) {
   var deps = dependencies || {};
   var runtimeCache = runtimeCacheFactory(deps.storage);
+  var activeHomeRequest = null;
+  var activeOrdersRequest = null;
+
+  function singleFlight(current, create, clear) {
+    if (current) return current;
+    var request = create();
+    return request.then(
+      function (value) {
+        clear();
+        return value;
+      },
+      function (error) {
+        clear();
+        throw error;
+      }
+    );
+  }
 
   function getHomeSnapshot() {
-    return deps.authenticatedRequest('GET', '/api/v1/home').then(function (response) {
-      runtimeCache.writeHome(response);
-      return response;
-    });
+    activeHomeRequest = singleFlight(
+      activeHomeRequest,
+      function () {
+        return deps.authenticatedRequest('GET', '/api/v1/home').then(function (response) {
+          runtimeCache.writeHome(response);
+          return response;
+        });
+      },
+      function () {
+        activeHomeRequest = null;
+      }
+    );
+    return activeHomeRequest;
   }
 
   function listOrders() {
-    return deps.authenticatedRequest('GET', '/api/v1/orders').then(function (response) {
-      if (response && Array.isArray(response.items)) runtimeCache.writeOrders(response);
-      return response;
-    });
+    activeOrdersRequest = singleFlight(
+      activeOrdersRequest,
+      function () {
+        return deps.authenticatedRequest('GET', '/api/v1/orders').then(function (response) {
+          if (response && Array.isArray(response.items)) runtimeCache.writeOrders(response);
+          return response;
+        });
+      },
+      function () {
+        activeOrdersRequest = null;
+      }
+    );
+    return activeOrdersRequest;
   }
 
   function prefetchAccountData() {
@@ -63,6 +98,11 @@ function createMemberApi(dependencies) {
     prefetchAccountData: prefetchAccountData,
     prefetchPublicCatalog: prefetchPublicCatalog,
     getMemberCard: function () {
+      var cached = runtimeCache.readHome();
+      if (cached && !cached.stale) {
+        var cachedCard = accountPresentation.memberCard(cached.data);
+        if (cachedCard) return Promise.resolve(cachedCard);
+      }
       return getHomeSnapshot().then(function (response) {
         var card = accountPresentation.memberCard(response);
         if (!card) throw deps.apiError('INVALID_MEMBER_CARD_RESPONSE', '会员资料返回格式异常');

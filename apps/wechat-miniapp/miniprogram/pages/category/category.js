@@ -77,26 +77,20 @@ Page({
     this._loadVersion = version;
     if (this._catalogRequest && typeof this._catalogRequest.abort === 'function') this._catalogRequest.abort();
     this.setData({ loading: true, loadError: null });
-
-    Promise.resolve()
-      .then(function () {
-        return catalog.createSnapshot([]);
-      })
-      .then(function (snapshot) {
-        if (version !== self._loadVersion) return null;
-        self.applySnapshot(snapshot, false);
-        var cached = api.readCachedProducts();
-        if (cached) {
-          var cachedProducts = catalog.itemsFromResponse(cached);
-          self.applySnapshot(catalog.createSnapshot(cachedProducts), true);
-          self.applySync({ state: 'live', message: '已从本地缓存载入 ' + cachedProducts.length + ' 件公开商品', retryable: false });
-        }
-        return self.refreshCatalog(version);
-      })
-      .catch(function (error) {
-        if (version !== self._loadVersion) return;
-        self.setData({ loading: false, loadError: (error && error.message) || '分类结构加载失败，请重试' });
-      });
+    try {
+      var cached = api.readCachedProducts();
+      var cachedProducts = cached ? catalog.itemsFromResponse(cached) : [];
+      self.applySnapshot(catalog.createSnapshot(cachedProducts), false);
+      if (cached) {
+        self.applySync({ state: 'live', message: '主商城公开商品已缓存 · ' + cachedProducts.length + ' 件可立即浏览', retryable: false });
+        if (!cached.cache.stale) return Promise.resolve(true);
+      }
+      return self.refreshCatalog(version);
+    } catch (error) {
+      if (version !== self._loadVersion) return Promise.resolve(false);
+      self.setData({ loading: false, loadError: (error && error.message) || '分类结构加载失败，请重试' });
+      return Promise.resolve(false);
+    }
   },
 
   refreshCatalog: function (version) {

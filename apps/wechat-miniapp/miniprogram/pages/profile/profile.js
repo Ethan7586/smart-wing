@@ -52,7 +52,7 @@ Page({
     });
     var cached = api.readCachedHomeSnapshot();
     if (cached) this.applyProfile(cached.data);
-    this.loadProfile(Boolean(cached));
+    if (!cached || cached.stale) this.loadProfile(Boolean(cached));
   },
 
   onResize: function () {

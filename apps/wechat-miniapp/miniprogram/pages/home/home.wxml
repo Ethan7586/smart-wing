@@ -143,7 +143,7 @@
           data-label="{{item.label}}"
           bindtap="onPending"
         >
-          <image wx:if="{{item.logo}}" class="partner-logo" src="{{item.logo}}" mode="aspectFit" />
+          <image wx:if="{{item.logo}}" class="partner-logo" src="{{item.logo}}" mode="aspectFit" lazy-load fade-in="{{false}}" />
           <view wx:else class="partner-mark">
             <view class="i i-sm i-store-secondary"></view>
           </view>
@@ -165,7 +165,7 @@
           <text class="segment-title">{{item.title}}</text>
           <text class="segment-desc">{{item.desc}}</text>
         </view>
-        <image wx:if="{{item.image}}" class="segment-image" src="{{item.image}}" mode="aspectFill" />
+        <image wx:if="{{item.image}}" class="segment-image" src="{{item.image}}" mode="aspectFill" lazy-load fade-in="{{false}}" />
         <view wx:else class="segment-mark">
           <view class="i i-{{item.icon}}-brand"></view>
         </view>
@@ -196,7 +196,7 @@
         data-label="商品详情"
         bindtap="onPending"
       >
-        <image wx:if="{{item.image}}" class="product-image" src="{{item.image}}" mode="aspectFill" />
+        <image wx:if="{{item.image}}" class="product-image" src="{{item.image}}" mode="aspectFill" lazy-load fade-in="{{false}}" />
         <!-- 商品图尚无正式素材；占位不伪装成完成品 -->
         <view wx:else class="sw-slot product-slot">
           <view class="i i-md i-image-off-muted"></view>

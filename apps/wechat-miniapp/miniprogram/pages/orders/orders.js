@@ -1,6 +1,5 @@
 var api = require('../../utils/api');
 var sizeClassUtil = require('../../utils/sizeClass');
-
 var app = getApp();
 var FILTERS = [
   { key: 'all', label: '全部' },
@@ -139,14 +138,15 @@ Page({
         return Boolean(order.id && order.orderNo);
       });
       this._dataReady = true;
+      this._loadedAt = cached.storedAt || Date.now();
       this.applyFilter(this.data.activeFilter);
     }
-    this.loadOrders(Boolean(cached));
+    if (!cached || cached.stale) this.loadOrders(Boolean(cached));
   },
 
   onShow: function () {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ selected: 3 });
-    if (this._hasShownOnce && this._loadedAt && Date.now() - this._loadedAt > 30000 && !this.data.loading) this.loadOrders(true);
+    if (this._hasShownOnce && this._loadedAt && Date.now() - this._loadedAt > 120000 && !this.data.loading) this.loadOrders(true);
     this._hasShownOnce = true;
   },
 

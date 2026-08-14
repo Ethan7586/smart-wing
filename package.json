@@ -20,6 +20,7 @@
     "test:vi": "node --test scripts/check-vi.test.mjs",
     "test:token-convergence": "node --test scripts/token-convergence.test.mjs",
     "test:miniapp-catalog": "node --test scripts/miniapp-catalog.test.cjs",
+    "test:miniapp-performance": "node --test scripts/miniapp-performance.test.cjs",
     "test:miniapp-account": "node --test scripts/miniapp-account-presentation.test.cjs",
     "test:miniapp-share": "node --test scripts/miniapp-share.test.cjs",
     "dev:storefront": "npm run dev --workspace @smart-wing/storefront-web",
@@ -39,7 +40,7 @@
     "audit:prod": "npm audit --omit=dev",
     "check:lines": "node scripts/check-line-budget.mjs",
     "verify:p0": "node scripts/verify-p0.mjs",
-    "quality": "npm run check:format && npm run check:lines && npm run check:web-tokens && npm run test:token-convergence && npm run check:vi && npm run test:vi && npm run check:miniapp && npm run test:miniapp-catalog && npm run test:miniapp-account && npm run test:miniapp-share && npm run lint && npm test && npm run build && npm run audit:prod",
+    "quality": "npm run check:format && npm run check:lines && npm run check:web-tokens && npm run test:token-convergence && npm run check:vi && npm run test:vi && npm run check:miniapp && npm run test:miniapp-catalog && npm run test:miniapp-performance && npm run test:miniapp-account && npm run test:miniapp-share && npm run lint && npm test && npm run build && npm run audit:prod",
     "build:web-tokens": "node scripts/build-web-tokens.mjs",
     "check:web-tokens": "node scripts/build-web-tokens.mjs --check"
   },

@@ -106,7 +106,7 @@
             data-item="{{item}}"
             bindtap="onOpenProducts"
           >
-            <image wx:if="{{item.image}}" class="tile-image" src="{{item.image}}" mode="aspectFill" data-index="{{index}}" binderror="onImageError" />
+            <image wx:if="{{item.image}}" class="tile-image" src="{{item.image}}" mode="aspectFill" lazy-load fade-in="{{false}}" data-index="{{index}}" binderror="onImageError" />
             <!-- 无商品封面时使用正式中性槽位，不伪造图片，也不显示破图。 -->
             <view wx:else class="tile-slot">
               <view class="i i-sm i-image-off-muted"></view>

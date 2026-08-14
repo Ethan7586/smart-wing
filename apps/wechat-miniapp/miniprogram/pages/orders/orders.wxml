@@ -113,6 +113,8 @@
           class="item-image"
           src="{{order.coverUrl}}"
           mode="aspectFill"
+          lazy-load
+          fade-in="{{false}}"
           data-order-id="{{order.id}}"
           binderror="onImageError"
         />

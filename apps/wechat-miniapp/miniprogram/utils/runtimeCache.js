@@ -5,11 +5,15 @@ var ORDERS_KEY = 'sw-member-orders-v1';
 
 function createRuntimeCache(storage) {
   var storageApi = storage || {};
+  var memory = {};
 
   function read(key) {
-    if (typeof storageApi.getStorageSync !== 'function') return null;
     try {
-      var envelope = storageApi.getStorageSync(key);
+      var envelope = memory[key];
+      if (!envelope && typeof storageApi.getStorageSync === 'function') {
+        envelope = storageApi.getStorageSync(key);
+        if (envelope) memory[key] = envelope;
+      }
       if (!envelope || envelope.version !== CACHE_VERSION || envelope.data === undefined) return null;
       var storedAt = Number(envelope.storedAt || 0);
       return {
@@ -23,19 +27,33 @@ function createRuntimeCache(storage) {
   }
 
   function write(key, data) {
-    if (data === undefined || typeof storageApi.setStorageSync !== 'function') return;
+    if (data === undefined) return;
+    var envelope = {
+      version: CACHE_VERSION,
+      storedAt: Date.now(),
+      data: data,
+    };
+    memory[key] = envelope;
+    if (typeof storageApi.setStorage === 'function') {
+      storageApi.setStorage({ key: key, data: envelope, fail: function () {} });
+      return;
+    }
+    if (typeof storageApi.setStorageSync !== 'function') return;
     try {
-      storageApi.setStorageSync(key, {
-        version: CACHE_VERSION,
-        storedAt: Date.now(),
-        data: data,
-      });
+      storageApi.setStorageSync(key, envelope);
     } catch (_error) {
       // A full local cache must never turn a successful API response into an error.
     }
   }
 
   function clear() {
+    delete memory[HOME_KEY];
+    delete memory[ORDERS_KEY];
+    if (typeof storageApi.removeStorage === 'function') {
+      storageApi.removeStorage({ key: HOME_KEY, fail: function () {} });
+      storageApi.removeStorage({ key: ORDERS_KEY, fail: function () {} });
+      return;
+    }
     if (typeof storageApi.removeStorageSync !== 'function') return;
     try {
       storageApi.removeStorageSync(HOME_KEY);

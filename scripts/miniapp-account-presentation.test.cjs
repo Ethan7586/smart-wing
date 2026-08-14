@@ -94,3 +94,17 @@ test('member runtime cache preserves a valid empty order result for instant rend
   assert.deepEqual(cache.readOrders().data.items, []);
   assert.equal(cache.readOrders().stale, false);
 });
+
+test('member runtime cache avoids synchronous writes when async storage exists', () => {
+  const writes = [];
+  const cache = loadMiniModule(runtimeCachePath).createRuntimeCache({
+    getStorageSync: () => '',
+    setStorageSync() {
+      throw new Error('synchronous storage must not run');
+    },
+    setStorage: (options) => writes.push(options),
+  });
+  cache.writeOrders({ items: [] });
+  assert.equal(writes.length, 1);
+  assert.deepEqual(cache.readOrders().data.items, []);
+});

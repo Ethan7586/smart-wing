@@ -29,7 +29,7 @@
 
   <view wx:else class="product-grid sw-inset">
     <view wx:for="{{products}}" wx:key="id" class="product-card sw-card sw-tap" data-index="{{index}}" bindtap="onOpenProduct">
-      <image wx:if="{{item.image}}" class="product-image" src="{{item.image}}" mode="aspectFill" data-index="{{index}}" catchtap="onOpenProduct" binderror="onImageError" />
+      <image wx:if="{{item.image}}" class="product-image" src="{{item.image}}" mode="aspectFill" lazy-load fade-in="{{false}}" data-index="{{index}}" catchtap="onOpenProduct" binderror="onImageError" />
       <view wx:else class="product-image sw-slot"><view class="i i-lg i-image-off-muted"></view></view>
       <view class="product-copy">
         <text class="product-name">{{item.name}}</text>

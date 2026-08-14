@@ -4,7 +4,7 @@ var share = require('../../utils/share');
 
 var app = getApp();
 var CACHE_WINDOW_SIZE = 200;
-var RENDER_BATCH_SIZE = 24;
+var RENDER_BATCH_SIZE = 12;
 
 function presentProduct(product) {
   var price = Number(product.priceCents);
@@ -48,7 +48,7 @@ Page({
     if (cached) {
       this.applyWindow(cached.items, true);
       this.setData({ cacheText: '已从本地缓存准备 ' + cached.items.length + ' 件商品' });
-      this.refreshWindow(false);
+      if (cached.cache.stale) this.refreshWindow(false);
     } else {
       this.refreshWindow(true);
     }
@@ -87,7 +87,6 @@ Page({
   },
 
   revealMore: function () {
-    this.setData({ loadingMore: true });
     this._visibleCount = Math.min(this._visibleCount + RENDER_BATCH_SIZE, this._windowProducts.length);
     this.setData({
       products: this._windowProducts.slice(0, this._visibleCount),

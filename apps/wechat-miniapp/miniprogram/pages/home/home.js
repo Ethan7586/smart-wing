@@ -87,19 +87,35 @@ Page({
 
   loadHome: function () {
     var self = this;
-    this.setData({ loading: true, loadError: null });
-    var memberRequest = api.isWired()
-      ? api.getHomeSnapshot().catch(function (error) {
-          return { memberError: error };
-        })
-      : Promise.resolve(null);
-    Promise.all([api.listProducts({ cursor: 0, limit: 200 }), memberRequest])
+    var cachedCatalog = api.readCachedProducts();
+    var cachedHome = api.readCachedHomeSnapshot();
+    if (cachedCatalog) this.applySnapshot(cachedHome && cachedHome.data, cachedCatalog.items);
+    else this.setData({ loading: true, loadError: null });
+
+    var needsCatalog = !cachedCatalog || cachedCatalog.cache.stale;
+    var needsMember = !cachedHome || cachedHome.stale;
+    if (!needsCatalog && !needsMember) return Promise.resolve(true);
+    var catalogRequest = needsCatalog ? api.listProducts({ cursor: 0, limit: 200 }) : Promise.resolve(null);
+    var memberRequest = needsMember ? api.getHomeSnapshot() : Promise.resolve(null);
+    return Promise.all([
+      catalogRequest.catch(function (error) {
+        return { catalogError: error };
+      }),
+      memberRequest.catch(function (error) {
+        return { memberError: error };
+      }),
+    ])
       .then(function (results) {
-        var catalog = results[0];
-        if (!catalog || !Array.isArray(catalog.items)) throw new Error('公开商品目录返回格式异常');
-        self.applySnapshot(results[1], catalog.items);
+        var catalogResult = results[0];
+        var memberResult = results[1];
+        var products = catalogResult && Array.isArray(catalogResult.items) ? catalogResult.items : cachedCatalog && cachedCatalog.items;
+        if (!products) throw (catalogResult && catalogResult.catalogError) || new Error('公开商品目录返回格式异常');
+        var member = memberResult && !memberResult.memberError ? memberResult : cachedHome && cachedHome.data;
+        if (!member && memberResult && memberResult.memberError) member = { memberError: memberResult.memberError };
+        self.applySnapshot(member, products);
       })
       .catch(function (error) {
+        if (cachedCatalog) return;
         self.setData({
           loading: false,
           loadError: (error && error.message) || '福利数据加载失败，请重试',
