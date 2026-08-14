@@ -16,6 +16,7 @@
     "build:miniapp-assets": "node scripts/build-miniapp-assets.mjs",
     "build:miniapp-catalog-seed": "node scripts/build-miniapp-catalog-seed.mjs",
     "sync:catalog-media": "node scripts/sync-catalog-media-to-oss.mjs",
+    "test:catalog-media-cache": "node --test scripts/catalog-media-cache.test.mjs",
     "check:miniapp": "node scripts/check-miniapp-vi.mjs",
     "check:vi": "node scripts/check-vi.mjs --check",
     "update:vi-baseline": "node scripts/check-vi.mjs --update-baseline",
@@ -43,7 +44,7 @@
     "audit:prod": "npm audit --omit=dev",
     "check:lines": "node scripts/check-line-budget.mjs",
     "verify:p0": "node scripts/verify-p0.mjs",
-    "quality": "npm run check:format && npm run check:lines && npm run check:web-tokens && npm run test:token-convergence && npm run check:vi && npm run test:vi && npm run check:miniapp && npm run test:miniapp-catalog && npm run test:miniapp-performance && npm run test:miniapp-account && npm run test:miniapp-share && npm run lint && npm test && npm run build && npm run audit:prod",
+    "quality": "npm run check:format && npm run check:lines && npm run check:web-tokens && npm run test:token-convergence && npm run check:vi && npm run test:vi && npm run check:miniapp && npm run test:miniapp-catalog && npm run test:miniapp-performance && npm run test:miniapp-account && npm run test:miniapp-share && npm run test:catalog-media-cache && npm run lint && npm test && npm run build && npm run audit:prod",
     "build:web-tokens": "node scripts/build-web-tokens.mjs",
     "check:web-tokens": "node scripts/build-web-tokens.mjs --check"
   },

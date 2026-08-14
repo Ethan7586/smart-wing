@@ -1,8 +1,8 @@
-import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import OSS from 'ali-oss';
 import sharp from 'sharp';
+import { catalogVariantKey, publicMediaUrl, resolveVariantPlan, sourceVersion } from './catalog-media-cache.mjs';
 
 const DEFAULT_CATALOG_URL = 'https://hbbtzn.com/api/v1/catalog/public/products?cursor=0&limit=200';
 const MAX_SOURCE_BYTES = 10 * 1024 * 1024;
@@ -28,12 +28,6 @@ function sourceUrl(value) {
   const nested = url.searchParams.get('source');
   const candidate = nested ? new URL(nested) : url;
   return candidate.protocol === 'https:' ? candidate.href : null;
-}
-
-function safeKeyPart(value) {
-  const result = String(value).replace(/[^a-zA-Z0-9_-]/g, '_');
-  if (!result) throw new Error('Product id cannot produce an OSS object key');
-  return result;
 }
 
 async function fetchImage(url) {
@@ -85,7 +79,11 @@ async function main() {
   const catalogUrl = arg('source', process.env.SW_PUBLIC_CATALOG_URL || DEFAULT_CATALOG_URL);
   const limit = Math.min(Math.max(Number.parseInt(arg('limit', '200'), 10) || 200, 1), 200);
   const concurrency = Math.min(Math.max(Number.parseInt(arg('concurrency', '6'), 10) || 6, 1), 12);
-  const width = Math.min(Math.max(Number.parseInt(arg('width', '640'), 10) || 640, 240), 1600);
+  const plan = resolveVariantPlan({
+    widths: arg('widths', process.env.CATALOG_MEDIA_WIDTHS),
+    legacyWidth: arg('width'),
+    defaultWidth: arg('default-width', process.env.CATALOG_MEDIA_DEFAULT_WIDTH),
+  });
   const dryRun = flag('dry-run');
   const publicBase = required('PUBLIC_MEDIA_BASE_URL').replace(/\/+$/, '');
   const response = await fetch(catalogUrl, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(30_000) });
@@ -109,29 +107,37 @@ async function main() {
   const uploaded = await mapLimit(products, concurrency, async (product, index) => {
     const source = sourceUrl(product.coverUrl);
     if (!product.id || !source) throw new Error(`Product ${index + 1} has no safe cover image`);
-    const output = await optimizedWebp(await fetchImage(source), width);
-    const digest = createHash('sha256').update(output).digest('hex').slice(0, 12);
-    const objectKey = `catalog/products/${safeKeyPart(product.id)}/cover-${width}-${digest}.webp`;
-    const coverUrl = `${publicBase}/${objectKey}`;
-    if (client) {
-      await client.put(objectKey, output, {
-        headers: {
-          'Cache-Control': 'public, max-age=31536000, immutable',
-          'Content-Disposition': 'inline',
-          'Content-Type': 'image/webp',
-        },
-      });
+    const downloaded = await fetchImage(source);
+    const version = sourceVersion(downloaded);
+    const variants = [];
+    for (const variantWidth of plan.widths) {
+      const output = await optimizedWebp(downloaded, variantWidth);
+      const objectKey = catalogVariantKey(product.id, version, variantWidth);
+      const url = publicMediaUrl(publicBase, objectKey);
+      if (client) {
+        await client.put(objectKey, output, {
+          headers: {
+            'Cache-Control': 'public, max-age=31536000, immutable',
+            'Content-Disposition': 'inline',
+            'Content-Type': 'image/webp',
+          },
+        });
+      }
+      variants.push({ width: variantWidth, objectKey, url, bytes: output.length });
     }
-    console.log(`${index + 1}/${products.length} ${product.id} ${Math.round(output.length / 1024)}KB`);
-    return { id: product.id, source, objectKey, coverUrl, bytes: output.length };
+    const canonical = variants.find((variant) => variant.width === plan.defaultWidth);
+    const totalBytes = variants.reduce((sum, variant) => sum + variant.bytes, 0);
+    console.log(`${index + 1}/${products.length} ${product.id} ${plan.widths.join('/')}px ${Math.round(totalBytes / 1024)}KB`);
+    return { id: product.id, source, version, coverUrl: canonical.url, variants };
   });
 
   if (!dryRun) {
     for (const item of uploaded) await patchProductCover(item.id, item.coverUrl);
   }
   await mkdir('.codex-temp', { recursive: true });
-  await writeFile(path.join('.codex-temp', 'catalog-media-sync.json'), `${JSON.stringify({ generatedAt: new Date().toISOString(), dryRun, items: uploaded }, null, 2)}\n`, 'utf8');
-  console.log(`${dryRun ? 'Validated' : 'Uploaded and linked'} ${uploaded.length} product images`);
+  const report = { generatedAt: new Date().toISOString(), dryRun, plan, items: uploaded };
+  await writeFile(path.join('.codex-temp', 'catalog-media-sync.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+  console.log(`${dryRun ? 'Validated' : 'Uploaded and linked'} ${uploaded.length} products / ${uploaded.length * plan.widths.length} variants`);
 }
 
 await main();
