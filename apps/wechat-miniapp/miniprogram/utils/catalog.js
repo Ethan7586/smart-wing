@@ -94,6 +94,22 @@ function createSnapshot(products) {
   };
 }
 
+function preferredRailKey(snapshot, currentKey) {
+  var rails = snapshot && Array.isArray(snapshot.rail) ? snapshot.rail : [];
+  var tilesByKey = (snapshot && snapshot.tilesByKey) || {};
+  function hasProducts(key) {
+    return (tilesByKey[key] || []).some(function (tile) {
+      return tile.productCount > 0;
+    });
+  }
+  if (currentKey && tilesByKey[currentKey] && hasProducts(currentKey)) return currentKey;
+  for (var index = 0; index < rails.length; index += 1) {
+    if (hasProducts(rails[index].key)) return rails[index].key;
+  }
+  if (currentKey && tilesByKey[currentKey]) return currentKey;
+  return rails.length ? rails[0].key : '';
+}
+
 function itemsFromResponse(response) {
   if (!response || !Array.isArray(response.items)) {
     var error = new Error('商品目录返回格式异常');
@@ -107,5 +123,6 @@ function itemsFromResponse(response) {
 
 module.exports = {
   createSnapshot: createSnapshot,
+  preferredRailKey: preferredRailKey,
   itemsFromResponse: itemsFromResponse,
 };

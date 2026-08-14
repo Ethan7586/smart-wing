@@ -116,7 +116,7 @@ Page({
 
   applySnapshot: function (snapshot, keepSelection) {
     var current = keepSelection ? this.data.railKey : '';
-    var key = current && snapshot.tilesByKey[current] ? current : snapshot.rail.length ? snapshot.rail[0].key : '';
+    var key = catalog.preferredRailKey(snapshot, current);
     this._tilesByKey = snapshot.tilesByKey;
     this.setData({
       loading: false,
