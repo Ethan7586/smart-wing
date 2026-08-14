@@ -6,6 +6,7 @@ const test = require('node:test');
 const root = path.join(__dirname, '..');
 const catalogPath = path.join(root, 'apps/wechat-miniapp/miniprogram/utils/catalog.js');
 const apiPath = path.join(root, 'apps/wechat-miniapp/miniprogram/utils/api.js');
+const categoryPagePath = path.join(root, 'apps/wechat-miniapp/miniprogram/pages/category/category.js');
 
 function loadMiniModule(file, globals = {}) {
   const module = { exports: {} };
@@ -58,10 +59,17 @@ test('invalid catalog envelopes fail visibly instead of becoming an empty succes
   assert.throws(() => catalog.itemsFromResponse({ products: [] }), /商品目录返回格式异常/);
 });
 
+test('category page starts authentication instead of waiting for a pre-existing token', () => {
+  const source = fs.readFileSync(categoryPagePath, 'utf8');
+  assert.doesNotMatch(source, /api\.isWired\(\)/);
+  assert.match(source, /api\.listAllProducts\(\)/);
+  assert.match(source, /api\s*\.bindWechatMember\(/);
+});
+
 test('catalog API paginates asynchronously and never calls the nonexistent categories route', async () => {
   const calls = [];
   const api = freshApi({
-    getStorageSync: () => 'test-access-token',
+    getStorageSync: (key) => (key.includes('expires_at') ? Date.now() + 600_000 : 'test-access-token'),
     request(options) {
       calls.push(options);
       const first = calls.length === 1;
@@ -86,23 +94,55 @@ test('catalog API paginates asynchronously and never calls the nonexistent categ
   assert.equal(calls[0].header.authorization, 'Bearer test-access-token');
 });
 
-test('missing member token stays local and makes no network request', async () => {
-  let requested = false;
+test('a fresh install creates a WeChat session before loading every catalog page', async () => {
+  const storage = new Map();
+  const calls = [];
   const api = freshApi({
-    getStorageSync: () => '',
-    request() {
-      requested = true;
+    getStorageSync: (key) => storage.get(key) || '',
+    setStorageSync: (key, value) => storage.set(key, value),
+    removeStorageSync: (key) => storage.delete(key),
+    login: ({ success }) => success({ code: 'one-time-wechat-code' }),
+    request(options) {
+      calls.push(options);
+      if (options.url.endsWith('/api/v1/auth/wechat/session')) {
+        options.success({ statusCode: 200, data: { authenticated: true, accessToken: 'live-token', expiresIn: 300 } });
+        return;
+      }
+      options.success({ statusCode: 200, data: { items: [{ id: 'one' }], pagination: { nextCursor: null }, requestId: 'catalog-live' } });
     },
   });
   assert.equal(api.isWired(), false);
-  await assert.rejects(api.listAllProducts(), ({ code }) => code === 'AUTH_CHANNEL_PENDING');
-  assert.equal(requested, false);
+  const response = await api.listAllProducts();
+  assert.equal(response.items.length, 1);
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].method, 'POST');
+  assert.deepEqual(calls[0].data, { code: 'one-time-wechat-code' });
+  assert.equal(calls[1].header.authorization, 'Bearer live-token');
+});
+
+test('an unbound WeChat identity returns a binding challenge without requesting products', async () => {
+  const calls = [];
+  const api = freshApi({
+    getStorageSync: () => '',
+    removeStorageSync() {},
+    login: ({ success }) => success({ code: 'unbound-code' }),
+    request(options) {
+      calls.push(options);
+      options.success({
+        statusCode: 409,
+        data: { error: { code: 'WECHAT_BINDING_REQUIRED', message: '首次使用需要绑定', bindingChallenge: 'challenge-id' } },
+      });
+    },
+  });
+  await assert.rejects(api.listAllProducts(), (error) => error.code === 'WECHAT_BINDING_REQUIRED' && error.bindingChallenge === 'challenge-id');
+  assert.equal(calls.length, 1);
+  assert.ok(calls[0].url.endsWith('/api/v1/auth/wechat/session'));
 });
 
 test('an in-flight catalog sync can be aborted on reload or page unload', async () => {
   let aborted = false;
   const api = freshApi({
-    getStorageSync: () => 'test-access-token',
+    getStorageSync: (key) => (key.includes('expires_at') ? Date.now() + 600_000 : 'test-access-token'),
     request(options) {
       return {
         abort() {
@@ -113,6 +153,7 @@ test('an in-flight catalog sync can be aborted on reload or page unload', async 
     },
   });
   const sync = api.listAllProducts();
+  await new Promise((resolve) => setImmediate(resolve));
   sync.abort();
   await assert.rejects(sync, ({ code }) => code === 'REQUEST_ABORTED');
   assert.equal(aborted, true);

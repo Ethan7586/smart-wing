@@ -1,0 +1,131 @@
+<!-- 微信订单中心登记路径：pages/order-detail/order-detail?orderNo=${商品订单号}&channel=wechat_order_center -->
+<view class="sw-page detail {{sizeClass}}" style="{{sizeStyle}}">
+  <view wx:if="{{entryFromWechatOrderCenter}}" class="entry-banner">
+    <view class="i i-sm i-shield-check-success"></view>
+    <text>已从微信订单中心安全打开</text>
+  </view>
+
+  <view wx:if="{{error}}" class="sw-inset state-wrap">
+    <view class="i i-xl {{error.kind === 'offline' ? 'i-wifi-off-muted' : 'i-triangle-alert-danger'}}"></view>
+    <text class="state-title">{{error.title}}</text>
+    <text class="state-copy">{{error.message}}</text>
+    <view wx:if="{{error.retryable}}" class="retry sw-tap" bindtap="onRetryOrder">
+      <view class="i i-sm i-refresh-cw-brand"></view>
+      <text>重试</text>
+    </view>
+    <view wx:if="{{error.kind === 'binding' || error.kind === 'missing' || error.kind === 'forbidden'}}" class="orders-link sw-tap" bindtap="onOpenOrders">
+      <text>前往我的订单</text>
+    </view>
+  </view>
+
+  <view wx:elif="{{loading}}" class="sw-inset skeleton-wrap">
+    <view class="sw-skeleton skeleton-status"></view>
+    <view class="sw-skeleton skeleton-card"></view>
+    <view class="sw-skeleton skeleton-card skeleton-card-short"></view>
+  </view>
+
+  <block wx:elif="{{order}}">
+    <view class="sw-inset status-wrap">
+      <view class="status-card status-{{order.statusTone}}">
+        <text class="status-title">{{order.statusLabel}}</text>
+        <text class="status-copy">{{order.statusCopy}}</text>
+      </view>
+    </view>
+
+    <view class="sw-inset section-wrap">
+      <view class="sw-card section-card">
+        <view class="section-head">
+          <view class="source-row">
+            <view class="source-mark sw-brand-mark"></view>
+            <text class="section-title">智慧翼订单</text>
+          </view>
+          <text class="item-count">共 {{order.items.length}} 项</text>
+        </view>
+        <view wx:if="{{!order.items.length}}" class="items-empty">
+          <view class="i i-md i-inbox-muted"></view>
+          <text>商品快照暂未返回，请稍后刷新</text>
+        </view>
+        <view wx:for="{{order.items}}" wx:key="key" wx:for-item="product" class="product-row">
+          <image
+            wx:if="{{product.image}}"
+            class="product-image"
+            src="{{product.image}}"
+            mode="aspectFill"
+            data-index="{{index}}"
+            binderror="onItemImageError"
+          />
+          <view wx:else class="product-slot">
+            <view class="i i-md i-image-off-muted"></view>
+          </view>
+          <view class="product-copy">
+            <text class="product-name">{{product.name}}</text>
+            <text wx:if="{{product.spec}}" class="product-spec">{{product.spec}}</text>
+            <view class="product-price-row">
+              <text class="product-unit">{{product.unitPrice ? '¥' + product.unitPrice : '单价待同步'}}</text>
+              <text wx:if="{{product.quantity}}" class="product-quantity">×{{product.quantity}}</text>
+            </view>
+          </view>
+          <text class="product-total">{{product.total ? '¥' + product.total : '待同步'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="sw-inset section-wrap">
+      <view class="sw-card section-card money-card">
+        <view class="info-row">
+          <text class="info-label">订单金额</text>
+          <view wx:if="{{order.total}}" class="total-row">
+            <text class="total-symbol">¥</text>
+            <text class="total-value">{{order.total}}</text>
+          </view>
+          <text wx:else class="info-value">待同步</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">支付状态</text>
+          <text class="info-value payment-{{order.paymentStatus}}">{{order.paymentStatusLabel}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">币种</text>
+          <text class="info-value">{{order.currency || '待同步'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="sw-inset section-wrap">
+      <view class="sw-card section-card">
+        <view class="info-row">
+          <text class="info-label">订单编号</text>
+          <text class="info-value info-mono">{{order.orderNo}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">创建时间</text>
+          <text class="info-value">{{order.createdAt}}</text>
+        </view>
+        <view wx:if="{{order.paidAt}}" class="info-row">
+          <text class="info-label">支付时间</text>
+          <text class="info-value">{{order.paidAt}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{paymentState !== 'idle'}}" class="sw-inset payment-state-wrap">
+      <view class="payment-state payment-state-{{paymentState}}">
+        <view wx:if="{{paymentState === 'confirmed'}}" class="i i-sm i-shield-check-success"></view>
+        <view wx:elif="{{paymentState === 'preparing' || paymentState === 'requesting' || paymentState === 'confirming'}}" class="i i-sm i-refresh-cw-brand"></view>
+        <view wx:else class="i i-sm i-triangle-alert-danger"></view>
+        <text>{{paymentMessage}}</text>
+      </view>
+    </view>
+
+    <view class="sw-inset payment-panel">
+      <view wx:if="{{order.canPay}}" class="pay-button sw-tap {{paymentBusy ? 'is-disabled' : ''}}" bindtap="onPay">
+        <text>{{paymentBusy ? '正在处理…' : '微信支付 ¥' + order.total}}</text>
+      </view>
+      <view wx:if="{{paymentState === 'processing' || paymentState === 'failed' || paymentState === 'cancelled'}}" class="refresh-button sw-tap" bindtap="onRefreshPaymentStatus">
+        <view class="i i-sm i-refresh-cw-brand"></view>
+        <text>刷新服务端支付状态</text>
+      </view>
+      <text class="payment-note">支付结果只以后端通知或微信查单为准，小程序回调不作为到账凭据。</text>
+    </view>
+  </block>
+</view>

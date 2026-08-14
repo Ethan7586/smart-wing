@@ -1,3 +1,5 @@
+@import './profile-actions.wxss';
+
 /* Widths come from generated size-class tokens; calc() never divides by a
    var(); spacing uses margins because flex gap is unreliable on older WeChat
    Android base libraries. */
@@ -69,10 +71,20 @@
   color: var(--sw-brand);
 }
 
-.skeleton-wrap { padding-top: var(--sw-space-2); }
-.sk-id { height: 160rpx; margin-bottom: var(--sw-space-2); }
-.sk-assets { height: 160rpx; margin-bottom: var(--sw-space-2); }
-.sk-rows { height: 300rpx; }
+.skeleton-wrap {
+  padding-top: var(--sw-space-2);
+}
+.sk-id {
+  height: 160rpx;
+  margin-bottom: var(--sw-space-2);
+}
+.sk-assets {
+  height: 160rpx;
+  margin-bottom: var(--sw-space-2);
+}
+.sk-rows {
+  height: 300rpx;
+}
 
 /* -------------------------------------------------------- identity -------- */
 
@@ -261,41 +273,4 @@
   margin-top: 10rpx;
   font-size: var(--sw-fs-caption);
   color: var(--sw-text);
-}
-
-/* ------------------------------------------------------------- rows -------- */
-
-.row-link {
-  display: flex;
-  align-items: center;
-  margin-bottom: var(--sw-space-1);
-  padding: var(--sw-space-1_5);
-}
-
-.row-text {
-  flex: 1;
-  margin-left: var(--sw-space-1_5);
-  font-size: var(--sw-fs-bodySmall);
-  color: var(--sw-text);
-}
-
-.signout {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: var(--sw-space-2);
-  height: var(--sw-touch-min);
-  border-radius: var(--sw-radius-medium);
-  background: var(--sw-surface);
-  border: 1rpx solid var(--sw-border);
-}
-
-.signout-text {
-  margin-left: 8rpx;
-  font-size: var(--sw-fs-bodySmall);
-  color: var(--sw-danger);
-}
-
-.tabbar-spacer {
-  height: calc(var(--sw-tabbar-height) + var(--sw-space-2) + env(safe-area-inset-bottom, 0px));
 }

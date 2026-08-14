@@ -1,3 +1,5 @@
+@import './membercode-rows.wxss';
+
 /* Widths come from generated size-class tokens; calc() never divides by a
    var(); spacing uses margins because flex gap is unreliable on older
    WeChat Android base libraries. */
@@ -55,9 +57,16 @@
   color: var(--sw-brand);
 }
 
-.skeleton-wrap { padding-top: var(--sw-space-2); }
-.sk-card { height: 260rpx; margin-bottom: var(--sw-space-2); }
-.sk-code { height: 560rpx; }
+.skeleton-wrap {
+  padding-top: var(--sw-space-2);
+}
+.sk-card {
+  height: 260rpx;
+  margin-bottom: var(--sw-space-2);
+}
+.sk-code {
+  height: 560rpx;
+}
 
 /* -------------------------------------------------- digital member card ---- */
 
@@ -160,9 +169,18 @@
   background: var(--sw-surface);
 }
 
-.status-ok { background: var(--sw-success-surface); border-color: var(--sw-success-surface); }
-.status-warn { background: var(--sw-warning-surface); border-color: var(--sw-warning-surface); }
-.status-danger { background: var(--sw-danger-surface); border-color: var(--sw-danger-surface); }
+.status-ok {
+  background: var(--sw-success-surface);
+  border-color: var(--sw-success-surface);
+}
+.status-warn {
+  background: var(--sw-warning-surface);
+  border-color: var(--sw-warning-surface);
+}
+.status-danger {
+  background: var(--sw-danger-surface);
+  border-color: var(--sw-danger-surface);
+}
 
 .status-text {
   margin-left: 12rpx;
@@ -272,48 +290,4 @@
   margin-left: 8rpx;
   font-size: var(--sw-fs-caption);
   color: var(--sw-text-muted);
-}
-
-.actions {
-  display: flex;
-  align-items: stretch;
-  margin-top: var(--sw-space-2);
-  padding-top: var(--sw-space-1_5);
-  border-top: 1rpx solid var(--sw-border);
-}
-
-.act {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.act-text {
-  margin-top: 6rpx;
-  font-size: var(--sw-fs-caption);
-  color: var(--sw-brand);
-}
-
-.act-danger { color: var(--sw-danger); }
-
-/* ------------------------------------------------------------- rows -------- */
-
-.row-link {
-  display: flex;
-  align-items: center;
-  margin-top: var(--sw-space-1);
-  padding: var(--sw-space-1_5);
-}
-
-.row-text {
-  flex: 1;
-  margin-left: var(--sw-space-1_5);
-  font-size: var(--sw-fs-bodySmall);
-  color: var(--sw-text);
-}
-
-.tabbar-spacer {
-  height: calc(var(--sw-tabbar-height) + var(--sw-space-2) + env(safe-area-inset-bottom, 0px));
 }

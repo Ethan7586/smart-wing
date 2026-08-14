@@ -1,15 +1,15 @@
-/**
- * Commerce API service layer for the native mini program.
- *
- * The HTTPS service is shared with the main Shop; database access never occurs
- * in the client. Requests become live only after the server issues a mini-app
- * bearer token. Until that channel exists, pages may use public/static
- * contracts but must label member-specific values as unavailable.
- */
+/** Native mini-program session and Commerce API transport. */
 
 var BASE_URL = 'https://hbbtzn.com';
 var ACCESS_TOKEN_KEY = 'sw_member_access_token';
+var ACCESS_TOKEN_EXPIRY_KEY = 'sw_member_access_token_expires_at';
 var REQUEST_TIMEOUT_MS = 10000;
+var TOKEN_REFRESH_LEEWAY_MS = 30000;
+var activeSessionRequest = null;
+var wechatPayment = require('./wechatPayment');
+// Catalog requests share the automatic WeChat session refresh used by orders.
+// Function declarations are hoisted, so authenticatedRequest is available here.
+var catalogApi = require('./catalogApi').createCatalogApi(authenticatedRequest, apiError);
 
 function accessToken() {
   try {
@@ -18,6 +18,47 @@ function accessToken() {
   } catch (_error) {
     return '';
   }
+}
+
+function accessTokenExpiry() {
+  try {
+    var value = Number(wx.getStorageSync(ACCESS_TOKEN_EXPIRY_KEY));
+    return Number.isFinite(value) ? value : 0;
+  } catch (_error) {
+    return 0;
+  }
+}
+
+function hasFreshAccessToken() {
+  return Boolean(accessToken() && accessTokenExpiry() > Date.now() + TOKEN_REFRESH_LEEWAY_MS);
+}
+
+function clearAccessToken() {
+  try {
+    wx.removeStorageSync(ACCESS_TOKEN_KEY);
+    wx.removeStorageSync(ACCESS_TOKEN_EXPIRY_KEY);
+  } catch (_error) {
+    // A failed local cleanup must not turn an API error into a false success.
+  }
+}
+
+function expiryFromSession(response) {
+  if (response && response.expiresAt) {
+    var parsed = typeof response.expiresAt === 'number' ? response.expiresAt : Date.parse(response.expiresAt);
+    if (Number.isFinite(parsed)) return parsed < 1000000000000 ? parsed * 1000 : parsed;
+  }
+  var seconds = Number(response && response.expiresIn);
+  return Date.now() + (Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : 300000);
+}
+
+function storeSession(response) {
+  var token = response && typeof response.accessToken === 'string' ? response.accessToken.trim() : '';
+  if (!token || response.authenticated !== true) {
+    throw apiError('INVALID_WECHAT_SESSION', '微信会话返回格式异常，请稍后重试');
+  }
+  wx.setStorageSync(ACCESS_TOKEN_KEY, token);
+  wx.setStorageSync(ACCESS_TOKEN_EXPIRY_KEY, expiryFromSession(response));
+  return response;
 }
 
 function apiError(code, message, extra) {
@@ -32,44 +73,60 @@ function apiError(code, message, extra) {
 
 function notWired(name) {
   return Promise.reject(
-    apiError('AUTH_CHANNEL_PENDING', '商品目录已就绪，会员登录令牌通道尚未接通', {
+    apiError('AUTH_CHANNEL_PENDING', '会员登录令牌尚未建立，请重新进入当前页面', {
       endpoint: name,
     })
   );
 }
 
-function responseError(response) {
+function responseError(response, path) {
   var envelope = response && response.data && response.data.error;
-  if (response.statusCode === 401) return apiError('AUTH_REQUIRED', '会员登录已失效，请重新登录');
-  if (response.statusCode === 403) return apiError('CATALOG_FORBIDDEN', '当前会员没有查看该商品目录的资格');
-  return apiError((envelope && envelope.code) || 'HTTP_' + response.statusCode, (envelope && envelope.message) || '服务请求失败（' + response.statusCode + '）', envelope && envelope.requestId ? { requestId: envelope.requestId } : null);
+  var statusCode = response && response.statusCode;
+  var extras = {};
+  ['requestId', 'bindingChallenge', 'expiresIn', 'retryAfterSeconds'].forEach(function (key) {
+    if (envelope && envelope[key] !== undefined) extras[key] = envelope[key];
+  });
+  if (statusCode === 401) {
+    clearAccessToken();
+    return apiError((envelope && envelope.code) || 'AUTH_REQUIRED', (envelope && envelope.message) || '会员登录已失效，请重新登录', extras);
+  }
+  if (statusCode === 403) {
+    var fallbackCode = path.indexOf('/api/v1/products') === 0 ? 'CATALOG_FORBIDDEN' : 'FORBIDDEN';
+    return apiError((envelope && envelope.code) || fallbackCode, (envelope && envelope.message) || '当前会员没有执行该操作的资格', extras);
+  }
+  return apiError((envelope && envelope.code) || 'HTTP_' + statusCode, (envelope && envelope.message) || '服务请求失败（' + statusCode + '）', extras);
 }
 
 function networkError(error) {
   var message = (error && error.errMsg) || '';
   if (/abort/i.test(message)) return apiError('REQUEST_ABORTED', '请求已取消');
-  if (/timeout/i.test(message)) return apiError('REQUEST_TIMEOUT', '商品同步超时，请稍后重试');
-  return apiError('NETWORK_ERROR', '网络连接失败，已保留本地分类结构');
+  if (/timeout/i.test(message)) return apiError('REQUEST_TIMEOUT', '请求超时，请稍后重试');
+  return apiError('NETWORK_ERROR', '网络连接失败，请检查网络后重试');
 }
 
-function request(method, path, data) {
-  var token = accessToken();
-  if (!BASE_URL || !token) return notWired(path);
+function performRequest(method, path, data, options) {
+  var settings = options || {};
+  var token = settings.auth === false ? '' : accessToken();
+  if (!BASE_URL || (settings.auth !== false && !token)) return notWired(path);
   var task = null;
   var promise = new Promise(function (resolve, reject) {
+    var headers = {
+      accept: 'application/json',
+      'content-type': 'application/json',
+    };
+    if (token) headers.authorization = 'Bearer ' + token;
+    Object.keys(settings.headers || {}).forEach(function (key) {
+      headers[key] = settings.headers[key];
+    });
     task = wx.request({
       url: BASE_URL + path,
       method: method,
       data: data,
-      timeout: REQUEST_TIMEOUT_MS,
-      header: {
-        accept: 'application/json',
-        'content-type': 'application/json',
-        authorization: 'Bearer ' + token,
-      },
+      timeout: settings.timeout || REQUEST_TIMEOUT_MS,
+      header: headers,
       success: function (response) {
         if (response.statusCode >= 200 && response.statusCode < 300) resolve(response.data);
-        else reject(responseError(response));
+        else reject(responseError(response, path));
       },
       fail: function (error) {
         reject(networkError(error));
@@ -82,40 +139,81 @@ function request(method, path, data) {
   return promise;
 }
 
-function productPath(options) {
-  var input = options || {};
-  var parts = ['mall=smart-wing-demo'];
-  if (input.category) parts.push('category=' + encodeURIComponent(input.category));
-  if (typeof input.cursor === 'number') parts.push('cursor=' + input.cursor);
-  parts.push('limit=' + (input.limit || 100));
-  return '/api/v1/products?' + parts.join('&');
+function wxLoginCode() {
+  return new Promise(function (resolve, reject) {
+    var settled = false;
+    var timer = setTimeout(function () {
+      if (settled) return;
+      settled = true;
+      reject(apiError('REQUEST_TIMEOUT', '微信登录超时，请稍后重试'));
+    }, REQUEST_TIMEOUT_MS);
+    wx.login({
+      success: function (result) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        if (result && typeof result.code === 'string' && result.code.trim()) resolve(result.code.trim());
+        else reject(apiError('WECHAT_LOGIN_FAILED', '微信未返回登录凭证，请重新进入小程序'));
+      },
+      fail: function (error) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        reject(apiError('WECHAT_LOGIN_FAILED', (error && error.errMsg) || '微信登录失败，请稍后重试'));
+      },
+    });
+  });
 }
 
-function listProducts(options) {
-  return request('GET', productPath(options));
+function createWechatSession() {
+  return wxLoginCode()
+    .then(function (code) {
+      return performRequest('POST', '/api/v1/auth/wechat/session', { code: code }, { auth: false });
+    })
+    .then(storeSession);
 }
 
-function listAllProducts() {
-  var items = [];
-  var pageCount = 0;
-  var activeRequest = null;
+function ensureWechatSession(options) {
+  var settings = options || {};
+  if (settings.force) clearAccessToken();
+  if (!settings.force && hasFreshAccessToken()) {
+    return Promise.resolve({ authenticated: true, cached: true });
+  }
+  if (activeSessionRequest) return activeSessionRequest;
+  var request = createWechatSession();
+  activeSessionRequest = request.then(
+    function (response) {
+      activeSessionRequest = null;
+      return response;
+    },
+    function (error) {
+      activeSessionRequest = null;
+      throw error;
+    }
+  );
+  return activeSessionRequest;
+}
+
+function authenticatedRequest(method, path, data, options) {
   var cancelled = false;
+  var activeRequest = null;
+  var retried = false;
 
-  function next(cursor) {
-    pageCount += 1;
-    if (cancelled) return Promise.reject(apiError('REQUEST_ABORTED', '请求已取消'));
-    if (pageCount > 60) return Promise.reject(apiError('CATALOG_PAGE_LIMIT', '商品目录分页超过安全上限'));
-    activeRequest = listProducts({ cursor: cursor, limit: 100 });
-    return activeRequest.then(function (response) {
-      if (!response || !Array.isArray(response.items) || !response.pagination) {
-        return Promise.reject(apiError('INVALID_CATALOG_RESPONSE', '商品目录返回格式异常'));
-      }
-      items = items.concat(response.items);
-      return response.pagination.nextCursor === null ? { items: items, requestId: response.requestId } : next(response.pagination.nextCursor);
+  function run(forceSession) {
+    return ensureWechatSession({ force: forceSession }).then(function () {
+      if (cancelled) throw apiError('REQUEST_ABORTED', '请求已取消');
+      activeRequest = performRequest(method, path, data, options);
+      return activeRequest.catch(function (error) {
+        if (!retried && error && error.code === 'AUTH_REQUIRED') {
+          retried = true;
+          return run(true);
+        }
+        throw error;
+      });
     });
   }
 
-  var promise = next(0);
+  var promise = run(false);
   promise.abort = function () {
     cancelled = true;
     if (activeRequest && typeof activeRequest.abort === 'function') activeRequest.abort();
@@ -125,25 +223,69 @@ function listAllProducts() {
 
 module.exports = {
   isWired: function () {
-    return Boolean(BASE_URL && accessToken());
+    return Boolean(BASE_URL && hasFreshAccessToken());
   },
   connectionState: function () {
-    return BASE_URL && accessToken() ? { ready: true } : { ready: false, code: 'AUTH_CHANNEL_PENDING' };
+    return BASE_URL && hasFreshAccessToken() ? { ready: true } : { ready: false, code: 'WECHAT_SESSION_REQUIRED' };
+  },
+  clearAccessToken: clearAccessToken,
+  ensureWechatSession: ensureWechatSession,
+  createWechatSession: function () {
+    return ensureWechatSession({ force: true });
+  },
+  bindWechatMember: function (input) {
+    var body = input || {};
+    if (!body.bindingChallenge || !body.username || !body.password) {
+      return Promise.reject(apiError('INVALID_WECHAT_BIND_INPUT', '会员绑定信息不完整'));
+    }
+    return performRequest('POST', '/api/v1/auth/wechat/bind', { bindingChallenge: body.bindingChallenge, username: body.username, password: body.password }, { auth: false }).then(storeSession);
   },
   getHomeSnapshot: function () {
-    return request('GET', '/api/v1/home');
+    return performRequest('GET', '/api/v1/home');
   },
   getBootstrap: function () {
-    return request('GET', '/api/v1/bootstrap');
+    return performRequest('GET', '/api/v1/bootstrap');
   },
-  listProducts: listProducts,
-  listAllProducts: listAllProducts,
+  listProducts: catalogApi.listProducts,
+  listAllProducts: catalogApi.listAllProducts,
   getCart: function () {
-    return request('GET', '/api/v1/cart');
+    return performRequest('GET', '/api/v1/cart');
   },
-  // Endpoints below remain explicit gaps; no secret or fake identity is stored.
-  createWechatSession: function () {
-    return notWired('/api/v1/auth/wechat/session (未实现)');
+  listOrders: function () {
+    return authenticatedRequest('GET', '/api/v1/orders');
+  },
+  getOrderByNumber: function (orderNo) {
+    var validOrderNo = wechatPayment.normalizeOrderNo(orderNo);
+    if (!validOrderNo) return wechatPayment.rejectedRequest(apiError('INVALID_ORDER_NO', '订单编号无效，请从订单列表重新进入'));
+    return authenticatedRequest('GET', '/api/v1/orders/by-number/' + encodeURIComponent(validOrderNo));
+  },
+  createWechatPrepay: function (orderId, idempotencyKey) {
+    var validOrderId = wechatPayment.normalizeOrderId(orderId);
+    if (!validOrderId) return wechatPayment.rejectedRequest(apiError('INVALID_ORDER_ID', '订单标识无效，请重新打开订单'));
+    if (!idempotencyKey || idempotencyKey.length > 120) {
+      return wechatPayment.rejectedRequest(apiError('INVALID_IDEMPOTENCY_KEY', '支付请求标识无效，请重新发起支付'));
+    }
+    return authenticatedRequest(
+      'POST',
+      '/api/v1/orders/' + encodeURIComponent(validOrderId) + '/payments/wechat/prepay',
+      {},
+      {
+        headers: { 'Idempotency-Key': idempotencyKey },
+      }
+    );
+  },
+  getPaymentStatus: function (orderId) {
+    var validOrderId = wechatPayment.normalizeOrderId(orderId);
+    if (!validOrderId) return wechatPayment.rejectedRequest(apiError('INVALID_ORDER_ID', '订单标识无效，请重新打开订单'));
+    return authenticatedRequest('GET', '/api/v1/orders/' + encodeURIComponent(validOrderId) + '/payment-status');
+  },
+  normalizeOrderNo: wechatPayment.normalizeOrderNo,
+  createIdempotencyKey: wechatPayment.createIdempotencyKey,
+  requestWechatPayment: function (payment) {
+    return wechatPayment.requestWechatPayment(payment, apiError);
+  },
+  pollPaymentStatus: function (orderId, options) {
+    return wechatPayment.pollPaymentStatus(orderId, options, module.exports.getPaymentStatus, apiError);
   },
   getMemberCard: function () {
     return notWired('/api/v1/member-card (未实现)');
