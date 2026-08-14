@@ -125,7 +125,7 @@ describe('public catalog', () => {
       .mockResolvedValueOnce(new Response(imageBytes, { status: 200, headers: { 'content-length': String(imageBytes.byteLength), 'content-type': 'image/jpeg' } }));
     vi.stubGlobal('fetch', fetchMock);
 
-    const catalogResponse = await routeApi(new Request('https://hbbtzn.com/api/v1/catalog/public/products?limit=1'), env);
+    const catalogResponse = await routeApi(new Request('http://hbbtzn.com/api/v1/catalog/public/products?limit=1'), env);
     const catalogBody = (await catalogResponse?.json()) as { items: Array<{ coverUrl: string }> };
     expect(catalogBody.items[0].coverUrl).toContain('https://hbbtzn.com/api/v1/catalog/public/products/product-one/image?');
 
@@ -140,5 +140,20 @@ describe('public catalog', () => {
     const rejected = await routeApi(new Request(tampered), env);
     expect(rejected?.status).toBe(404);
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns a controlled gateway error when the approved image host is unavailable', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify([catalogRow]), { status: 200, headers: { 'content-type': 'application/json' } }))
+      .mockRejectedValueOnce(new TypeError('upstream unavailable'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const catalogResponse = await routeApi(new Request('http://hbbtzn.com/api/v1/catalog/public/products?limit=1'), env);
+    const catalogBody = (await catalogResponse?.json()) as { items: Array<{ coverUrl: string }> };
+    const imageResponse = await routeApi(new Request(catalogBody.items[0].coverUrl), env);
+
+    expect(imageResponse?.status).toBe(502);
+    await expect(imageResponse?.json()).resolves.toMatchObject({ error: { code: 'CATALOG_IMAGE_UPSTREAM_FAILED' } });
   });
 });

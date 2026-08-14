@@ -4,6 +4,7 @@ import type { WorkerEnv } from './types';
 const IMAGE_PATH = /^\/api\/v1\/catalog\/public\/products\/([^/]+)\/image$/;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_SOURCE_HOSTS = new Set(['m.media-amazon.com']);
+const HTTPS_PUBLIC_HOSTS = new Set(['hbbtzn.com', 'www.hbbtzn.com']);
 const keyCache = new Map<string, Promise<CryptoKey>>();
 
 function toBase64Url(bytes: Uint8Array): string {
@@ -45,15 +46,22 @@ function safeSource(value: string | null): URL | null {
   }
 }
 
+function publicOrigin(request: Request): string {
+  const requestUrl = new URL(request.url);
+  if (HTTPS_PUBLIC_HOSTS.has(requestUrl.hostname)) return `https://${requestUrl.hostname}`;
+  return requestUrl.origin;
+}
+
 export async function publicCatalogCoverUrl(request: Request, env: WorkerEnv, productId: string, coverUrl: string | null): Promise<string | null> {
   if (!coverUrl) return null;
   const source = safeSource(coverUrl);
-  if (!source) return coverUrl.startsWith(new URL(request.url).origin) ? coverUrl : null;
+  const origin = publicOrigin(request);
+  if (!source) return coverUrl.startsWith(origin) ? coverUrl : null;
   const secret = signingSecret(env);
   if (!secret) return coverUrl;
   const signature = await crypto.subtle.sign('HMAC', await signingKey(secret), new TextEncoder().encode(signatureInput(productId, source.href)));
   const path = `/api/v1/catalog/public/products/${encodeURIComponent(productId)}/image`;
-  return `${new URL(request.url).origin}${path}?source=${encodeURIComponent(source.href)}&signature=${toBase64Url(new Uint8Array(signature))}`;
+  return `${origin}${path}?source=${encodeURIComponent(source.href)}&signature=${toBase64Url(new Uint8Array(signature))}`;
 }
 
 export async function handlePublicCatalogImage(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
@@ -73,7 +81,12 @@ export async function handlePublicCatalogImage(request: Request, env: WorkerEnv,
     return apiError(404, 'CATALOG_IMAGE_NOT_FOUND', '商品图片不存在', requestId);
   }
 
-  const upstream = await fetch(source, { redirect: 'manual', headers: { accept: 'image/avif,image/webp,image/*' } });
+  let upstream: Response;
+  try {
+    upstream = await fetch(source, { redirect: 'manual', headers: { accept: 'image/avif,image/webp,image/*' } });
+  } catch {
+    return apiError(502, 'CATALOG_IMAGE_UPSTREAM_FAILED', '商品图片暂时不可用', requestId);
+  }
   const contentType = upstream.headers.get('content-type')?.split(';')[0].trim().toLowerCase() ?? '';
   const declaredLength = Number(upstream.headers.get('content-length') ?? 0);
   if (!upstream.ok || !/^image\/(?:jpeg|png|webp|gif|avif)$/.test(contentType) || declaredLength > MAX_IMAGE_BYTES) {
