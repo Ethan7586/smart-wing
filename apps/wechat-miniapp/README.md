@@ -4,7 +4,7 @@
 
 ## 直接预览
 
-在微信开发者工具选择“导入项目”，目录选择本文件所在的 `apps/wechat-miniapp`。当前 `AppID` 为 `touristappid`，可直接游客模式编译。取得正式小程序 AppID 后，只替换 `project.config.json` 中的 `appid`。
+在微信开发者工具选择“导入项目”，目录选择本文件所在的 `apps/wechat-miniapp`。Ethan 已确认正式小程序 AppID 为 `wx4df4137881a1d2bc`；开发者工具只需要 AppID，不需要 AppSecret。
 
 ## 当前进度
 
