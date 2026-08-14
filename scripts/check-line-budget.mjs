@@ -12,6 +12,7 @@ const GENERATED_OR_IMMUTABLE = [
   /^database\/supabase\/migrations\/.+\.sql$/,
   /^database\/supabase\/\.temp\//,
   /^apps\/wechat-miniapp\/miniprogram\/styles\/(tokens|icons)\.wxss$/,
+  /^scripts\/vi-baseline\.json$/,
 ];
 const IMPORTED_ADMIN_LEGACY = new Set([
   'apps/admin-web/src/App.tsx',

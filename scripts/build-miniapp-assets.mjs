@@ -207,6 +207,10 @@ ${Object.entries(t.icon.sizes)
   --sw-membercode-size: calc(${wechat.wingCodeButtonSize}rpx * var(--sw-space-scale));
   --sw-membercode-protrusion: calc(${wechat.wingCodeProtrusion}rpx * var(--sw-space-scale));
   --sw-touch-min: calc(${wechat.minimumTouchTarget}rpx * var(--sw-space-scale));
+  --sw-tabbar-height: calc(${wechat.tabBarHeight}rpx * var(--sw-space-scale));
+  --sw-tab-icon-top: calc(${wechat.tabIconTop}rpx * var(--sw-space-scale));
+  --sw-tab-label-clearance: calc(${wechat.tabLabelClearance}rpx * var(--sw-space-scale));
+  --sw-tab-label-top: calc(${wechat.tabLabelTop}rpx * var(--sw-space-scale));
   --sw-tab-label-size: calc(${wechat.tabLabelSize}rpx * var(--sw-text-scale));
   --sw-tab-label-line-height: calc(${wechat.tabLabelLineHeight}rpx * var(--sw-text-scale));
 

@@ -53,7 +53,12 @@
       "自定义 tabBar",
       "适配底部安全区",
       "返回后台立即刷新会员码"
-    ]
+    ],
+    "tabBarHeight": 144,
+    "tabIconTop": 48,
+    "tabLabelTop": 104,
+    "tabGeometryNote": "VI 冻结圆盘 112rpx 与上浮 24rpx，两者都不动，因此圆盘下沿固定在 112−24=88rpx。栏高不是 VI 规定项，由它让步：144rpx（72pt）让文字顶落在 104rpx，与圆盘下沿留 16rpx（8pt）真实净空。4rpx 之类的数字在屏幕上等于没有净空，不算解决。五个标签统一定位在 tabLabelTop，不随各档文字系数漂移；紧凑档文字放大 1.12 后底部 135rpx，仍在 144rpx 内。",
+    "tabLabelClearance": 16
   },
   "sizeClassPrinciple": "布局跟随屏幕比例缩放，文字保持物理尺寸大致恒定。rpx 会把两者一起缩放，所以文字需要按档位反向补偿。四档同时成立，都是正式移动端 VI，不是主次关系。",
   "sizeClasses": [

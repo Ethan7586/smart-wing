@@ -37,5 +37,5 @@
 }
 
 .stub-spacer {
-  height: calc(108rpx + var(--sw-space-2) + env(safe-area-inset-bottom, 0px));
+  height: calc(var(--sw-tabbar-height) + var(--sw-space-2) + env(safe-area-inset-bottom, 0px));
 }

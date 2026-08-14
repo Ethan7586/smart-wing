@@ -1,5 +1,20 @@
-/* Sizes come from packages/design-system/src/mobile-platforms.json via
-   styles/tokens.wxss: wingCodeButtonSize 112rpx, wingCodeProtrusion 24rpx. */
+/**
+ * Bottom navigation geometry.
+ *
+ * Every value comes from packages/design-system/src/mobile-platforms.json via
+ * styles/tokens.wxss, and every one is multiplied by --sw-space-scale, so the
+ * whole bar holds together across all six size classes including tablets.
+ *
+ * Icons and labels are positioned absolutely at a shared offset rather than
+ * flex-centred. Flex centring made the row height depend on the label's line
+ * height, which varies per class with --sw-text-scale — so the five labels
+ * drifted apart between classes. Anchoring to --sw-tab-label-top keeps them on
+ * one line no matter the factor.
+ *
+ * The disc sits at 112 − 42 = 70rpx from the bar top, and the labels start at
+ * 76rpx, leaving 6rpx of clear air. The previous 24rpx protrusion left only
+ * 20rpx of room for a 28rpx label, which is why "会员码" sat on the circle.
+ */
 
 .tabbar {
   position: fixed;
@@ -17,31 +32,37 @@
 /* Follows the tablet content column. Unset on phones, so max-width is none
    and the bar keeps full bleed. */
 .tabbar-inner {
+  position: relative;
   max-width: var(--sw-content-width, none);
   margin-left: auto;
   margin-right: auto;
   display: flex;
   align-items: stretch;
-  height: 108rpx;
+  height: var(--sw-tabbar-height);
 }
 
 .tab {
   flex: 1;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   min-height: var(--sw-touch-min);
 }
 
 .tab-icon {
+  position: absolute;
+  top: var(--sw-tab-icon-top);
+  left: 50%;
+  margin-left: calc(var(--sw-icon-standard) / -2);
   width: var(--sw-icon-standard);
   height: var(--sw-icon-standard);
 }
 
+/* All five labels share this anchor, centre included. */
 .tab-label {
-  margin-top: 4rpx;
+  position: absolute;
+  top: var(--sw-tab-label-top);
+  left: 0;
+  right: 0;
+  text-align: center;
   font-size: var(--sw-tab-label-size);
   line-height: var(--sw-tab-label-line-height);
   color: var(--sw-text-secondary);
@@ -62,6 +83,11 @@
   height: var(--sw-membercode-size);
   border-radius: 50%; /* vi-allow: css-drawn-icon — VI 规定中央会员码为白色圆形承载，这是容器不是图标；图标本身来自 sw-membercode-mark */
   background: var(--sw-surface);
+  /* The disc and the bar are both --sw-surface, so where they overlap the disc
+     has no edge at all and reads as a glow rather than a raised control. The
+     brand shadow cannot draw that edge — it is a soft blue halo. */
+  border: 1rpx solid var(--sw-border-strong);
+  box-sizing: border-box;
   box-shadow: var(--sw-shadow-membercode);
   display: flex;
   align-items: center;
@@ -69,12 +95,6 @@
 }
 
 .mc-mark {
-  width: 56rpx;
-  height: 56rpx;
-}
-
-.tab-label-center {
-  position: absolute;
-  bottom: 10rpx;
-  margin-top: 0;
+  width: calc(56rpx * var(--sw-space-scale));
+  height: calc(56rpx * var(--sw-space-scale));
 }
