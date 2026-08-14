@@ -100,7 +100,10 @@ pages/profile/              16 行    ⬜ 阶段 5
 
 ## 3. 工具任务（先做，让后续清理永久生效）
 
-### T1｜`tokens.css` 接入生成管道
+### T1｜`tokens.css` 接入生成管道　✅ 已完成（打样）
+
+> 已由打样完成，提交 `fafc0b7`。实现见 `scripts/build-web-tokens.mjs`，
+> **执行 T2 前必读 `docs/VI-CONVERGENCE-PILOT-NOTES.md`** —— 里面是这次踩到的坑。
 
 **目标**：消除令牌分叉的根因，而不是修补症状。
 
