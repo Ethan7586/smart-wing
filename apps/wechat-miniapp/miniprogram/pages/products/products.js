@@ -2,7 +2,8 @@ var api = require('../../utils/api');
 var sizeClassUtil = require('../../utils/sizeClass');
 
 var app = getApp();
-var PAGE_SIZE = 24;
+var CACHE_WINDOW_SIZE = 200;
+var RENDER_BATCH_SIZE = 24;
 
 function presentProduct(product) {
   var price = Number(product.priceCents);
@@ -22,11 +23,11 @@ Page({
     title: '公开商品',
     category: '',
     products: [],
-    nextCursor: 0,
     loading: true,
     loadingMore: false,
-    hasMore: true,
+    hasMore: false,
     loadError: '',
+    cacheText: '正在准备商品缓存',
   },
 
   onLoad: function (options) {
@@ -39,7 +40,16 @@ Page({
       sizeClass: size.className,
       sizeStyle: size.rootStyle,
     });
-    this.loadPage(true);
+    this._windowProducts = [];
+    this._visibleCount = 0;
+    var cached = api.readCachedProducts(this.data.category);
+    if (cached) {
+      this.applyWindow(cached.items, true);
+      this.setData({ cacheText: '已从本地缓存准备 ' + cached.items.length + ' 件商品' });
+      this.refreshWindow(false);
+    } else {
+      this.refreshWindow(true);
+    }
   },
 
   onResize: function () {
@@ -53,32 +63,47 @@ Page({
   },
 
   onReachBottom: function () {
-    if (this.data.hasMore && !this.data.loadingMore) this.loadPage(false);
+    if (this.data.hasMore && !this.data.loadingMore) this.revealMore();
   },
 
   onPullDownRefresh: function () {
-    this.loadPage(true).finally(function () {
+    this.refreshWindow(false).finally(function () {
       wx.stopPullDownRefresh();
     });
   },
 
-  loadPage: function (reset) {
+  applyWindow: function (items, resetVisible) {
+    this._windowProducts = (Array.isArray(items) ? items : []).slice(0, CACHE_WINDOW_SIZE).map(presentProduct);
+    this._visibleCount = resetVisible ? Math.min(RENDER_BATCH_SIZE, this._windowProducts.length) : Math.min(Math.max(this._visibleCount, RENDER_BATCH_SIZE), this._windowProducts.length);
+    this.setData({
+      products: this._windowProducts.slice(0, this._visibleCount),
+      hasMore: this._visibleCount < this._windowProducts.length,
+      loading: false,
+      loadingMore: false,
+      loadError: '',
+    });
+  },
+
+  revealMore: function () {
+    this.setData({ loadingMore: true });
+    this._visibleCount = Math.min(this._visibleCount + RENDER_BATCH_SIZE, this._windowProducts.length);
+    this.setData({
+      products: this._windowProducts.slice(0, this._visibleCount),
+      hasMore: this._visibleCount < this._windowProducts.length,
+      loadingMore: false,
+    });
+  },
+
+  refreshWindow: function (showLoading) {
     var self = this;
     if (this._request && typeof this._request.abort === 'function') this._request.abort();
-    var cursor = reset ? 0 : this.data.nextCursor;
-    this.setData(reset ? { loading: true, loadError: '', products: [] } : { loadingMore: true, loadError: '' });
-    this._request = api.listProducts({ category: this.data.category, cursor: cursor, limit: PAGE_SIZE });
+    this.setData(showLoading ? { loading: true, loadError: '', products: [] } : { loadError: '', cacheText: '正在后台更新 200 件商品缓存' });
+    this._request = api.listProducts({ category: this.data.category, cursor: 0, limit: CACHE_WINDOW_SIZE });
     return this._request
       .then(function (response) {
         if (!response || !Array.isArray(response.items) || !response.pagination) throw new Error('商品目录返回格式异常');
-        var nextProducts = response.items.map(presentProduct);
-        self.setData({
-          products: reset ? nextProducts : self.data.products.concat(nextProducts),
-          nextCursor: response.pagination.nextCursor,
-          hasMore: response.pagination.nextCursor !== null,
-          loading: false,
-          loadingMore: false,
-        });
+        self.applyWindow(response.items, showLoading || self._visibleCount === 0);
+        self.setData({ cacheText: '已缓存 ' + self._windowProducts.length + ' 件商品，可随时浏览' });
       })
       .catch(function (error) {
         if (error && error.code === 'REQUEST_ABORTED') return;
@@ -91,13 +116,14 @@ Page({
   },
 
   onRetry: function () {
-    this.loadPage(this.data.products.length === 0);
+    this.refreshWindow(this.data.products.length === 0);
   },
 
   onImageError: function (event) {
     var index = Number(event.currentTarget.dataset.index);
     if (!Number.isInteger(index) || !this.data.products[index]) return;
     this.setData({ ['products[' + index + '].image']: null });
+    if (this._windowProducts[index]) this._windowProducts[index].image = null;
   },
 
   onOpenProduct: function (event) {

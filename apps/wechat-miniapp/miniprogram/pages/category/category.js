@@ -81,6 +81,12 @@ Page({
       .then(function (snapshot) {
         if (version !== self._loadVersion) return null;
         self.applySnapshot(snapshot, false);
+        var cached = api.readCachedProducts();
+        if (cached) {
+          var cachedProducts = catalog.itemsFromResponse(cached);
+          self.applySnapshot(catalog.createSnapshot(cachedProducts), true);
+          self.applySync({ state: 'live', message: '已从本地缓存载入 ' + cachedProducts.length + ' 件公开商品', retryable: false });
+        }
         return self.refreshCatalog(version);
       })
       .catch(function (error) {
@@ -94,7 +100,7 @@ Page({
     var activeVersion = typeof version === 'number' ? version : (this._loadVersion || 0) + 1;
     this._loadVersion = activeVersion;
     this.applySync({ state: 'syncing', message: '正在同步主商城公开商品', retryable: false });
-    this._catalogRequest = api.listProducts({ cursor: 0, limit: 100 });
+    this._catalogRequest = api.listProducts({ cursor: 0, limit: 200 });
     return this._catalogRequest
       .then(function (response) {
         if (activeVersion !== self._loadVersion) return false;
@@ -102,7 +108,7 @@ Page({
         self.applySnapshot(catalog.createSnapshot(products), true);
         self.applySync({
           state: products.length ? 'live' : 'empty',
-          message: products.length ? '主商城公开商品已连接 · 首批 ' + products.length + ' 件已载入' : '主商城当前暂无公开商品',
+          message: products.length ? '主商城公开商品已连接 · ' + products.length + ' 件已缓存' : '主商城当前暂无公开商品',
           retryable: products.length === 0,
         });
         return true;

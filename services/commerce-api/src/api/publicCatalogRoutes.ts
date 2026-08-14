@@ -26,6 +26,45 @@ interface PublicCatalogRow {
 
 const DEFAULT_PUBLIC_MALL_SLUG = 'smart-wing-demo';
 const MALL_SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{0,79}$/;
+const CATALOG_CACHE_TTL_MS = 60_000;
+const CATALOG_CACHE_MAX_ENTRIES = 32;
+const CATALOG_RPC_PAGE_SIZE = 100;
+const catalogCache = new Map<string, { rows: PublicCatalogRow[]; expiresAt: number }>();
+
+export function clearPublicCatalogCache(): void {
+  catalogCache.clear();
+}
+
+async function queryCatalogRows(env: WorkerEnv, mallSlug: string, category: string | null, limit: number, cursor: number): Promise<PublicCatalogRow[]> {
+  const rows: PublicCatalogRow[] = [];
+  while (rows.length < limit) {
+    const pageLimit = Math.min(CATALOG_RPC_PAGE_SIZE, limit - rows.length);
+    const page = await callRpc<PublicCatalogRow[]>(env, 'api_catalog', {
+      p_mall_slug: mallSlug,
+      p_category: category,
+      p_limit: pageLimit,
+      p_offset: cursor + rows.length,
+    });
+    rows.push(...page);
+    if (page.length < pageLimit) break;
+  }
+  return rows;
+}
+
+async function cachedCatalogRows(env: WorkerEnv, mallSlug: string, category: string | null, limit: number, cursor: number): Promise<{ rows: PublicCatalogRow[]; hit: boolean }> {
+  const key = [env.SUPABASE_URL, mallSlug, category ?? '', limit, cursor].join('|');
+  const now = Date.now();
+  const cached = catalogCache.get(key);
+  if (cached && cached.expiresAt > now) return { rows: cached.rows, hit: true };
+  if (cached) catalogCache.delete(key);
+  const rows = await queryCatalogRows(env, mallSlug, category, limit, cursor);
+  if (catalogCache.size >= CATALOG_CACHE_MAX_ENTRIES) {
+    const oldest = catalogCache.keys().next().value;
+    if (oldest) catalogCache.delete(oldest);
+  }
+  catalogCache.set(key, { rows, expiresAt: now + CATALOG_CACHE_TTL_MS });
+  return { rows, hit: false };
+}
 
 /** Public browsing returns the same active SKU rows as the main Shop.
  * Membership-specific visibility, prices and purchase qualification stay on
@@ -37,16 +76,12 @@ export async function handlePublicCatalog(request: Request, env: WorkerEnv, requ
   const mallSlug = env.PUBLIC_MALL_SLUG?.trim() || DEFAULT_PUBLIC_MALL_SLUG;
   if (!MALL_SLUG_PATTERN.test(mallSlug)) return apiError(503, 'PUBLIC_CATALOG_NOT_CONFIGURED', '公开商城目录尚未正确配置', requestId);
   const category = url.searchParams.get('category')?.slice(0, 80) ?? null;
-  const limit = Math.min(Math.max(Number.parseInt(url.searchParams.get('limit') ?? '24', 10) || 24, 1), 100);
+  const limit = Math.min(Math.max(Number.parseInt(url.searchParams.get('limit') ?? '200', 10) || 200, 1), 200);
   const cursor = Math.max(Number.parseInt(url.searchParams.get('cursor') ?? '0', 10) || 0, 0);
-  const rows = await callRpc<PublicCatalogRow[]>(env, 'api_catalog', {
-    p_mall_slug: mallSlug,
-    p_category: category,
-    p_limit: limit,
-    p_offset: cursor,
-  });
+  const catalog = await cachedCatalogRows(env, mallSlug, category, limit, cursor);
+  const rows = catalog.rows;
 
-  return json({
+  const response = json({
     items: rows.map((row) => ({
       id: row.id,
       skuId: row.sku_id,
@@ -85,4 +120,7 @@ export async function handlePublicCatalog(request: Request, env: WorkerEnv, requ
     },
     requestId,
   });
+  response.headers.set('cache-control', 'public, max-age=60, stale-while-revalidate=300');
+  response.headers.set('x-sw-catalog-cache', catalog.hit ? 'hit' : 'miss');
+  return response;
 }
