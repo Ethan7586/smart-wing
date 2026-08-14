@@ -28,47 +28,52 @@ function isLocalDevelopment(): boolean {
  */
 function requireAdminPermission(permission: Permission) {
   return async (request: ExpressRequest, response: ExpressResponse, next: NextFunction): Promise<void> => {
-  if (isLocalDevelopment()) {
-    next();
-    return;
-  }
+    if (isLocalDevelopment()) {
+      next();
+      return;
+    }
 
-  try {
-    const session = await readSession(
-      new Request(`https://smart.hbbtzn.com${request.originalUrl}`, {
-        headers: { cookie: request.headers.cookie ?? '' },
-      }),
-      process.env as WorkerEnv
-    );
-    if (!session || session.target !== 'admin') {
+    try {
+      const session = await readSession(
+        new Request(`https://smart.hbbtzn.com${request.originalUrl}`, {
+          headers: { cookie: request.headers.cookie ?? '' },
+        }),
+        process.env as WorkerEnv
+      );
+      if (!session || session.target !== 'admin') {
+        response.status(401).json({ error: 'AUTHENTICATION_REQUIRED' });
+        return;
+      }
+      const runtime = await resolveMembershipRuntime(
+        new Request(`https://smart.hbbtzn.com${request.originalUrl}`, {
+          headers: { cookie: request.headers.cookie ?? '' },
+        }),
+        process.env as WorkerEnv
+      );
+      if (!runtime) {
+        response.status(401).json({ error: 'AUTHENTICATION_REQUIRED' });
+        return;
+      }
+      const decision = decide(
+        runtime.membership,
+        permission,
+        {
+          tenantId: runtime.membership.context.tenantId,
+          enterpriseId: runtime.membership.context.enterpriseId,
+          mallId: runtime.membership.context.mallId,
+          supplierId: runtime.membership.context.supplierId,
+          ownerUserId: runtime.membership.context.userId,
+        },
+        { stepUpAt: runtime.authorization.stepUpAt }
+      );
+      if (!decision.allowed) {
+        response.status(403).json({ error: 'FORBIDDEN', reason: decision.reason });
+        return;
+      }
+      next();
+    } catch {
       response.status(401).json({ error: 'AUTHENTICATION_REQUIRED' });
-      return;
     }
-    const runtime = await resolveMembershipRuntime(
-      new Request(`https://smart.hbbtzn.com${request.originalUrl}`, {
-        headers: { cookie: request.headers.cookie ?? '' },
-      }),
-      process.env as WorkerEnv,
-    );
-    if (!runtime) {
-      response.status(401).json({ error: 'AUTHENTICATION_REQUIRED' });
-      return;
-    }
-    const decision = decide(runtime.membership, permission, {
-      tenantId: runtime.membership.context.tenantId,
-      enterpriseId: runtime.membership.context.enterpriseId,
-      mallId: runtime.membership.context.mallId,
-      supplierId: runtime.membership.context.supplierId,
-      ownerUserId: runtime.membership.context.userId,
-    }, { stepUpAt: runtime.authorization.stepUpAt });
-    if (!decision.allowed) {
-      response.status(403).json({ error: 'FORBIDDEN', reason: decision.reason });
-      return;
-    }
-    next();
-  } catch {
-    response.status(401).json({ error: 'AUTHENTICATION_REQUIRED' });
-  }
   };
 }
 

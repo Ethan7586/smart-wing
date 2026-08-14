@@ -1,5 +1,8 @@
 # Smart Wing Monorepo
 
+> 项目总纲入口：[`PROJECT-MASTER-START-HERE.md`](./PROJECT-MASTER-START-HERE.md)  
+> 产品、商业、会员、权限、资格、VI、代码与发布的统一说明：[`docs/SMART-WING-MALL-MASTER-CHARTER.md`](./docs/SMART-WING-MALL-MASTER-CHARTER.md)
+
 | 目录                        | 职责                                             |
 | --------------------------- | ------------------------------------------------ |
 | `apps/storefront-web`       | `hbbtzn.com` 员工福利商城前端与同源 API 适配入口 |

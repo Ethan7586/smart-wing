@@ -28,7 +28,7 @@ export const TabletOrdersPage: React.FC = () => {
             <button
               key={tab.key}
               onClick={() => setActiveStatus(tab.key)}
-              className={`px-3 py-2 rounded-xl whitespace-nowrap transition-colors cursor-pointer min-h-[38px] ${activeStatus === tab.key ? 'bg-[#1F5EFF] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              className={`px-3 py-2 rounded-xl whitespace-nowrap transition-colors cursor-pointer min-h-[38px] ${activeStatus === tab.key ? 'bg-[var(--sw-brand)] text-white shadow-2xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               {tab.label}
             </button>
@@ -43,13 +43,13 @@ export const TabletOrdersPage: React.FC = () => {
               <div
                 key={order.id}
                 onClick={() => setSelectedOrderId(order.id)}
-                className={`p-3.5 rounded-2xl border transition-all cursor-pointer space-y-2 ${isSelected ? 'border-[#1F5EFF] bg-blue-50/70 shadow-xs' : 'border-gray-200 bg-white hover:bg-gray-50'}`}
+                className={`p-3.5 rounded-2xl border transition-all cursor-pointer space-y-2 ${isSelected ? 'border-[var(--sw-brand)] bg-blue-50/70 shadow-xs' : 'border-gray-200 bg-white hover:bg-gray-50'}`}
               >
                 <div className="flex items-center justify-between text-xs font-bold">
                   <span className="text-gray-900 font-mono">订单: {order.orderNo}</span>
                   <span
                     className={`text-[10px] px-2 py-0.5 rounded font-black ${
-                      order.status === 'completed' ? 'bg-emerald-100 text-emerald-800' : order.status === 'pending_receipt' ? 'bg-blue-100 text-[#1F5EFF]' : 'bg-amber-100 text-amber-800'
+                      order.status === 'completed' ? 'bg-emerald-100 text-emerald-800' : order.status === 'pending_receipt' ? 'bg-blue-100 text-[var(--sw-brand)]' : 'bg-amber-100 text-amber-800'
                     }`}
                   >
                     {order.statusText}
@@ -78,7 +78,7 @@ export const TabletOrdersPage: React.FC = () => {
         {selectedOrder ? (
           <>
             {/* Header Status & Order Info */}
-            <div className="bg-gradient-to-r from-[#143A8F] to-[#1F5EFF] text-white p-4 rounded-3xl shadow-sm flex items-center justify-between">
+            <div className="bg-gradient-to-r from-[var(--sw-brand-dark)] to-[var(--sw-brand)] text-white p-4 rounded-3xl shadow-sm flex items-center justify-between">
               <div>
                 <div className="text-[10px] text-blue-200 uppercase font-black tracking-wider">企采履约状态</div>
                 <div className="text-lg font-black mt-0.5">{selectedOrder.statusText}</div>
@@ -118,13 +118,13 @@ export const TabletOrdersPage: React.FC = () => {
             {/* Delivery Timeline Card */}
             <div className="bg-white rounded-3xl p-4 shadow-2xs border border-gray-200 space-y-3">
               <div className="text-xs font-black text-gray-900 flex items-center gap-1.5 border-b border-gray-100 pb-2">
-                <Truck className="w-4 h-4 text-[#1F5EFF]" />
+                <Truck className="w-4 h-4 text-[var(--sw-brand)]" />
                 <span>物流履约轨迹</span>
               </div>
 
               <div className="space-y-3 text-xs pl-2 border-l-2 border-blue-200 ml-2">
                 <div className="relative pl-4 space-y-0.5">
-                  <div className="absolute -left-[21px] top-1 w-3.5 h-3.5 rounded-full bg-[#1F5EFF] ring-4 ring-blue-100" />
+                  <div className="absolute -left-[21px] top-1 w-3.5 h-3.5 rounded-full bg-[var(--sw-brand)] ring-4 ring-blue-100" />
                   <div className="font-bold text-gray-900">企采专线统仓已派发出库</div>
                   <div className="text-[10px] text-gray-400 font-mono">2026-07-24 10:30:00</div>
                 </div>
@@ -159,13 +159,13 @@ export const TabletOrdersPage: React.FC = () => {
                 onClick={() => triggerPendingFeature('平板电子发票下载', '调起 PDF 格式增值税电子发票。')}
                 className="flex-1 bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 font-bold text-xs py-3 rounded-2xl flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs min-h-[44px]"
               >
-                <Download className="w-4 h-4 text-[#1F5EFF]" />
+                <Download className="w-4 h-4 text-[var(--sw-brand)]" />
                 <span>下载电子发票</span>
               </button>
 
               <button
                 onClick={() => triggerPendingFeature('平板售后服务', '申请企采换货或补发。')}
-                className="flex-1 bg-[#1F5EFF] hover:bg-blue-600 text-white font-bold text-xs py-3 rounded-2xl flex items-center justify-center gap-1.5 cursor-pointer shadow-md min-h-[44px]"
+                className="flex-1 bg-[var(--sw-brand)] hover:bg-blue-600 text-white font-bold text-xs py-3 rounded-2xl flex items-center justify-center gap-1.5 cursor-pointer shadow-md min-h-[44px]"
               >
                 <Headphones className="w-4 h-4" />
                 <span>企采专属售后</span>

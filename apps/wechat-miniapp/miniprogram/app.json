@@ -1,0 +1,40 @@
+{
+  "pages": ["pages/home/home", "pages/category/category", "pages/membercode/membercode", "pages/orders/orders", "pages/order-detail/order-detail", "pages/profile/profile"],
+  "window": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#F5F7FA",
+    "backgroundTextStyle": "dark",
+    "enablePullDownRefresh": false
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#475569",
+    "selectedColor": "#1F5EFF",
+    "backgroundColor": "#FFFFFF",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/category/category",
+        "text": "分类"
+      },
+      {
+        "pagePath": "pages/membercode/membercode",
+        "text": "会员码"
+      },
+      {
+        "pagePath": "pages/orders/orders",
+        "text": "订单"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "resizable": true
+}

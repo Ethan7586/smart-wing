@@ -1,0 +1,36 @@
+/* Account actions and bottom safe-area clearance. */
+
+.row-link {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--sw-space-1);
+  padding: var(--sw-space-1_5);
+}
+
+.row-text {
+  flex: 1;
+  margin-left: var(--sw-space-1_5);
+  font-size: var(--sw-fs-bodySmall);
+  color: var(--sw-text);
+}
+
+.signout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--sw-space-2);
+  height: var(--sw-touch-min);
+  border-radius: var(--sw-radius-medium);
+  background: var(--sw-surface);
+  border: 1rpx solid var(--sw-border);
+}
+
+.signout-text {
+  margin-left: 8rpx;
+  font-size: var(--sw-fs-bodySmall);
+  color: var(--sw-danger);
+}
+
+.tabbar-spacer {
+  height: calc(var(--sw-tabbar-height) + var(--sw-space-2) + env(safe-area-inset-bottom, 0px));
+}

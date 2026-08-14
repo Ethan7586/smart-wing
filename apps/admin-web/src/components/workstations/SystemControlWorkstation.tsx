@@ -53,7 +53,7 @@ export const SystemControlWorkstation: React.FC<SystemControlProps> = ({ config,
         {/* Left Form Settings */}
         <div className="lg:col-span-7 bg-white rounded-[14px] border border-slate-200/90 shadow-xs p-6 space-y-6 text-xs">
           <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-            <Sliders className="w-4 h-4 text-[#1769ff]" />
+            <Sliders className="w-4 h-4 text-[var(--sw-brand)]" />
             <span>核心业务阀门参数设置 (Business Thresholds)</span>
           </h3>
 
@@ -105,7 +105,7 @@ export const SystemControlWorkstation: React.FC<SystemControlProps> = ({ config,
 
               <div className="space-y-2">
                 <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-800">
-                  <input type="checkbox" checked={formData.geminiCopilotEnabled} onChange={(e) => setFormData({ ...formData, geminiCopilotEnabled: e.target.checked })} className="rounded text-[#1769ff]" />
+                  <input type="checkbox" checked={formData.geminiCopilotEnabled} onChange={(e) => setFormData({ ...formData, geminiCopilotEnabled: e.target.checked })} className="rounded text-[var(--sw-brand)]" />
                   <span>开启 Gemini 三级类目推断与经营诊断功能</span>
                 </label>
 
@@ -118,7 +118,7 @@ export const SystemControlWorkstation: React.FC<SystemControlProps> = ({ config,
           </div>
 
           <div className="pt-2 flex justify-end">
-            <button type="submit" className="px-5 py-2.5 rounded-xl bg-[#1769ff] hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center gap-2 cursor-pointer transition-all">
+            <button type="submit" className="px-5 py-2.5 rounded-xl bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center gap-2 cursor-pointer transition-all">
               <Save className="w-4 h-4" />
               <span>保存配置并生成修改日志 (护栏卡口)</span>
             </button>
@@ -128,7 +128,7 @@ export const SystemControlWorkstation: React.FC<SystemControlProps> = ({ config,
         {/* Right Audit Logs Table */}
         <div className="lg:col-span-5 bg-white rounded-[14px] border border-slate-200/90 shadow-xs p-6 space-y-4 text-xs">
           <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-            <History className="w-4 h-4 text-[#1769ff]" />
+            <History className="w-4 h-4 text-[var(--sw-brand)]" />
             <span>系统参数修改审计流水 (Audit Trail)</span>
           </h3>
 
@@ -139,7 +139,7 @@ export const SystemControlWorkstation: React.FC<SystemControlProps> = ({ config,
                   <span>{log.operator}</span>
                   <span className="text-[10px] text-slate-400 font-mono">{log.timestamp}</span>
                 </div>
-                <div className="text-[11px] text-[#1769ff] font-semibold">{log.parameterName}</div>
+                <div className="text-[11px] text-[var(--sw-brand)] font-semibold">{log.parameterName}</div>
                 <div className="text-[10px] text-slate-500 font-mono bg-white p-1.5 rounded border border-slate-200">
                   <span className="line-through text-rose-600 mr-2">{log.beforeValue}</span>
                   <span className="text-emerald-700 font-bold">&rarr; {log.afterValue}</span>

@@ -1,0 +1,94 @@
+/* First-use WeChat identity binding. Passwords remain page-memory only. */
+
+.binding-wrap {
+  flex: 1;
+  padding-top: var(--sw-space-2);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.binding-card {
+  padding: var(--sw-space-2);
+}
+
+.binding-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--sw-space-2);
+}
+
+.binding-copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  margin-left: var(--sw-space-1);
+}
+
+.binding-title {
+  font-size: var(--sw-fs-h3);
+  line-height: var(--sw-lh-h3);
+  font-weight: var(--sw-fw-h3);
+  color: var(--sw-text);
+}
+
+.binding-sub,
+.binding-note {
+  margin-top: var(--sw-space-half);
+  font-size: var(--sw-fs-caption);
+  line-height: var(--sw-lh-caption);
+  color: var(--sw-text-muted);
+}
+
+.binding-label {
+  display: block;
+  margin-bottom: var(--sw-space-half);
+  font-size: var(--sw-fs-bodySmall);
+  line-height: var(--sw-lh-bodySmall);
+  color: var(--sw-text-secondary);
+}
+
+.binding-label-next {
+  margin-top: var(--sw-space-1_5);
+}
+
+.binding-input {
+  height: var(--sw-touch-min);
+  padding: 0 var(--sw-space-1_5);
+  border: 1rpx solid var(--sw-border);
+  border-radius: var(--sw-radius-medium);
+  background: var(--sw-surface);
+  box-sizing: border-box;
+  font-size: var(--sw-fs-body);
+  color: var(--sw-text);
+}
+
+.binding-error {
+  display: block;
+  margin-top: var(--sw-space-1);
+  font-size: var(--sw-fs-caption);
+  line-height: var(--sw-lh-caption);
+  color: var(--sw-danger);
+}
+
+.binding-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--sw-touch-min);
+  margin-top: var(--sw-space-2);
+  border-radius: var(--sw-radius-medium);
+  background: var(--sw-brand);
+  color: var(--sw-text-inverse);
+  font-size: var(--sw-fs-body);
+  font-weight: var(--sw-fw-h3);
+}
+
+.binding-submit.is-disabled {
+  background: var(--sw-text-disabled);
+}
+
+.binding-note {
+  display: block;
+  text-align: center;
+}

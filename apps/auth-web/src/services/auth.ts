@@ -153,7 +153,7 @@ const MOCK_MEMBERSHIPS_MAP: Record<string, Membership[]> = {
 };
 
 /** Public-test fixtures mirror the real Membership IDs seeded in Supabase. */
-const TEST_ACCOUNT_MEMBERSHIPS: Record<string, Membership[]> = {
+export const TEST_ACCOUNT_MEMBERSHIPS: Record<string, Membership[]> = {
   业主测试员: [
     {
       id: 'membership-test-storefront',
@@ -217,6 +217,53 @@ const TEST_ACCOUNT_MEMBERSHIPS: Record<string, Membership[]> = {
   李厚亿: [],
 };
 TEST_ACCOUNT_MEMBERSHIPS.李厚亿 = TEST_ACCOUNT_MEMBERSHIPS.onewr;
+
+const ROLE_TEST_MEMBERSHIP_DEFINITIONS: ReadonlyArray<{
+  prefix: string;
+  target: Membership['target'];
+  roleName: string;
+  dataScope: string;
+  subjectScope?: Membership['subjectScope'];
+  keyPermissions: string[];
+  requiresStepUp: boolean;
+}> = [
+  { prefix: 'buyer', target: 'storefront', roleName: '测试买家', dataScope: '个人福利账户', keyPermissions: ['catalog.read', 'order.create', 'order.read'], requiresStepUp: false },
+  { prefix: 'seller', target: 'admin', roleName: '测试商家', dataScope: '央企供应链', subjectScope: '供应商', keyPermissions: ['catalog.read', 'product.publish', 'order.read', 'order.ship'], requiresStepUp: false },
+  { prefix: 'ops', target: 'admin', roleName: '测试运营', dataScope: '智慧翼企业福利商城', subjectScope: '商城', keyPermissions: ['catalog.read', 'product.publish', 'order.read', 'order.ship', 'audit.read'], requiresStepUp: false },
+  { prefix: 'cs', target: 'admin', roleName: '测试客服', dataScope: '智慧翼企业福利商城', subjectScope: '商城', keyPermissions: ['catalog.read', 'order.read', 'member.read'], requiresStepUp: false },
+  {
+    prefix: 'admin',
+    target: 'admin',
+    roleName: '测试企业管理员',
+    dataScope: '示范企业 / 智慧翼企业福利商城',
+    subjectScope: '企业',
+    keyPermissions: ['member.invite', 'member.disable', 'finance.reconcile', 'audit.read'],
+    requiresStepUp: false,
+  },
+];
+
+for (const definition of ROLE_TEST_MEMBERSHIP_DEFINITIONS) {
+  for (let index = 1; index <= 5; index += 1) {
+    const suffix = String(index).padStart(3, '0');
+    TEST_ACCOUNT_MEMBERSHIPS[`${definition.prefix}${suffix}`] = [
+      {
+        id: `membership-test-${definition.prefix}-${suffix}`,
+        target: definition.target,
+        status: 'active',
+        enterpriseName: '示范企业',
+        storeName: definition.target === 'storefront' ? '智慧翼企业福利商城' : '智慧翼运营后台',
+        roleName: definition.roleName,
+        dataScope: definition.dataScope,
+        accountTypeLabel: definition.target === 'storefront' ? '福利账户' : undefined,
+        subjectScope: definition.subjectScope,
+        keyPermissions: definition.keyPermissions,
+        authorizedBy: '测试租户管理员',
+        expireAt: '2027-12-31',
+        requiresStepUp: definition.requiresStepUp,
+      },
+    ];
+  }
+}
 
 /**
  * 获取账号当前锁定状态
@@ -286,13 +333,7 @@ export async function requestOtp(phone: string): Promise<{ success: boolean; mes
     throw new Error(`账号已锁定，请在 ${Math.ceil(lockout.remainingSeconds / 60)} 分钟后重试`);
   }
 
-  // 模拟网络延迟
-  await new Promise((resolve) => setTimeout(resolve, 600));
-
-  return {
-    success: true,
-    message: '验证码已发送，测试环境下默认验证码为：123456',
-  };
+  throw new Error('短信验证码登录正在接入运营商，请先使用密码登录；新用户可使用注册验证码');
 }
 
 /**
@@ -308,27 +349,8 @@ export async function loginWithOtp(phone: string, code: string): Promise<PreAuth
     throw new Error(`账号连续失败过多，已被锁定。剩余解封时间：${lockout.remainingSeconds} 秒`);
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 800));
-
-  // 默认演示验证码为 123456
-  if (cleanCode !== '123456') {
-    await reportLoginFailure(cleanPhone, '短信验证码不正确或已失效');
-    throw new Error('账号或验证码不正确'); // 安全红线：统一提示，不泄漏细节
-  }
-
-  // 登录成功，清除失败记录
-  delete failureMap[cleanPhone];
-
-  // 获取对应的会员列表（如未找到，默认给13800138000的数据，或空数据）
-  const memberships = MOCK_MEMBERSHIPS_MAP[cleanPhone] ?? MOCK_MEMBERSHIPS_MAP['13800138000'];
-
-  return {
-    preAuthToken: `PAT_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-    phone: cleanPhone,
-    loginMethod: 'otp',
-    requiresPasswordReset: cleanPhone === '13400134000',
-    memberships: JSON.parse(JSON.stringify(memberships)),
-  };
+  void cleanCode;
+  throw new Error('短信验证码登录正在接入运营商，请先使用密码登录');
 }
 
 /**
@@ -348,28 +370,96 @@ export async function loginWithPassword(identifier: string, password: string): P
     throw new Error(`账号已被锁定，请在 ${Math.ceil(lockout.remainingSeconds / 60)} 分钟后再试`);
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 800));
-
-  const testMemberships = TEST_ACCOUNT_MEMBERSHIPS[cleanId];
-  const isMatch = (Boolean(testMemberships) && cleanPw === '123456') || cleanPw === 'password123' || cleanPw === 'admin123';
-
-  if (!isMatch) {
+  const response = await fetch('/api/v1/auth/credential/discover', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ username: cleanId, password: cleanPw }),
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
     await reportLoginFailure(cleanId, '密码验证失败');
-    // 安全红线：统一文案 "账号或密码不正确"
-    throw new Error('账号或密码不正确');
+    throw new Error(payload?.error?.message || '账号或密码不正确');
   }
-
+  const membershipId = payload?.authorization?.membershipId;
+  const target = payload?.authorization?.target;
+  if (typeof membershipId !== 'string' || (target !== 'storefront' && target !== 'admin')) throw new Error('会员身份未正确建立');
   delete failureMap[cleanId];
-
-  const memberships = testMemberships ?? MOCK_MEMBERSHIPS_MAP[cleanId] ?? MOCK_MEMBERSHIPS_MAP['13800138000'];
-
+  const fixture = TEST_ACCOUNT_MEMBERSHIPS[cleanId]?.find((item) => item.id === membershipId);
   return {
     preAuthToken: `PAT_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
     identifier: cleanId,
     loginMethod: 'password',
-    requiresPasswordReset: cleanId === '13400134000' || cleanId === 'force_user',
-    memberships: JSON.parse(JSON.stringify(memberships)),
+    requiresPasswordReset: payload.requiresPasswordReset === true,
+    memberships: [
+      fixture ?? {
+        id: membershipId,
+        target,
+        status: 'active',
+        enterpriseName: '已绑定企业',
+        storeName: target === 'admin' ? '智慧翼运营后台' : '智慧翼企业福利商城',
+        roleName: target === 'admin' ? '企业管理会员' : '企业员工会员',
+        dataScope: target === 'admin' ? '已授权业务范围' : '个人福利账户',
+        accountTypeLabel: target === 'storefront' ? '福利账户' : undefined,
+      },
+    ],
   };
+}
+
+export async function changeInitialPassword(username: string, password: string, newPassword: string): Promise<void> {
+  const response = await fetch('/api/v1/auth/password/initial-change', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ username, password, newPassword }),
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error?.message || '初始密码修改失败');
+}
+
+export interface RegistrationOtpResult {
+  challengeId: string;
+  expiresInSeconds: number;
+  resendAfterSeconds: number;
+  debugCode?: string;
+}
+
+export async function requestRegistrationOtp(mobile: string): Promise<RegistrationOtpResult> {
+  const response = await fetch('/api/v1/auth/registration/otp', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ mobile }),
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error?.message || '验证码发送失败');
+  return payload as RegistrationOtpResult;
+}
+
+export async function registerMember(input: { mobile: string; challengeId: string; code: string; password: string; displayName: string; inviteCode: string }): Promise<{ registered: true; employeeNo: string }> {
+  const response = await fetch('/api/v1/auth/register', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error?.message || '注册失败');
+  return payload;
+}
+
+export async function registerUsernameMember(input: {
+  username: string;
+  password: string;
+  displayName: string;
+  inviteCode: string;
+  acceptedTerms: true;
+}): Promise<{ registered: true; username: string; employeeNo: string; phoneBound: false }> {
+  const response = await fetch('/api/v1/auth/register/username', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error?.message || '注册失败');
+  return payload;
 }
 
 /**
@@ -393,8 +483,8 @@ export async function verifyStepUp(preAuthToken: string, membershipId: string, t
 
   await new Promise((resolve) => setTimeout(resolve, 700));
 
-  // 测试用 TOTP 代码：任意 6 位数字，如 654321 或 123456；如输 000000 则测试失败
-  if (cleanCode === '000000') {
+  // 测试环境只接受明确公布的动态口令，不接受任意六位数。
+  if (cleanCode !== '123456') {
     // 独立计数与独立审计
     const auditKey = `stepup_${preAuthToken}`;
     if (!stepUpFailureMap[auditKey]) {

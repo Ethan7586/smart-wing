@@ -15,7 +15,7 @@ export const MPHomePage: React.FC = () => {
       id: 1,
       title: '中秋关怀 · 企采礼包专场',
       desc: '全额福利卡扣减 · 免费开票直达',
-      color: 'from-[#143A8F] to-[#1F5EFF]',
+      color: 'from-[var(--sw-brand-dark)] to-[var(--sw-brand)]',
     },
     {
       id: 2,
@@ -52,7 +52,7 @@ export const MPHomePage: React.FC = () => {
       <WeChatCapsule />
 
       {/* 搜索框区 */}
-      <div className="bg-[#143A8F] px-3 pb-3 pt-1">
+      <div className="bg-[var(--sw-brand-dark)] px-3 pb-3 pt-1">
         <div className="relative flex items-center">
           <input
             type="text"
@@ -63,7 +63,7 @@ export const MPHomePage: React.FC = () => {
             className="w-full bg-white text-gray-900 placeholder-gray-400 text-xs pl-8 pr-16 py-2 rounded-full focus:outline-none shadow-inner font-medium"
           />
           <Search className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-          <button onClick={() => setMpPage('category')} className="absolute right-1 top-1/2 -translate-y-1/2 bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold text-xs px-3 py-1 rounded-full cursor-pointer">
+          <button onClick={() => setMpPage('category')} className="absolute right-1 top-1/2 -translate-y-1/2 bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-bold text-xs px-3 py-1 rounded-full cursor-pointer">
             搜索
           </button>
         </div>
@@ -73,12 +73,12 @@ export const MPHomePage: React.FC = () => {
       <div className="px-3 -mt-1.5 z-10">
         <div className="bg-white rounded-2xl p-3 shadow-md border border-blue-100 flex items-center justify-between divide-x divide-gray-100">
           <div onClick={() => setMpPage('profile')} className="flex-1 pr-2 flex items-center gap-2 cursor-pointer active:opacity-70 transition-opacity">
-            <div className="w-8 h-8 rounded-xl bg-[#1F5EFF] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+            <div className="w-8 h-8 rounded-xl bg-[var(--sw-brand)] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
               <CreditCard className="w-4 h-4" />
             </div>
             <div>
               <div className="text-[10px] text-gray-500 font-medium">福利卡余额</div>
-              <div className="text-sm font-black text-[#1F5EFF] font-mono">¥{user.welfareBalance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</div>
+              <div className="text-sm font-black text-[var(--sw-brand)] font-mono">¥{user.welfareBalance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</div>
             </div>
           </div>
 
@@ -104,7 +104,7 @@ export const MPHomePage: React.FC = () => {
           </div>
 
           <div className="flex items-center justify-between pt-2 border-t border-white/10">
-            <button onClick={() => setMpPage('category')} className="bg-white text-[#143A8F] font-bold text-[10px] px-3 py-1 rounded-full flex items-center gap-0.5 shadow-xs cursor-pointer">
+            <button onClick={() => setMpPage('category')} className="bg-white text-[var(--sw-brand-dark)] font-bold text-[10px] px-3 py-1 rounded-full flex items-center gap-0.5 shadow-xs cursor-pointer">
               <span>立即去兑换</span>
               <ChevronRight className="w-3 h-3" />
             </button>
@@ -140,10 +140,10 @@ export const MPHomePage: React.FC = () => {
         <div className="bg-white rounded-2xl p-3 shadow-xs border border-gray-100">
           <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-100">
             <div className="flex items-center gap-1.5">
-              <span className="bg-[#143A8F] text-white text-[10px] font-bold px-1.5 py-0.5 rounded">企采协议</span>
+              <span className="bg-[var(--sw-brand-dark)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded">企采协议</span>
               <h3 className="text-xs font-black text-gray-900">企业大客户内购补贴</h3>
             </div>
-            <button onClick={() => setMpPage('category')} className="text-[10px] text-[#1F5EFF] font-bold flex items-center">
+            <button onClick={() => setMpPage('category')} className="text-[10px] text-[var(--sw-brand)] font-bold flex items-center">
               <span>查看全部</span>
               <ChevronRight className="w-3 h-3" />
             </button>
@@ -156,7 +156,7 @@ export const MPHomePage: React.FC = () => {
                 <div className="overflow-hidden flex flex-col justify-between flex-1">
                   <div className="text-[11px] font-bold text-gray-800 truncate">{p.title}</div>
                   <div>
-                    <span className="text-[9px] text-[#1F5EFF] bg-blue-50 font-bold px-1 py-0.2 rounded">省¥{p.enterpriseSubsidyAmount}</span>
+                    <span className="text-[9px] text-[var(--sw-brand)] bg-blue-50 font-bold px-1 py-0.2 rounded">省¥{p.enterpriseSubsidyAmount}</span>
                     <div className="text-xs font-black text-[#E5484D] font-mono mt-0.5">¥{p.price}</div>
                   </div>
                 </div>
@@ -171,9 +171,9 @@ export const MPHomePage: React.FC = () => {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50/60 rounded-2xl p-3 border border-blue-100">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5">
-              <Store className="w-4 h-4 text-[#1F5EFF]" />
+              <Store className="w-4 h-4 text-[var(--sw-brand)]" />
               <h3 className="text-xs font-black text-gray-900">附近门店凭码即刻核销</h3>
-              <span className="text-[9px] bg-blue-100 text-[#1F5EFF] font-bold px-1.5 py-0.2 rounded-full">免运费 · 到店出示二维码</span>
+              <span className="text-[9px] bg-blue-100 text-[var(--sw-brand)] font-bold px-1.5 py-0.2 rounded-full">免运费 · 到店出示二维码</span>
             </div>
             <button onClick={() => triggerPendingFeature('微信小程序 LBS 位置定位', '定位附近的加盟美发、烘焙甜品、健身房核销门店。')} className="text-[10px] text-gray-500 hover:text-blue-600 flex items-center">
               定位: 北京朝阳 &gt;
@@ -202,7 +202,7 @@ export const MPHomePage: React.FC = () => {
                       e.stopPropagation();
                       addToCart(p, 1);
                     }}
-                    className="mt-1 bg-[#1F5EFF] text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-xs cursor-pointer"
+                    className="mt-1 bg-[var(--sw-brand)] text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-xs cursor-pointer"
                   >
                     兑换卡券
                   </button>

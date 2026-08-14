@@ -16,6 +16,17 @@ export interface ApiProduct {
   availableStock: number;
   supplierName: string;
   isTest: boolean;
+  purchasable: boolean;
+  qualification: {
+    visible: boolean;
+    purchasable: boolean;
+    visibilityReason: string;
+    purchaseReason: string;
+    policyVersion?: number;
+    matchedPolicyIds?: string[];
+    cityZoneIds?: string[];
+    limitTemplateIds?: string[];
+  };
 }
 
 export interface ApiOrder {
@@ -58,6 +69,8 @@ export interface ApiCartItem {
   quantity: number;
   selected: boolean;
   updatedAt: string;
+  purchasable?: boolean;
+  qualification?: { purchaseReason?: string };
 }
 export interface ApiDeliveryAddress {
   id: string;
@@ -85,8 +98,44 @@ export interface ApiAfterSale {
 export interface ApiActor {
   userId: string;
   employeeNo: string;
+  displayName: string;
+  departmentName: string | null;
+  phoneMasked: string | null;
   roles: string[];
   permissions: string[];
+}
+export interface ApiMemberAssurance {
+  level: 'account' | 'phone';
+  accountAuthenticated: boolean;
+  accountAuthenticatedAt: string;
+  phoneVerified: boolean;
+  phoneVerifiedAt: string | null;
+  phoneVerificationMethod: string | null;
+  paymentEligible: boolean;
+  restrictedCapabilities: string[];
+}
+export interface ApiSecuritySession {
+  id: string;
+  target: 'storefront' | 'admin';
+  deviceLabel: string;
+  createdAt: string;
+  lastSeenAt: string;
+  expiresAt: string;
+  current: boolean;
+}
+export interface ApiSecurityCenter {
+  hasLocalCredential: boolean;
+  phoneMasked: string | null;
+  passwordChangedAt: string | null;
+  assuranceLevel: 'account' | 'phone';
+  accountAuthenticated: boolean;
+  accountAuthenticatedAt: string | null;
+  phoneVerified: boolean;
+  phoneVerifiedAt: string | null;
+  paymentEligible: boolean;
+  restrictedCapabilities: string[];
+  phoneVerificationAvailable: boolean;
+  sessions: ApiSecuritySession[];
 }
 export interface LoginRequest {
   accessCode?: string;
@@ -94,7 +143,7 @@ export interface LoginRequest {
   password?: string;
 }
 export interface ApiBootstrap {
-  actor: ApiActor;
+  actor: ApiActor & { assurance: ApiMemberAssurance };
   scope: { tenantId: string; enterpriseId: string; mallId: string; mallCode: string; mallName: string; brandName: string; enterpriseName: string };
 }
 export interface ApiHomeSnapshot {

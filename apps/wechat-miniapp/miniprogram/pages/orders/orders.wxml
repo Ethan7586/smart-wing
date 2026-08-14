@@ -1,0 +1,151 @@
+<!-- 订单中心：真实微信会话与 Commerce API 数据，不提供演示订单。 -->
+<view class="sw-page orders {{sizeClass}}" style="{{sizeStyle}}">
+  <view class="nav" style="padding-top: {{nav.statusBarHeight}}px;">
+    <view class="nav-row" style="height: {{nav.navContentHeight}}px; padding-right: {{nav.rightInset}}px;">
+      <text class="nav-title">我的订单</text>
+      <view class="nav-action sw-tap" aria-label="搜索订单" bindtap="onToggleSearch">
+        <view class="i i-search-muted"></view>
+      </view>
+    </view>
+  </view>
+  <view style="height: {{nav.navTotalHeight}}px;"></view>
+
+  <view wx:if="{{searchOpen}}" class="sw-inset search-wrap">
+    <view class="search-box">
+      <view class="i i-sm i-search-muted"></view>
+      <input
+        class="search-input"
+        value="{{searchKeyword}}"
+        placeholder="搜索订单号或商品"
+        maxlength="80"
+        confirm-type="search"
+        focus
+        bindinput="onSearchInput"
+      />
+    </view>
+  </view>
+
+  <view class="filter-row">
+    <view
+      wx:for="{{filters}}"
+      wx:key="key"
+      class="filter-item sw-tap {{activeFilter === item.key ? 'is-on' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onSelectFilter"
+    >
+      <text>{{item.label}}</text>
+      <view wx:if="{{activeFilter === item.key}}" class="filter-marker"></view>
+    </view>
+  </view>
+
+  <view wx:if="{{bindingRequired}}" class="sw-inset state-wrap binding-wrap">
+    <view class="state-icon state-icon-brand sw-brand-mark"></view>
+    <text class="state-title">{{error.title}}</text>
+    <text class="state-copy">{{error.message}}</text>
+    <view class="binding-card sw-card">
+      <text class="binding-label">现有智慧翼账号</text>
+      <input
+        class="binding-input"
+        value="{{bindingUsername}}"
+        placeholder="请输入账号"
+        maxlength="80"
+        bindinput="onBindingUsernameInput"
+      />
+      <text class="binding-label binding-label-next">密码</text>
+      <input
+        class="binding-input"
+        value="{{bindingPassword}}"
+        password
+        placeholder="请输入密码"
+        maxlength="160"
+        bindinput="onBindingPasswordInput"
+      />
+      <text wx:if="{{bindingError}}" class="binding-error">{{bindingError}}</text>
+      <view class="binding-submit sw-tap {{bindingBusy ? 'is-disabled' : ''}}" bindtap="onBindMember">
+        <text>{{bindingBusy ? '正在绑定…' : '绑定并查看订单'}}</text>
+      </view>
+      <text class="binding-note">密码只用于本次服务端身份确认，小程序不会保存。</text>
+    </view>
+  </view>
+
+  <view wx:elif="{{error}}" class="sw-inset state-wrap">
+    <view class="i i-xl {{error.kind === 'offline' ? 'i-wifi-off-muted' : 'i-triangle-alert-danger'}}"></view>
+    <text class="state-title">{{error.title}}</text>
+    <text class="state-copy">{{error.message}}</text>
+    <view wx:if="{{error.retryable}}" class="retry sw-tap" bindtap="onRetry">
+      <view class="i i-sm i-refresh-cw-brand"></view>
+      <text>重试</text>
+    </view>
+  </view>
+
+  <view wx:elif="{{loading}}" class="sw-inset skeleton-wrap">
+    <view class="sw-skeleton skeleton-card"></view>
+    <view class="sw-skeleton skeleton-card"></view>
+    <view class="sw-skeleton skeleton-card"></view>
+  </view>
+
+  <view wx:elif="{{!displayOrders.length}}" class="sw-inset state-wrap">
+    <view class="i i-xl i-inbox-muted"></view>
+    <text class="state-title">{{searchKeyword ? '没有匹配的订单' : activeFilter === 'all' ? '还没有订单' : '这个状态下暂无订单'}}</text>
+    <text class="state-copy">订单创建后会显示在这里，支付与履约状态以后端为准。</text>
+  </view>
+
+  <view wx:else class="sw-inset order-list">
+    <view
+      wx:for="{{displayOrders}}"
+      wx:key="id"
+      wx:for-item="order"
+      class="sw-card order-card"
+      data-order-no="{{order.orderNo}}"
+      bindtap="onOpenOrder"
+    >
+      <view class="order-head">
+        <view class="source-row">
+          <view class="source-mark sw-brand-mark"></view>
+          <text class="source-name">{{order.sourceLabel}}</text>
+        </view>
+        <text class="status status-{{order.statusTone}}">{{order.statusLabel}}</text>
+      </view>
+
+      <view class="item-row">
+        <image
+          wx:if="{{order.coverUrl}}"
+          class="item-image"
+          src="{{order.coverUrl}}"
+          mode="aspectFill"
+          data-order-id="{{order.id}}"
+          binderror="onImageError"
+        />
+        <view wx:else class="item-slot">
+          <view class="i i-md i-image-off-muted"></view>
+        </view>
+        <view class="item-copy">
+          <text class="item-title">{{order.itemTitle}}</text>
+          <text wx:if="{{order.itemSummary}}" class="item-summary">{{order.itemSummary}}</text>
+          <text class="order-time">{{order.createdText}}</text>
+        </view>
+        <text wx:if="{{order.itemQuantity}}" class="item-quantity">×{{order.itemQuantity}}</text>
+      </view>
+
+      <view class="order-note">
+        <text>{{order.statusNote}}</text>
+      </view>
+
+      <view class="order-foot">
+        <view class="amount-row">
+          <text class="amount-label">{{order.amountLabel}}</text>
+          <block wx:if="{{order.amount}}">
+            <text class="amount-symbol">¥</text>
+            <text class="amount-value">{{order.amount}}</text>
+          </block>
+          <text wx:else class="amount-pending">待同步</text>
+        </view>
+        <view class="order-action sw-tap {{order.status === 'pending_payment' ? 'is-primary' : ''}}">
+          <text>{{order.actionLabel}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="tabbar-spacer"></view>
+</view>

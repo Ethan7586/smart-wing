@@ -41,7 +41,7 @@ export const MobileOrdersPage: React.FC<MobileOrdersPageProps> = ({ mode }) => {
                   <p className="font-mono text-[10px] text-gray-500">{order.orderNo}</p>
                   <p className="mt-0.5 text-[10px] text-gray-400">{order.createdAt}</p>
                 </div>
-                <span className="rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold text-[#1F5EFF]">{order.statusText}</span>
+                <span className="rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold text-[var(--sw-brand)]">{order.statusText}</span>
               </div>
 
               <div className="space-y-2 py-2">

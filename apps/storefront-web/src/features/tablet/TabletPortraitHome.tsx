@@ -12,10 +12,10 @@ export const TabletPortraitHome: React.FC = () => {
   return (
     <div className="bg-[#F5F7FA] min-h-full flex flex-col font-sans text-gray-800 pb-20 overflow-y-auto">
       {/* Top Header Section */}
-      <div className="bg-[#143A8F] text-white p-4 space-y-3 shadow-md">
+      <div className="bg-[var(--sw-brand-dark)] text-white p-4 space-y-3 shadow-md">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#1F5EFF] flex items-center justify-center font-black text-white text-lg">翼</div>
+            <div className="w-10 h-10 rounded-2xl bg-[var(--sw-brand)] flex items-center justify-center font-black text-white text-lg">翼</div>
             <div>
               <div className="text-sm font-black tracking-wide flex items-center gap-2">
                 <span>智慧翼企业福利商城</span>
@@ -61,7 +61,7 @@ export const TabletPortraitHome: React.FC = () => {
       <div className="bg-white border-b border-gray-200 p-2.5 px-4 flex items-center gap-2 overflow-x-auto shadow-2xs">
         <button
           onClick={() => setActiveCategory('all')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer min-h-[40px] ${activeCategory === 'all' ? 'bg-[#1F5EFF] text-white shadow-xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+          className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer min-h-[40px] ${activeCategory === 'all' ? 'bg-[var(--sw-brand)] text-white shadow-xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
         >
           全部推荐
         </button>
@@ -70,7 +70,7 @@ export const TabletPortraitHome: React.FC = () => {
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
             className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer min-h-[40px] ${
-              activeCategory === cat.id ? 'bg-[#1F5EFF] text-white shadow-xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              activeCategory === cat.id ? 'bg-[var(--sw-brand)] text-white shadow-xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
             {cat.name}
@@ -81,12 +81,15 @@ export const TabletPortraitHome: React.FC = () => {
       {/* Main Content Area */}
       <div className="p-4 space-y-4">
         {/* Banner Hero */}
-        <div className="bg-gradient-to-r from-[#143A8F] to-[#1F5EFF] rounded-3xl p-5 text-white shadow-md relative overflow-hidden flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[var(--sw-brand-dark)] to-[var(--sw-brand)] rounded-3xl p-5 text-white shadow-md relative overflow-hidden flex items-center justify-between">
           <div className="space-y-2 max-w-[65%] z-10">
             <span className="bg-amber-400 text-gray-900 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">企业员工专属福利日</span>
             <h2 className="text-xl font-black leading-tight">全场正品好物 企采补贴立省 30%</h2>
             <p className="text-xs text-blue-100 leading-relaxed">支持企业福利卡与餐卡余额无缝全额冲抵，开具增值税专用发票。</p>
-            <button onClick={() => setTabletPage('category')} className="bg-white text-[#143A8F] hover:bg-yellow-300 transition-colors font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1 shadow-sm cursor-pointer min-h-[40px]">
+            <button
+              onClick={() => setTabletPage('category')}
+              className="bg-white text-[var(--sw-brand-dark)] hover:bg-yellow-300 transition-colors font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1 shadow-sm cursor-pointer min-h-[40px]"
+            >
               <span>进入福利专区</span>
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -125,7 +128,7 @@ export const TabletPortraitHome: React.FC = () => {
                     e.stopPropagation();
                     addToCart(p, 1);
                   }}
-                  className="w-full bg-blue-50 hover:bg-[#1F5EFF] hover:text-white text-[#1F5EFF] font-bold text-xs py-2 rounded-xl transition-colors flex items-center justify-center gap-1 cursor-pointer min-h-[40px]"
+                  className="w-full bg-blue-50 hover:bg-[var(--sw-brand)] hover:text-white text-[var(--sw-brand)] font-bold text-xs py-2 rounded-xl transition-colors flex items-center justify-center gap-1 cursor-pointer min-h-[40px]"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>加购物车</span>
@@ -140,7 +143,7 @@ export const TabletPortraitHome: React.FC = () => {
       {cartCount > 0 && (
         <div className="fixed bottom-14 left-0 right-0 max-w-[800px] mx-auto bg-gray-900 text-white p-3 px-5 z-20 flex items-center justify-between shadow-2xl border-t border-gray-800">
           <div className="flex items-center gap-3">
-            <div className="relative bg-[#1F5EFF] p-2.5 rounded-2xl">
+            <div className="relative bg-[var(--sw-brand)] p-2.5 rounded-2xl">
               <ShoppingCart className="w-5 h-5 text-white" />
               <span className="absolute -top-1.5 -right-1.5 bg-[#E5484D] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">{cartCount}</span>
             </div>
@@ -150,7 +153,10 @@ export const TabletPortraitHome: React.FC = () => {
             </div>
           </div>
 
-          <button onClick={() => setTabletPage('cart')} className="bg-[#1F5EFF] hover:bg-blue-600 text-white font-bold text-xs px-6 py-2.5 rounded-2xl shadow-md transition-colors cursor-pointer flex items-center gap-1.5 min-h-[44px]">
+          <button
+            onClick={() => setTabletPage('cart')}
+            className="bg-[var(--sw-brand)] hover:bg-blue-600 text-white font-bold text-xs px-6 py-2.5 rounded-2xl shadow-md transition-colors cursor-pointer flex items-center gap-1.5 min-h-[44px]"
+          >
             <span>立即去结算</span>
             <ArrowRight className="w-4 h-4" />
           </button>

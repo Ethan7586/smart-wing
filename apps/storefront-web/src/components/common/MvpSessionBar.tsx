@@ -3,7 +3,7 @@ import { LogIn, LogOut, ShieldCheck } from 'lucide-react';
 import { useMall } from '../../context/MallContext';
 
 export const MvpSessionBar: React.FC = () => {
-  const { sessionStatus, logout } = useMall();
+  const { sessionStatus, catalogSyncStatus, logout } = useMall();
   const [showLoginDrawer, setShowLoginDrawer] = useState(false);
   const [loginUrl, setLoginUrl] = useState('/login?embed=storefront');
   const loginFrameRef = useRef<HTMLIFrameElement>(null);
@@ -51,7 +51,7 @@ export const MvpSessionBar: React.FC = () => {
   }, []);
 
   if (sessionStatus === 'checking') {
-    return <div className="bg-[#EAF1FF] border-b border-blue-200 text-[#143A8F] text-xs py-2 px-4 text-center">正在建立安全会话并同步商城数据…</div>;
+    return <div className="bg-[var(--sw-brand-light)] border-b border-blue-200 text-[var(--sw-brand-dark)] text-xs py-2 px-4 text-center">正在建立安全会话并同步商城数据…</div>;
   }
 
   return (
@@ -60,14 +60,22 @@ export const MvpSessionBar: React.FC = () => {
         <div className="max-w-[1280px] mx-auto flex items-center justify-between gap-3">
           <span className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4" />
-            {sessionStatus === 'authenticated' ? 'MVP安全会话已连接，账户与订单数据来自生产型数据库' : '当前为商品访客预览；登录后可体验福利账户、下单和订单查询'}
+            {sessionStatus === 'authenticated'
+              ? catalogSyncStatus === 'syncing'
+                ? '账户与订单已连接，商品资格正在后台更新'
+                : catalogSyncStatus === 'error'
+                  ? '账户已连接；商品资格同步失败，可刷新重试'
+                  : '安全会话已连接，账户与订单数据来自生产型数据库'
+              : catalogSyncStatus === 'error'
+                ? '商品数据库尚未连接；登录后才能加载真实可购商品'
+                : '当前未登录；主商城不会使用演示商品填充页面'}
           </span>
           {sessionStatus === 'authenticated' ? (
             <button onClick={() => void logout()} className="font-bold flex items-center gap-1 hover:underline">
               <LogOut className="w-3.5 h-3.5" /> 退出
             </button>
           ) : (
-            <button onClick={() => setShowLoginDrawer(true)} className="bg-[#143A8F] text-white rounded px-3 py-1.5 font-bold flex items-center gap-1">
+            <button onClick={() => setShowLoginDrawer(true)} className="bg-[var(--sw-brand-dark)] text-white rounded px-3 py-1.5 font-bold flex items-center gap-1">
               <LogIn className="w-3.5 h-3.5" /> 登录MVP
             </button>
           )}

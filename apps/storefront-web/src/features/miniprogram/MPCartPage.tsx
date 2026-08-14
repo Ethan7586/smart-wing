@@ -25,26 +25,26 @@ export const MPCartPage: React.FC = () => {
       <WeChatCapsule title="福利购物车" />
 
       {/* 顶部福利卡余额提示栏 */}
-      <div className="bg-[#EAF1FF] border-b border-blue-200/80 px-3 py-2 flex items-center justify-between text-xs text-blue-900">
+      <div className="bg-[var(--sw-brand-light)] border-b border-blue-200/80 px-3 py-2 flex items-center justify-between text-xs text-blue-900">
         <div className="flex items-center gap-1.5 font-medium">
-          <CreditCard className="w-4 h-4 text-[#1F5EFF]" />
+          <CreditCard className="w-4 h-4 text-[var(--sw-brand)]" />
           <span>福利卡可用余额：</span>
-          <span className="font-black text-[#1F5EFF] font-mono">¥{user.welfareBalance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</span>
+          <span className="font-black text-[var(--sw-brand)] font-mono">¥{user.welfareBalance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</span>
         </div>
-        <span className="text-[10px] bg-white text-[#1F5EFF] font-bold px-2 py-0.5 rounded border border-blue-200">全额抵扣无须自费</span>
+        <span className="text-[10px] bg-white text-[var(--sw-brand)] font-bold px-2 py-0.5 rounded border border-blue-200">全额抵扣无须自费</span>
       </div>
 
       {/* 购物车为空 */}
       {cart.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-3">
-          <div className="w-16 h-16 rounded-full bg-blue-50 text-[#1F5EFF] flex items-center justify-center shadow-xs">
+          <div className="w-16 h-16 rounded-full bg-blue-50 text-[var(--sw-brand)] flex items-center justify-center shadow-xs">
             <ShoppingBag className="w-8 h-8" />
           </div>
           <div>
             <h3 className="font-bold text-gray-800 text-sm">购物车暂无商品</h3>
             <p className="text-xs text-gray-400 mt-0.5">快去选购员工专属协议特惠福利吧</p>
           </div>
-          <button onClick={() => setMpPage('home')} className="bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-md cursor-pointer">
+          <button onClick={() => setMpPage('home')} className="bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-md cursor-pointer">
             去商城逛逛
           </button>
         </div>
@@ -54,7 +54,7 @@ export const MPCartPage: React.FC = () => {
           <div className="bg-white rounded-2xl p-3 shadow-xs border border-gray-100 space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-gray-100 text-xs">
               <button onClick={() => toggleSelectAllCart(!isAllSelected)} className="flex items-center gap-2 font-bold text-gray-800 cursor-pointer">
-                {isAllSelected ? <CheckSquare className="w-4 h-4 text-[#1F5EFF]" /> : <Square className="w-4 h-4 text-gray-300" />}
+                {isAllSelected ? <CheckSquare className="w-4 h-4 text-[var(--sw-brand)]" /> : <Square className="w-4 h-4 text-gray-300" />}
                 <span>中国建筑集团企采直供仓</span>
               </button>
 
@@ -66,7 +66,7 @@ export const MPCartPage: React.FC = () => {
               {cart.map((item) => (
                 <div key={item.id} className="pt-3 first:pt-0 flex items-center gap-2.5">
                   <button onClick={() => toggleCartItemSelected(item.id)} className="p-1 cursor-pointer">
-                    {item.selected ? <CheckSquare className="w-4 h-4 text-[#1F5EFF]" /> : <Square className="w-4 h-4 text-gray-300" />}
+                    {item.selected ? <CheckSquare className="w-4 h-4 text-[var(--sw-brand)]" /> : <Square className="w-4 h-4 text-gray-300" />}
                   </button>
 
                   <img src={item.product.images[0]} alt={item.product.title} className="w-16 h-16 object-cover rounded-xl border border-gray-100 flex-shrink-0" />
@@ -108,7 +108,7 @@ export const MPCartPage: React.FC = () => {
           <div className="bg-white rounded-2xl p-3 shadow-xs border border-gray-100 space-y-2 text-xs">
             <div onClick={() => triggerPendingFeature('微信小程序 企采优惠券与包邮卡', '选择或核销企业专项优惠券。')} className="flex items-center justify-between cursor-pointer">
               <span className="text-gray-600 font-medium">企业企采优惠券</span>
-              <span className="text-[#1F5EFF] font-bold flex items-center gap-0.5">
+              <span className="text-[var(--sw-brand)] font-bold flex items-center gap-0.5">
                 <span>已选最佳优惠 (-¥{totalSubsidy > 0 ? totalSubsidy.toFixed(2) : '0.00'})</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </span>
@@ -126,14 +126,14 @@ export const MPCartPage: React.FC = () => {
       {cart.length > 0 && (
         <div className="fixed bottom-12 left-0 right-0 max-w-[430px] mx-auto bg-white border-t border-gray-200/90 p-3 z-40 flex items-center justify-between shadow-2xl">
           <button onClick={() => toggleSelectAllCart(!isAllSelected)} className="flex items-center gap-1.5 text-xs font-bold text-gray-700 cursor-pointer">
-            {isAllSelected ? <CheckSquare className="w-4 h-4 text-[#1F5EFF]" /> : <Square className="w-4 h-4 text-gray-300" />}
+            {isAllSelected ? <CheckSquare className="w-4 h-4 text-[var(--sw-brand)]" /> : <Square className="w-4 h-4 text-gray-300" />}
             <span>全选</span>
           </button>
 
           <div className="flex items-center gap-3">
             <div className="text-right">
               <div className="text-[10px] text-gray-500">
-                已选 <span className="text-[#1F5EFF] font-bold">{selectedItems.length}</span> 件商品
+                已选 <span className="text-[var(--sw-brand)] font-bold">{selectedItems.length}</span> 件商品
               </div>
               <div className="text-xs font-bold text-gray-900">
                 合计: <span className="text-sm font-black text-[#E5484D] font-mono">¥{totalPrice.toFixed(2)}</span>
@@ -144,7 +144,7 @@ export const MPCartPage: React.FC = () => {
               onClick={handleCheckout}
               disabled={selectedItems.length === 0 || isSubmittingOrder}
               className={`px-5 py-2.5 rounded-xl font-bold text-xs text-white shadow-md transition-all cursor-pointer ${
-                selectedItems.length > 0 ? 'bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] hover:bg-blue-700 shadow-blue-500/20' : 'bg-gray-300 cursor-not-allowed'
+                selectedItems.length > 0 ? 'bg-gradient-to-r from-[var(--sw-brand)] to-[var(--sw-brand-dark)] hover:bg-blue-700 shadow-blue-500/20' : 'bg-gray-300 cursor-not-allowed'
               }`}
             >
               {isSubmittingOrder ? '安全提交中…' : '去结算（真实账户扣减）'}

@@ -1,0 +1,32 @@
+<!--
+  Plain <view>, not <cover-view>.
+
+  cover-view is rendered by the native layer and silently drops ::before,
+  linear-gradient, box-shadow and CSS custom properties. The previous tab bar
+  was written correctly and still rendered as black squares for exactly that
+  reason. cover-view is only needed to overlay map / video / canvas / camera.
+-->
+<view class="sw-tokens tabbar" style="padding-bottom: {{safeBottom}}px; {{sizeStyle}}">
+  <view class="tabbar-inner">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="tab {{item.center ? 'tab-center' : ''}}"
+      data-index="{{index}}"
+      bindtap="onTap"
+      hover-class="none"
+    >
+      <block wx:if="{{item.center}}">
+        <view class="mc-disc">
+          <view class="mc-mark sw-membercode-mark"></view>
+        </view>
+        <text class="tab-label tab-label-center {{selected === index ? 'is-on' : ''}}">{{item.label}}</text>
+      </block>
+
+      <block wx:else>
+        <view class="i tab-icon i-{{item.icon}}-{{selected === index ? 'brand' : 'secondary'}}"></view>
+        <text class="tab-label {{selected === index ? 'is-on' : ''}}">{{item.label}}</text>
+      </block>
+    </view>
+  </view>
+</view>

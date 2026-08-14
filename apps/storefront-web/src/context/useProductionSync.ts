@@ -1,17 +1,21 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { AccountLog, EnterpriseMall, Order, Product, UserProfile } from '../types';
 import { productionApi, type ApiProduct } from '../services/productionApi';
 import { mapApiOrder, mapApiProduct } from './mallMappers';
-import type { SessionStatus } from './MallContext.types';
+import type { CatalogSyncStatus, SessionStatus } from './MallContext.types';
+import { EMPTY_GUEST_PROFILE, UNRESOLVED_MALL } from './productionStorefrontState';
+import { mergeAuthenticatedMemberProfile } from './storefrontMemberProfile';
 
 interface ProductionSyncSetters {
   setProducts: Dispatch<SetStateAction<Product[]>>;
   setUser: Dispatch<SetStateAction<UserProfile>>;
   setCurrentMall: Dispatch<SetStateAction<EnterpriseMall>>;
+  setMalls: Dispatch<SetStateAction<EnterpriseMall[]>>;
   setOrders: Dispatch<SetStateAction<Order[]>>;
   setAccountLogs: Dispatch<SetStateAction<AccountLog[]>>;
   setSessionStatus: Dispatch<SetStateAction<SessionStatus>>;
+  setCatalogSyncStatus: Dispatch<SetStateAction<CatalogSyncStatus>>;
 }
 
 async function loadCompleteCatalog(): Promise<ApiProduct[]> {
@@ -20,7 +24,7 @@ async function loadCompleteCatalog(): Promise<ApiProduct[]> {
   let pageCount = 0;
 
   while (cursor !== null && pageCount < 60) {
-    const page = await productionApi.listProducts('smart-wing-demo', {
+    const page = await productionApi.listProducts({
       cursor,
       limit: 100,
     });
@@ -32,30 +36,59 @@ async function loadCompleteCatalog(): Promise<ApiProduct[]> {
   return [...items.values()];
 }
 
-export function useProductionSync(setters: ProductionSyncSetters) {
+export function useProductionSync(setters: ProductionSyncSetters, enabled = true) {
+  const syncVersionRef = useRef(0);
+
+  const closeProductionData = () => {
+    setters.setProducts([]);
+    setters.setUser({ ...EMPTY_GUEST_PROFILE });
+    setters.setCurrentMall({ ...UNRESOLVED_MALL });
+    setters.setMalls([]);
+    setters.setOrders([]);
+    setters.setAccountLogs([]);
+  };
+
   const refreshProductionData = async () => {
-    const snapshot = await productionApi.getHomeSnapshot();
+    if (!enabled) return;
+    const syncVersion = ++syncVersionRef.current;
+    // Never retain a previous or local catalogue while a fresh production
+    // qualification snapshot is being resolved.
+    setters.setProducts([]);
+    setters.setCatalogSyncStatus('syncing');
+    const catalogRequest = loadCompleteCatalog();
+    let snapshot: Awaited<ReturnType<typeof productionApi.getHomeSnapshot>>;
+    try {
+      snapshot = await productionApi.getHomeSnapshot();
+    } catch (error) {
+      void catalogRequest.catch(() => undefined);
+      if (syncVersion !== syncVersionRef.current) return;
+      closeProductionData();
+      setters.setCatalogSyncStatus('error');
+      throw error;
+    }
+    if (syncVersion !== syncVersionRef.current) {
+      void catalogRequest.catch(() => undefined);
+      return;
+    }
     const { bootstrap, accounts, orders: orderResult, accountLedgers: ledgerResult } = snapshot;
     const welfare = accounts.items.find((account) => account.type === 'welfare');
     const meal = accounts.items.find((account) => account.type === 'meal');
     setters.setUser((previous) => ({
-      ...previous,
-      id: bootstrap.actor.userId,
-      employeeId: bootstrap.actor.employeeNo,
-      enterpriseId: bootstrap.scope.enterpriseId,
-      enterpriseName: bootstrap.scope.enterpriseName,
-      currentMallId: bootstrap.scope.mallId,
+      ...mergeAuthenticatedMemberProfile(previous, bootstrap),
       welfareBalance: (welfare?.balanceCents ?? 0) / 100,
       mealBalance: (meal?.balanceCents ?? 0) / 100,
     }));
-    setters.setCurrentMall((previous) => ({
-      ...previous,
+    const resolvedMall: EnterpriseMall = {
       id: bootstrap.scope.mallId,
       enterpriseId: bootstrap.scope.enterpriseId,
       enterpriseName: bootstrap.scope.enterpriseName,
       mallName: bootstrap.scope.mallName,
       logoText: bootstrap.scope.brandName,
-    }));
+      badge: '企业福利专享',
+      welcomeBanner: `${bootstrap.scope.enterpriseName}员工福利商城已开放，实际权益以企业发放为准。`,
+    };
+    setters.setCurrentMall(resolvedMall);
+    setters.setMalls([resolvedMall]);
     setters.setOrders(orderResult.items.map((order) => mapApiOrder(order, bootstrap.scope)));
     setters.setAccountLogs(
       ledgerResult.items.map((ledger) => ({
@@ -71,30 +104,41 @@ export function useProductionSync(setters: ProductionSyncSetters) {
         balanceAfter: ledger.balanceAfterCents / 100,
       }))
     );
+    // Account identity, balances and orders are enough to make the shell
+    // interactive. The qualified catalog is heavier and can finish in the
+    // background without hiding account actions such as logout.
+    setters.setSessionStatus('authenticated');
+    void catalogRequest
+      .then((items) => {
+        if (syncVersion !== syncVersionRef.current) return;
+        setters.setProducts(items.map(mapApiProduct));
+        setters.setCatalogSyncStatus('ready');
+      })
+      .catch(() => {
+        if (syncVersion !== syncVersionRef.current) return;
+        setters.setProducts([]);
+        setters.setCatalogSyncStatus('error');
+      });
+  };
+
+  const cancelProductionSync = () => {
+    syncVersionRef.current += 1;
+    setters.setCatalogSyncStatus('idle');
   };
 
   useEffect(() => {
+    if (!enabled) return;
     let active = true;
-    void loadCompleteCatalog()
-      .then((response) => {
-        if (active && response.length) {
-          setters.setProducts(response.map(mapApiProduct));
-        }
-      })
-      .catch(() => undefined);
     // /home is both the authorization check and the initial data snapshot.
     // Avoid a separate /auth/session round trip before loading the page.
-    void refreshProductionData()
-      .then(() => {
-        if (active) setters.setSessionStatus('authenticated');
-      })
-      .catch(() => {
-        if (active) setters.setSessionStatus('guest');
-      });
+    void refreshProductionData().catch(() => {
+      if (active) setters.setSessionStatus('guest');
+    });
     return () => {
       active = false;
+      syncVersionRef.current += 1;
     };
-  }, []);
+  }, [enabled]);
 
-  return { refreshProductionData };
+  return { refreshProductionData, cancelProductionSync };
 }

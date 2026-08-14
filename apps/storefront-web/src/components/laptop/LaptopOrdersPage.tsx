@@ -24,7 +24,7 @@ export const LaptopOrdersPage: React.FC<LaptopOrdersPageProps> = ({ onSelectTab 
         {/* 页头标题 */}
         <div className="flex items-center justify-between text-xs border-b border-gray-200 pb-2">
           <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-[#1F5EFF]" />
+            <FileText className="w-4 h-4 text-[var(--sw-brand)]" />
             <h1 className="font-extrabold text-sm text-gray-900">国家电网员工福利订单中心</h1>
           </div>
           <span className="text-gray-400">1366×768 密集表格布局</span>
@@ -45,7 +45,7 @@ export const LaptopOrdersPage: React.FC<LaptopOrdersPageProps> = ({ onSelectTab 
               <button
                 key={tab.id}
                 onClick={() => setActiveStatus(tab.id)}
-                className={`w-full text-left px-2.5 py-2 rounded font-bold cursor-pointer transition-colors flex items-center justify-between ${activeStatus === tab.id ? 'bg-[#1F5EFF] text-white' : 'hover:bg-gray-100 text-gray-700'}`}
+                className={`w-full text-left px-2.5 py-2 rounded font-bold cursor-pointer transition-colors flex items-center justify-between ${activeStatus === tab.id ? 'bg-[var(--sw-brand)] text-white' : 'hover:bg-gray-100 text-gray-700'}`}
               >
                 <span>{tab.name}</span>
                 <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${activeStatus === tab.id ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'}`}>{tab.count}</span>
@@ -64,7 +64,7 @@ export const LaptopOrdersPage: React.FC<LaptopOrdersPageProps> = ({ onSelectTab 
                   <div className="flex items-center gap-3">
                     <span className="font-bold text-gray-900">订单号: {order.orderNo}</span>
                     <span>下单时间: {order.createdAt}</span>
-                    <span className="bg-blue-50 text-[#1F5EFF] font-bold px-1.5 py-0.2 rounded">{order.supplierName || '平台自营仓'}</span>
+                    <span className="bg-blue-50 text-[var(--sw-brand)] font-bold px-1.5 py-0.2 rounded">{order.supplierName || '平台自营仓'}</span>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -101,21 +101,21 @@ export const LaptopOrdersPage: React.FC<LaptopOrdersPageProps> = ({ onSelectTab 
                       总额: <strong className="text-gray-900">¥{order.totalAmount.toFixed(2)}</strong>
                     </span>
                     <span>·</span>
-                    <span className="text-[#143A8F] font-bold">福利卡扣减: -¥{order.welfareDeduction.toFixed(2)}</span>
+                    <span className="text-[var(--sw-brand-dark)] font-bold">福利卡扣减: -¥{order.welfareDeduction.toFixed(2)}</span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => triggerPendingFeature('电子发票下载', '专票PDF已生成，支持直接存入发票抬头库')}
-                      className="bg-white border border-gray-300 hover:border-[#1F5EFF] text-gray-700 hover:text-[#1F5EFF] font-bold px-2.5 py-1 rounded flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                      className="bg-white border border-gray-300 hover:border-[var(--sw-brand)] text-gray-700 hover:text-[var(--sw-brand)] font-bold px-2.5 py-1 rounded flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
                     >
-                      <Download className="w-3.5 h-3.5 text-[#1F5EFF]" />
+                      <Download className="w-3.5 h-3.5 text-[var(--sw-brand)]" />
                       <span>下载电子专票</span>
                     </button>
 
                     <button
                       onClick={() => triggerPendingFeature('物流追踪', '京东快递：单号JD20260722881，预估明日送达')}
-                      className="bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
+                      className="bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
                     >
                       <Truck className="w-3.5 h-3.5" />
                       <span>查看物流状态</span>

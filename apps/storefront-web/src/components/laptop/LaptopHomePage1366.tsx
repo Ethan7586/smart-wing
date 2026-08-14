@@ -32,7 +32,7 @@ export const LaptopHomePage1366: React.FC<LaptopHomePage1366Props> = ({ onSelect
   return (
     <div className="w-full bg-[#F5F7FA] pb-6 font-sans">
       <div className="max-w-[1240px] mx-auto pt-2.5 px-3">
-        <div className="bg-gradient-to-r from-blue-900 via-[#143A8F] to-indigo-900 text-white text-[11px] px-3 py-1 rounded-md mb-2 flex items-center justify-between shadow-2xs">
+        <div className="bg-gradient-to-r from-blue-900 via-[var(--sw-brand-dark)] to-indigo-900 text-white text-[11px] px-3 py-1 rounded-md mb-2 flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-2">
             <span className="bg-yellow-400 text-gray-900 font-bold px-1.5 py-0.2 rounded text-[10px]">1366×768 首屏紧凑版</span>
             <span className="text-blue-100 font-medium truncate max-w-[600px]">📢 国家电网员工二季度福利积分发放完成，本周下单享企业专享补差补贴与免费送货上门！</span>
@@ -45,7 +45,7 @@ export const LaptopHomePage1366: React.FC<LaptopHomePage1366Props> = ({ onSelect
 
         <div className="flex gap-2.5 items-start">
           <div className="w-[200px] flex-shrink-0 bg-white border border-gray-200 rounded-lg shadow-2xs overflow-hidden">
-            <div className="bg-[#143A8F] text-white px-3 py-2 font-bold text-xs flex items-center justify-between">
+            <div className="bg-[var(--sw-brand-dark)] text-white px-3 py-2 font-bold text-xs flex items-center justify-between">
               <span>商品全部分类</span>
               <span className="text-[10px] text-blue-200">B2B2C 密集</span>
             </div>
@@ -54,16 +54,16 @@ export const LaptopHomePage1366: React.FC<LaptopHomePage1366Props> = ({ onSelect
               {categories.map((cat, idx) => (
                 <div key={idx} onClick={() => onSelectTab('category')} className="p-2 hover:bg-blue-50/70 transition-colors cursor-pointer group flex items-center justify-between">
                   <div className="min-w-0 pr-1">
-                    <div className="font-bold text-gray-800 group-hover:text-[#1F5EFF] truncate text-[11px] leading-tight">{cat.name}</div>
+                    <div className="font-bold text-gray-800 group-hover:text-[var(--sw-brand)] truncate text-[11px] leading-tight">{cat.name}</div>
                     <div className="text-[10px] text-gray-400 truncate mt-0.5">{cat.sub}</div>
                   </div>
-                  <span className="text-[9px] bg-blue-50 text-[#1F5EFF] border border-blue-200 font-medium px-1 rounded flex-shrink-0">{cat.badge}</span>
+                  <span className="text-[9px] bg-blue-50 text-[var(--sw-brand)] border border-blue-200 font-medium px-1 rounded flex-shrink-0">{cat.badge}</span>
                 </div>
               ))}
             </div>
 
             <div className="p-2 bg-gradient-to-br from-blue-50 to-indigo-50 border-t border-blue-100">
-              <div onClick={() => onSelectTab('category')} className="bg-[#1F5EFF] hover:bg-blue-700 text-white rounded p-2 cursor-pointer transition-colors text-center shadow-2xs">
+              <div onClick={() => onSelectTab('category')} className="bg-[var(--sw-brand)] hover:bg-blue-700 text-white rounded p-2 cursor-pointer transition-colors text-center shadow-2xs">
                 <div className="text-[11px] font-black flex items-center justify-center gap-1">
                   <Zap className="w-3.5 h-3.5 text-yellow-300" />
                   <span>企业福利专区入口</span>
@@ -74,7 +74,7 @@ export const LaptopHomePage1366: React.FC<LaptopHomePage1366Props> = ({ onSelect
           </div>
 
           <div className="flex-1 min-w-0 space-y-2.5">
-            <div className="relative rounded-lg overflow-hidden bg-gradient-to-r from-[#143A8F] via-[#1F5EFF] to-indigo-800 text-white p-4 h-[220px] flex flex-col justify-between shadow-xs border border-blue-900">
+            <div className="relative rounded-lg overflow-hidden bg-gradient-to-r from-[var(--sw-brand-dark)] via-[var(--sw-brand)] to-indigo-800 text-white p-4 h-[220px] flex flex-col justify-between shadow-xs border border-blue-900">
               <div className="absolute top-0 right-0 opacity-15 pointer-events-none transform translate-x-8 -translate-y-6">
                 <Sparkles className="w-48 h-48 text-yellow-300" />
               </div>
@@ -127,7 +127,7 @@ export const LaptopHomePage1366: React.FC<LaptopHomePage1366Props> = ({ onSelect
                   <div className={`w-7 h-7 rounded-lg ${item.color} flex items-center justify-center mb-1 group-hover:scale-110 transition-transform`}>
                     <item.icon className="w-4 h-4" />
                   </div>
-                  <span className="text-[11px] font-bold text-gray-700 group-hover:text-[#1F5EFF] truncate w-full">{item.label}</span>
+                  <span className="text-[11px] font-bold text-gray-700 group-hover:text-[var(--sw-brand)] truncate w-full">{item.label}</span>
                 </div>
               ))}
             </div>
@@ -135,13 +135,13 @@ export const LaptopHomePage1366: React.FC<LaptopHomePage1366Props> = ({ onSelect
             <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-2xs">
               <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-gray-100">
                 <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-4 bg-[#1F5EFF] rounded-xs" />
+                  <div className="w-2.5 h-4 bg-[var(--sw-brand)] rounded-xs" />
                   <h2 className="font-extrabold text-sm text-gray-900 flex items-center gap-1.5">
                     <span>企业员工专享福利商品</span>
-                    <span className="text-[10px] bg-[#EAF1FF] text-[#1F5EFF] font-bold px-1.5 py-0.2 rounded">福利卡/餐卡全额抵扣</span>
+                    <span className="text-[10px] bg-[var(--sw-brand-light)] text-[var(--sw-brand)] font-bold px-1.5 py-0.2 rounded">福利卡/餐卡全额抵扣</span>
                   </h2>
                 </div>
-                <button onClick={() => onSelectTab('category')} className="text-xs text-[#1F5EFF] hover:underline font-bold flex items-center gap-0.5 cursor-pointer">
+                <button onClick={() => onSelectTab('category')} className="text-xs text-[var(--sw-brand)] hover:underline font-bold flex items-center gap-0.5 cursor-pointer">
                   <span>查看全部 30+ 企采商品</span>
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
@@ -152,7 +152,7 @@ export const LaptopHomePage1366: React.FC<LaptopHomePage1366Props> = ({ onSelect
                   <div
                     key={product.id}
                     onClick={() => onSelectTab('detail')}
-                    className="border border-gray-200 hover:border-[#1F5EFF] rounded-lg p-2.5 bg-white hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group relative"
+                    className="border border-gray-200 hover:border-[var(--sw-brand)] rounded-lg p-2.5 bg-white hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group relative"
                   >
                     <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
                       <span className="bg-[#E5484D] text-white text-[9px] font-bold px-1.5 py-0.2 rounded shadow-2xs">福利价</span>
@@ -170,7 +170,7 @@ export const LaptopHomePage1366: React.FC<LaptopHomePage1366Props> = ({ onSelect
                         <span className="text-emerald-600 font-medium">开票无忧</span>
                       </div>
 
-                      <h3 className="font-bold text-xs text-gray-800 group-hover:text-[#1F5EFF] line-clamp-2 leading-tight min-h-[32px]">{product.title}</h3>
+                      <h3 className="font-bold text-xs text-gray-800 group-hover:text-[var(--sw-brand)] line-clamp-2 leading-tight min-h-[32px]">{product.title}</h3>
                     </div>
 
                     <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between">
@@ -184,7 +184,7 @@ export const LaptopHomePage1366: React.FC<LaptopHomePage1366Props> = ({ onSelect
 
                       <button
                         onClick={(e) => handleAddToCart(product, e)}
-                        className="bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold text-xs px-2.5 py-1.5 rounded transition-colors cursor-pointer flex items-center gap-1 shadow-2xs flex-shrink-0"
+                        className="bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-bold text-xs px-2.5 py-1.5 rounded transition-colors cursor-pointer flex items-center gap-1 shadow-2xs flex-shrink-0"
                       >
                         <span>加购物车</span>
                       </button>

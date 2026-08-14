@@ -2,6 +2,7 @@ import { can } from './auth';
 import { PERMISSIONS } from '@smart-wing/api-contract';
 import { apiError } from './http';
 import { json, methodNotAllowed } from './http';
+import { loadMemberAssurance } from './identityAssurance';
 import { authorizationScope } from './routerSupport';
 import { callRpc } from './supabase';
 import type { AuthorizationContext, WorkerEnv } from './types';
@@ -10,6 +11,13 @@ interface BootstrapRow {
   mallName: string;
   brandName: string;
   enterpriseName: string;
+}
+
+interface MemberProfileRow {
+  displayName: string;
+  employeeNo: string;
+  departmentName: string | null;
+  phoneMasked: string | null;
 }
 
 interface AccountRow {
@@ -23,13 +31,31 @@ interface AccountRow {
 export async function handleBootstrap(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
   if (!can(authorization, PERMISSIONS.catalogRead)) return apiError(403, 'FORBIDDEN', '没有读取商城初始化信息的权限', requestId);
-  const scope = await callRpc<BootstrapRow | null>(env, 'api_bootstrap', authorizationScope(authorization));
+  const [scope, assurance, profile] = await Promise.all([
+    callRpc<BootstrapRow | null>(env, 'api_bootstrap', authorizationScope(authorization)),
+    loadMemberAssurance(env, authorization.membership.memberId),
+    callRpc<MemberProfileRow | null>(env, 'api_storefront_member_profile', authorizationScope(authorization, true)),
+  ]);
+  if (!profile) return apiError(403, 'MEMBER_PROFILE_UNAVAILABLE', '当前会员资料不可用', requestId);
   return json({
     actor: {
       userId: authorization.userId,
-      employeeNo: authorization.employeeNo,
+      employeeNo: profile.employeeNo,
+      displayName: profile.displayName,
+      departmentName: profile.departmentName,
+      phoneMasked: profile.phoneMasked,
       roles: authorization.roles,
       permissions: authorization.permissions,
+      assurance: assurance ?? {
+        level: 'account',
+        accountAuthenticated: true,
+        accountAuthenticatedAt: '',
+        phoneVerified: false,
+        phoneVerifiedAt: null,
+        phoneVerificationMethod: null,
+        paymentEligible: false,
+        restrictedCapabilities: ['order.create', 'payment.execute'],
+      },
     },
     scope: {
       tenantId: authorization.tenantId,

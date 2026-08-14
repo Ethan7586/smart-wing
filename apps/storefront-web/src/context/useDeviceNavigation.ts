@@ -16,7 +16,7 @@ function pageFromLocation(): PageRoute {
 }
 
 export function useDeviceNavigation() {
-  const [appMode, setAppModeState] = useState<AppMode>(() => (typeof window === 'undefined' ? 'pc' : modeFromPath(window.location.pathname)));
+  const [appMode, setAppModeState] = useState<AppMode>('pc');
   const [viewportMode, setViewportMode] = useState<ViewportMode>('auto');
   const [mpPage, setMpPageState] = useState<MiniProgramPage>('home');
   const [androidPage, setAndroidPageState] = useState<AndroidAppPage>('home');
@@ -28,7 +28,7 @@ export function useDeviceNavigation() {
     isOpen: false,
     featureName: '',
   });
-  const [currentPage, setCurrentPage] = useState<PageRoute>(() => (typeof window === 'undefined' ? 'home' : pageFromLocation()));
+  const [currentPage, setCurrentPage] = useState<PageRoute>('home');
   const [routeParams, setRouteParams] = useState<RouteParams>({});
 
   const setAppMode = (mode: AppMode) => {
@@ -45,7 +45,7 @@ export function useDeviceNavigation() {
     }
   };
 
-  const scrollTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+  const scrollTop = (behavior: ScrollBehavior = 'smooth') => window.scrollTo({ top: 0, behavior });
   const setMpPage = (page: MiniProgramPage, productId?: string) => {
     setMpPageState(page);
     if (productId) setMobileProductId(productId);
@@ -72,7 +72,7 @@ export function useDeviceNavigation() {
   const navigateTo = (page: PageRoute, params: RouteParams = {}) => {
     setCurrentPage(page);
     setRouteParams(params);
-    scrollTop();
+    scrollTop('auto');
     const query = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) query.set(key, String(value));
@@ -93,6 +93,8 @@ export function useDeviceNavigation() {
       setCurrentPage(page as PageRoute);
       setRouteParams(params);
     };
+    handlePopState();
+    handleHashChange();
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('hashchange', handleHashChange);
     return () => {

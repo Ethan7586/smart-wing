@@ -1,0 +1,209 @@
+.product-row {
+  margin-top: var(--sw-space-1_5);
+  padding-top: var(--sw-space-1_5);
+  border-top: 1rpx solid var(--sw-border);
+}
+
+.product-image,
+.product-slot {
+  flex-shrink: 0;
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: var(--sw-radius-small);
+}
+
+.product-image {
+  background: var(--sw-surface-subtle);
+}
+
+.product-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx dashed var(--sw-border-strong);
+  background: var(--sw-surface-subtle);
+  box-sizing: border-box;
+}
+
+.product-copy {
+  min-width: 0;
+  flex: 1;
+  margin-left: var(--sw-space-1_5);
+}
+
+.product-name {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  font-size: var(--sw-fs-bodySmall);
+  line-height: var(--sw-lh-bodySmall);
+  color: var(--sw-text);
+}
+
+.product-spec {
+  display: block;
+  margin-top: 4rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--sw-fs-caption);
+  line-height: var(--sw-lh-caption);
+  color: var(--sw-text-muted);
+}
+
+.product-price-row {
+  margin-top: var(--sw-space-half);
+}
+
+.product-unit,
+.product-total,
+.total-symbol,
+.total-value {
+  font-family: var(--sw-font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+.product-unit,
+.product-quantity {
+  font-size: var(--sw-fs-caption);
+  color: var(--sw-text-secondary);
+}
+
+.product-quantity {
+  margin-left: var(--sw-space-1);
+}
+
+.product-total {
+  margin-left: var(--sw-space-1);
+  align-self: flex-end;
+  font-size: var(--sw-fs-bodySmall);
+  color: var(--sw-text);
+}
+
+.money-card .info-row:first-child {
+  padding-top: 0;
+}
+
+.info-row {
+  min-height: var(--sw-touch-min);
+  padding: var(--sw-space-half) 0;
+  border-bottom: 1rpx solid var(--sw-border);
+}
+
+.info-row:last-child {
+  border-bottom: 0;
+}
+
+.info-label {
+  flex-shrink: 0;
+  font-size: var(--sw-fs-bodySmall);
+  color: var(--sw-text-secondary);
+}
+
+.info-value {
+  margin-left: var(--sw-space-2);
+  text-align: right;
+  word-break: break-all;
+  font-size: var(--sw-fs-bodySmall);
+  color: var(--sw-text);
+}
+
+.info-mono {
+  font-family: var(--sw-font-num);
+  font-size: var(--sw-fs-caption);
+}
+
+.total-symbol,
+.total-value {
+  color: var(--sw-danger);
+}
+
+.total-symbol {
+  margin-right: 4rpx;
+  font-size: var(--sw-fs-caption);
+}
+
+.total-value {
+  font-size: var(--sw-fs-h3);
+  font-weight: var(--sw-fw-h3);
+}
+
+.payment-paid {
+  color: var(--sw-success-strong);
+}
+
+.payment-pending {
+  color: var(--sw-warning-strong);
+}
+
+.payment-state-wrap {
+  margin-top: var(--sw-space-2);
+}
+
+.payment-state {
+  padding: var(--sw-space-1_5);
+  border-radius: var(--sw-radius-medium);
+  background: var(--sw-warning-surface);
+  color: var(--sw-warning-strong);
+  font-size: var(--sw-fs-bodySmall);
+  line-height: var(--sw-lh-bodySmall);
+}
+
+.payment-state-confirmed {
+  background: var(--sw-success-surface);
+  color: var(--sw-success-strong);
+}
+
+.payment-state-failed,
+.payment-state-blocked {
+  background: var(--sw-danger-surface);
+  color: var(--sw-danger-strong);
+}
+
+.payment-state .i {
+  flex-shrink: 0;
+  margin-right: var(--sw-space-half);
+}
+
+.payment-panel {
+  margin-top: var(--sw-space-2);
+}
+
+.pay-button,
+.refresh-button {
+  justify-content: center;
+  padding: 0 var(--sw-space-2);
+  border-radius: var(--sw-radius-medium);
+  font-size: var(--sw-fs-body);
+  font-weight: var(--sw-fw-h3);
+  box-sizing: border-box;
+}
+
+.pay-button {
+  background: var(--sw-brand);
+  color: var(--sw-text-inverse);
+}
+
+.pay-button.is-disabled {
+  background: var(--sw-text-disabled);
+}
+
+.refresh-button {
+  margin-top: var(--sw-space-1);
+  border: 1rpx solid var(--sw-brand);
+  color: var(--sw-brand);
+}
+
+.refresh-button .i {
+  margin-right: var(--sw-space-half);
+}
+
+.payment-note {
+  display: block;
+  margin-top: var(--sw-space-1);
+  font-size: var(--sw-fs-caption);
+  line-height: var(--sw-lh-caption);
+  color: var(--sw-text-muted);
+  text-align: center;
+}

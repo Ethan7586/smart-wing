@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
+import { AccountSecurityModal } from './components/AccountSecurityModal';
 import { GuardrailModal } from './components/GuardrailModal';
 import { CaseCenterDrawer } from './components/CaseCenterDrawer';
 import { CommandPaletteModal } from './components/CommandPaletteModal';
@@ -14,13 +15,15 @@ import { EnterpriseWelfareWorkstation } from './components/workstations/Enterpri
 import { SupplierGovernanceWorkstation } from './components/workstations/SupplierGovernanceWorkstation';
 import { FinancialReconciliationWorkstation } from './components/workstations/FinancialReconciliationWorkstation';
 import { SystemControlWorkstation } from './components/workstations/SystemControlWorkstation';
+import { MembershipPermissionWorkstation } from './components/workstations/MembershipPermissionWorkstation';
+import { QualificationCenterWorkstation } from './components/workstations/QualificationCenterWorkstation';
 
 // Mock Datasets
 import { ADMIN_PROFILES, INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIERS, INITIAL_CASES, INITIAL_FINANCE_DISCREPANCIES, INITIAL_SYSTEM_CONFIG } from './data/mockData';
 
 import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStatus, FinanceDiscrepancyRow, SystemConfig, GuardrailActionOptions, AdminProfile } from './types';
 
-function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
+export function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
   const allowed = new Set<WorkstationId>(['cockpit']);
   const has = (permission: string) => permissions.includes(permission);
   if (has('catalog.read') || has('product.publish')) allowed.add('product');
@@ -28,15 +31,44 @@ function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
   if (has('tenant.manage') || has('role.grant') || has('audit.read')) allowed.add('enterprise');
   if (has('tenant.manage')) allowed.add('supplier');
   if (has('finance.reconcile')) allowed.add('finance');
+  if (has('member.read') && has('role.read')) allowed.add('membership');
+  if (
+    has('commercial_resource.read') ||
+    has('commercial_resource.manage') ||
+    has('entitlement.read') ||
+    has('entitlement.manage') ||
+    has('purchase_limit.read') ||
+    has('purchase_limit.manage') ||
+    has('employee_qualification.read') ||
+    has('employee_qualification.manage') ||
+    has('qualification.approve')
+  )
+    allowed.add('qualification');
   if (has('tenant.manage') || has('role.grant')) allowed.add('system');
   return [...allowed];
 }
 
-function resolveAdminAccount(roles: unknown): AdminProfile | null {
+export function resolveAdminAccount(employeeNo: unknown, roles: unknown): AdminProfile | null {
   if (!Array.isArray(roles)) return null;
   const roleCodes = new Set(roles.filter((role): role is string => typeof role === 'string'));
-  const username = roleCodes.has('platform_owner') ? 'onewr' : roleCodes.has('enterprise_manager') ? '经理1' : roleCodes.has('role-mall-admin') ? '福宝' : null;
-  return username ? (ADMIN_PROFILES.find((account) => account.username === username) ?? null) : null;
+  const username =
+    roleCodes.has('role-platform-owner-v2') || roleCodes.has('platform_owner')
+      ? 'onewr'
+      : roleCodes.has('role-enterprise-manager-v2') || roleCodes.has('enterprise_manager')
+        ? '经理1'
+        : roleCodes.has('role-mall-admin') || roleCodes.has('mall_admin')
+          ? '福宝'
+          : null;
+  if (username) return ADMIN_PROFILES.find((account) => account.username === username) ?? null;
+
+  if (typeof employeeNo !== 'string') return null;
+  const profile = [
+    { pattern: /^seller00[1-5]$/, role: '测试商家', permissionTags: ['商品发布', '订单履约', '仓储发货'] },
+    { pattern: /^ops00[1-5]$/, role: '测试运营', permissionTags: ['商品运营', '订单履约', '审计查看'] },
+    { pattern: /^cs00[1-5]$/, role: '测试客服', permissionTags: ['订单查看', '售后处理', '成员查看'] },
+    { pattern: /^admin00[1-5]$/, role: '测试企业管理员', permissionTags: ['成员管理', '支付对账', '审计查看'] },
+  ].find((candidate) => candidate.pattern.test(employeeNo));
+  return profile ? { username: employeeNo, displayName: employeeNo, role: profile.role, permissionTags: profile.permissionTags } : null;
 }
 
 export function App() {
@@ -54,6 +86,7 @@ export function App() {
   const [isLiveCatalog, setIsLiveCatalog] = useState(false);
   const [liveOperations, setLiveOperations] = useState<LiveOperationsSummary | null>(null);
   const [authChecking, setAuthChecking] = useState(true);
+  const [isSecurityCenterOpen, setIsSecurityCenterOpen] = useState(false);
 
   // Application Domain State (In-Memory Mock Single Source of Truth)
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
@@ -90,7 +123,7 @@ export function App() {
     void loadAdminOverview()
       .then((payload) => {
         if (!active) return;
-        const user = payload?.authenticated && payload?.authorization?.target === 'admin' ? resolveAdminAccount(payload.authorization.roles) : null;
+        const user = payload?.authenticated && payload?.authorization?.target === 'admin' ? resolveAdminAccount(payload.authorization.employeeNo, payload.authorization.roles) : null;
         if (user) {
           setCurrentUser(user);
           setSessionPermissions(Array.isArray(payload?.authorization?.permissions) ? payload.authorization.permissions.filter((permission: unknown): permission is string => typeof permission === 'string') : []);
@@ -191,11 +224,13 @@ export function App() {
     enterprise: isEn ? 'Enterprises' : '企业福利台',
     supplier: isEn ? 'Suppliers' : '供应商协同台',
     finance: isEn ? 'Finance' : '财务与对账台',
+    membership: isEn ? 'Members & Access' : '会员与权限中心',
+    qualification: isEn ? 'Employee Qualification' : '商业资源与员工资格中心',
     system: isEn ? 'System Control' : '系统治理台',
   }[visibleWorkstation];
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#f8fafc] font-sans text-[13px] text-slate-700 antialiased selection:bg-[#1769ff] selection:text-white">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#f8fafc] font-sans text-[13px] text-slate-700 antialiased selection:bg-[var(--sw-brand)] selection:text-white">
       {/* 1. Deep Navy Sidebar Navigation */}
       <Sidebar
         activeTab={visibleWorkstation}
@@ -236,6 +271,7 @@ export function App() {
           onToggleLanguage={handleToggleLanguage}
           currentUser={currentUser}
           onLogout={handleLogout}
+          onOpenSecurityCenter={() => setIsSecurityCenterOpen(true)}
         />
 
         {/* 3. Main Workstation Area */}
@@ -272,8 +308,26 @@ export function App() {
             <FinancialReconciliationWorkstation discrepancies={discrepancies} onUpdateDiscrepancies={setDiscrepancies} onOpenGuardrail={handleOpenGuardrail} initialFilterDiscrepancyOnly={filterParams.key === 'discrepancy'} />
           )}
 
+          {allowedWorkstations.includes('membership') && (
+            <MembershipPermissionWorkstation
+              active={visibleWorkstation === 'membership'}
+              canManageAccess={sessionPermissions.includes('role.grant') && sessionPermissions.includes('scope.grant')}
+              canManageStatus={sessionPermissions.includes('member.disable')}
+              canOffboard={sessionPermissions.includes('member.offboard')}
+              canInvite={sessionPermissions.includes('member.invite')}
+              canUpdate={sessionPermissions.includes('member.update')}
+              canImport={sessionPermissions.includes('member.import')}
+              canCreateRole={sessionPermissions.includes('role.create')}
+              canUpdateRole={sessionPermissions.includes('role.update')}
+              canDisableRole={sessionPermissions.includes('role.delete')}
+            />
+          )}
+
+          {visibleWorkstation === 'qualification' && <QualificationCenterWorkstation />}
+
           {visibleWorkstation === 'system' && <SystemControlWorkstation config={systemConfig} onUpdateConfig={setSystemConfig} onOpenGuardrail={handleOpenGuardrail} />}
         </main>
+        <AccountSecurityModal open={isSecurityCenterOpen} onClose={() => setIsSecurityCenterOpen(false)} onSignedOut={handleLogout} />
 
         {/* System Footer Bar */}
         <footer className="h-9 bg-white border-t border-slate-200/80 px-6 flex items-center justify-between text-[11px] text-slate-400 shrink-0">

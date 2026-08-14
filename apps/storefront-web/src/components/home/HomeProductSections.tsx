@@ -74,13 +74,13 @@ export const HomeProductSections: React.FC = () => {
         <div className="bg-white border border-gray-200 rounded-md p-5 shadow-xs">
           <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded bg-[#143A8F] text-white flex items-center justify-center font-bold text-xs">企</div>
+              <div className="w-7 h-7 rounded bg-[var(--sw-brand-dark)] text-white flex items-center justify-center font-bold text-xs">企</div>
               <div>
                 <h2 className="text-base font-bold text-gray-900">企业专享价专区</h2>
                 <p className="text-[11px] text-gray-400">集团大客户采购协议价补贴</p>
               </div>
             </div>
-            <button onClick={() => navigateTo('category', { categoryId: 'cat_welfare_zone' })} className="text-xs text-[#1F5EFF] font-semibold hover:underline flex items-center gap-0.5">
+            <button onClick={() => navigateTo('category', { categoryId: 'cat_welfare_zone' })} className="text-xs text-[var(--sw-brand)] font-semibold hover:underline flex items-center gap-0.5">
               更多专享 <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -124,7 +124,7 @@ export const HomeProductSections: React.FC = () => {
               <h2 className="text-base font-black text-gray-900">优先推荐</h2>
               <span className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded font-medium">已归类商品优先展示</span>
             </div>
-            <button onClick={() => navigateTo('category')} className="text-xs text-gray-500 hover:text-[#1F5EFF] flex items-center gap-0.5">
+            <button onClick={() => navigateTo('category')} className="text-xs text-gray-500 hover:text-[var(--sw-brand)] flex items-center gap-0.5">
               查看全部商品 <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -165,7 +165,7 @@ export const HomeProductSections: React.FC = () => {
       })}
       <div className="max-w-[1280px] mx-auto px-4">
         <div className="rounded-md border border-dashed border-blue-200 bg-blue-50/50 p-4 flex gap-3 text-xs text-gray-600">
-          <PackageSearch className="w-5 h-5 text-[#1F5EFF] flex-shrink-0" />
+          <PackageSearch className="w-5 h-5 text-[var(--sw-brand)] flex-shrink-0" />
           <p>
             <strong className="text-gray-900">服务类货盘接入中：</strong>
             电影票、虚拟卡券、附近门店核销将在供应商接口和履约规则确认后单独开放，当前不展示空商品位。

@@ -13,7 +13,7 @@ export const WeChatCapsule: React.FC<WeChatCapsuleProps> = ({ title, showBack, o
   const [showMallDropdown, setShowMallDropdown] = React.useState(false);
 
   return (
-    <div className="bg-[#143A8F] text-white select-none sticky top-0 z-40 shadow-xs">
+    <div className="bg-[var(--sw-brand-dark)] text-white select-none sticky top-0 z-40 shadow-xs">
       {/* 微信小程序顶部 iOS/Android 状态栏 */}
       <div className="px-4 pt-1.5 pb-1 flex items-center justify-between text-[11px] font-medium tracking-tight opacity-90">
         <span>09:41</span>
@@ -55,10 +55,10 @@ export const WeChatCapsule: React.FC<WeChatCapsuleProps> = ({ title, showBack, o
                         switchMall(m.id);
                         setShowMallDropdown(false);
                       }}
-                      className={`w-full text-left px-2.5 py-2 rounded-lg transition-colors flex items-center justify-between ${m.id === currentMall.id ? 'bg-blue-50 text-[#1F5EFF] font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
+                      className={`w-full text-left px-2.5 py-2 rounded-lg transition-colors flex items-center justify-between ${m.id === currentMall.id ? 'bg-blue-50 text-[var(--sw-brand)] font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
                     >
                       <span className="truncate">{m.mallName}</span>
-                      {m.id === currentMall.id && <span className="w-1.5 h-1.5 rounded-full bg-[#1F5EFF]" />}
+                      {m.id === currentMall.id && <span className="w-1.5 h-1.5 rounded-full bg-[var(--sw-brand)]" />}
                     </button>
                   ))}
                 </div>

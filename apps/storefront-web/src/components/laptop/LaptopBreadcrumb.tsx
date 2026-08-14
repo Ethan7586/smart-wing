@@ -6,11 +6,11 @@ export const LaptopBreadcrumb: React.FC<{
   onSelectTab: (tab: LaptopPage) => void;
 }> = ({ productTitle, onSelectTab }) => (
   <div className="flex items-center gap-1.5 text-xs text-gray-500">
-    <button onClick={() => onSelectTab('home-1366')} className="hover:text-[#1F5EFF]">
+    <button onClick={() => onSelectTab('home-1366')} className="hover:text-[var(--sw-brand)]">
       首页
     </button>
     <span>&gt;</span>
-    <button onClick={() => onSelectTab('category')} className="hover:text-[#1F5EFF]">
+    <button onClick={() => onSelectTab('category')} className="hover:text-[var(--sw-brand)]">
       企采数码办公
     </button>
     <span>&gt;</span>

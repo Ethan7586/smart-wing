@@ -1,27 +1,16 @@
 /** Shared authorization contracts. Browser clients receive only safe projections. */
 
+import { PERMISSIONS } from './permissions';
+export { PERMISSIONS, PERMISSION_CATALOG } from './permissions';
+export type { PermissionDefinition, PermissionRisk } from './permissions';
+export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
+export { ORDER_STATUS, PAYMENT_STATUS, toPaymentStatus } from './commerce';
+export type { OrderPaymentStatus, OrderStatus, PaymentStatus, WechatPaymentAttemptStatus } from './commerce';
+
 export type MembershipStatus = 'invited' | 'active' | 'suspended' | 'offboarded' | 'expired';
 export type MembershipTarget = 'storefront' | 'admin';
-export type ScopeKind = 'tenant' | 'enterprise' | 'mall' | 'supplier' | 'self';
-
-export const PERMISSIONS = {
-  catalogRead: 'catalog.read',
-  productPublish: 'product.publish',
-  orderCreate: 'order.create',
-  orderRead: 'order.read',
-  orderShip: 'order.ship',
-  orderRefund: 'order.refund',
-  financeReconcile: 'finance.reconcile',
-  memberRead: 'member.read',
-  memberInvite: 'member.invite',
-  memberDisable: 'member.disable',
-  roleRead: 'role.read',
-  roleGrant: 'role.grant',
-  auditRead: 'audit.read',
-  tenantManage: 'tenant.manage',
-} as const;
-
-export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
+/** Reserved kinds stay in the contract but fail closed until their resource tables are connected. */
+export type ScopeKind = 'platform' | 'tenant' | 'distributor' | 'enterprise' | 'mall' | 'supplier' | 'brand' | 'store' | 'department' | 'self';
 
 /** The tenant context that is fixed when a membership is activated. */
 export interface MembershipContextScope {
@@ -29,6 +18,10 @@ export interface MembershipContextScope {
   enterpriseId?: string;
   mallId?: string;
   supplierId?: string;
+  distributorId?: string;
+  brandId?: string;
+  storeId?: string;
+  departmentId?: string;
   userId?: string;
 }
 
@@ -44,7 +37,17 @@ export interface ResourceScope {
   enterpriseId?: string;
   mallId?: string;
   supplierId?: string;
+  distributorId?: string;
+  brandId?: string;
+  storeId?: string;
+  departmentId?: string;
   ownerUserId?: string;
+  /**
+   * Server-derived ancestors for hierarchical organization resources. Browser
+   * input must never populate this path. Legacy flat IDs remain supported
+   * during migration.
+   */
+  orgUnitPath?: ScopeBinding[];
 }
 
 export interface Membership {
@@ -54,6 +57,8 @@ export interface Membership {
   status: MembershipStatus;
   roleIds: string[];
   permissions: Permission[];
+  /** Discord-style explicit deny overrides every additive role grant. */
+  deniedPermissions?: Permission[];
   context: MembershipContextScope;
   scopeBindings: ScopeBinding[];
   expiresAt: string | null;
@@ -81,7 +86,7 @@ export interface AuthorizationEvidence {
 
 export interface AuthorizationDecision {
   allowed: boolean;
-  reason: 'ALLOWED' | 'MEMBERSHIP_INACTIVE' | 'PERMISSION_MISSING' | 'TENANT_MISMATCH' | 'SCOPE_MISMATCH' | 'STEP_UP_REQUIRED';
+  reason: 'ALLOWED' | 'MEMBERSHIP_INACTIVE' | 'PERMISSION_DENIED' | 'PERMISSION_MISSING' | 'TENANT_MISMATCH' | 'SCOPE_MISMATCH' | 'STEP_UP_REQUIRED';
   evidence?: AuthorizationEvidence;
 }
 

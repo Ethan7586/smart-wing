@@ -6,23 +6,22 @@
 
 import React, { useState } from 'react';
 import { useMall } from '../context/MallContext';
-import { mallService } from '../services/mallService';
 import { UserCoupon } from '../types';
 import { Ticket, QrCode, CheckCircle2, Clock, Building, Store, Sparkles, Copy, X, CreditCard } from 'lucide-react';
 
 export const CouponsPage: React.FC = () => {
-  const { user, showToast, refreshUserData } = useMall();
+  const { user, showToast } = useMall();
 
   const [activeTab, setActiveTab] = useState<'unused' | 'used' | 'expired'>('unused');
   const [selectedCoupon, setSelectedCoupon] = useState<UserCoupon | null>(null);
 
-  const coupons = mallService.getUserCoupons();
+  // The coupon API has not shipped yet. Production never falls back to the
+  // browser demo persona's coupon wallet.
+  const coupons: UserCoupon[] = [];
   const filteredCoupons = coupons.filter((c) => c.status === activeTab);
 
   const handleSimulateVerification = (couponId: string) => {
-    mallService.simulateVerifyCoupon(couponId);
-    refreshUserData();
-    showToast('模拟门店POS离线核销成功！核销记录已同步至企业合规日志。', 'success');
+    showToast(`卡券 ${couponId} 的生产核销接口尚未接通，当前未修改任何数据`, 'warning');
     setSelectedCoupon(null);
   };
 
@@ -55,7 +54,7 @@ export const CouponsPage: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-1.5 rounded transition-colors cursor-pointer ${activeTab === tab.id ? 'bg-[#1F5EFF] text-white font-black' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`px-4 py-1.5 rounded transition-colors cursor-pointer ${activeTab === tab.id ? 'bg-[var(--sw-brand)] text-white font-black' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
             >
               {tab.label}
             </button>
@@ -113,7 +112,7 @@ export const CouponsPage: React.FC = () => {
                   </button>
 
                   {isUnused ? (
-                    <button onClick={() => setSelectedCoupon(coupon)} className="bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold px-4 py-1.5 rounded flex items-center gap-1 cursor-pointer shadow-2xs">
+                    <button onClick={() => setSelectedCoupon(coupon)} className="bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-bold px-4 py-1.5 rounded flex items-center gap-1 cursor-pointer shadow-2xs">
                       <QrCode className="w-3.5 h-3.5" /> 出示核销码 / 到店核销
                     </button>
                   ) : (
@@ -152,7 +151,7 @@ export const CouponsPage: React.FC = () => {
             <div className="text-[11px] text-gray-400">请向门店收银员出示此码，或在合作小程序/猫眼APP内直接输入使用。</div>
 
             <div className="pt-2">
-              <button onClick={() => handleSimulateVerification(selectedCoupon.id)} className="w-full bg-[#1F5EFF] hover:bg-blue-700 text-white font-black py-2.5 rounded text-xs transition-colors cursor-pointer shadow-md">
+              <button onClick={() => handleSimulateVerification(selectedCoupon.id)} className="w-full bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-black py-2.5 rounded text-xs transition-colors cursor-pointer shadow-md">
                 模拟门店扫码核销 (完成核销)
               </button>
             </div>

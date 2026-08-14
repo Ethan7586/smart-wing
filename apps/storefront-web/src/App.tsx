@@ -16,15 +16,13 @@ import { MobileBottomNav } from './components/common/MobileBottomNav';
 import { MvpSessionBar } from './components/common/MvpSessionBar';
 import { HomePage } from './screens/HomePage';
 
-const MobileFrame = React.lazy(() => import('./components/mobile/MobileFrame').then(({ MobileFrame }) => ({ default: MobileFrame })));
-const TabletFrame = React.lazy(() => import('./components/mobile/TabletFrame').then(({ TabletFrame }) => ({ default: TabletFrame })));
-const LaptopFrame = React.lazy(() => import('./components/laptop/LaptopFrame').then(({ LaptopFrame }) => ({ default: LaptopFrame })));
 const CategoryPage = React.lazy(() => import('./screens/CategoryPage').then(({ CategoryPage }) => ({ default: CategoryPage })));
 const ProductDetailPage = React.lazy(() => import('./screens/ProductDetailPage').then(({ ProductDetailPage }) => ({ default: ProductDetailPage })));
 const CartPage = React.lazy(() => import('./screens/CartPage').then(({ CartPage }) => ({ default: CartPage })));
 const CheckoutPage = React.lazy(() => import('./screens/CheckoutPage').then(({ CheckoutPage }) => ({ default: CheckoutPage })));
 const PaymentResultPage = React.lazy(() => import('./screens/PaymentResultPage').then(({ PaymentResultPage }) => ({ default: PaymentResultPage })));
-const UserCenterPage = React.lazy(() => import('./screens/UserCenterPage').then(({ UserCenterPage }) => ({ default: UserCenterPage })));
+const loadUserCenterPage = () => import('./screens/UserCenterPage').then(({ UserCenterPage }) => ({ default: UserCenterPage }));
+const UserCenterPage = React.lazy(loadUserCenterPage);
 const OrdersPage = React.lazy(() => import('./screens/OrdersPage').then(({ OrdersPage }) => ({ default: OrdersPage })));
 const OrderDetailPage = React.lazy(() => import('./screens/OrderDetailPage').then(({ OrderDetailPage }) => ({ default: OrderDetailPage })));
 const AfterSalePage = React.lazy(() => import('./screens/AfterSalePage').then(({ AfterSalePage }) => ({ default: AfterSalePage })));
@@ -37,7 +35,15 @@ const ArchitecturePage = React.lazy(() => import('./screens/ArchitecturePage').t
 const PageLoadingFallback = () => <div className="min-h-[360px] bg-[#F5F7FA]" aria-busy="true" aria-label="正在加载页面" />;
 
 const AppContent: React.FC = () => {
-  const { currentPage, appMode } = useMall();
+  const { currentPage } = useMall();
+
+  React.useEffect(() => {
+    // The account page contains the security center and is one of the first
+    // destinations after login. Warm its code chunk once the home shell has
+    // settled so the first click does not wait on another network round trip.
+    const timer = window.setTimeout(() => void loadUserCenterPage(), 1_200);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const renderPage = () => {
     switch (currentPage) {
@@ -76,32 +82,8 @@ const AppContent: React.FC = () => {
     }
   };
 
-  if (appMode === 'mini-program' || appMode === 'android-app') {
-    return (
-      <React.Suspense fallback={<PageLoadingFallback />}>
-        <MobileFrame />
-      </React.Suspense>
-    );
-  }
-
-  if (appMode === 'tablet-app') {
-    return (
-      <React.Suspense fallback={<PageLoadingFallback />}>
-        <TabletFrame />
-      </React.Suspense>
-    );
-  }
-
-  if (appMode === 'laptop-web') {
-    return (
-      <React.Suspense fallback={<PageLoadingFallback />}>
-        <LaptopFrame />
-      </React.Suspense>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-[#F5F7FA] text-gray-800 flex flex-col justify-between pb-16 md:pb-0 font-sans antialiased selection:bg-[#1F5EFF] selection:text-white">
+    <div className="min-h-screen bg-[#F5F7FA] text-gray-800 flex flex-col justify-between pb-[calc(var(--sw-mobile-nav-height)_+_env(safe-area-inset-bottom))] md:pb-0 font-sans antialiased selection:bg-[var(--sw-brand)] selection:text-white">
       {/* 顶部企业导航栏 */}
       <HeaderBar />
       <MvpSessionBar />

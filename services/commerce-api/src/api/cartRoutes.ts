@@ -8,7 +8,10 @@ import type { AuthorizationContext, WorkerEnv } from './types';
 export async function handleCart(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   if (!can(authorization, PERMISSIONS.orderCreate)) return apiError(403, 'FORBIDDEN', '没有管理购物车的权限', requestId);
   if (request.method === 'GET') {
-    const items = await callRpc<Array<Record<string, unknown>>>(env, 'api_cart_items', authorizationScope(authorization, true));
+    const items = await callRpc<Array<Record<string, unknown>>>(env, 'api_cart_items_qualified', {
+      ...authorizationScope(authorization, true),
+      p_membership_id: authorization.membership.id,
+    });
     return json({ items, requestId });
   }
   if (request.method !== 'PUT') return methodNotAllowed(['GET', 'PUT'], requestId);
@@ -16,8 +19,9 @@ export async function handleCart(request: Request, env: WorkerEnv, authorization
   if (!body.ok) return invalidBody(body.tooLarge, requestId);
   const input = parseCartInput(body.value);
   if (!input) return apiError(422, 'INVALID_CART_INPUT', '购物车商品或数量无效', requestId);
-  const result = await callRpc<Record<string, unknown>>(env, 'api_upsert_cart_item', {
+  const result = await callRpc<Record<string, unknown>>(env, 'api_upsert_cart_item_qualified', {
     ...authorizationScope(authorization, true),
+    p_membership_id: authorization.membership.id,
     p_sku_id: input.skuId,
     p_quantity: input.quantity,
     p_selected: input.selected,

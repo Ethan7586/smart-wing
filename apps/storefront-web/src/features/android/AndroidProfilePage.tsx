@@ -24,9 +24,13 @@ export const AndroidProfilePage: React.FC = () => {
       <AndroidStatusBar title="个人中心 (Material 3)" />
 
       {/* User Header Profile Card */}
-      <div className="bg-[#143A8F] text-white p-4 pt-2 shadow-sm space-y-3">
+      <div className="bg-[var(--sw-brand-dark)] text-white p-4 pt-2 shadow-sm space-y-3">
         <div className="flex items-center gap-3">
-          <img src={user.avatar} alt={user.name} className="w-14 h-14 rounded-2xl object-cover border-2 border-white/80 shadow-md flex-shrink-0" />
+          {user.avatar ? (
+            <img src={user.avatar} alt={user.name} className="w-14 h-14 rounded-2xl object-cover border-2 border-white/80 shadow-md flex-shrink-0" />
+          ) : (
+            <div className="w-14 h-14 rounded-2xl bg-white/20 text-white flex items-center justify-center text-xl font-black border-2 border-white/80 shadow-md flex-shrink-0">{user.name.slice(0, 1)}</div>
+          )}
           <div className="overflow-hidden space-y-1">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-black text-white">{user.name}</h2>
@@ -38,7 +42,7 @@ export const AndroidProfilePage: React.FC = () => {
             </div>
             <div className="text-[10px] text-emerald-200 flex items-center gap-1">
               <Smartphone className="w-3.5 h-3.5 text-emerald-300" />
-              <span>Android 设备已实名认证</span>
+              <span>{user.phoneVerified ? '手机已验证，可使用支付功能' : '账号已认证，手机待验证'}</span>
             </div>
           </div>
         </div>
@@ -77,10 +81,10 @@ export const AndroidProfilePage: React.FC = () => {
         <div className="bg-white rounded-3xl p-3.5 shadow-2xs border border-gray-100 space-y-3">
           <div className="flex items-center justify-between border-b border-gray-100 pb-2 text-xs">
             <h3 className="font-bold text-gray-900 flex items-center gap-1.5">
-              <Package className="w-4 h-4 text-[#1F5EFF]" />
+              <Package className="w-4 h-4 text-[var(--sw-brand)]" />
               <span>企采订单中心</span>
             </h3>
-            <button onClick={() => setAndroidPage('orders')} className="text-[10px] text-gray-400 hover:text-[#1F5EFF] flex items-center">
+            <button onClick={() => setAndroidPage('orders')} className="text-[10px] text-gray-400 hover:text-[var(--sw-brand)] flex items-center">
               <span>全部订单</span>
               <ChevronRight className="w-3 h-3" />
             </button>
@@ -88,7 +92,7 @@ export const AndroidProfilePage: React.FC = () => {
 
           <div className="grid grid-cols-4 gap-2 text-center text-xs">
             <div onClick={() => triggerPendingFeature('Android 待付款列表', '查看等待付款或额度补足的订单。')} className="p-1 hover:bg-gray-50 rounded-2xl cursor-pointer">
-              <div className="w-9 h-9 mx-auto rounded-2xl bg-blue-50 text-[#1F5EFF] flex items-center justify-center font-bold">
+              <div className="w-9 h-9 mx-auto rounded-2xl bg-blue-50 text-[var(--sw-brand)] flex items-center justify-center font-bold">
                 <Clock className="w-4.5 h-4.5" />
               </div>
               <div className="text-[10px] text-gray-600 mt-1 font-medium">待付款</div>
@@ -135,7 +139,7 @@ export const AndroidProfilePage: React.FC = () => {
                   <div className="text-[10px] text-gray-400">Android Biometric Manager API</div>
                 </div>
               </div>
-              <button onClick={handleBiometricToggle} className={`w-10 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer ${biometricsEnabled ? 'bg-[#1F5EFF]' : 'bg-gray-300'}`}>
+              <button onClick={handleBiometricToggle} className={`w-10 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer ${biometricsEnabled ? 'bg-[var(--sw-brand)]' : 'bg-gray-300'}`}>
                 <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform ${biometricsEnabled ? 'translate-x-4' : 'translate-x-0'}`} />
               </button>
             </div>
@@ -152,7 +156,7 @@ export const AndroidProfilePage: React.FC = () => {
                   <div className="text-[10px] text-gray-400">Android Notification Channel</div>
                 </div>
               </div>
-              <button onClick={handlePushToggle} className={`w-10 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer ${pushEnabled ? 'bg-[#1F5EFF]' : 'bg-gray-300'}`}>
+              <button onClick={handlePushToggle} className={`w-10 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer ${pushEnabled ? 'bg-[var(--sw-brand)]' : 'bg-gray-300'}`}>
                 <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform ${pushEnabled ? 'translate-x-4' : 'translate-x-0'}`} />
               </button>
             </div>

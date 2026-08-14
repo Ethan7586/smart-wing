@@ -7,19 +7,23 @@
 import React, { useState } from 'react';
 import { useMall } from '../context/MallContext';
 import { CategoryMegaMenu } from '../components/common/CategoryMegaMenu';
+import { CatalogAvailability } from '../components/common/CatalogAvailability';
 import { HomeProductSections } from '../components/home/HomeProductSections';
 import { CreditCard, Utensils, Ticket, ShoppingBag, Zap, Store, Sparkles, Gift, Building2, ChevronRight, Flame, Award, Truck, ArrowRight, User, Clock, ShieldCheck, ChevronLeft } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
-  const { user, currentMall, navigateTo, orders } = useMall();
+  const { user, currentMall, navigateTo, orders, products, sessionStatus, catalogSyncStatus, refreshProductionData } = useMall();
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+
+  const catalogueState = <CatalogAvailability catalogSyncStatus={catalogSyncStatus} sessionStatus={sessionStatus} productCount={products.length} onRetry={() => void refreshProductionData()} />;
+  if (catalogSyncStatus !== 'ready' || products.length === 0) return catalogueState;
 
   const banners = [
     {
       id: 1,
       title: `${currentMall.enterpriseName} 专享补贴专场`,
       subtitle: '2026年二季度员工关怀特惠，福利卡与餐卡通兑尊享折上折',
-      bgColor: 'from-[#143A8F] via-[#1F5EFF] to-blue-900',
+      bgColor: 'from-[var(--sw-brand-dark)] via-[var(--sw-brand)] to-blue-900',
       badge: '央企国企福利专享',
       btnText: '立即选购特惠商品',
     },
@@ -67,7 +71,7 @@ export const HomePage: React.FC = () => {
               <div className="flex items-center justify-between pt-4 border-t border-white/10">
                 <button
                   onClick={() => navigateTo('category', { categoryId: 'cat_welfare_zone' })}
-                  className="bg-white text-[#143A8F] hover:bg-yellow-300 font-bold text-xs px-5 py-2.5 rounded transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                  className="bg-white text-[var(--sw-brand-dark)] hover:bg-yellow-300 font-bold text-xs px-5 py-2.5 rounded transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>{banners[activeBannerIndex].btnText}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -97,12 +101,12 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* 实时动态与企业通知跑马灯 */}
-          <div className="bg-[#EAF1FF] border border-blue-200 rounded-md p-3 flex items-center justify-between text-xs text-blue-900 shadow-xs">
+          <div className="bg-[var(--sw-brand-light)] border border-blue-200 rounded-md p-3 flex items-center justify-between text-xs text-blue-900 shadow-xs">
             <div className="flex items-center gap-2 overflow-hidden">
-              <span className="bg-[#1F5EFF] text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">福利快讯</span>
+              <span className="bg-[var(--sw-brand)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">福利快讯</span>
               <span className="truncate font-medium">{currentMall.welcomeBanner}</span>
             </div>
-            <button onClick={() => navigateTo('balance')} className="text-[#1F5EFF] font-bold hover:underline flex-shrink-0 ml-2">
+            <button onClick={() => navigateTo('balance')} className="text-[var(--sw-brand)] font-bold hover:underline flex-shrink-0 ml-2">
               查看我的补贴 &gt;
             </button>
           </div>
@@ -113,11 +117,20 @@ export const HomePage: React.FC = () => {
           <div className="space-y-4">
             {/* 用户身份 header */}
             <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
-              <img src={user.avatar} alt={user.name} className="w-12 h-12 rounded-full object-cover border-2 border-blue-100 shadow-xs" />
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.name} className="w-12 h-12 rounded-full object-cover border-2 border-blue-100 shadow-xs" />
+              ) : (
+                <div
+                  aria-label={`${user.name}的默认头像`}
+                  className="w-12 h-12 rounded-full bg-gradient-to-tr from-[var(--sw-brand-dark)] to-[var(--sw-brand)] text-white flex items-center justify-center text-lg font-black border-2 border-blue-100 shadow-xs"
+                >
+                  {user.name.slice(0, 1)}
+                </div>
+              )}
               <div className="overflow-hidden">
                 <div className="font-bold text-gray-900 text-sm flex items-center gap-1.5">
                   <span>{user.name}</span>
-                  <span className="bg-[#143A8F] text-white text-[10px] px-1.5 py-0.2 rounded font-normal">{user.jobTitle}</span>
+                  <span className="bg-[var(--sw-brand-dark)] text-white text-[10px] px-1.5 py-0.2 rounded font-normal">{user.jobTitle}</span>
                 </div>
                 <div className="text-[11px] text-gray-400 truncate mt-0.5">{user.enterpriseName}</div>
               </div>
@@ -125,7 +138,7 @@ export const HomePage: React.FC = () => {
 
             {/* 福利余额与餐卡卡片 */}
             <div className="space-y-2">
-              <div onClick={() => navigateTo('balance', { accountTab: 'welfare' })} className="bg-gradient-to-r from-[#1F5EFF] to-blue-700 text-white p-3 rounded-md cursor-pointer hover:shadow-md transition-shadow">
+              <div onClick={() => navigateTo('balance', { accountTab: 'welfare' })} className="bg-gradient-to-r from-[var(--sw-brand)] to-blue-700 text-white p-3 rounded-md cursor-pointer hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between text-xs opacity-90">
                   <span className="flex items-center gap-1 font-medium">
                     <CreditCard className="w-3.5 h-3.5" />
@@ -206,7 +219,7 @@ export const HomePage: React.FC = () => {
             {
               name: '生活服务',
               icon: Zap,
-              color: 'text-[#1F5EFF] bg-blue-50',
+              color: 'text-[var(--sw-brand)] bg-blue-50',
               param: { itemType: 'life_service' as const },
             },
             {

@@ -39,19 +39,19 @@ export const LaptopCategoryPage: React.FC<LaptopCategoryPageProps> = ({ onSelect
       <div className="max-w-[1240px] mx-auto pt-3 px-3">
         <div className="flex items-center justify-between text-xs text-gray-500 mb-2.5">
           <div className="flex items-center gap-1.5">
-            <span onClick={() => onSelectTab('home-1366')} className="hover:text-[#1F5EFF] cursor-pointer">
+            <span onClick={() => onSelectTab('home-1366')} className="hover:text-[var(--sw-brand)] cursor-pointer">
               首页
             </span>
             <span>&gt;</span>
             <span className="font-bold text-gray-800">商品分类与企采搜索结果</span>
           </div>
           <div className="text-[11px] text-gray-400">
-            共找到 <span className="font-bold text-[#1F5EFF]">{filtered.length}</span> 件企采符合件
+            共找到 <span className="font-bold text-[var(--sw-brand)]">{filtered.length}</span> 件企采符合件
           </div>
         </div>
         <div className="flex gap-3 items-start">
           <div className={`transition-all duration-300 flex-shrink-0 bg-white border border-gray-200 rounded-lg shadow-2xs overflow-hidden ${isFilterCollapsed ? 'w-[48px]' : 'w-[200px]'}`}>
-            <div className="bg-[#143A8F] text-white p-2.5 flex items-center justify-between text-xs font-bold">
+            <div className="bg-[var(--sw-brand-dark)] text-white p-2.5 flex items-center justify-between text-xs font-bold">
               {!isFilterCollapsed && (
                 <div className="flex items-center gap-1.5">
                   <SlidersHorizontal className="w-3.5 h-3.5 text-yellow-300" />
@@ -82,7 +82,7 @@ export const LaptopCategoryPage: React.FC<LaptopCategoryPageProps> = ({ onSelect
                         key={item.id}
                         onClick={() => setFilterCategory(item.id)}
                         className={`w-full text-left px-2 py-1 rounded text-[11px] transition-colors cursor-pointer flex items-center justify-between ${
-                          filterCategory === item.id ? 'bg-[#1F5EFF] text-white font-bold' : 'hover:bg-gray-100 text-gray-700'
+                          filterCategory === item.id ? 'bg-[var(--sw-brand)] text-white font-bold' : 'hover:bg-gray-100 text-gray-700'
                         }`}
                       >
                         <span>{item.label}</span>
@@ -94,11 +94,11 @@ export const LaptopCategoryPage: React.FC<LaptopCategoryPageProps> = ({ onSelect
                   <div className="font-bold text-gray-800 mb-1.5">账户可抵扣范围</div>
                   <div className="space-y-1.5">
                     <label className="flex items-center gap-2 cursor-pointer text-[11px] text-gray-700">
-                      <input type="checkbox" checked={allowMealCardOnly} onChange={(e) => setAllowMealCardOnly(e.target.checked)} className="rounded text-[#1F5EFF] focus:ring-[#1F5EFF]" />
+                      <input type="checkbox" checked={allowMealCardOnly} onChange={(e) => setAllowMealCardOnly(e.target.checked)} className="rounded text-[var(--sw-brand)] focus:ring-[var(--sw-brand)]" />
                       <span>仅看支持餐卡商品</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer text-[11px] text-gray-700">
-                      <input type="checkbox" checked={subsidyOnly} onChange={(e) => setSubsidyOnly(e.target.checked)} className="rounded text-[#1F5EFF] focus:ring-[#1F5EFF]" />
+                      <input type="checkbox" checked={subsidyOnly} onChange={(e) => setSubsidyOnly(e.target.checked)} className="rounded text-[var(--sw-brand)] focus:ring-[var(--sw-brand)]" />
                       <span>仅看企业专项补贴</span>
                     </label>
                   </div>
@@ -110,7 +110,7 @@ export const LaptopCategoryPage: React.FC<LaptopCategoryPageProps> = ({ onSelect
                       type="number"
                       value={priceRange[0]}
                       onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
-                      className="w-full border border-gray-300 rounded px-1.5 py-0.5 text-center outline-none focus:border-[#1F5EFF]"
+                      className="w-full border border-gray-300 rounded px-1.5 py-0.5 text-center outline-none focus:border-[var(--sw-brand)]"
                       placeholder="0"
                     />
                     <span>-</span>
@@ -118,7 +118,7 @@ export const LaptopCategoryPage: React.FC<LaptopCategoryPageProps> = ({ onSelect
                       type="number"
                       value={priceRange[1]}
                       onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                      className="w-full border border-gray-300 rounded px-1.5 py-0.5 text-center outline-none focus:border-[#1F5EFF]"
+                      className="w-full border border-gray-300 rounded px-1.5 py-0.5 text-center outline-none focus:border-[var(--sw-brand)]"
                       placeholder="5000"
                     />
                   </div>
@@ -142,15 +142,18 @@ export const LaptopCategoryPage: React.FC<LaptopCategoryPageProps> = ({ onSelect
             <div className="bg-white border border-gray-200 rounded-lg p-2.5 shadow-2xs flex items-center justify-between flex-wrap gap-2 text-xs">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="font-bold text-gray-500 mr-1">排序规则:</span>
-                <button onClick={() => setSortBy('default')} className={`px-3 py-1 rounded font-bold cursor-pointer transition-colors ${sortBy === 'default' ? 'bg-[#1F5EFF] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+                <button
+                  onClick={() => setSortBy('default')}
+                  className={`px-3 py-1 rounded font-bold cursor-pointer transition-colors ${sortBy === 'default' ? 'bg-[var(--sw-brand)] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                >
                   综合排序
                 </button>
-                <button onClick={() => setSortBy('sales')} className={`px-3 py-1 rounded font-bold cursor-pointer transition-colors ${sortBy === 'sales' ? 'bg-[#1F5EFF] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+                <button onClick={() => setSortBy('sales')} className={`px-3 py-1 rounded font-bold cursor-pointer transition-colors ${sortBy === 'sales' ? 'bg-[var(--sw-brand)] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
                   销量优先
                 </button>
                 <button
                   onClick={() => setSortBy(sortBy === 'price-asc' ? 'price-desc' : 'price-asc')}
-                  className={`px-3 py-1 rounded font-bold cursor-pointer transition-colors ${sortBy.startsWith('price') ? 'bg-[#1F5EFF] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                  className={`px-3 py-1 rounded font-bold cursor-pointer transition-colors ${sortBy.startsWith('price') ? 'bg-[var(--sw-brand)] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                 >
                   价格 {sortBy === 'price-asc' ? '↑' : sortBy === 'price-desc' ? '↓' : ''}
                 </button>
@@ -164,7 +167,7 @@ export const LaptopCategoryPage: React.FC<LaptopCategoryPageProps> = ({ onSelect
                 <div
                   key={product.id}
                   onClick={() => onSelectTab('detail')}
-                  className="bg-white border border-gray-200 hover:border-[#1F5EFF] rounded-lg p-2.5 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group relative"
+                  className="bg-white border border-gray-200 hover:border-[var(--sw-brand)] rounded-lg p-2.5 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group relative"
                 >
                   <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
                     <span className="bg-[#E5484D] text-white text-[9px] font-bold px-1.5 py-0.2 rounded shadow-2xs">福利价</span>
@@ -179,7 +182,7 @@ export const LaptopCategoryPage: React.FC<LaptopCategoryPageProps> = ({ onSelect
                       <span>·</span>
                       <span className="text-blue-600 font-medium">现货速发</span>
                     </div>
-                    <h3 className="font-bold text-xs text-gray-800 group-hover:text-[#1F5EFF] line-clamp-2 leading-tight min-h-[32px]">{product.title}</h3>
+                    <h3 className="font-bold text-xs text-gray-800 group-hover:text-[var(--sw-brand)] line-clamp-2 leading-tight min-h-[32px]">{product.title}</h3>
                   </div>
                   <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between">
                     <div>
@@ -191,7 +194,7 @@ export const LaptopCategoryPage: React.FC<LaptopCategoryPageProps> = ({ onSelect
                     </div>
                     <button
                       onClick={(e) => handleAddToCart(product, e)}
-                      className="bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold text-xs px-2.5 py-1.5 rounded transition-colors cursor-pointer flex items-center gap-1 shadow-2xs flex-shrink-0"
+                      className="bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-bold text-xs px-2.5 py-1.5 rounded transition-colors cursor-pointer flex items-center gap-1 shadow-2xs flex-shrink-0"
                     >
                       <ShoppingCart className="w-3.5 h-3.5" />
                       <span>加购物车</span>

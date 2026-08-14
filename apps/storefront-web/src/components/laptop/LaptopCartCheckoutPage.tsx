@@ -11,7 +11,7 @@ export const LaptopCartCheckoutPage: React.FC<LaptopCartCheckoutPageProps> = ({ 
 
   const [useWelfareDeduction, setUseWelfareDeduction] = useState<boolean>(true);
   const [useMealDeduction, setUseMealDeduction] = useState<boolean>(true);
-  const [invoiceHeader, setInvoiceHeader] = useState<string>('国家电网有限公司 (税号:91110000710928928L)');
+  const [invoiceHeader, setInvoiceHeader] = useState<string>(user.enterpriseName);
 
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => sum + item.product.priceWelfare * item.quantity, 0);
@@ -38,7 +38,7 @@ export const LaptopCartCheckoutPage: React.FC<LaptopCartCheckoutPageProps> = ({ 
         {/* 页头标题 */}
         <div className="flex items-center justify-between text-xs border-b border-gray-200 pb-2">
           <div className="flex items-center gap-2">
-            <ShoppingCart className="w-4 h-4 text-[#1F5EFF]" />
+            <ShoppingCart className="w-4 h-4 text-[var(--sw-brand)]" />
             <h1 className="font-extrabold text-sm text-gray-900">购物车与企业福利联合结算</h1>
           </div>
           <span className="text-gray-400">1366×768 紧凑表单无遮挡</span>
@@ -48,7 +48,7 @@ export const LaptopCartCheckoutPage: React.FC<LaptopCartCheckoutPageProps> = ({ 
         {cart.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-lg p-8 text-center space-y-3">
             <div className="text-gray-400">您的企采购物车内暂无商品</div>
-            <button onClick={() => onSelectTab('category')} className="bg-[#1F5EFF] text-white text-xs font-bold px-4 py-2 rounded-md hover:bg-blue-700 cursor-pointer">
+            <button onClick={() => onSelectTab('category')} className="bg-[var(--sw-brand)] text-white text-xs font-bold px-4 py-2 rounded-md hover:bg-blue-700 cursor-pointer">
               选购企业福利商品
             </button>
           </div>
@@ -76,7 +76,7 @@ export const LaptopCartCheckoutPage: React.FC<LaptopCartCheckoutPageProps> = ({ 
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-gray-800 truncate text-xs">{item.product.title}</h3>
                         <div className="flex items-center gap-1.5 mt-1 text-[10px]">
-                          <span className="bg-blue-50 text-[#1F5EFF] font-medium px-1 rounded">福利卡可用</span>
+                          <span className="bg-blue-50 text-[var(--sw-brand)] font-medium px-1 rounded">福利卡可用</span>
                           {item.product.allowedAccounts.includes('meal') && <span className="bg-emerald-50 text-emerald-700 font-medium px-1 rounded">餐卡可用</span>}
                         </div>
                       </div>
@@ -110,19 +110,17 @@ export const LaptopCartCheckoutPage: React.FC<LaptopCartCheckoutPageProps> = ({ 
               {/* 配送与发票抬头设置 */}
               <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-2xs space-y-2.5 text-xs">
                 <div className="font-bold text-gray-800 border-b border-gray-100 pb-1.5 flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-[#1F5EFF]" />
+                  <MapPin className="w-4 h-4 text-[var(--sw-brand)]" />
                   <span>配送地址与开票抬头</span>
                 </div>
 
                 <div className="space-y-1.5">
                   <div className="p-2 bg-blue-50/60 border border-blue-200 rounded flex items-center justify-between">
                     <div>
-                      <div className="font-bold text-gray-800">
-                        {addresses[0]?.name || user.name} {addresses[0]?.phone || '138****8890'}
-                      </div>
-                      <div className="text-[11px] text-gray-600">{addresses[0] ? `${addresses[0].province}${addresses[0].city}${addresses[0].district}${addresses[0].detail}` : '北京市东城区国家电网总部大楼 6层行政部'}</div>
+                      <div className="font-bold text-gray-800">{addresses[0] ? `${addresses[0].name} ${addresses[0].phone}` : '暂无收货人'}</div>
+                      <div className="text-[11px] text-gray-600">{addresses[0] ? `${addresses[0].province}${addresses[0].city}${addresses[0].district}${addresses[0].detail}` : '请先新增收货地址'}</div>
                     </div>
-                    <span className="text-[10px] bg-[#1F5EFF] text-white px-1.5 py-0.5 rounded font-bold">默认办公地址</span>
+                    <span className="text-[10px] bg-[var(--sw-brand)] text-white px-1.5 py-0.5 rounded font-bold">默认办公地址</span>
                   </div>
 
                   <div className="p-2 bg-gray-50 border border-gray-200 rounded flex items-center justify-between">
@@ -145,11 +143,11 @@ export const LaptopCartCheckoutPage: React.FC<LaptopCartCheckoutPageProps> = ({ 
               <div className="space-y-2 text-xs">
                 <label className="p-2 bg-blue-50/80 rounded border border-blue-200 flex items-center justify-between cursor-pointer">
                   <div className="flex items-center gap-1.5">
-                    <input type="checkbox" checked={useWelfareDeduction} onChange={(e) => setUseWelfareDeduction(e.target.checked)} className="rounded text-[#1F5EFF]" />
-                    <CreditCard className="w-3.5 h-3.5 text-[#1F5EFF]" />
+                    <input type="checkbox" checked={useWelfareDeduction} onChange={(e) => setUseWelfareDeduction(e.target.checked)} className="rounded text-[var(--sw-brand)]" />
+                    <CreditCard className="w-3.5 h-3.5 text-[var(--sw-brand)]" />
                     <span className="font-bold text-gray-800">福利卡抵扣</span>
                   </div>
-                  <span className="font-bold text-[#143A8F]">-¥{maxWelfareDeduction.toFixed(2)}</span>
+                  <span className="font-bold text-[var(--sw-brand-dark)]">-¥{maxWelfareDeduction.toFixed(2)}</span>
                 </label>
 
                 <label className="p-2 bg-emerald-50/80 rounded border border-emerald-200 flex items-center justify-between cursor-pointer">
@@ -168,7 +166,7 @@ export const LaptopCartCheckoutPage: React.FC<LaptopCartCheckoutPageProps> = ({ 
                   <span>商品金额小计:</span>
                   <span className="font-bold text-gray-800">¥{subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-[#1F5EFF]">
+                <div className="flex justify-between text-[var(--sw-brand)]">
                   <span>福利卡抵扣:</span>
                   <span>-¥{maxWelfareDeduction.toFixed(2)}</span>
                 </div>
@@ -186,7 +184,7 @@ export const LaptopCartCheckoutPage: React.FC<LaptopCartCheckoutPageProps> = ({ 
               <button
                 onClick={handleCheckout}
                 disabled={isSubmittingOrder}
-                className="w-full bg-[#1F5EFF] hover:bg-blue-700 text-white font-extrabold py-3 rounded-lg text-xs transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+                className="w-full bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-extrabold py-3 rounded-lg text-xs transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
               >
                 <Zap className="w-4 h-4 text-yellow-300" />
                 {isSubmittingOrder ? '安全提交中…' : '确认并提交真实订单'}

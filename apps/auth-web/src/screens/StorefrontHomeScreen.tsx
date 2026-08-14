@@ -15,7 +15,7 @@ export const StorefrontHomeScreen: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* 顶部渐变 Header */}
-      <header className="bg-gradient-to-r from-[#143A8F] to-[#1F5EFF] text-white p-4 sm:p-6 shadow-md">
+      <header className="bg-gradient-to-r from-[var(--sw-brand-dark)] to-[var(--sw-brand)] text-white p-4 sm:p-6 shadow-md">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20">
@@ -45,7 +45,7 @@ export const StorefrontHomeScreen: React.FC = () => {
         {/* 当前身份及专区信息 */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-semibold bg-blue-50 text-[#1F5EFF] rounded-md border border-blue-100">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-semibold bg-blue-50 text-[var(--sw-brand)] rounded-md border border-blue-100">
               <User className="w-3 h-3" />
               {membership?.accountTypeLabel || '福利账户'}
             </span>
@@ -58,7 +58,7 @@ export const StorefrontHomeScreen: React.FC = () => {
           <div className="flex items-center gap-3">
             <div className="text-right">
               <p className="text-xs text-slate-400">本期可用福利额度</p>
-              <p className="text-2xl font-extrabold text-[#1F5EFF] font-mono">¥ 2,800.00</p>
+              <p className="text-2xl font-extrabold text-[var(--sw-brand)] font-mono">¥ 2,800.00</p>
             </div>
           </div>
         </div>
@@ -66,14 +66,14 @@ export const StorefrontHomeScreen: React.FC = () => {
         {/* 快捷功能卡片 grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3 hover:shadow-md transition-shadow">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1F5EFF] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-[var(--sw-brand)] flex items-center justify-center">
               <Gift className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-bold text-slate-800 text-sm">生日/节日套餐</h3>
               <p className="text-xs text-slate-500 mt-1">选购企业精选节日礼包与定制蛋糕卡</p>
             </div>
-            <button className="text-xs font-semibold text-[#1F5EFF] hover:underline">去兑换 &rarr;</button>
+            <button className="text-xs font-semibold text-[var(--sw-brand)] hover:underline">去兑换 &rarr;</button>
           </div>
 
           <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3 hover:shadow-md transition-shadow">

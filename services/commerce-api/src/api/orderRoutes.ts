@@ -2,6 +2,7 @@ import { authorize, can } from './auth';
 import { PERMISSIONS } from '@smart-wing/api-contract';
 import { encryptJson, sha256 } from './crypto';
 import { apiError, json, methodNotAllowed } from './http';
+import { requirePhoneVerified } from './identityAssurance';
 import { authorizationEvidence, authorizationScope, invalidBody, loadResourceScope, readJsonBody } from './routerSupport';
 import { callRpc } from './supabase';
 import type { AuthorizationContext, WorkerEnv } from './types';
@@ -84,6 +85,8 @@ export async function handleCreateOrder(request: Request, env: WorkerEnv, author
   if (!decision.allowed) {
     return apiError(403, 'FORBIDDEN', '没有创建订单的权限', requestId);
   }
+  const assuranceError = await requirePhoneVerified(env, authorization, requestId);
+  if (assuranceError) return assuranceError;
   if (!env.PII_ENCRYPTION_KEY) {
     return apiError(503, 'PII_ENCRYPTION_NOT_CONFIGURED', '收货信息加密密钥尚未配置，系统已阻止订单写入', requestId);
   }
@@ -102,6 +105,7 @@ export async function handleCreateOrder(request: Request, env: WorkerEnv, author
     ...authorizationScope(authorization, true),
     p_items: input.items,
     p_recipient_cipher: JSON.parse(recipientCipher),
+    p_recipient_city: input.recipient.city,
     p_idempotency_key: idempotencyKey,
     p_request_hash: await sha256(JSON.stringify(input)),
     p_request_id: requestId,
@@ -114,6 +118,8 @@ export async function handleCreateOrder(request: Request, env: WorkerEnv, author
 
 export async function handleInternalPayment(request: Request, env: WorkerEnv, authorization: AuthorizationContext, orderId: string, requestId: string): Promise<Response> {
   if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
+  const assuranceError = await requirePhoneVerified(env, authorization, requestId);
+  if (assuranceError) return assuranceError;
   const orderScope = await loadResourceScope(env, 'api_order_authorization_scope', orderId);
   const decision = orderScope ? authorize(authorization, PERMISSIONS.orderCreate, orderScope) : null;
   if (!decision?.allowed) {

@@ -21,7 +21,7 @@ export const ProductDetailActionPanel: React.FC<ProductDetailActionPanelProps> =
       <div className={`mt-2 rounded border p-2.5 text-xs ${buyBlocker ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
         <div>
           预计支付总额 <strong className="text-[#FF7A00]">¥{payableAmount.toFixed(2)}</strong> ｜ 账户可用
-          <strong className="text-[#1F5EFF] ml-1">¥{accountBalance.toFixed(2)}</strong>
+          <strong className="text-[var(--sw-brand)] ml-1">¥{accountBalance.toFixed(2)}</strong>
         </div>
         {buyBlocker ? <div>• {buyBlocker}</div> : <div>• 当前已满足下单前提，可直接前往结算页</div>}
       </div>
@@ -30,7 +30,7 @@ export const ProductDetailActionPanel: React.FC<ProductDetailActionPanelProps> =
         <button
           onClick={onAddToCart}
           disabled={!canAddToCart}
-          className="flex-1 bg-blue-50 hover:bg-blue-100 text-[#1F5EFF] border border-blue-300 font-black py-3 rounded text-sm transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex-1 bg-blue-50 hover:bg-blue-100 text-[var(--sw-brand)] border border-blue-300 font-black py-3 rounded text-sm transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <ShoppingCart className="w-4 h-4 inline-block mr-1.5" />
           加入购物车
@@ -39,7 +39,7 @@ export const ProductDetailActionPanel: React.FC<ProductDetailActionPanelProps> =
         <button
           onClick={onBuyNow}
           disabled={Boolean(buyBlocker)}
-          className="flex-1 bg-[#1F5EFF] hover:bg-blue-700 text-white font-black py-3 rounded text-sm transition-colors cursor-pointer shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex-1 bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-black py-3 rounded text-sm transition-colors cursor-pointer shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {buyBlocker ? '请先完成前置条件' : '立即兑换 / 确认提交'}
         </button>

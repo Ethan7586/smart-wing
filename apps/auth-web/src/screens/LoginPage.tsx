@@ -26,7 +26,6 @@ import {
   Info,
   Clock,
   ExternalLink,
-  Sparkles,
   Store,
   CreditCard,
   UserX,
@@ -35,7 +34,7 @@ import {
 } from 'lucide-react';
 import { useMallContext } from '../context/MallContext';
 import { LoginMethod, Membership, PreAuthContext } from '../types';
-import { requestOtp, loginWithOtp, loginWithPassword, verifyStepUp, getLockoutState, acceptInvitation } from '../services/auth';
+import { requestOtp, loginWithOtp, loginWithPassword, verifyStepUp, getLockoutState, acceptInvitation, changeInitialPassword, registerUsernameMember } from '../services/auth';
 
 export const LoginPage: React.FC = () => {
   const { currentDomain, navigateTo, acceptedTerms, setAcceptedTerms, setActiveSession } = useMallContext();
@@ -45,15 +44,20 @@ export const LoginPage: React.FC = () => {
   const [stage, setStage] = useState<1 | 2 | 3>(1);
 
   // Tab 状态: 'otp' | 'password' | 'work_weixin' | 'sso'
-  const [activeTab, setActiveTab] = useState<LoginMethod>('otp');
+  const [activeTab, setActiveTab] = useState<LoginMethod>('password');
 
   // 表单受控字段
-  const [phone, setPhone] = useState<string>('13800138000');
-  const [otpCode, setOtpCode] = useState<string>('123456');
-  const [identifier, setIdentifier] = useState<string>('13800138000');
-  const [password, setPassword] = useState<string>('password123');
+  const [phone, setPhone] = useState<string>('');
+  const [otpCode, setOtpCode] = useState<string>('');
+  const [identifier, setIdentifier] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [ssoDomain, setSsoDomain] = useState<string>('tencent.hbbtzn.com');
-  const [totpCode, setTotpCode] = useState<string>('654321');
+  const [totpCode, setTotpCode] = useState<string>('123456');
+  const [registrationOpen, setRegistrationOpen] = useState(false);
+  const [registration, setRegistration] = useState({ username: '', displayName: '', inviteCode: '', password: '', confirmPassword: '' });
+  const [registrationNotice, setRegistrationNotice] = useState('');
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetForm, setResetForm] = useState({ mobile: '', code: '', challengeId: '', password: '', confirm: '' });
 
   // UI 视觉交互状态
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -210,7 +214,7 @@ export const LoginPage: React.FC = () => {
       }
     } else if (activeTab === 'password') {
       if (!identifier.trim()) {
-        errors.identifier = '请输入工号或企业邮箱';
+        errors.identifier = '请输入登录账号或已绑定手机号';
       }
       if (!password.trim()) {
         errors.password = '请输入密码';
@@ -238,6 +242,79 @@ export const LoginPage: React.FC = () => {
       setOtpCountdown(60);
     } catch (err: any) {
       setFormError(err.message || '发送验证码失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateRegistration = (field: keyof typeof registration, value: string) => {
+    setRegistration((current) => ({ ...current, [field]: value }));
+    setFormError('');
+  };
+
+  const handleRegistrationSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!acceptedTerms) return setFormError('请先阅读并同意用户协议和隐私政策');
+    if (registration.password !== registration.confirmPassword) return setFormError('两次输入的密码不一致');
+    setLoading(true);
+    setFormError('');
+    try {
+      await registerUsernameMember({
+        username: registration.username.trim(),
+        password: registration.password,
+        displayName: registration.displayName.trim(),
+        inviteCode: registration.inviteCode.trim(),
+        acceptedTerms: true,
+      });
+      setIdentifier(registration.username.trim().toLowerCase());
+      setPassword(registration.password);
+      setActiveTab('password');
+      setRegistrationOpen(false);
+      setRegistrationNotice('');
+      setFormError('注册成功。已建立基础会员身份；手机尚未验证，可登录和浏览，短信认证完成前暂不能提交订单或付款。');
+    } catch (error: any) {
+      setFormError(error.message || '注册失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendResetCode = async () => {
+    setLoading(true);
+    setFormError('');
+    try {
+      const response = await fetch('/api/v1/auth/security/otp', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mobile: resetForm.mobile, purpose: 'password_reset' }) });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error?.message || '验证码发送失败');
+      setResetForm((current) => ({ ...current, challengeId: payload.challengeId, code: payload.debugCode ?? current.code }));
+      setRegistrationNotice(payload.debugCode ? `开发环境验证码：${payload.debugCode}` : '验证码已发送');
+    } catch (error: any) {
+      setFormError(error.message || '验证码发送失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitPasswordReset = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (resetForm.password !== resetForm.confirm) return setFormError('两次输入的新密码不一致');
+    setLoading(true);
+    setFormError('');
+    try {
+      const response = await fetch('/api/v1/auth/password/reset', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ mobile: resetForm.mobile, challengeId: resetForm.challengeId, code: resetForm.code, newPassword: resetForm.password }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error?.message || '密码重置失败');
+      setIdentifier(resetForm.mobile);
+      setPassword(resetForm.password);
+      setResetOpen(false);
+      setRegistrationNotice('');
+      setFormError('密码已重置，所有旧设备均已下线，请重新登录。');
+    } catch (error: any) {
+      setFormError(error.message || '密码重置失败');
     } finally {
       setLoading(false);
     }
@@ -289,7 +366,9 @@ export const LoginPage: React.FC = () => {
   };
 
   // 处理 PreAuth 上下文并路由到第2段或自动跳转
-  const completeEmbeddedStorefrontLogin = async (membershipId: string) => {
+  const completeStorefrontLogin = async (membershipId: string) => {
+    // Credential discovery never creates a cookie. The final login is the only
+    // place that establishes the tracked, revocable HttpOnly device session.
     const response = await fetch('/api/v1/auth/login', {
       method: 'POST',
       credentials: 'same-origin',
@@ -302,11 +381,14 @@ export const LoginPage: React.FC = () => {
       throw new Error(payload?.error?.message || '登录失败，请检查测试账号与密码');
     }
 
-    // iframe 与商城同源；只通知父窗口刷新已建立的 HttpOnly 会话，不传递密码或票据。
-    window.parent.postMessage(
-      { type: 'smart-wing:storefront-login-complete', membershipId },
-      window.location.origin,
-    );
+    if (isStorefrontEmbed) {
+      // iframe 与商城同源；只通知父窗口刷新已建立的 HttpOnly 会话，不传递密码或票据。
+      window.parent.postMessage({ type: 'smart-wing:storefront-login-complete', membershipId }, window.location.origin);
+      return;
+    }
+
+    // 独立登录页必须离开认证壳，进入已经建立真实会话的商城首页。
+    window.location.replace('/');
   };
 
   const completeAdminTestLogin = () => {
@@ -347,8 +429,8 @@ export const LoginPage: React.FC = () => {
     if (validMemberships.length === 1) {
       const singleMem = validMemberships[0];
       if (singleMem.target === 'storefront' && singleMem.status === 'active') {
-        if (isStorefrontEmbed && activeTab === 'password') {
-          await completeEmbeddedStorefrontLogin(singleMem.id);
+        if (activeTab === 'password') {
+          await completeStorefrontLogin(singleMem.id);
           return;
         }
         // 员工端单身份，无需 step-up，直接登录成功
@@ -358,10 +440,14 @@ export const LoginPage: React.FC = () => {
         });
         navigateTo('storefront_home', { membershipId: singleMem.id });
         return;
-      } else if (singleMem.target === 'admin' && singleMem.requiresStepUp) {
-        // 管理身份需 Step-Up，自动进入第3段
-        setSelectedMembership(singleMem);
-        setStage(3);
+      } else if (singleMem.target === 'admin') {
+        if (singleMem.requiresStepUp) {
+          // 管理身份需 Step-Up，自动进入第3段
+          setSelectedMembership(singleMem);
+          setStage(3);
+        } else {
+          completeAdminTestLogin();
+        }
         return;
       }
     }
@@ -397,22 +483,23 @@ export const LoginPage: React.FC = () => {
       setStage(3);
     } else {
       // 嵌入员工商城时，认证页只负责完成身份选择；不在右侧抽屉渲染另一套商城。
-      if (isStorefrontEmbed && mem.target === 'storefront') {
-        await completeEmbeddedStorefrontLogin(mem.id);
+      if (activeTab === 'password' && mem.target === 'storefront') {
+        await completeStorefrontLogin(mem.id);
         return;
       }
 
-      // 普通员工卡片或不需 step-up 的后台卡片，直接进入
+      if (mem.target === 'admin') {
+        completeAdminTestLogin();
+        return;
+      }
+
+      // 普通员工卡片直接进入商城
       setActiveSession({
         membership: mem,
-        domain: mem.target === 'admin' ? 'smart.hbbtzn.com' : 'hbbtzn.com',
+        domain: 'hbbtzn.com',
       });
 
-      if (mem.target === 'admin') {
-        navigateTo('admin_dashboard', { membershipId: mem.id });
-      } else {
-        navigateTo('storefront_home', { membershipId: mem.id });
-      }
+      navigateTo('storefront_home', { membershipId: mem.id });
     }
   };
 
@@ -498,7 +585,7 @@ export const LoginPage: React.FC = () => {
   };
 
   // 快速测试填入账号工具
-  const quickFillAccount = (testPhone: string, testPass: string = 'password123') => {
+  const quickFillAccount = (testPhone: string, testPass: string = '123456') => {
     setPhone(testPhone);
     setIdentifier(testPhone);
     setPassword(testPass);
@@ -534,7 +621,7 @@ export const LoginPage: React.FC = () => {
               setStage(1);
               setFormError('');
             }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-[#1F5EFF] bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-[var(--sw-brand)] bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             切换其他账号登录
@@ -553,7 +640,7 @@ export const LoginPage: React.FC = () => {
       <div className="space-y-3 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Store className="w-4 h-4 text-[#1F5EFF]" />
+            <Store className="w-4 h-4 text-[var(--sw-brand)]" />
             <h4 className="text-xs font-bold text-slate-700 tracking-wider uppercase">我的福利商城</h4>
           </div>
           <span className="text-[11px] text-slate-400">共 {storefrontItems.length} 个专区</span>
@@ -571,7 +658,7 @@ export const LoginPage: React.FC = () => {
                 aria-disabled={mem.status !== 'active'}
                 aria-label={`进入 ${mem.storeName}，${mem.enterpriseName}，${mem.roleName}`}
                 className={`group relative p-3.5 rounded-xl border transition-all duration-200 cursor-pointer ${
-                  isInvalid ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed' : 'bg-white border-slate-200 hover:border-[#1F5EFF] hover:shadow-md hover:bg-blue-50/20'
+                  isInvalid ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed' : 'bg-white border-slate-200 hover:border-[var(--sw-brand)] hover:shadow-md hover:bg-blue-50/20'
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -579,7 +666,7 @@ export const LoginPage: React.FC = () => {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-semibold text-sm text-slate-800 truncate">{mem.storeName}</span>
                       {mem.accountTypeLabel && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-blue-50 text-[#1F5EFF] rounded-md border border-blue-100">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-blue-50 text-[var(--sw-brand)] rounded-md border border-blue-100">
                           <CreditCard className="w-2.5 h-2.5" />
                           {mem.accountTypeLabel}
                         </span>
@@ -593,11 +680,11 @@ export const LoginPage: React.FC = () => {
                   </div>
 
                   {mem.status === 'invited' ? (
-                    <button onClick={(e) => handleAcceptInvite(e, mem)} className="shrink-0 px-3 py-1 text-xs font-medium bg-[#1F5EFF] text-white rounded-lg hover:bg-[#143A8F] transition-colors">
+                    <button onClick={(e) => handleAcceptInvite(e, mem)} className="shrink-0 px-3 py-1 text-xs font-medium bg-[var(--sw-brand)] text-white rounded-lg hover:bg-[var(--sw-brand-dark)] transition-colors">
                       接受邀请
                     </button>
                   ) : (
-                    <div className="shrink-0 pt-1 text-slate-300 group-hover:text-[#1F5EFF] transition-colors">
+                    <div className="shrink-0 pt-1 text-slate-300 group-hover:text-[var(--sw-brand)] transition-colors">
                       <ChevronRight className="w-5 h-5" />
                     </div>
                   )}
@@ -630,7 +717,7 @@ export const LoginPage: React.FC = () => {
       <div className="space-y-3 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-[#143A8F]" />
+            <ShieldCheck className="w-4 h-4 text-[var(--sw-brand-dark)]" />
             <h4 className="text-xs font-bold text-slate-700 tracking-wider uppercase">我管理的运营主体</h4>
           </div>
           <span className="text-[11px] text-slate-400">共 {adminItems.length} 项管理权限</span>
@@ -646,10 +733,10 @@ export const LoginPage: React.FC = () => {
                 tabIndex={mem.status === 'active' ? 0 : -1}
                 aria-disabled={mem.status !== 'active'}
                 aria-label={`进入运营后台：${mem.enterpriseName}，${mem.roleName}`}
-                className="group p-3.5 rounded-xl border border-slate-200 bg-slate-900 text-white hover:border-[#1F5EFF] hover:ring-2 hover:ring-[#1F5EFF]/30 transition-all cursor-pointer shadow-sm relative overflow-hidden"
+                className="group p-3.5 rounded-xl border border-slate-200 bg-slate-900 text-white hover:border-[var(--sw-brand)] hover:ring-2 hover:ring-[var(--sw-brand)]/30 transition-all cursor-pointer shadow-sm relative overflow-hidden"
               >
                 {/* 顶部微渐变条 */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#1F5EFF] to-[#143A8F]" />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--sw-brand)] to-[var(--sw-brand-dark)]" />
 
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1 min-w-0">
@@ -686,7 +773,7 @@ export const LoginPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="shrink-0 pt-1 text-slate-500 group-hover:text-[#1F5EFF] transition-colors">
+                  <div className="shrink-0 pt-1 text-slate-500 group-hover:text-[var(--sw-brand)] transition-colors">
                     <ArrowRight className="w-5 h-5" />
                   </div>
                 </div>
@@ -715,7 +802,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className={`${isStorefrontEmbed ? 'min-h-screen bg-transparent' : 'min-h-screen bg-slate-50 flex flex-col justify-between'} selection:bg-blue-100 selection:text-[#1F5EFF]`}>
+    <div className={`${isStorefrontEmbed ? 'min-h-screen bg-transparent' : 'min-h-screen bg-slate-50 flex flex-col justify-between'} selection:bg-blue-100 selection:text-[var(--sw-brand)]`}>
       {/* 顶部体验演示与调试工具条 */}
       {!isStorefrontEmbed && (
         <div className="bg-slate-900 text-slate-300 text-xs px-4 py-2 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
@@ -729,17 +816,20 @@ export const LoginPage: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <span className="text-slate-400">快速填入测试账号:</span>
-            <button onClick={() => quickFillAccount('13800138000')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] transition-colors">
-              混合多身份(138)
+            <button onClick={() => quickFillAccount('buyer001')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] transition-colors">
+              买家 buyer001
             </button>
-            <button onClick={() => quickFillAccount('13900139000')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] transition-colors">
-              高阶管理员(139)
+            <button onClick={() => quickFillAccount('seller001')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] transition-colors">
+              商家 seller001
             </button>
-            <button onClick={() => quickFillAccount('13600136000')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] transition-colors">
-              异常状态账号(136)
+            <button onClick={() => quickFillAccount('ops001')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] transition-colors">
+              运营 ops001
             </button>
-            <button onClick={() => quickFillAccount('13500135000')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] transition-colors">
-              无计划账号(135)
+            <button onClick={() => quickFillAccount('cs001')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] transition-colors">
+              客服 cs001
+            </button>
+            <button onClick={() => quickFillAccount('admin001')} className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] transition-colors">
+              管理员 admin001
             </button>
           </div>
         </div>
@@ -747,7 +837,7 @@ export const LoginPage: React.FC = () => {
 
       {/* 主布局：认证卡片叠压在蓝色品牌底板上（桌面端覆盖约 80%） */}
       <div className={isStorefrontEmbed ? 'flex min-h-screen items-center justify-center bg-transparent p-0' : 'flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-12'}>
-        <div className={`relative w-full max-w-[520px] rounded-3xl bg-gradient-to-br from-[#1F5EFF] to-[#143A8F] shadow-xl ${isStorefrontEmbed ? 'overflow-visible p-3' : 'overflow-hidden'}`}>
+        <div className={`relative w-full max-w-[520px] rounded-3xl bg-gradient-to-br from-[var(--sw-brand)] to-[var(--sw-brand-dark)] shadow-xl ${isStorefrontEmbed ? 'overflow-visible p-3' : 'overflow-hidden'}`}>
           {isStorefrontEmbed && (
             <button
               type="button"
@@ -765,11 +855,9 @@ export const LoginPage: React.FC = () => {
 
             {/* 顶部 Logo 品牌 */}
             <div className="relative z-10 flex items-center gap-3">
-              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-[#1F5EFF] shadow-md shrink-0">
-                <Sparkles className="w-6 h-6" />
-              </div>
+              <img src={`${import.meta.env.BASE_URL}brand/brand-mark.svg`} alt="" className="h-12 w-12 shrink-0 rounded-2xl shadow-md" />
               <div>
-                <span className="text-2xl font-bold tracking-tight text-white block">智慧翼 SmartWing</span>
+                <span className="text-2xl font-bold tracking-tight text-white block">智慧翼 Smart Wing</span>
                 <span className="text-[10px] font-semibold tracking-widest text-blue-200 uppercase">Enterprise Benefits</span>
               </div>
             </div>
@@ -803,30 +891,35 @@ export const LoginPage: React.FC = () => {
                     </button>
                   )}
                   {/* 步骤 1 */}
-                  <div className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${stage >= 1 ? 'bg-[#1F5EFF] text-white shadow-sm' : 'border-2 border-slate-200 text-slate-400'}`}>1</div>
-                  <div className={`w-6 sm:w-8 h-[2px] ${stage >= 2 ? 'bg-[#1F5EFF]' : 'bg-slate-200'}`} />
+                  <div className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${stage >= 1 ? 'bg-[var(--sw-brand)] text-white shadow-sm' : 'border-2 border-slate-200 text-slate-400'}`}>1</div>
+                  <div className={`w-6 sm:w-8 h-[2px] ${stage >= 2 ? 'bg-[var(--sw-brand)]' : 'bg-slate-200'}`} />
 
                   {/* 步骤 2 */}
                   <div
                     className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${
-                      stage > 2 ? 'bg-[#1F5EFF] text-white shadow-sm' : stage === 2 ? 'border-2 border-[#1F5EFF] text-[#1F5EFF] bg-white font-black' : 'border-2 border-slate-200 text-slate-400'
+                      stage > 2 ? 'bg-[var(--sw-brand)] text-white shadow-sm' : stage === 2 ? 'border-2 border-[var(--sw-brand)] text-[var(--sw-brand)] bg-white font-black' : 'border-2 border-slate-200 text-slate-400'
                     }`}
                   >
                     2
                   </div>
-                  <div className={`w-6 sm:w-8 h-[2px] ${stage >= 3 ? 'bg-[#1F5EFF]' : 'bg-slate-200'}`} />
+                  <div className={`w-6 sm:w-8 h-[2px] ${stage >= 3 ? 'bg-[var(--sw-brand)]' : 'bg-slate-200'}`} />
 
                   {/* 步骤 3 */}
-                  <div className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${stage === 3 ? 'border-2 border-[#1F5EFF] text-[#1F5EFF] bg-white font-black' : 'border-2 border-slate-200 text-slate-400'}`}>
+                  <div
+                    className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${stage === 3 ? 'border-2 border-[var(--sw-brand)] text-[var(--sw-brand)] bg-white font-black' : 'border-2 border-slate-200 text-slate-400'}`}
+                  >
                     3
                   </div>
                 </div>
 
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
-                  {stage === 1 && '账号认证'}
-                  {stage === 2 && '选择访问身份'}
-                  {stage === 3 && '二次验证'}
-                </span>
+                <div className="flex items-center gap-2">
+                  <img src={`${import.meta.env.BASE_URL}brand/brand-mark.svg`} alt="" className="h-5 w-5 rounded-md" />
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
+                    {stage === 1 && '账号认证'}
+                    {stage === 2 && '选择访问身份'}
+                    {stage === 3 && '二次验证'}
+                  </span>
+                </div>
               </div>
 
               {/* 卡片主内容区 */}
@@ -876,13 +969,14 @@ export const LoginPage: React.FC = () => {
                           setActiveTab('otp');
                           setFormError('');
                         }}
-                        className={`py-2 px-1 rounded-lg transition-all text-center ${activeTab === 'otp' ? 'bg-white text-[#1F5EFF] font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                        disabled
+                        className={`py-2 px-1 rounded-lg transition-all text-center opacity-50 cursor-not-allowed ${activeTab === 'otp' ? 'bg-white text-[var(--sw-brand)] font-bold shadow-sm' : 'text-slate-600'}`}
                         role="tab"
                         aria-selected={activeTab === 'otp'}
                         aria-controls="login-method-panel"
                         aria-label="手机验证码登录"
                       >
-                        验证码
+                        验证码（待接入）
                       </button>
                       <button
                         type="button"
@@ -890,7 +984,7 @@ export const LoginPage: React.FC = () => {
                           setActiveTab('password');
                           setFormError('');
                         }}
-                        className={`py-2 px-1 rounded-lg transition-all text-center ${activeTab === 'password' ? 'bg-white text-[#1F5EFF] font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                        className={`py-2 px-1 rounded-lg transition-all text-center ${activeTab === 'password' ? 'bg-white text-[var(--sw-brand)] font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
                         role="tab"
                         aria-selected={activeTab === 'password'}
                         aria-controls="login-method-panel"
@@ -904,7 +998,7 @@ export const LoginPage: React.FC = () => {
                           setActiveTab('work_weixin');
                           setFormError('');
                         }}
-                        className={`py-2 px-1 rounded-lg transition-all text-center ${activeTab === 'work_weixin' ? 'bg-white text-[#1F5EFF] font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                        className={`py-2 px-1 rounded-lg transition-all text-center ${activeTab === 'work_weixin' ? 'bg-white text-[var(--sw-brand)] font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
                         role="tab"
                         aria-selected={activeTab === 'work_weixin'}
                         aria-controls="login-method-panel"
@@ -918,7 +1012,7 @@ export const LoginPage: React.FC = () => {
                           setActiveTab('sso');
                           setFormError('');
                         }}
-                        className={`py-2 px-1 rounded-lg transition-all text-center ${activeTab === 'sso' ? 'bg-white text-[#1F5EFF] font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                        className={`py-2 px-1 rounded-lg transition-all text-center ${activeTab === 'sso' ? 'bg-white text-[var(--sw-brand)] font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
                         role="tab"
                         aria-selected={activeTab === 'sso'}
                         aria-controls="login-method-panel"
@@ -942,7 +1036,7 @@ export const LoginPage: React.FC = () => {
                               value={phone}
                               onChange={(e) => handlePhoneChange(e.target.value)}
                               placeholder="请输入员工手机号（测试: 13800138000）"
-                              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1F5EFF] focus:border-[#1F5EFF] transition-all"
+                              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)] focus:border-[var(--sw-brand)] transition-all"
                               aria-label="手机号码"
                               disabled={lockoutSeconds > 0 || loading}
                             />
@@ -963,7 +1057,7 @@ export const LoginPage: React.FC = () => {
                                   setFieldErrors((prev) => ({ ...prev, otpCode: '' }));
                                 }}
                                 placeholder="6位数字（演示: 123456）"
-                                className="flex-1 px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1F5EFF] focus:border-[#1F5EFF] transition-all font-mono"
+                                className="flex-1 px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)] focus:border-[var(--sw-brand)] transition-all font-mono"
                                 aria-label="短信验证码"
                                 disabled={lockoutSeconds > 0 || loading}
                               />
@@ -971,7 +1065,7 @@ export const LoginPage: React.FC = () => {
                                 type="button"
                                 onClick={handleSendOtp}
                                 disabled={otpCountdown > 0 || lockoutSeconds > 0 || loading}
-                                className="shrink-0 px-4 py-2.5 text-xs font-medium text-[#1F5EFF] bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="shrink-0 px-4 py-2.5 text-xs font-medium text-[var(--sw-brand)] bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 {otpCountdown > 0 ? `${otpCountdown}s 后重发` : '获取验证码'}
                               </button>
@@ -981,10 +1075,10 @@ export const LoginPage: React.FC = () => {
 
                           {/* 辅助链接 */}
                           <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-                            <button type="button" onClick={() => setActiveTab('password')} className="hover:text-[#1F5EFF] transition-colors">
+                            <button type="button" onClick={() => setActiveTab('password')} className="hover:text-[var(--sw-brand)] transition-colors">
                               使用密码登录
                             </button>
-                            <button type="button" onClick={() => setFormError('请联系您所在企业的 HR 或福利管理员重置登录身份')} className="hover:text-[#1F5EFF] transition-colors">
+                            <button type="button" onClick={() => setFormError('请联系您所在企业的 HR 或福利管理员重置登录身份')} className="hover:text-[var(--sw-brand)] transition-colors">
                               收不到验证码？
                             </button>
                           </div>
@@ -993,7 +1087,7 @@ export const LoginPage: React.FC = () => {
                           <button
                             type="submit"
                             disabled={!acceptedTerms || lockoutSeconds > 0 || loading}
-                            className="w-full py-3 px-4 bg-[#1F5EFF] hover:bg-[#143A8F] text-white font-medium text-sm rounded-xl shadow-md shadow-blue-500/10 transition-all disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full py-3 px-4 bg-[var(--sw-brand)] hover:bg-[var(--sw-brand-dark)] text-white font-medium text-sm rounded-xl shadow-md shadow-blue-500/10 transition-all disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                           >
                             {loading ? (
                               <>
@@ -1010,20 +1104,20 @@ export const LoginPage: React.FC = () => {
                         </form>
                       )}
 
-                      {/* Tab 2: 工号/企业邮箱 + 密码 */}
+                      {/* Tab 2: 登录账号/已绑定手机号 + 密码 */}
                       {activeTab === 'password' && (
                         <form onSubmit={handleStage1Submit} className="space-y-4">
                           <div className="space-y-1.5">
                             <label className="text-xs font-medium text-slate-700 flex items-center gap-1">
-                              <Building2 className="w-3.5 h-3.5 text-slate-400" /> 工号或企业邮箱
+                              <Building2 className="w-3.5 h-3.5 text-slate-400" /> 登录账号或已绑定手机号
                             </label>
                             <input
                               type="text"
                               value={identifier}
                               onChange={(e) => handleIdentifierChange(e.target.value)}
-                              placeholder="例如: EMP8801 或 user@hbbtzn.com"
-                              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1F5EFF] focus:border-[#1F5EFF] transition-all"
-                              aria-label="工号或企业邮箱"
+                              placeholder="输入登录账号或已绑定手机号"
+                              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)] focus:border-[var(--sw-brand)] transition-all"
+                              aria-label="登录账号或已绑定手机号"
                               disabled={lockoutSeconds > 0 || loading}
                             />
                             {fieldErrors.identifier && <p className="text-[11px] text-rose-500">{fieldErrors.identifier}</p>}
@@ -1041,8 +1135,8 @@ export const LoginPage: React.FC = () => {
                                   setPassword(e.target.value);
                                   setFieldErrors((prev) => ({ ...prev, password: '' }));
                                 }}
-                                placeholder="演示密码: password123"
-                                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1F5EFF] focus:border-[#1F5EFF] transition-all pr-10"
+                                placeholder="请输入密码"
+                                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)] focus:border-[var(--sw-brand)] transition-all pr-10"
                                 aria-label="密码"
                                 disabled={lockoutSeconds > 0 || loading}
                               />
@@ -1059,18 +1153,32 @@ export const LoginPage: React.FC = () => {
                           </div>
 
                           <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-                            <button type="button" onClick={() => setFormError('重置密码请联系企业管理员发送重置链接')} className="hover:text-[#1F5EFF] transition-colors">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setResetOpen(true);
+                                setFormError('');
+                              }}
+                              className="hover:text-[var(--sw-brand)] transition-colors"
+                            >
                               忘记密码？
                             </button>
-                            <button type="button" onClick={() => setActiveTab('otp')} className="hover:text-[#1F5EFF] transition-colors">
-                              短信验证码登录
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRegistrationOpen(true);
+                                setFormError('');
+                              }}
+                              className="font-semibold text-[var(--sw-brand)] hover:underline"
+                            >
+                              新用户注册
                             </button>
                           </div>
 
                           <button
                             type="submit"
                             disabled={!acceptedTerms || lockoutSeconds > 0 || loading}
-                            className="w-full py-3 px-4 bg-[#1F5EFF] hover:bg-[#143A8F] text-white font-medium text-sm rounded-xl shadow-md shadow-blue-500/10 transition-all disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full py-3 px-4 bg-[var(--sw-brand)] hover:bg-[var(--sw-brand-dark)] text-white font-medium text-sm rounded-xl shadow-md shadow-blue-500/10 transition-all disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                           >
                             {loading ? (
                               <>
@@ -1102,7 +1210,7 @@ export const LoginPage: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={switchQrLoginChannel}
-                                    className={`font-semibold transition-colors ${qrLoginChannel === 'work_weixin' ? 'text-[#1F5EFF] hover:text-[#143A8F]' : 'text-emerald-600 hover:text-emerald-700'}`}
+                                    className={`font-semibold transition-colors ${qrLoginChannel === 'work_weixin' ? 'text-[var(--sw-brand)] hover:text-[var(--sw-brand-dark)]' : 'text-emerald-600 hover:text-emerald-700'}`}
                                     aria-label={qrLoginChannel === 'work_weixin' ? '切换为微信扫码' : '切换为企业微信扫码'}
                                   >
                                     {qrLoginChannel === 'work_weixin' ? '企业微信' : '微信'}
@@ -1123,7 +1231,7 @@ export const LoginPage: React.FC = () => {
 
                             {qrStatus === 'confirmed' && (
                               <div className="w-40 h-40 bg-blue-50 rounded-xl mx-auto flex flex-col items-center justify-center p-4 space-y-2" role="status" aria-live="polite">
-                                <CheckCircle2 className="w-10 h-10 text-[#1F5EFF]" />
+                                <CheckCircle2 className="w-10 h-10 text-[var(--sw-brand)]" />
                                 <p className="text-xs font-bold text-slate-900">手机确认成功</p>
                                 <p className="text-[10px] text-slate-500">正在保护您的登录身份</p>
                               </div>
@@ -1149,7 +1257,7 @@ export const LoginPage: React.FC = () => {
                           {/* 本地演示控制：真实环境将由扫码平台回调驱动 */}
                           <div className="pt-2">
                             {qrStatus === 'pending_scan' && (
-                              <button onClick={() => setQrStatus('scanned')} className="text-xs font-medium text-[#1F5EFF] hover:underline" aria-label="演示手机扫码">
+                              <button onClick={() => setQrStatus('scanned')} className="text-xs font-medium text-[var(--sw-brand)] hover:underline" aria-label="演示手机扫码">
                                 演示：手机已扫码
                               </button>
                             )}
@@ -1161,7 +1269,7 @@ export const LoginPage: React.FC = () => {
                             {qrStatus === 'confirmed' && (
                               <button
                                 onClick={continueFromQrConfirmation}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-[#1F5EFF] px-3 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#143A8F]"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--sw-brand)] px-3 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[var(--sw-brand-dark)]"
                                 aria-label="选择登录身份"
                               >
                                 选择登录身份
@@ -1184,7 +1292,7 @@ export const LoginPage: React.FC = () => {
                               value={ssoDomain}
                               onChange={(e) => setSsoDomain(e.target.value)}
                               placeholder="例如: tencent.hbbtzn.com 或 EMP-SSO-2026"
-                              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1F5EFF] focus:border-[#1F5EFF] transition-all font-mono"
+                              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)] focus:border-[var(--sw-brand)] transition-all font-mono"
                               aria-label="企业专属域名或邀请码"
                             />
                           </div>
@@ -1220,7 +1328,7 @@ export const LoginPage: React.FC = () => {
                     {/* 底部合规与协议勾选 */}
                     <div className="mt-auto pt-2 border-t border-slate-100">
                       <label className="flex items-start gap-2 cursor-pointer text-xs text-slate-500">
-                        <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} className="mt-0.5 w-4 h-4 text-[#1F5EFF] rounded border-slate-300 focus:ring-[#1F5EFF]" />
+                        <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} className="mt-0.5 w-4 h-4 text-[var(--sw-brand)] rounded border-slate-300 focus:ring-[var(--sw-brand)]" />
                         <span className="leading-tight">
                           我已阅读并同意智慧翼福利商城的{' '}
                           <button
@@ -1229,7 +1337,7 @@ export const LoginPage: React.FC = () => {
                               e.preventDefault();
                               setActiveModal('terms');
                             }}
-                            className="text-[#1F5EFF] hover:underline"
+                            className="text-[var(--sw-brand)] hover:underline"
                           >
                             《用户服务协议》
                           </button>{' '}
@@ -1240,7 +1348,7 @@ export const LoginPage: React.FC = () => {
                               e.preventDefault();
                               setActiveModal('privacy');
                             }}
-                            className="text-[#1F5EFF] hover:underline"
+                            className="text-[var(--sw-brand)] hover:underline"
                           >
                             《隐私保护政策》
                           </button>
@@ -1254,7 +1362,7 @@ export const LoginPage: React.FC = () => {
                 {stage === 2 && (
                   <div className="space-y-4">
                     <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 text-xs text-slate-600 flex items-start gap-2">
-                      <Info className="w-4 h-4 text-[#1F5EFF] shrink-0 mt-0.5" />
+                      <Info className="w-4 h-4 text-[var(--sw-brand)] shrink-0 mt-0.5" />
                       <p>该账号关联了多个企业的福利计划或管理身份。请选择您本次需要进入的商城专区或运营后台：</p>
                     </div>
 
@@ -1282,7 +1390,7 @@ export const LoginPage: React.FC = () => {
                     <div className="space-y-2">
                       <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
                         <span className="flex items-center gap-1">
-                          <KeyRound className="w-3.5 h-3.5 text-[#1F5EFF]" />
+                          <KeyRound className="w-3.5 h-3.5 text-[var(--sw-brand)]" />
                           TOTP 6位动态口令二次验证
                         </span>
                         <span className="text-[10px] text-slate-400">谷歌/微软身份验证器</span>
@@ -1295,17 +1403,21 @@ export const LoginPage: React.FC = () => {
                           setTotpCode(e.target.value);
                           setFieldErrors({});
                         }}
-                        placeholder="6位动态数字（测试填: 654321）"
-                        className="w-full px-3.5 py-3 text-center text-lg font-mono tracking-[0.3em] rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1F5EFF] focus:border-[#1F5EFF] transition-all"
+                        placeholder="6位动态数字（测试填: 123456）"
+                        className="w-full px-3.5 py-3 text-center text-lg font-mono tracking-[0.3em] rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)] focus:border-[var(--sw-brand)] transition-all"
                         aria-label="TOTP 6位动态口令"
                       />
                       {fieldErrors.totpCode && <p className="text-[11px] text-rose-500">{fieldErrors.totpCode}</p>}
                       <p className="text-[11px] text-slate-400">
-                        💡 测试说明：填任意6位数字（如 <code className="text-[#1F5EFF]">654321</code>）通过；填 <code className="text-rose-500">000000</code> 模拟验签失败。
+                        💡 测试说明：动态口令固定为 <code className="text-[var(--sw-brand)]">123456</code>，其他数字均会被拒绝。
                       </p>
                     </div>
 
-                    <button type="submit" disabled={loading} className="w-full py-3 px-4 bg-[#143A8F] hover:bg-[#0D2666] text-white font-medium text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-3 px-4 bg-[var(--sw-brand-dark)] hover:bg-[#0D2666] text-white font-medium text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                    >
                       {loading ? (
                         <>
                           <RefreshCw className="w-4 h-4 animate-spin" />
@@ -1325,6 +1437,141 @@ export const LoginPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {registrationOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/65 p-4 backdrop-blur-sm">
+          <form onSubmit={handleRegistrationSubmit} className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl sm:p-8">
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--sw-brand)]">Member Registration</p>
+                <h3 className="mt-1 text-2xl font-bold text-slate-950">注册员工会员</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-500">先用账号密码建立普通员工会员。手机号、微信和企业微信以后可绑定到同一个账号；管理员与 Owner 不开放自助注册。</p>
+              </div>
+              <button type="button" onClick={() => setRegistrationOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="关闭注册">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="space-y-1.5 text-xs font-medium text-slate-700">
+                姓名
+                <input
+                  value={registration.displayName}
+                  onChange={(e) => updateRegistration('displayName', e.target.value)}
+                  maxLength={60}
+                  required
+                  placeholder="请输入真实姓名"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
+                />
+              </label>
+              <label className="space-y-1.5 text-xs font-medium text-slate-700">
+                企业邀请码
+                <input
+                  value={registration.inviteCode}
+                  onChange={(e) => updateRegistration('inviteCode', e.target.value.toUpperCase())}
+                  maxLength={80}
+                  required
+                  placeholder="由企业福利管理员提供"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-mono uppercase outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
+                />
+              </label>
+              <label className="space-y-1.5 text-xs font-medium text-slate-700 sm:col-span-2">
+                登录账号
+                <input
+                  value={registration.username}
+                  onChange={(e) => updateRegistration('username', e.target.value.toLowerCase())}
+                  minLength={4}
+                  maxLength={32}
+                  pattern="[A-Za-z][A-Za-z0-9._-]{3,31}"
+                  required
+                  autoComplete="username"
+                  placeholder="4–32位，以字母开头，可含数字、点、横线和下划线"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
+                />
+              </label>
+              <label className="space-y-1.5 text-xs font-medium text-slate-700">
+                设置密码
+                <input
+                  type="password"
+                  value={registration.password}
+                  onChange={(e) => updateRegistration('password', e.target.value)}
+                  minLength={10}
+                  maxLength={128}
+                  required
+                  placeholder="至少10位，含字母和数字"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
+                />
+              </label>
+              <label className="space-y-1.5 text-xs font-medium text-slate-700">
+                确认密码
+                <input
+                  type="password"
+                  value={registration.confirmPassword}
+                  onChange={(e) => updateRegistration('confirmPassword', e.target.value)}
+                  minLength={10}
+                  maxLength={128}
+                  required
+                  placeholder="再次输入密码"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--sw-brand)]"
+                />
+              </label>
+            </div>
+
+            {registrationNotice && <p className="mt-4 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-700">{registrationNotice}</p>}
+            {formError && <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{formError}</p>}
+            <label className="mt-5 flex cursor-pointer items-start gap-2 text-xs leading-5 text-slate-500">
+              <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 accent-[var(--sw-brand)]" />
+              <span>我已阅读并同意《用户服务协议》和《隐私保护政策》，并确认使用本人账号注册。</span>
+            </label>
+            <button
+              type="submit"
+              disabled={loading || !acceptedTerms}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--sw-brand)] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/15 disabled:bg-slate-300"
+            >
+              {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4" />}
+              创建普通员工会员账号
+            </button>
+            <p className="mt-3 text-center text-[11px] leading-5 text-slate-400">企业管理员不能查看你的密码。手机号与微信绑定入口已预留；未绑定手机前无法自助找回密码。</p>
+          </form>
+        </div>
+      )}
+
+      {resetOpen && (
+        <div className="fixed inset-0 z-[75] flex items-center justify-center bg-slate-950/65 p-4 backdrop-blur-sm">
+          <form onSubmit={submitPasswordReset} className="w-full max-w-md space-y-4 rounded-3xl border bg-white p-7 shadow-2xl">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[.18em] text-[var(--sw-brand)]">Password Recovery</p>
+                <h3 className="mt-1 text-xl font-bold text-slate-950">找回密码</h3>
+                <p className="mt-1 text-xs text-slate-500">验证绑定手机号后重置密码，所有旧设备会立即下线。</p>
+              </div>
+              <button type="button" onClick={() => setResetOpen(false)} aria-label="关闭找回密码" className="rounded-xl p-2 text-slate-400 hover:bg-slate-100">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <input value={resetForm.mobile} onChange={(e) => setResetForm({ ...resetForm, mobile: e.target.value })} placeholder="绑定手机号" className="w-full rounded-xl border px-3.5 py-2.5 text-sm" />
+            <div className="flex gap-2">
+              <input value={resetForm.code} onChange={(e) => setResetForm({ ...resetForm, code: e.target.value })} placeholder="6位验证码" className="min-w-0 flex-1 rounded-xl border px-3.5 py-2.5 text-sm" />
+              <button type="button" onClick={sendResetCode} className="rounded-xl border border-blue-200 bg-blue-50 px-4 text-xs font-bold text-[var(--sw-brand)]">
+                获取验证码
+              </button>
+            </div>
+            <input
+              type="password"
+              value={resetForm.password}
+              onChange={(e) => setResetForm({ ...resetForm, password: e.target.value })}
+              placeholder="新密码（至少10位，含字母和数字）"
+              className="w-full rounded-xl border px-3.5 py-2.5 text-sm"
+            />
+            <input type="password" value={resetForm.confirm} onChange={(e) => setResetForm({ ...resetForm, confirm: e.target.value })} placeholder="确认新密码" className="w-full rounded-xl border px-3.5 py-2.5 text-sm" />
+            {registrationNotice && <p className="rounded-xl bg-blue-50 px-3 py-2 text-xs text-blue-700">{registrationNotice}</p>}
+            {formError && <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">{formError}</p>}
+            <button disabled={loading || !resetForm.challengeId} className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--sw-brand)] px-4 py-3 text-sm font-bold text-white disabled:bg-slate-300">
+              {loading && <RefreshCw className="h-4 w-4 animate-spin" />}重置密码并下线全部设备
+            </button>
+          </form>
+        </div>
+      )}
 
       {/* 首次登录/管理员重置密码强制修改模态框 */}
       {showForcePasswordModal && (
@@ -1348,7 +1595,7 @@ export const LoginPage: React.FC = () => {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="请输入符合复杂度的安全新密码"
-                  className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#1F5EFF]"
+                  className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-[var(--sw-brand)]"
                 />
               </div>
             </div>
@@ -1358,17 +1605,28 @@ export const LoginPage: React.FC = () => {
                 取消
               </button>
               <button
-                onClick={() => {
-                  if (newPassword.length < 8) {
-                    alert('新密码不能少于8位');
+                onClick={async () => {
+                  if (newPassword.length < 10 || !/[A-Za-z]/.test(newPassword) || !/\d/.test(newPassword)) {
+                    setFormError('新密码至少10位，并同时包含字母和数字');
                     return;
                   }
-                  setShowForcePasswordModal(false);
-                  if (preAuthContext) {
-                    void processPreAuthContext(preAuthContext);
+                  setLoading(true);
+                  setFormError('');
+                  try {
+                    await changeInitialPassword(identifier, password, newPassword);
+                    setShowForcePasswordModal(false);
+                    setNewPassword('');
+                    setPassword('');
+                    setPreAuthContext(null);
+                    setFormError('初始密码已修改，请使用新密码重新登录');
+                  } catch (cause) {
+                    setFormError(cause instanceof Error ? cause.message : '初始密码修改失败');
+                  } finally {
+                    setLoading(false);
                   }
                 }}
-                className="flex-1 py-2 text-xs font-medium text-white bg-[#1F5EFF] rounded-xl"
+                disabled={loading}
+                className="flex-1 py-2 text-xs font-medium text-white bg-[var(--sw-brand)] rounded-xl disabled:bg-slate-300"
               >
                 确认并提交
               </button>
@@ -1383,7 +1641,7 @@ export const LoginPage: React.FC = () => {
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center gap-2 text-slate-900 font-bold text-base">
-                <FileText className="w-5 h-5 text-[#1F5EFF]" />
+                <FileText className="w-5 h-5 text-[var(--sw-brand)]" />
                 {activeModal === 'terms' ? '智慧翼企业福利商城 - 用户服务协议' : '智慧翼企业福利商城 - 隐私保护政策'}
               </div>
               <button onClick={() => setActiveModal(null)} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
@@ -1414,7 +1672,7 @@ export const LoginPage: React.FC = () => {
                   setAcceptedTerms(true);
                   setActiveModal(null);
                 }}
-                className="px-5 py-2 text-xs font-semibold text-white bg-[#1F5EFF] rounded-xl hover:bg-[#143A8F]"
+                className="px-5 py-2 text-xs font-semibold text-white bg-[var(--sw-brand)] rounded-xl hover:bg-[var(--sw-brand-dark)]"
               >
                 我已阅读并同意
               </button>

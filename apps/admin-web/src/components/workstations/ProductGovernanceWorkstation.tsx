@@ -259,26 +259,26 @@ export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span>商品生命周期治理管道 (Product Lifecycle State Machine)</span>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-[#1769ff] border border-blue-200">当前授权目录：{products.length} 个</span>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-[var(--sw-brand)] border border-blue-200">当前授权目录：{products.length} 个</span>
             {isLiveCatalog && <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">生产目录实时读取</span>}
           </h2>
 
           <div className="flex items-center gap-2 text-xs">
             <button
               onClick={() => setActiveTab('QUEUE')}
-              className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${activeTab === 'QUEUE' ? 'bg-[#1769ff] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${activeTab === 'QUEUE' ? 'bg-[var(--sw-brand)] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
             >
               商品治理队列
             </button>
             <button
               onClick={() => setActiveTab('PUBLISH_CHECK')}
-              className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${activeTab === 'PUBLISH_CHECK' ? 'bg-[#1769ff] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${activeTab === 'PUBLISH_CHECK' ? 'bg-[var(--sw-brand)] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
             >
               发布校验中心
             </button>
             <button
               onClick={() => setActiveTab('AUDIT')}
-              className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${activeTab === 'AUDIT' ? 'bg-[#1769ff] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${activeTab === 'AUDIT' ? 'bg-[var(--sw-brand)] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
             >
               变更审计流水
             </button>
@@ -296,7 +296,7 @@ export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({
                 key={st}
                 onClick={() => setSelectedStatus(st)}
                 className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden ${
-                  isSelected ? 'bg-[#1769ff] text-white border-[#1769ff] shadow-md ring-2 ring-blue-300' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                  isSelected ? 'bg-[var(--sw-brand)] text-white border-[var(--sw-brand)] shadow-md ring-2 ring-blue-300' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                 }`}
               >
                 <div className="text-[11px] font-semibold opacity-90">{st}</div>
@@ -352,7 +352,7 @@ export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({
               <thead>
                 <tr className="bg-slate-100/70 text-slate-600 font-semibold border-b border-slate-200">
                   <th className="p-3 w-10 text-center">
-                    <input type="checkbox" checked={filteredProducts.length > 0 && selectedProductIds.length === filteredProducts.length} onChange={toggleSelectAll} className="rounded text-[#1769ff]" />
+                    <input type="checkbox" checked={filteredProducts.length > 0 && selectedProductIds.length === filteredProducts.length} onChange={toggleSelectAll} className="rounded text-[var(--sw-brand)]" />
                   </th>
                   <th className="p-3">SPU编码 / 商品名称</th>
                   <th className="p-3">品牌 & 供应商</th>
@@ -372,7 +372,7 @@ export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({
                   return (
                     <tr key={prd.id} className={`hover:bg-blue-50/40 transition-colors ${isDrawerSelected ? 'bg-blue-50/80 font-medium' : ''}`}>
                       <td className="p-3 text-center">
-                        <input type="checkbox" checked={isChecked} onChange={() => toggleSelectOne(prd.id)} className="rounded text-[#1769ff]" />
+                        <input type="checkbox" checked={isChecked} onChange={() => toggleSelectOne(prd.id)} className="rounded text-[var(--sw-brand)]" />
                       </td>
 
                       {/* Title & Image */}
@@ -551,7 +551,7 @@ export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({
                         onClick={() => handlePublishProduct(prd)}
                         disabled={!allPassed}
                         className={`px-4 py-1.5 rounded-lg text-xs font-bold shadow-md flex items-center gap-1 transition-all ${
-                          allPassed ? 'bg-[#1769ff] hover:bg-blue-700 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                          allPassed ? 'bg-[var(--sw-brand)] hover:bg-blue-700 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60'
                         }`}
                       >
                         <Check className="w-4 h-4" />
@@ -569,7 +569,7 @@ export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({
       {activeTab === 'AUDIT' && (
         <div className="bg-white rounded-[14px] p-6 border border-slate-200/90 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <History className="w-4 h-4 text-[#1769ff]" />
+            <History className="w-4 h-4 text-[var(--sw-brand)]" />
             <span>商品字段变更审计时间线 (Product Field Diffs Timeline)</span>
           </h3>
 

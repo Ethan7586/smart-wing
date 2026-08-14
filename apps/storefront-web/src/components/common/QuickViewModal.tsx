@@ -62,7 +62,7 @@ export const QuickViewModal: React.FC = () => {
           <div className="flex flex-col justify-between space-y-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="bg-[#1F5EFF] text-white text-[11px] font-bold px-2 py-0.5 rounded">{product.supplierName}</span>
+                <span className="bg-[var(--sw-brand)] text-white text-[11px] font-bold px-2 py-0.5 rounded">{product.supplierName}</span>
                 <span className="text-xs text-gray-500 font-medium">品牌：{product.brand}</span>
               </div>
 
@@ -70,7 +70,7 @@ export const QuickViewModal: React.FC = () => {
               <p className="text-xs text-gray-500 mt-1">{product.subtitle}</p>
 
               {/* 价格框 */}
-              <div className="bg-[#EAF1FF]/60 border border-blue-100 rounded-md p-3 mt-3">
+              <div className="bg-[var(--sw-brand-light)]/60 border border-blue-100 rounded-md p-3 mt-3">
                 <div className="flex items-baseline gap-2">
                   <span className="text-xs text-[#FF7A00] font-bold">企业福利专享价</span>
                   <span className="text-2xl font-black text-[#FF7A00]">¥{product.priceWelfare.toFixed(2)}</span>
@@ -80,7 +80,7 @@ export const QuickViewModal: React.FC = () => {
                 <div className="flex items-center gap-2 text-xs text-blue-800 mt-2 font-medium">
                   {product.allowedAccounts.includes('welfare') && (
                     <span className="flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-blue-200">
-                      <CreditCard className="w-3.5 h-3.5 text-[#1F5EFF]" /> Welfare Balance Deductible
+                      <CreditCard className="w-3.5 h-3.5 text-[var(--sw-brand)]" /> Welfare Balance Deductible
                     </span>
                   )}
                   {product.allowedAccounts.includes('meal') && (
@@ -118,7 +118,7 @@ export const QuickViewModal: React.FC = () => {
                             <button
                               key={opt}
                               onClick={() => handleSpecSelect(spec.name, opt)}
-                              className={`px-3 py-1 text-xs rounded border transition-colors cursor-pointer ${isSelected ? 'border-[#1F5EFF] bg-blue-50 text-[#1F5EFF] font-bold' : 'border-gray-200 text-gray-700 hover:border-gray-300'}`}
+                              className={`px-3 py-1 text-xs rounded border transition-colors cursor-pointer ${isSelected ? 'border-[var(--sw-brand)] bg-blue-50 text-[var(--sw-brand)] font-bold' : 'border-gray-200 text-gray-700 hover:border-gray-300'}`}
                             >
                               {opt}
                             </button>
@@ -155,7 +155,7 @@ export const QuickViewModal: React.FC = () => {
                 onClick={handleAddToCart}
                 disabled={!inventory.canPurchase}
                 className={`flex-1 border border-blue-200 font-bold py-2.5 rounded text-xs flex items-center justify-center gap-1.5 transition-colors ${
-                  inventory.canPurchase ? 'bg-blue-50 hover:bg-blue-100 text-[#1F5EFF] cursor-pointer' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  inventory.canPurchase ? 'bg-blue-50 hover:bg-blue-100 text-[var(--sw-brand)] cursor-pointer' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 }`}
               >
                 <ShoppingCart className="w-4 h-4" />
@@ -164,7 +164,7 @@ export const QuickViewModal: React.FC = () => {
               <button
                 onClick={handleBuyNow}
                 disabled={!inventory.canPurchase}
-                className={`flex-1 font-bold py-2.5 rounded text-xs transition-colors ${inventory.canPurchase ? 'bg-[#1F5EFF] hover:bg-blue-700 text-white cursor-pointer' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
+                className={`flex-1 font-bold py-2.5 rounded text-xs transition-colors ${inventory.canPurchase ? 'bg-[var(--sw-brand)] hover:bg-blue-700 text-white cursor-pointer' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
               >
                 {inventory.canPurchase ? '立即兑换/购买' : inventory.actionButtonStateText}
               </button>

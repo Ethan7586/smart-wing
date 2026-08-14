@@ -27,14 +27,14 @@ export const TabletCategoryPage: React.FC = () => {
         <div className="space-y-3">
           <div className="text-xs font-black text-gray-400 uppercase tracking-wider px-2 flex items-center justify-between">
             <span>企采一级分类</span>
-            <span className="text-[10px] bg-blue-50 text-[#1F5EFF] font-bold px-1.5 py-0.2 rounded">Master</span>
+            <span className="text-[10px] bg-blue-50 text-[var(--sw-brand)] font-bold px-1.5 py-0.2 rounded">Master</span>
           </div>
 
           <div className="space-y-1">
             <button
               onClick={() => setSelectedCatId('all')}
               className={`w-full text-left px-3 py-3 rounded-xl text-xs font-bold flex items-center justify-between transition-colors cursor-pointer min-h-[44px] ${
-                selectedCatId === 'all' ? 'bg-[#1F5EFF] text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100'
+                selectedCatId === 'all' ? 'bg-[var(--sw-brand)] text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               <span>🔥 全部精选商品</span>
@@ -49,7 +49,7 @@ export const TabletCategoryPage: React.FC = () => {
                   key={cat.id}
                   onClick={() => setSelectedCatId(cat.id)}
                   className={`w-full text-left px-3 py-3 rounded-xl text-xs font-bold flex items-center justify-between transition-colors cursor-pointer min-h-[44px] ${
-                    isActive ? 'bg-[#1F5EFF] text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100'
+                    isActive ? 'bg-[var(--sw-brand)] text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -65,8 +65,8 @@ export const TabletCategoryPage: React.FC = () => {
 
         {/* B2B Filter Guarantee Card */}
         <div className="bg-blue-50/80 rounded-2xl p-3 border border-blue-100 space-y-2 text-[11px] text-blue-950">
-          <div className="font-black text-xs text-[#143A8F] flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-[#1F5EFF]" />
+          <div className="font-black text-xs text-[var(--sw-brand-dark)] flex items-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 text-[var(--sw-brand)]" />
             <span>企采分类筛选</span>
           </div>
           <p className="text-[10px] text-gray-600 leading-snug">支持按企采发票类型、品牌特惠和兑换门槛精确筛选。</p>
@@ -90,7 +90,7 @@ export const TabletCategoryPage: React.FC = () => {
               onClick={() => triggerPendingFeature('平板高阶多维筛选', '调起价格区间、发票类型与库存位置的自定义筛选项。')}
               className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer min-h-[40px]"
             >
-              <SlidersHorizontal className="w-4 h-4 text-[#1F5EFF]" />
+              <SlidersHorizontal className="w-4 h-4 text-[var(--sw-brand)]" />
               <span>多维筛选</span>
             </button>
           </div>
@@ -100,19 +100,19 @@ export const TabletCategoryPage: React.FC = () => {
             <span className="text-gray-400 font-bold mr-1">履约类型:</span>
             <button
               onClick={() => setSelectedType('all')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-colors cursor-pointer ${selectedType === 'all' ? 'bg-blue-50 text-[#1F5EFF] border border-[#1F5EFF]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-colors cursor-pointer ${selectedType === 'all' ? 'bg-blue-50 text-[var(--sw-brand)] border border-[var(--sw-brand)]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               不限类型
             </button>
             <button
               onClick={() => setSelectedType('physical')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-colors cursor-pointer ${selectedType === 'physical' ? 'bg-blue-50 text-[#1F5EFF] border border-[#1F5EFF]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-colors cursor-pointer ${selectedType === 'physical' ? 'bg-blue-50 text-[var(--sw-brand)] border border-[var(--sw-brand)]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               实物直邮
             </button>
             <button
               onClick={() => setSelectedType('virtual_coupon')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-colors cursor-pointer ${selectedType === 'virtual_coupon' ? 'bg-blue-50 text-[#1F5EFF] border border-[#1F5EFF]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-colors cursor-pointer ${selectedType === 'virtual_coupon' ? 'bg-blue-50 text-[var(--sw-brand)] border border-[var(--sw-brand)]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               虚拟兑换券
             </button>
@@ -148,7 +148,7 @@ export const TabletCategoryPage: React.FC = () => {
                     e.stopPropagation();
                     addToCart(p, 1);
                   }}
-                  className="w-full bg-blue-50 hover:bg-[#1F5EFF] hover:text-white text-[#1F5EFF] font-bold text-xs py-2 rounded-xl transition-colors flex items-center justify-center gap-1 cursor-pointer min-h-[40px]"
+                  className="w-full bg-blue-50 hover:bg-[var(--sw-brand)] hover:text-white text-[var(--sw-brand)] font-bold text-xs py-2 rounded-xl transition-colors flex items-center justify-center gap-1 cursor-pointer min-h-[40px]"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>兑换加购</span>
@@ -170,7 +170,7 @@ export const TabletCategoryPage: React.FC = () => {
           <div className="bg-gray-50 rounded-2xl p-3 space-y-2 text-xs text-gray-700">
             <div className="flex justify-between">
               <span className="text-gray-400">当前分类:</span>
-              <span className="font-bold text-[#1F5EFF]">{selectedCat?.name}</span>
+              <span className="font-bold text-[var(--sw-brand)]">{selectedCat?.name}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">履约方式:</span>
@@ -187,7 +187,7 @@ export const TabletCategoryPage: React.FC = () => {
         <div className="bg-gray-50 rounded-2xl p-3 border border-gray-200 space-y-3">
           <div className="flex items-center justify-between border-b border-gray-200 pb-2">
             <span className="text-xs font-bold text-gray-900 flex items-center gap-1">
-              <ShoppingCart className="w-4 h-4 text-[#1F5EFF]" />
+              <ShoppingCart className="w-4 h-4 text-[var(--sw-brand)]" />
               <span>已选福利</span>
             </span>
             <span className="text-xs font-mono font-bold text-[#E5484D]">¥{cartTotal.toFixed(2)}</span>
@@ -197,7 +197,7 @@ export const TabletCategoryPage: React.FC = () => {
             onClick={() => setTabletPage('cart')}
             disabled={cartCount === 0}
             className={`w-full font-bold text-xs py-2.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-1 cursor-pointer min-h-[44px] ${
-              cartCount > 0 ? 'bg-[#1F5EFF] hover:bg-blue-600 text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              cartCount > 0 ? 'bg-[var(--sw-brand)] hover:bg-blue-600 text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
             <span>去购物车结算 ({cartCount})</span>

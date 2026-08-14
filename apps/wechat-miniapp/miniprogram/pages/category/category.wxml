@@ -1,0 +1,151 @@
+<!--
+  分类 — 构图对照
+  docs/mobile/design-previews/smart-wing-unified-mall-01-browse-v2-cart-restored.png 第 2 屏。
+  左侧一级分类栏与右侧宫格各自独立滚动；页面本身不横向滚动。
+  顶部距离全部来自 wx.getWindowInfo / getMenuButtonBoundingClientRect。
+-->
+<view class="sw-page category {{sizeClass}}" style="{{sizeStyle}}">
+
+  <view class="nav" style="padding-top: {{nav.statusBarHeight}}px;">
+    <view class="nav-row" style="height: {{nav.navContentHeight}}px; padding-right: {{nav.rightInset}}px;">
+      <text class="nav-title">商品分类</text>
+      <view class="nav-actions">
+        <view class="nav-action sw-tap" data-label="购物车" bindtap="onPending">
+          <view class="i i-shopping-cart-ink"></view>
+          <text wx:if="{{cartCount > 0}}" class="cart-badge">{{cartCount}}</text>
+        </view>
+        <view class="nav-action sw-tap" data-label="通知" bindtap="onPending">
+          <view class="i i-bell-ink"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view class="nav-spacer" style="height: {{nav.navTotalHeight}}px;"></view>
+
+  <view wx:if="{{loadError}}" class="sw-inset state-block">
+    <view class="i i-lg i-wifi-off-muted"></view>
+    <text class="sw-small state-text">{{loadError}}</text>
+    <view class="retry" bindtap="onRetry">
+      <view class="i i-sm i-refresh-cw-brand"></view>
+      <text class="retry-text">重试</text>
+    </view>
+  </view>
+
+  <view wx:elif="{{loading}}" class="sw-inset skeleton-wrap">
+    <view class="sw-skeleton sk-search"></view>
+    <view class="sw-skeleton sk-filter"></view>
+    <view class="sw-skeleton sk-body"></view>
+  </view>
+
+  <block wx:else>
+    <!-- 搜索 -->
+    <view class="sw-inset search-wrap">
+      <view class="search" data-label="搜索" bindtap="onPending">
+        <view class="i i-sm i-search-muted"></view>
+        <text class="search-placeholder">搜索商品或品牌</text>
+      </view>
+    </view>
+
+    <!-- 城市与资格标签 -->
+    <view class="sw-inset filter-row">
+      <view class="chip sw-tap" data-label="切换城市" bindtap="onPending">
+        <view class="i i-sm i-map-pin-muted"></view>
+        <text class="chip-text">{{filters.city}}</text>
+        <view class="i i-sm i-chevron-down-secondary"></view>
+      </view>
+      <view class="chip chip-ok sw-tap" data-label="资格筛选" bindtap="onPending">
+        <view class="i i-sm i-shield-check-success"></view>
+        <text class="chip-text chip-text-ok">{{filters.qualification}}</text>
+        <view class="i i-sm i-chevron-down-secondary"></view>
+      </view>
+    </view>
+
+    <!-- 分类结构同步载入；会员商品在后台异步增强，不让网络空白页面。 -->
+    <view class="sw-inset sync-row sync-{{syncState}}">
+      <view wx:if="{{syncState === 'live'}}" class="i i-sm i-shield-check-success"></view>
+      <view wx:elif="{{syncState === 'offline'}}" class="i i-sm i-wifi-off-muted"></view>
+      <view wx:elif="{{syncState === 'empty'}}" class="i i-sm i-inbox-muted"></view>
+      <view wx:elif="{{syncState === 'auth' || syncState === 'error' || syncState === 'timeout'}}" class="i i-sm i-triangle-alert-danger"></view>
+      <view wx:else class="i i-sm i-refresh-cw-brand"></view>
+      <text class="sync-text">{{syncMessage}}</text>
+      <view wx:if="{{syncRetryable}}" class="sync-retry sw-tap" bindtap="onRetrySync">
+        <text>重试</text>
+      </view>
+    </view>
+
+    <!-- 首次使用只绑定现有会员；否则显示双栏分类。 -->
+    <view wx:if="{{bindingRequired}}" class="sw-inset binding-wrap">
+      <view class="binding-card sw-card">
+        <view class="binding-head">
+          <view class="i i-lg i-user-brand"></view>
+          <view class="binding-copy">
+            <text class="binding-title">绑定现有智慧翼会员</text>
+            <text class="binding-sub">绑定后自动读取与主商城一致的商品和购买资格</text>
+          </view>
+        </view>
+        <text class="binding-label">账号或手机号</text>
+        <input
+          class="binding-input"
+          value="{{bindingUsername}}"
+          maxlength="80"
+          placeholder="请输入现有智慧翼账号"
+          bindinput="onBindingUsername"
+        />
+        <text class="binding-label binding-label-next">密码</text>
+        <input
+          class="binding-input"
+          value="{{bindingPassword}}"
+          password
+          maxlength="128"
+          placeholder="请输入密码"
+          confirm-type="done"
+          bindinput="onBindingPassword"
+          bindconfirm="onBindMember"
+        />
+        <text wx:if="{{bindingError}}" class="binding-error">{{bindingError}}</text>
+        <view class="binding-submit sw-tap {{bindingBusy ? 'is-disabled' : ''}}" bindtap="onBindMember">
+          <text>{{bindingBusy ? '正在绑定…' : '绑定并同步商品'}}</text>
+        </view>
+        <text class="binding-note">密码只用于本次服务端身份确认，小程序不会保存。</text>
+      </view>
+    </view>
+
+    <view wx:else class="split">
+      <scroll-view class="rail" scroll-y enhanced show-scrollbar="{{false}}">
+        <view
+          wx:for="{{rail}}"
+          wx:key="key"
+          class="rail-item {{railKey === item.key ? 'is-on' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="onSelectRail"
+        >
+          <view wx:if="{{railKey === item.key}}" class="rail-marker"></view>
+          <text class="rail-text">{{item.label}}</text>
+        </view>
+      </scroll-view>
+
+      <scroll-view class="grid-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+        <view wx:if="{{tiles.length}}" class="grid">
+          <view
+            wx:for="{{tiles}}"
+            wx:key="key"
+            class="tile sw-tap"
+            data-label="{{item.label}}"
+            bindtap="onPending"
+          >
+            <image wx:if="{{item.image}}" class="tile-image" src="{{item.image}}" mode="aspectFill" data-index="{{index}}" binderror="onImageError" />
+            <!-- 无商品封面时使用正式中性槽位，不伪造图片，也不显示破图。 -->
+            <view wx:else class="tile-slot">
+              <view class="i i-sm i-image-off-muted"></view>
+            </view>
+            <text class="tile-label">{{item.label}}</text>
+          </view>
+        </view>
+        <view wx:else class="grid-empty">
+          <view class="i i-lg i-inbox-muted"></view>
+          <text class="grid-empty-text">当前分类暂无可展示子类目</text>
+        </view>
+      </scroll-view>
+    </view>
+  </block>
+</view>

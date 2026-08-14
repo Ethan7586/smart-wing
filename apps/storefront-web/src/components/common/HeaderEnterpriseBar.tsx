@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { Building2, ChevronDown, Headphones, Heart, ShieldCheck, Sparkles, Ticket, User, Wallet } from 'lucide-react';
+import { Building2, ChevronDown, Headphones, LogOut, User } from 'lucide-react';
 import { useMall } from '../../context/MallContext';
 
 export const HeaderEnterpriseBar: React.FC = () => {
-  const { user, currentMall, malls, switchMall, navigateTo, sessionStatus } = useMall();
+  const { user, currentMall, malls, switchMall, navigateTo, sessionStatus, logout } = useMall();
   const [showMallDropdown, setShowMallDropdown] = useState(false);
   return (
     <>
       {/* 1. 顶部公共服务栏 */}
-      <div className="hidden md:block bg-[#143A8F] text-white text-xs py-1.5 px-4">
+      <div className="hidden md:block bg-[var(--sw-brand-dark)] text-white text-xs py-1.5 px-4">
         <div className="max-w-[1280px] mx-auto flex items-center justify-between">
           {/* 左侧：当前所属企业与商城切换 */}
           <div className="flex items-center gap-4">
@@ -37,13 +37,13 @@ export const HeaderEnterpriseBar: React.FC = () => {
                         switchMall(m.id);
                         setShowMallDropdown(false);
                       }}
-                      className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50 flex items-center justify-between transition-colors ${m.id === currentMall.id ? 'bg-blue-50/80 text-[#1F5EFF] font-semibold' : 'text-gray-700'}`}
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50 flex items-center justify-between transition-colors ${m.id === currentMall.id ? 'bg-blue-50/80 text-[var(--sw-brand)] font-semibold' : 'text-gray-700'}`}
                     >
                       <div>
                         <div className="font-medium">{m.mallName}</div>
                         <div className="text-[11px] text-gray-400">{m.enterpriseName}</div>
                       </div>
-                      {m.id === currentMall.id && <span className="text-[10px] bg-[#1F5EFF] text-white px-1.5 py-0.5 rounded">当前</span>}
+                      {m.id === currentMall.id && <span className="text-[10px] bg-[var(--sw-brand)] text-white px-1.5 py-0.5 rounded">当前</span>}
                     </button>
                   ))}
                 </div>
@@ -80,9 +80,14 @@ export const HeaderEnterpriseBar: React.FC = () => {
             </button>
 
             {sessionStatus === 'authenticated' && (
-              <button onClick={() => navigateTo('mvp-console')} className="hover:text-white transition-colors cursor-pointer flex items-center gap-1 font-bold">
-                MVP验收台
-              </button>
+              <>
+                <button onClick={() => navigateTo('mvp-console')} className="hover:text-white transition-colors cursor-pointer flex items-center gap-1 font-bold">
+                  MVP验收台
+                </button>
+                <button onClick={() => void logout()} className="rounded border border-white/25 px-2 py-0.5 text-white hover:bg-white/15 transition-colors cursor-pointer flex items-center gap-1 font-bold">
+                  <LogOut className="w-3.5 h-3.5" /> 退出
+                </button>
+              </>
             )}
 
             <div className="h-3 w-[1px] bg-blue-400/40" />

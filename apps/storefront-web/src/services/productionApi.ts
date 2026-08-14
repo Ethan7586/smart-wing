@@ -3,9 +3,9 @@
  *
  * 所有生产业务数据均通过同源服务端 API 访问，浏览器不接触数据库密钥。
  */
-import type { ApiAccount, ApiAccountLedger, ApiActor, ApiAfterSale, ApiBootstrap, ApiCartItem, ApiDeliveryAddress, ApiHomeSnapshot, ApiOrder, ApiProduct, CreateOrderRequest, LoginRequest } from './productionApi.types';
+import type { ApiAccount, ApiAccountLedger, ApiActor, ApiAfterSale, ApiBootstrap, ApiCartItem, ApiDeliveryAddress, ApiHomeSnapshot, ApiOrder, ApiProduct, ApiSecurityCenter, CreateOrderRequest, LoginRequest } from './productionApi.types';
 
-export type { ApiAccount, ApiAccountLedger, ApiActor, ApiAfterSale, ApiBootstrap, ApiCartItem, ApiDeliveryAddress, ApiHomeSnapshot, ApiOrder, ApiProduct, CreateOrderRequest, LoginRequest } from './productionApi.types';
+export type { ApiAccount, ApiAccountLedger, ApiActor, ApiAfterSale, ApiBootstrap, ApiCartItem, ApiDeliveryAddress, ApiHomeSnapshot, ApiOrder, ApiProduct, ApiSecurityCenter, CreateOrderRequest, LoginRequest } from './productionApi.types';
 
 interface ErrorEnvelope {
   error?: {
@@ -78,6 +78,24 @@ export const productionApi = {
   async logout(): Promise<{ authenticated: false }> {
     return apiFetch('/api/v1/auth/logout', { method: 'POST' });
   },
+  async getSecurityCenter(): Promise<ApiSecurityCenter> {
+    return apiFetch('/api/v1/auth/security-center');
+  },
+  async changePassword(input: { currentPassword: string; newPassword: string }): Promise<{ changed: true }> {
+    return apiFetch('/api/v1/auth/password/change', { method: 'POST', body: JSON.stringify(input) });
+  },
+  async requestSecurityOtp(input: { mobile: string; purpose: 'phone_change' | 'password_reset' }): Promise<{ challengeId: string; debugCode?: string }> {
+    return apiFetch('/api/v1/auth/security/otp', { method: 'POST', body: JSON.stringify(input) });
+  },
+  async changePhone(input: { newMobile: string; challengeId: string; code: string; currentPassword: string }): Promise<{ changed: true }> {
+    return apiFetch('/api/v1/auth/phone/change', { method: 'POST', body: JSON.stringify(input) });
+  },
+  async revokeSession(sessionId: string): Promise<{ revoked: true; currentSession: boolean }> {
+    return apiFetch(`/api/v1/auth/sessions/${encodeURIComponent(sessionId)}`, { method: 'DELETE' });
+  },
+  async revokeOtherSessions(): Promise<{ revokedCount: number }> {
+    return apiFetch('/api/v1/auth/sessions/revoke-others', { method: 'POST' });
+  },
 
   async getBootstrap(): Promise<ApiBootstrap> {
     return apiFetch('/api/v1/bootstrap');
@@ -106,8 +124,8 @@ export const productionApi = {
     });
   },
 
-  async listProducts(mallSlug: string, options: { category?: string; cursor?: number; limit?: number } = {}): Promise<{ items: ApiProduct[]; pagination: { nextCursor: number | null } }> {
-    const query = new URLSearchParams({ mall: mallSlug });
+  async listProducts(options: { category?: string; cursor?: number; limit?: number } = {}): Promise<{ items: ApiProduct[]; pagination: { nextCursor: number | null } }> {
+    const query = new URLSearchParams();
     if (options.category) query.set('category', options.category);
     if (options.cursor !== undefined) query.set('cursor', String(options.cursor));
     if (options.limit !== undefined) query.set('limit', String(options.limit));

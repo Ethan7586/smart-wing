@@ -27,7 +27,7 @@ function scopeBindings(value: unknown): ScopeBinding[] | null {
     if (!isRecord(item)) return null;
     const kind = optionalString(item.kind);
     const resourceId = optionalString(item.resourceId);
-    if (!kind || !resourceId || !['tenant', 'enterprise', 'mall', 'supplier', 'self'].includes(kind)) return null;
+    if (!kind || !resourceId || !['platform', 'tenant', 'distributor', 'enterprise', 'mall', 'supplier', 'brand', 'store', 'department', 'self'].includes(kind)) return null;
     bindings.push({ kind: kind as ScopeBinding['kind'], resourceId });
   }
   return bindings;
@@ -51,8 +51,17 @@ export async function resolveMembershipContext(request: Request, env: WorkerEnv)
 export async function resolveMembershipRuntime(request: Request, env: WorkerEnv): Promise<MembershipRuntime | null> {
   const session = await readSession(request, env);
   if (!session?.memberId || !session.membershipId) return null;
-  const runtime = await resolveMembershipRuntimeByIds(env, session.memberId, session.membershipId, session.target, session.authzVersion, session.stepUpAt);
-  return runtime;
+  const raw = await callRpc<unknown>(env, 'api_resolve_session_membership_context', {
+    p_session_id: session.sessionId,
+    p_member_id: session.memberId,
+    p_membership_id: session.membershipId,
+    p_target: session.target,
+  });
+  const membership = parseMembership(raw);
+  const authorization = parseAuthorizationContext(raw, membership, session.stepUpAt);
+  if (!membership || !authorization) return null;
+  if (membership.authzVersion !== session.authzVersion || membership.memberId !== session.memberId || membership.id !== session.membershipId || membership.target !== session.target) return null;
+  return { membership, authorization };
 }
 
 /** Used by the development-only test fixture before its signed cookie exists. */
@@ -75,12 +84,18 @@ export function resourceScopeFromDatabaseRow(row: unknown): ResourceScope | null
   if (!isRecord(row)) return null;
   const tenantId = optionalString(row.tenant_id);
   if (!tenantId) return null;
+  const path = scopeBindings(row.org_unit_path);
   return {
     tenantId,
     ...(optionalString(row.enterprise_id) ? { enterpriseId: optionalString(row.enterprise_id) } : {}),
     ...(optionalString(row.mall_id) ? { mallId: optionalString(row.mall_id) } : {}),
     ...(optionalString(row.supplier_id) ? { supplierId: optionalString(row.supplier_id) } : {}),
+    ...(optionalString(row.distributor_id) ? { distributorId: optionalString(row.distributor_id) } : {}),
+    ...(optionalString(row.brand_id) ? { brandId: optionalString(row.brand_id) } : {}),
+    ...(optionalString(row.store_id) ? { storeId: optionalString(row.store_id) } : {}),
+    ...(optionalString(row.department_id) ? { departmentId: optionalString(row.department_id) } : {}),
     ...(optionalString(row.user_id) ? { ownerUserId: optionalString(row.user_id) } : {}),
+    ...(path ? { orgUnitPath: path } : {}),
   };
 }
 
@@ -93,6 +108,7 @@ function parseMembership(value: unknown): Membership | null {
   const tenantId = optionalString(value.context.tenantId);
   const roleIds = stringList(value.roleIds);
   const permissions = stringList(value.permissions);
+  const deniedPermissions = value.deniedPermissions === undefined ? [] : stringList(value.deniedPermissions);
   const bindings = scopeBindings(value.scopeBindings);
   if (
     !id ||
@@ -102,6 +118,7 @@ function parseMembership(value: unknown): Membership | null {
     !tenantId ||
     !roleIds ||
     !permissions ||
+    !deniedPermissions ||
     !bindings ||
     typeof value.authzVersion !== 'number'
   ) {
@@ -114,11 +131,16 @@ function parseMembership(value: unknown): Membership | null {
     status: status as Membership['status'],
     roleIds,
     permissions: permissions as Membership['permissions'],
+    deniedPermissions: deniedPermissions as Membership['permissions'],
     context: {
       tenantId,
       ...(optionalString(value.context.enterpriseId) ? { enterpriseId: optionalString(value.context.enterpriseId) } : {}),
       ...(optionalString(value.context.mallId) ? { mallId: optionalString(value.context.mallId) } : {}),
       ...(optionalString(value.context.supplierId) ? { supplierId: optionalString(value.context.supplierId) } : {}),
+      ...(optionalString(value.context.distributorId) ? { distributorId: optionalString(value.context.distributorId) } : {}),
+      ...(optionalString(value.context.brandId) ? { brandId: optionalString(value.context.brandId) } : {}),
+      ...(optionalString(value.context.storeId) ? { storeId: optionalString(value.context.storeId) } : {}),
+      ...(optionalString(value.context.departmentId) ? { departmentId: optionalString(value.context.departmentId) } : {}),
       ...(optionalString(value.context.userId) ? { userId: optionalString(value.context.userId) } : {}),
     },
     scopeBindings: bindings,

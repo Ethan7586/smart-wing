@@ -8,10 +8,10 @@ export const CheckoutAddressSelector: React.FC<{ model: CheckoutModel }> = ({ mo
     <div className="bg-white border border-gray-200 rounded-md p-5 shadow-xs space-y-3">
       <div className="flex items-center justify-between border-b border-gray-100 pb-2">
         <div className="font-bold text-sm text-gray-900 flex items-center gap-1.5">
-          <MapPin className="w-4 h-4 text-[#1F5EFF]" />
+          <MapPin className="w-4 h-4 text-[var(--sw-brand)]" />
           <span>选择收货地址 / 配送地点</span>
         </div>
-        <button onClick={() => setShowAddAddrModal(true)} className="text-xs text-[#1F5EFF] font-bold hover:underline flex items-center gap-1">
+        <button onClick={() => setShowAddAddrModal(true)} className="text-xs text-[var(--sw-brand)] font-bold hover:underline flex items-center gap-1">
           <Plus className="w-3.5 h-3.5" /> 新增收货地址
         </button>
       </div>
@@ -24,7 +24,7 @@ export const CheckoutAddressSelector: React.FC<{ model: CheckoutModel }> = ({ mo
               type="button"
               key={address.id}
               onClick={() => setSelectedAddrId(address.id)}
-              className={`p-3 rounded border text-left transition-all ${selected ? 'border-[#1F5EFF] bg-blue-50/60 ring-2 ring-blue-500/20' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
+              className={`p-3 rounded border text-left transition-all ${selected ? 'border-[var(--sw-brand)] bg-blue-50/60 ring-2 ring-blue-500/20' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
             >
               <span className="font-bold text-gray-900">
                 {address.name} ({address.phone}){address.isDefault ? ' · 默认' : ''}

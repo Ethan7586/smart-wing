@@ -1,1 +1,16 @@
+@import '../../../packages/design-system/src/tokens.css';
 @import 'tailwindcss';
+
+html,
+body,
+#root {
+  min-width: 320px;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--sw-background);
+  color: var(--sw-text);
+  font-family: var(--sw-font-sans);
+}

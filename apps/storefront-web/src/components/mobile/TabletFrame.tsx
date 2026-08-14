@@ -51,7 +51,7 @@ export const TabletFrame: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans selection:bg-[#1F5EFF] selection:text-white">
+    <div className="min-h-screen bg-[#0F172A] text-white flex flex-col font-sans selection:bg-[var(--sw-brand)] selection:text-white">
       {/* 顶部多端切换导览条 */}
       <MobileTopBarSwitcher />
 

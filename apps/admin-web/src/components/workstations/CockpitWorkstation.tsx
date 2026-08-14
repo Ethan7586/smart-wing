@@ -53,10 +53,10 @@ export const CockpitWorkstation: React.FC<CockpitWorkstationProps> = ({ orders, 
 
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto text-[13px] text-slate-700">
-      <div className="flex items-center justify-between bg-gradient-to-r from-[#10294d] to-[#07182f] text-white p-5 rounded-[14px] shadow-md border border-white/10">
+      <div className="flex items-center justify-between bg-gradient-to-r from-[var(--sw-sidebar-top)] to-[var(--sw-brand-ink)] text-white p-5 rounded-[14px] shadow-md border border-white/10">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2 py-0.5 rounded bg-[#1769ff] text-white text-[10px] font-bold tracking-wider uppercase">Operational Cockpit</span>
+            <span className="px-2 py-0.5 rounded bg-[var(--sw-brand)] text-white text-[10px] font-bold tracking-wider uppercase">Operational Cockpit</span>
             <span className="text-xs text-blue-200/80">{liveOperations ? (isEn ? 'Production data • Read-only overview' : '生产数据 · 只读概览') : isEn ? 'Loading production facts…' : '正在加载生产数据…'}</span>
           </div>
           <h2 className="text-lg font-bold text-white">{isEn ? 'Smart Wing Executive Cockpit' : 'Smart Wing 经营决策驾驶舱'}</h2>
@@ -65,7 +65,7 @@ export const CockpitWorkstation: React.FC<CockpitWorkstationProps> = ({ orders, 
         <button
           onClick={handleTriggerAiCopilot}
           disabled={isAiLoading}
-          className="px-4 py-2 rounded-lg bg-[#1769ff] hover:bg-blue-600 disabled:opacity-60 text-white font-semibold text-xs shadow-md shadow-blue-500/20 flex items-center gap-2 transition-all cursor-pointer border border-blue-400/30"
+          className="px-4 py-2 rounded-lg bg-[var(--sw-brand)] hover:bg-blue-600 disabled:opacity-60 text-white font-semibold text-xs shadow-md shadow-blue-500/20 flex items-center gap-2 transition-all cursor-pointer border border-blue-400/30"
         >
           {isAiLoading ? <RotateCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-amber-300" />}
           <span>{isAiLoading ? (isEn ? 'Gemini Analyzing...' : 'Gemini 深度分析中...') : isEn ? 'Run AI diagnosis' : '运行 AI 经营诊断'}</span>
@@ -84,9 +84,9 @@ export const CockpitWorkstation: React.FC<CockpitWorkstationProps> = ({ orders, 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className={`w-2.5 h-2.5 rounded-full ${problemOrders.length ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`} />
-              <h3 className="text-sm font-bold text-[#10294d]">{isEn ? `Action required (${problemOrders.length})` : `待处理异常 (${problemOrders.length})`}</h3>
+              <h3 className="text-sm font-bold text-[var(--sw-sidebar-top)]">{isEn ? `Action required (${problemOrders.length})` : `待处理异常 (${problemOrders.length})`}</h3>
             </div>
-            <button onClick={() => onNavigateToWorkstation('order')} className="text-[#1769ff] text-xs font-semibold hover:underline">
+            <button onClick={() => onNavigateToWorkstation('order')} className="text-[var(--sw-brand)] text-xs font-semibold hover:underline">
               {isEn ? 'Open order workbench →' : '打开订单履约台 →'}
             </button>
           </div>
@@ -158,7 +158,7 @@ function MetricCard({ label, value, hint, positive = false }: { label: string; v
   return (
     <div className="bg-white p-4 rounded-[14px] shadow-sm border border-slate-100 space-y-1">
       <div className="text-slate-400 text-xs mb-1">{label}</div>
-      <div className={`text-2xl font-bold ${positive ? 'text-[#15a46b]' : 'text-[#10294d]'}`}>{value ?? '—'}</div>
+      <div className={`text-2xl font-bold ${positive ? 'text-[#15a46b]' : 'text-[var(--sw-sidebar-top)]'}`}>{value ?? '—'}</div>
       <div className="flex items-center gap-1 text-[11px] mt-1 text-slate-400">
         {positive ? <TrendingUp className="w-3.5 h-3.5 text-[#15a46b]" /> : null}
         {hint}

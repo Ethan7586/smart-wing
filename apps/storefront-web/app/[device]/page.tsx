@@ -1,12 +1,11 @@
-import App from '../../src/App';
+import { DeviceShowcase } from '../../src/showcase/DeviceShowcase';
 
 /**
  * Multi-device entry route.
  *
- * MallContext resolves the concrete mode from the pathname. Keeping the
- * rendering entry shared prevents the five clients from drifting into
- * independent business implementations.
+ * These legacy visual simulators are intentionally isolated from the
+ * production storefront entry and native WeChat mini program.
  */
 export default function DevicePage() {
-  return <App />;
+  return <DeviceShowcase />;
 }

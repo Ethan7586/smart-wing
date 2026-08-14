@@ -43,7 +43,7 @@ export const MPCategoryPage: React.FC = () => {
         <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap text-[10px] text-gray-600 no-scrollbar">
           <span className="text-gray-400 font-bold flex-shrink-0">热搜:</span>
           {currentCategory.hotKeywords.map((kw) => (
-            <button key={kw} onClick={() => setKeyword(kw)} className="bg-blue-50 text-[#1F5EFF] border border-blue-100 px-2 py-0.5 rounded-full font-medium cursor-pointer">
+            <button key={kw} onClick={() => setKeyword(kw)} className="bg-blue-50 text-[var(--sw-brand)] border border-blue-100 px-2 py-0.5 rounded-full font-medium cursor-pointer">
               {kw}
             </button>
           ))}
@@ -60,9 +60,9 @@ export const MPCategoryPage: React.FC = () => {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategoryId(cat.id)}
-                className={`w-full py-3.5 px-2 text-left relative transition-colors flex flex-col gap-0.5 cursor-pointer ${isActive ? 'bg-white font-bold text-[#1F5EFF] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`}
+                className={`w-full py-3.5 px-2 text-left relative transition-colors flex flex-col gap-0.5 cursor-pointer ${isActive ? 'bg-white font-bold text-[var(--sw-brand)] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`}
               >
-                {isActive && <span className="absolute left-0 top-0 bottom-0 w-1 bg-[#1F5EFF] rounded-r" />}
+                {isActive && <span className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--sw-brand)] rounded-r" />}
                 <span className="truncate">{cat.name}</span>
                 <span className="text-[9px] text-gray-400 truncate font-normal">{cat.hotKeywords[0]}</span>
               </button>
@@ -78,7 +78,7 @@ export const MPCategoryPage: React.FC = () => {
               <div className="text-xs font-black text-gray-900">{currentCategory.name}</div>
               <div className="text-[10px] text-gray-500 mt-0.5">企采协议补贴 · 共 {filteredProducts.length} 件福利卡可兑商品</div>
             </div>
-            <span className="text-[9px] bg-[#1F5EFF] text-white font-bold px-2 py-0.5 rounded-full">全额包邮</span>
+            <span className="text-[9px] bg-[var(--sw-brand)] text-white font-bold px-2 py-0.5 rounded-full">全额包邮</span>
           </div>
 
           {/* Subcategories pill grid */}
@@ -88,7 +88,7 @@ export const MPCategoryPage: React.FC = () => {
                 <button
                   key={sub.id}
                   onClick={() => setKeyword(sub.name)}
-                  className="bg-gray-50 hover:bg-blue-50 hover:text-[#1F5EFF] border border-gray-100 rounded-lg p-1.5 text-center text-[10px] font-medium text-gray-700 truncate cursor-pointer transition-colors"
+                  className="bg-gray-50 hover:bg-blue-50 hover:text-[var(--sw-brand)] border border-gray-100 rounded-lg p-1.5 text-center text-[10px] font-medium text-gray-700 truncate cursor-pointer transition-colors"
                 >
                   {sub.name}
                 </button>
@@ -100,7 +100,7 @@ export const MPCategoryPage: React.FC = () => {
           {filteredProducts.length === 0 ? (
             <div className="text-center py-12 text-gray-400 space-y-2">
               <p className="text-xs">暂无符合条件的商品</p>
-              <button onClick={() => setKeyword('')} className="text-xs text-[#1F5EFF] underline font-bold">
+              <button onClick={() => setKeyword('')} className="text-xs text-[var(--sw-brand)] underline font-bold">
                 清除关键字重试
               </button>
             </div>
@@ -118,7 +118,7 @@ export const MPCategoryPage: React.FC = () => {
                     <div>
                       <div className="flex items-center gap-1">
                         <span className="text-[9px] bg-red-50 text-[#E5484D] font-bold px-1 py-0.2 rounded">协议价省¥{p.enterpriseSubsidyAmount}</span>
-                        <span className="text-[9px] bg-blue-50 text-[#1F5EFF] font-bold px-1 py-0.2 rounded">支持福利卡</span>
+                        <span className="text-[9px] bg-blue-50 text-[var(--sw-brand)] font-bold px-1 py-0.2 rounded">支持福利卡</span>
                       </div>
 
                       <div className="flex items-center justify-between pt-1">
@@ -132,7 +132,7 @@ export const MPCategoryPage: React.FC = () => {
                             e.stopPropagation();
                             addToCart(p, 1);
                           }}
-                          className="bg-[#1F5EFF] text-white text-[10px] font-bold px-2.5 py-1 rounded-md flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
+                          className="bg-[var(--sw-brand)] text-white text-[10px] font-bold px-2.5 py-1 rounded-md flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
                         >
                           <Plus className="w-3 h-3" />
                           <span>加购物车</span>

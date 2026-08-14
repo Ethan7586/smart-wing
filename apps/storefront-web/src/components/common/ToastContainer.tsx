@@ -36,7 +36,7 @@ export const ToastContainer: React.FC = () => {
               {isSuccess && <CheckCircle2 className="w-5 h-5 text-[#18A058] flex-shrink-0" />}
               {isError && <XCircle className="w-5 h-5 text-[#E5484D] flex-shrink-0" />}
               {isWarning && <AlertCircle className="w-5 h-5 text-[#FF7A00] flex-shrink-0" />}
-              {!isSuccess && !isError && !isWarning && <Info className="w-5 h-5 text-[#1F5EFF] flex-shrink-0" />}
+              {!isSuccess && !isError && !isWarning && <Info className="w-5 h-5 text-[var(--sw-brand)] flex-shrink-0" />}
               <span className="leading-snug">{toast.text}</span>
             </div>
             <button onClick={() => removeToast(toast.id)} className="text-gray-400 hover:text-gray-600 transition-colors p-0.5 rounded">

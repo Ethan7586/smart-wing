@@ -49,6 +49,9 @@ export const MOCK_USER: UserProfile = {
   welfareBalance: 3280.0,
   mealBalance: 850.5,
   couponCount: 6,
+  assuranceLevel: 'phone',
+  phoneVerified: true,
+  paymentEligible: true,
   distributorId: 'DIST-001-GW',
 };
 

@@ -12,13 +12,21 @@
     "packages/*"
   ],
   "scripts": {
+    "brand:assets": "node scripts/build-brand-assets.mjs",
+    "build:miniapp-assets": "node scripts/build-miniapp-assets.mjs",
+    "check:miniapp": "node scripts/check-miniapp-vi.mjs",
+    "check:vi": "node scripts/check-vi.mjs --check",
+    "update:vi-baseline": "node scripts/check-vi.mjs --update-baseline",
+    "test:vi": "node --test scripts/check-vi.test.mjs",
+    "test:token-convergence": "node --test scripts/token-convergence.test.mjs",
+    "test:miniapp-catalog": "node --test scripts/miniapp-catalog.test.cjs",
     "dev:storefront": "npm run dev --workspace @smart-wing/storefront-web",
     "dev:admin": "npm run dev --workspace @smart-wing/admin-web",
     "dev:auth": "npm run dev --workspace @smart-wing/auth-web",
     "build:storefront": "npm run build --workspace @smart-wing/storefront-web",
     "build:admin": "npm run build --workspace @smart-wing/admin-web",
     "build:auth": "npm run build --workspace @smart-wing/auth-web",
-    "build:commerce-api": "esbuild services/commerce-api/src/adminServer.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=services/commerce-api/dist/admin-server.cjs",
+    "build:commerce-api": "esbuild services/commerce-api/src/adminServer.ts --bundle --platform=node --format=cjs --external:@google/genai --external:dotenv --external:express --sourcemap --outfile=services/commerce-api/dist/admin-server.cjs",
     "build": "npm run build:storefront && npm run build:admin && npm run build:auth && npm run build:commerce-api",
     "start:storefront": "npm run start --workspace @smart-wing/storefront-web",
     "start:admin-api": "node services/commerce-api/dist/admin-server.cjs",
@@ -29,10 +37,14 @@
     "audit:prod": "npm audit --omit=dev",
     "check:lines": "node scripts/check-line-budget.mjs",
     "verify:p0": "node scripts/verify-p0.mjs",
-    "quality": "npm run check:format && npm run check:lines && npm run lint && npm test && npm run build && npm run audit:prod"
+    "quality": "npm run check:format && npm run check:lines && npm run check:web-tokens && npm run test:token-convergence && npm run check:vi && npm run test:vi && npm run check:miniapp && npm run test:miniapp-catalog && npm run lint && npm test && npm run build && npm run audit:prod",
+    "build:web-tokens": "node scripts/build-web-tokens.mjs",
+    "check:web-tokens": "node scripts/build-web-tokens.mjs --check"
   },
   "devDependencies": {
     "esbuild": "^0.28.1",
-    "prettier": "^3.5.3"
+    "lucide-react": "0.546.0",
+    "prettier": "^3.5.3",
+    "typescript": "5.9.3"
   }
 }

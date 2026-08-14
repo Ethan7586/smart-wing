@@ -17,8 +17,8 @@ export const Footer: React.FC = () => {
       <div className="border-b border-gray-800 bg-gray-900/60 py-6">
         <div className="max-w-[1280px] mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-[#1F5EFF]">
-              <ShieldCheck className="w-5 h-5 text-[#1F5EFF]" />
+            <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-[var(--sw-brand)]">
+              <ShieldCheck className="w-5 h-5 text-[var(--sw-brand)]" />
             </div>
             <div>
               <div className="font-bold text-white text-sm">央国企采买正品验货</div>
@@ -27,8 +27,8 @@ export const Footer: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-[#1F5EFF]">
-              <CreditCard className="w-5 h-5 text-[#1F5EFF]" />
+            <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-[var(--sw-brand)]">
+              <CreditCard className="w-5 h-5 text-[var(--sw-brand)]" />
             </div>
             <div>
               <div className="font-bold text-white text-sm">多维福利统筹抵扣</div>
@@ -37,8 +37,8 @@ export const Footer: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-[#1F5EFF]">
-              <Truck className="w-5 h-5 text-[#1F5EFF]" />
+            <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-[var(--sw-brand)]">
+              <Truck className="w-5 h-5 text-[var(--sw-brand)]" />
             </div>
             <div>
               <div className="font-bold text-white text-sm">极速履约与电子发码</div>
@@ -47,8 +47,8 @@ export const Footer: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-[#1F5EFF]">
-              <Headphones className="w-5 h-5 text-[#1F5EFF]" />
+            <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-[var(--sw-brand)]">
+              <Headphones className="w-5 h-5 text-[var(--sw-brand)]" />
             </div>
             <div>
               <div className="font-bold text-white text-sm">集团专属客服保障</div>
@@ -61,7 +61,7 @@ export const Footer: React.FC = () => {
       {/* 2. 底部栏目链接 */}
       <div className="max-w-[1280px] mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-5 gap-8">
         <div>
-          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[#1F5EFF] pl-2">关于商城</div>
+          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[var(--sw-brand)] pl-2">关于商城</div>
           <ul className="space-y-2 text-gray-400">
             <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('home')}>
               商城简介
@@ -82,7 +82,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div>
-          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[#1F5EFF] pl-2">福利与账户</div>
+          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[var(--sw-brand)] pl-2">福利与账户</div>
           <ul className="space-y-2 text-gray-400">
             <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('balance', { accountTab: 'welfare' })}>
               福利卡充值与规则
@@ -100,7 +100,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div>
-          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[#1F5EFF] pl-2">购物与配送</div>
+          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[var(--sw-brand)] pl-2">购物与配送</div>
           <ul className="space-y-2 text-gray-400">
             <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('orders')}>
               订单查询与跟踪
@@ -118,7 +118,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div>
-          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[#1F5EFF] pl-2">售后与保障</div>
+          <div className="font-bold text-white text-sm mb-3 border-l-2 border-[var(--sw-brand)] pl-2">售后与保障</div>
           <ul className="space-y-2 text-gray-400">
             <li className="hover:text-white transition-colors cursor-pointer" onClick={() => navigateTo('orders', { statusFilter: 'after_sale' })}>
               退换货流程与申请
@@ -139,7 +139,7 @@ export const Footer: React.FC = () => {
         <div className="bg-gray-800/60 p-4 rounded-md border border-gray-700/60 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-1.5 text-white font-bold text-sm mb-2">
-              <Building2 className="w-4 h-4 text-[#1F5EFF]" />
+              <Building2 className="w-4 h-4 text-[var(--sw-brand)]" />
               <span>{currentMall.enterpriseName}</span>
             </div>
             <p className="text-[11px] text-gray-400 leading-relaxed">

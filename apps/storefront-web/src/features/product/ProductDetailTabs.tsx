@@ -31,7 +31,7 @@ export const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({ product, a
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex-1 py-3 px-4 flex items-center justify-center gap-2 border-b-2 cursor-pointer transition-colors ${
-                  isActive ? 'border-[#1F5EFF] bg-white text-[#1F5EFF]' : 'border-transparent text-gray-600 hover:bg-gray-100'
+                  isActive ? 'border-[var(--sw-brand)] bg-white text-[var(--sw-brand)]' : 'border-transparent text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -60,7 +60,7 @@ export const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({ product, a
               )}
 
               <div className="space-y-4 pt-4">
-                <div className="font-bold text-sm text-gray-900 border-l-4 border-[#1F5EFF] pl-2">实物图赏与包装细节</div>
+                <div className="font-bold text-sm text-gray-900 border-l-4 border-[var(--sw-brand)] pl-2">实物图赏与包装细节</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {product.images.map((img, idx) => (
                     <img key={idx} src={img} alt="" className="w-full rounded border border-gray-200 object-cover" />
@@ -72,7 +72,7 @@ export const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({ product, a
 
           {activeTab === 'params' && (
             <div className="space-y-4">
-              <h4 className="font-bold text-sm text-gray-900 border-l-4 border-[#1F5EFF] pl-2">详细规格参数清单</h4>
+              <h4 className="font-bold text-sm text-gray-900 border-l-4 border-[var(--sw-brand)] pl-2">详细规格参数清单</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 bg-gray-50 p-4 rounded border border-gray-200">
                 <div className="flex justify-between py-1 border-b border-gray-200">
                   <span className="text-gray-500">商品名称</span>
@@ -150,7 +150,7 @@ export const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({ product, a
 
           {activeTab === 'aftersale' && (
             <div className="space-y-3">
-              <h4 className="font-bold text-sm text-gray-900 border-l-4 border-[#1F5EFF] pl-2">国企采买售后服务保障</h4>
+              <h4 className="font-bold text-sm text-gray-900 border-l-4 border-[var(--sw-brand)] pl-2">国企采买售后服务保障</h4>
               <ul className="list-disc pl-5 space-y-2 text-gray-700">
                 <li>
                   <strong>开具正规发票：</strong>

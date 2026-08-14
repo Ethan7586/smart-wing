@@ -40,7 +40,7 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
 
             <div className="flex items-center gap-2 overflow-x-auto pb-1">
               {[product.image, product.image, product.image].map((img, i) => (
-                <div key={i} className="w-14 h-14 rounded border-2 border-[#1F5EFF] bg-gray-50 p-1 flex-shrink-0 cursor-pointer">
+                <div key={i} className="w-14 h-14 rounded border-2 border-[var(--sw-brand)] bg-gray-50 p-1 flex-shrink-0 cursor-pointer">
                   <img src={img} alt="thumb" className="w-full h-full object-contain" />
                 </div>
               ))}
@@ -48,7 +48,7 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
 
             <div className="bg-blue-50/60 border border-blue-100 rounded-lg p-2.5 grid grid-cols-3 gap-2 text-[11px] text-gray-700 text-center">
               <div className="flex items-center justify-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#1F5EFF]" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-[var(--sw-brand)]" />
                 <span>增值税专票</span>
               </div>
               <div className="flex items-center justify-center gap-1">
@@ -65,7 +65,7 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
           <div className="space-y-3 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="bg-[#143A8F] text-white font-bold text-[10px] px-1.5 py-0.2 rounded">{product.supplierName || '京东自营'}</span>
+                <span className="bg-[var(--sw-brand-dark)] text-white font-bold text-[10px] px-1.5 py-0.2 rounded">{product.supplierName || '京东自营'}</span>
                 <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.2 rounded">企业福利卡通用</span>
               </div>
 
@@ -81,9 +81,9 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
 
                 <div className="text-[11px] text-gray-700 flex items-center gap-3 pt-1 border-t border-red-100">
                   <span className="flex items-center gap-1">
-                    <CreditCard className="w-3.5 h-3.5 text-[#1F5EFF]" />
+                    <CreditCard className="w-3.5 h-3.5 text-[var(--sw-brand)]" />
                     <span>
-                      福利卡余额可扣: <strong className="text-[#143A8F]">¥{user.welfareBalance.toFixed(2)}</strong>
+                      福利卡余额可扣: <strong className="text-[var(--sw-brand-dark)]">¥{user.welfareBalance.toFixed(2)}</strong>
                     </span>
                   </span>
                   {product.allowMealCard && (
@@ -102,7 +102,7 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
                     <button
                       key={spec}
                       onClick={() => setSelectedSpec(spec)}
-                      className={`px-3 py-1.5 rounded border text-xs font-bold transition-all cursor-pointer ${selectedSpec === spec ? 'border-[#1F5EFF] bg-blue-50 text-[#1F5EFF]' : 'border-gray-200 text-gray-700 hover:border-gray-300'}`}
+                      className={`px-3 py-1.5 rounded border text-xs font-bold transition-all cursor-pointer ${selectedSpec === spec ? 'border-[var(--sw-brand)] bg-blue-50 text-[var(--sw-brand)]' : 'border-gray-200 text-gray-700 hover:border-gray-300'}`}
                     >
                       {spec}
                     </button>
@@ -111,7 +111,7 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
               </div>
 
               <div className="mt-3 text-xs flex items-center gap-2 text-gray-700">
-                <MapPin className="w-4 h-4 text-[#1F5EFF] flex-shrink-0" />
+                <MapPin className="w-4 h-4 text-[var(--sw-brand)] flex-shrink-0" />
                 <span>配送至：</span>
                 <span className="font-bold text-gray-800">北京市东城区国家电网总部大楼 (员工专送)</span>
               </div>
@@ -133,13 +133,13 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
             <div className="pt-3 border-t border-gray-100 flex items-center gap-3">
               <button
                 onClick={handleAddToCart}
-                className="flex-1 bg-blue-50 hover:bg-blue-100 border border-[#1F5EFF] text-[#1F5EFF] font-black py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-xs transition-colors cursor-pointer shadow-2xs"
+                className="flex-1 bg-blue-50 hover:bg-blue-100 border border-[var(--sw-brand)] text-[var(--sw-brand)] font-black py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-xs transition-colors cursor-pointer shadow-2xs"
               >
                 <ShoppingCart className="w-4 h-4" />
                 <span>加入购物车</span>
               </button>
 
-              <button onClick={handleBuyNow} className="flex-1 bg-[#1F5EFF] hover:bg-blue-700 text-white font-black py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-xs transition-colors cursor-pointer shadow-sm">
+              <button onClick={handleBuyNow} className="flex-1 bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-black py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-xs transition-colors cursor-pointer shadow-sm">
                 <Zap className="w-4 h-4 text-yellow-300" />
                 <span>福利卡全额购买</span>
               </button>
@@ -158,7 +158,7 @@ export const LaptopDetailPage: React.FC<LaptopDetailPageProps> = ({ onSelectTab 
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-5 py-2.5 transition-colors cursor-pointer border-b-2 ${activeTab === tab.id ? 'border-[#1F5EFF] bg-white text-[#1F5EFF]' : 'border-transparent hover:text-black'}`}
+                className={`px-5 py-2.5 transition-colors cursor-pointer border-b-2 ${activeTab === tab.id ? 'border-[var(--sw-brand)] bg-white text-[var(--sw-brand)]' : 'border-transparent hover:text-black'}`}
               >
                 {tab.name}
               </button>

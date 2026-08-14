@@ -22,7 +22,7 @@ export const CheckoutAddressModal: React.FC<{ model: CheckoutModel }> = ({ model
             className="col-span-2 border border-gray-300 rounded px-3 py-2 text-xs"
           />
           <label className="col-span-2 flex items-center gap-2 text-xs">
-            <input type="checkbox" checked={newAddrForm.isDefault} onChange={(event) => setNewAddrForm({ ...newAddrForm, isDefault: event.target.checked })} className="w-4 h-4 text-[#1F5EFF]" />
+            <input type="checkbox" checked={newAddrForm.isDefault} onChange={(event) => setNewAddrForm({ ...newAddrForm, isDefault: event.target.checked })} className="w-4 h-4 text-[var(--sw-brand)]" />
             设为默认配送地址
           </label>
         </div>
@@ -30,7 +30,7 @@ export const CheckoutAddressModal: React.FC<{ model: CheckoutModel }> = ({ model
           <button type="button" onClick={() => setShowAddAddrModal(false)} className="border border-gray-300 rounded px-4 py-2 text-xs">
             取消
           </button>
-          <button type="submit" className="bg-[#1F5EFF] text-white rounded px-4 py-2 text-xs font-bold">
+          <button type="submit" className="bg-[var(--sw-brand)] text-white rounded px-4 py-2 text-xs font-bold">
             保存地址
           </button>
         </div>

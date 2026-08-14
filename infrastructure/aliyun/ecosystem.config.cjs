@@ -7,9 +7,9 @@ module.exports = {
       args: 'start',
       node_args: ['--env-file=/opt/smart-wing/.env.production'],
       interpreter: '/usr/bin/node',
-      // Public test environment: only the explicitly scoped test fixture is
-      // enabled; NODE_ENV remains production and admin AI remains protected.
-      env: { NODE_ENV: 'production', PORT: '3000', APP_ENV: 'test', AUTH_MODE: 'test' },
+      // The public storefront is a production payment boundary. Test fixtures
+      // and simulated payment routes must never be enabled in this process.
+      env: { NODE_ENV: 'production', PORT: '3000', APP_ENV: 'production', AUTH_MODE: 'membership' },
       instances: 1,
       exec_mode: 'fork',
       max_memory_restart: '1G',

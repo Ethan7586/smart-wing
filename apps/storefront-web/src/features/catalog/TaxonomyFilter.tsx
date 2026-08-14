@@ -32,5 +32,5 @@ export function TaxonomyFilter({ options, selected, onSelect, title }: TaxonomyF
 }
 
 function chipClass(isActive: boolean) {
-  return `px-2.5 py-1 rounded cursor-pointer ${isActive ? 'bg-[#143A8F] text-white font-bold' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`;
+  return `px-2.5 py-1 rounded cursor-pointer ${isActive ? 'bg-[var(--sw-brand-dark)] text-white font-bold' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`;
 }

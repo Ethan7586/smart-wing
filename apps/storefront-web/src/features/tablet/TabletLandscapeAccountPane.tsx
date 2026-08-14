@@ -10,9 +10,13 @@ export const TabletLandscapeAccountPane: React.FC = () => {
       {/* RIGHT PANE: Employee Info, Balances, Orders, Cart Summary (~280px) */}
       <div className="w-72 bg-white border-l border-gray-200 p-3.5 flex flex-col justify-between overflow-y-auto shrink-0 space-y-4 shadow-2xs">
         {/* User Card */}
-        <div className="bg-gradient-to-br from-[#143A8F] to-[#1F5EFF] text-white rounded-2xl p-3.5 shadow-sm space-y-2">
+        <div className="bg-gradient-to-br from-[var(--sw-brand-dark)] to-[var(--sw-brand)] text-white rounded-2xl p-3.5 shadow-sm space-y-2">
           <div className="flex items-center gap-3">
-            <img src={user.avatar} alt={user.name} className="w-11 h-11 rounded-2xl object-cover border-2 border-white/80 flex-shrink-0" />
+            {user.avatar ? (
+              <img src={user.avatar} alt={user.name} className="w-11 h-11 rounded-2xl object-cover border-2 border-white/80 flex-shrink-0" />
+            ) : (
+              <div className="w-11 h-11 rounded-2xl bg-white/20 text-white flex items-center justify-center font-black border-2 border-white/80 flex-shrink-0">{user.name.slice(0, 1)}</div>
+            )}
             <div className="overflow-hidden space-y-0.5">
               <div className="flex items-center gap-1.5">
                 <span className="font-black text-sm">{user.name}</span>
@@ -45,7 +49,7 @@ export const TabletLandscapeAccountPane: React.FC = () => {
         <div className="bg-gray-50 rounded-2xl p-3 border border-gray-100 space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="font-bold text-gray-900">企采订单流程</span>
-            <button onClick={() => setTabletPage('orders')} className="text-[10px] text-[#1F5EFF] hover:underline font-bold">
+            <button onClick={() => setTabletPage('orders')} className="text-[10px] text-[var(--sw-brand)] hover:underline font-bold">
               全部订单 &gt;
             </button>
           </div>
@@ -70,7 +74,7 @@ export const TabletLandscapeAccountPane: React.FC = () => {
         <div className="flex-1 flex flex-col justify-between bg-white rounded-2xl border border-gray-200 p-3 space-y-2">
           <div className="flex items-center justify-between border-b border-gray-100 pb-2">
             <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-              <ShoppingCart className="w-4 h-4 text-[#1F5EFF]" />
+              <ShoppingCart className="w-4 h-4 text-[var(--sw-brand)]" />
               <span>当前购物车</span>
             </span>
             <span className="text-[10px] text-gray-400 font-mono">共 {cartCount} 件</span>
@@ -102,7 +106,7 @@ export const TabletLandscapeAccountPane: React.FC = () => {
               onClick={() => setTabletPage('cart')}
               disabled={cartCount === 0}
               className={`w-full font-bold text-xs py-2.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px] ${
-                cartCount > 0 ? 'bg-gradient-to-r from-[#1F5EFF] to-[#143A8F] text-white hover:opacity-95' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                cartCount > 0 ? 'bg-gradient-to-r from-[var(--sw-brand)] to-[var(--sw-brand-dark)] text-white hover:opacity-95' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}
             >
               <span>快速福利结算</span>

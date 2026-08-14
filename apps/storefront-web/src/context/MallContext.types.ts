@@ -3,6 +3,7 @@ import type { AccountLog, CartItem, DeliveryAddress, EnterpriseMall, Order, Orde
 import type { FrontendCategory, FrontendOrder, FrontendProduct } from '../adapters/frontendData';
 
 export type SessionStatus = 'checking' | 'guest' | 'authenticated';
+export type CatalogSyncStatus = 'idle' | 'syncing' | 'ready' | 'error';
 export type ViewportMode = 'auto' | 'laptop-1366' | 'desktop-1440' | 'side-by-side';
 export type AppMode = 'pc' | 'mini-program' | 'android-app' | 'tablet-app' | 'laptop-web';
 export type MiniProgramPage = 'home' | 'category' | 'detail' | 'cart' | 'orders' | 'profile';
@@ -77,6 +78,7 @@ export interface MallContextType {
   presentationCategories: FrontendCategory[];
   accountLogs: AccountLog[];
   sessionStatus: SessionStatus;
+  catalogSyncStatus: CatalogSyncStatus;
   sessionError: string | null;
   login: (credentials: LoginCredentials) => Promise<boolean>;
   logout: () => Promise<void>;

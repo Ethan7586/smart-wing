@@ -1,0 +1,218 @@
+<!--
+  首页 — 区块顺序取自任务书 §12，构图对照
+  docs/mobile/design-previews/smart-wing-unified-mall-01-browse-v2-cart-restored.png 第 1 屏。
+  顶部所有距离来自 wx.getWindowInfo / wx.getMenuButtonBoundingClientRect，无写死值。
+-->
+<view class="sw-page home {{sizeClass}}" style="{{sizeStyle}}">
+
+  <!-- 1. 品牌 · 购物车 · 通知 ------------------------------------------------ -->
+  <view class="nav {{scrolled ? 'is-scrolled' : ''}}" style="padding-top: {{nav.statusBarHeight}}px;">
+    <view class="nav-row" style="height: {{nav.navContentHeight}}px; padding-right: {{nav.rightInset}}px;">
+      <text class="nav-title">智慧翼福利商城</text>
+      <view class="nav-actions">
+        <view class="nav-action sw-tap" data-label="购物车" bindtap="onPending">
+          <view class="i i-shopping-cart-ink"></view>
+          <text wx:if="{{cartCount > 0}}" class="cart-badge">{{cartCount}}</text>
+        </view>
+        <view class="nav-action sw-tap" data-label="通知" bindtap="onPending">
+          <view class="i i-bell-ink"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+  <!-- Spacer keeps content clear of the fixed navigation. -->
+  <view style="height: {{nav.navTotalHeight}}px;"></view>
+
+  <view wx:if="{{isDemo}}" class="sw-demo-flag">
+    <view class="i i-sm i-triangle-alert-danger"></view>
+    <text>本页为本地演示数据，服务端接口尚未接入</text>
+  </view>
+
+  <!-- 接口降级 / 加载失败 -->
+  <view wx:if="{{loadError}}" class="sw-inset state-block">
+    <view class="i i-lg i-wifi-off-muted"></view>
+    <text class="sw-small state-text">{{loadError}}</text>
+    <view class="retry" bindtap="onRetry">
+      <view class="i i-sm i-refresh-cw-brand"></view>
+      <text class="retry-text">重试</text>
+    </view>
+  </view>
+
+  <!-- 骨架屏，不留白屏 -->
+  <view wx:elif="{{loading}}" class="sw-inset skeleton-wrap">
+    <view class="sw-skeleton sk-chip"></view>
+    <view class="sw-skeleton sk-search"></view>
+    <view class="sw-skeleton sk-card"></view>
+    <view class="sw-skeleton sk-entries"></view>
+    <view class="sw-skeleton sk-hero"></view>
+  </view>
+
+  <block wx:else>
+    <!-- 2. 当前企业与福利计划 ---------------------------------------------- -->
+    <view class="sw-inset">
+      <view class="scope-chip" data-label="切换企业" bindtap="onPending">
+        <view class="scope-mark sw-brand-mark"></view>
+        <text class="scope-text">{{scope.enterpriseName}} · {{scope.departmentName}}</text>
+        <view class="i i-sm i-chevron-down-secondary"></view>
+      </view>
+    </view>
+
+    <!-- 3. 搜索与扫码 -------------------------------------------------------- -->
+    <view class="sw-inset search-wrap">
+      <view class="search" data-label="搜索" bindtap="onPending">
+        <view class="i i-sm i-search-muted"></view>
+        <text class="search-placeholder">搜索福利商品、品牌或附近门店</text>
+      </view>
+      <view class="scan sw-tap" data-label="扫码" bindtap="onPending">
+        <view class="i i-scan-line-muted"></view>
+      </view>
+    </view>
+
+    <!-- 4. 福利额度与手机认证状态 -------------------------------------------- -->
+    <view class="sw-inset">
+      <view class="sw-card quota" data-label="福利额度明细" bindtap="onPending">
+        <view class="sw-between">
+          <view>
+            <text class="sw-caption quota-label">{{quotaLabel}}</text>
+            <view class="quota-value">
+              <text class="quota-symbol">¥</text>
+              <text class="sw-amount">{{quotaAmount}}</text>
+            </view>
+          </view>
+          <view class="i i-chevron-right-muted"></view>
+        </view>
+        <view wx:if="{{!phoneVerified}}" class="phone-notice">
+          <view class="i i-sm i-shield-alert-danger"></view>
+          <text class="phone-notice-text">{{phoneNotice}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 5. 企业专区 / 城市专区 / 电子卡券 / 合作商 --------------------------- -->
+    <view class="sw-inset">
+      <view class="sw-card entries">
+        <view
+          wx:for="{{entries}}"
+          wx:key="key"
+          class="entry sw-tap"
+          data-label="{{item.label}}"
+          bindtap="onPending"
+        >
+          <view class="entry-icon">
+            <view class="i i-{{item.icon}}-brand"></view>
+          </view>
+          <text class="entry-label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 6. 员工专享福利季 ---------------------------------------------------- -->
+    <view class="sw-inset">
+      <view class="hero" data-label="员工专享福利季" bindtap="onPending">
+        <view class="hero-pattern sw-brand-pattern"></view>
+        <view class="hero-copy">
+          <text class="hero-title">{{hero.title}}</text>
+          <text class="hero-subtitle">{{hero.subtitle}}</text>
+        </view>
+        <!-- 主视觉插画尚无正式素材，按 VI「禁止想象与临时手绘」保留占位 -->
+        <view wx:if="{{!hero.illustration}}" class="sw-slot sw-slot-on-brand hero-slot">
+          <view class="i i-md i-image-off-muted"></view>
+          <text class="sw-slot-label">主视觉待供图</text>
+        </view>
+        <image wx:else class="hero-illustration" src="{{hero.illustration}}" mode="aspectFit" />
+        <view class="hero-dots">
+          <view wx:for="{{hero.slideCount}}" wx:key="*this" class="dot {{index === 0 ? 'dot-on' : ''}}"></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 7a. 合作卖场（Logo 槽位，未授权前只用中性文字） ---------------------- -->
+    <view class="section-head sw-inset">
+      <text class="sw-h3">合作卖场</text>
+      <text class="sw-caption">共 {{partners.length}} 家</text>
+    </view>
+    <scroll-view class="partner-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
+      <view class="partner-row">
+        <view
+          wx:for="{{partners}}"
+          wx:key="key"
+          class="partner sw-tap"
+          data-label="{{item.label}}"
+          bindtap="onPending"
+        >
+          <image wx:if="{{item.logo}}" class="partner-logo" src="{{item.logo}}" mode="aspectFit" />
+          <view wx:else class="partner-mark">
+            <view class="i i-sm i-store-secondary"></view>
+          </view>
+          <text class="partner-label">{{item.label}}</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 7b. 商超到家 / 生活服务 / 数码办公 / 餐饮福利 ------------------------ -->
+    <view class="sw-inset segment-grid">
+      <view
+        wx:for="{{segments}}"
+        wx:key="key"
+        class="sw-card segment"
+        data-label="{{item.title}}"
+        bindtap="onPending"
+      >
+        <view class="segment-text">
+          <text class="segment-title">{{item.title}}</text>
+          <text class="segment-desc">{{item.desc}}</text>
+        </view>
+        <image wx:if="{{item.image}}" class="segment-image" src="{{item.image}}" mode="aspectFill" />
+        <view wx:else class="segment-mark">
+          <view class="i i-{{item.icon}}-brand"></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 8. 到店出示会员码 ---------------------------------------------------- -->
+    <view class="sw-inset">
+      <view class="membercode-cta sw-tap" bindtap="onOpenMemberCode">
+        <view class="membercode-cta-mark sw-membercode-mark"></view>
+        <view class="membercode-cta-text">
+          <text class="membercode-cta-title">{{memberCodeCta.title}}</text>
+          <text class="membercode-cta-desc">{{memberCodeCta.desc}}</text>
+        </view>
+        <view class="i i-chevron-right-muted"></view>
+      </view>
+    </view>
+
+    <!-- 9. 推荐商品 ---------------------------------------------------------- -->
+    <view class="section-head sw-inset">
+      <text class="sw-h3">企业专享推荐</text>
+    </view>
+    <view class="sw-inset product-grid">
+      <view
+        wx:for="{{recommendations}}"
+        wx:key="skuId"
+        class="sw-card product"
+        data-label="商品详情"
+        bindtap="onPending"
+      >
+        <image wx:if="{{item.image}}" class="product-image" src="{{item.image}}" mode="aspectFill" />
+        <!-- 商品图尚无正式素材；占位不伪装成完成品 -->
+        <view wx:else class="sw-slot product-slot">
+          <view class="i i-md i-image-off-muted"></view>
+          <text class="sw-slot-label">商品图待供图</text>
+        </view>
+        <view class="product-body">
+          <text class="product-title">{{item.title}}</text>
+          <view class="product-tag">{{item.tag}}</view>
+          <view class="product-price">
+            <text class="product-price-symbol">¥</text>
+            <text class="product-price-value">{{item.price}}</text>
+            <text wx:if="{{item.marketPrice}}" class="product-market">¥{{item.marketPrice}}</text>
+          </view>
+          <text class="product-source">来源：{{item.source}}</text>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 底栏与底部安全区留白 -->
+  <view class="tabbar-spacer"></view>
+</view>

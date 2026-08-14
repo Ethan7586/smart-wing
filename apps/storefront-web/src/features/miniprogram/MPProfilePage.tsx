@@ -12,10 +12,14 @@ export const MPProfilePage: React.FC = () => {
       <WeChatCapsule title="个人中心" />
 
       {/* Profile Header Header Box */}
-      <div className="bg-gradient-to-b from-[#143A8F] to-[#1F5EFF] text-white p-4 pt-2 shadow-sm space-y-3">
+      <div className="bg-gradient-to-b from-[var(--sw-brand-dark)] to-[var(--sw-brand)] text-white p-4 pt-2 shadow-sm space-y-3">
         {/* User Card */}
         <div className="flex items-center gap-3">
-          <img src={user.avatar} alt={user.name} className="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-md flex-shrink-0" />
+          {user.avatar ? (
+            <img src={user.avatar} alt={user.name} className="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-md flex-shrink-0" />
+          ) : (
+            <div className="w-14 h-14 rounded-full bg-white/20 text-white flex items-center justify-center text-xl font-black border-2 border-white/80 shadow-md flex-shrink-0">{user.name.slice(0, 1)}</div>
+          )}
           <div className="overflow-hidden space-y-1">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-black text-white">{user.name}</h2>
@@ -66,10 +70,10 @@ export const MPProfilePage: React.FC = () => {
         <div className="bg-white rounded-2xl p-3 shadow-xs border border-gray-100 space-y-3">
           <div className="flex items-center justify-between border-b border-gray-100 pb-2 text-xs">
             <h3 className="font-bold text-gray-900 flex items-center gap-1.5">
-              <Package className="w-4 h-4 text-[#1F5EFF]" />
+              <Package className="w-4 h-4 text-[var(--sw-brand)]" />
               <span>我的福利订单</span>
             </h3>
-            <button onClick={() => setMpPage('orders')} className="text-[10px] text-gray-400 hover:text-[#1F5EFF] flex items-center">
+            <button onClick={() => setMpPage('orders')} className="text-[10px] text-gray-400 hover:text-[var(--sw-brand)] flex items-center">
               <span>全部订单</span>
               <ChevronRight className="w-3 h-3" />
             </button>
@@ -77,7 +81,7 @@ export const MPProfilePage: React.FC = () => {
 
           <div className="grid grid-cols-4 gap-2 text-center text-xs">
             <button onClick={() => triggerPendingFeature('待付款订单', '查看待付款或待补额的企采订单。')} className="p-1 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer">
-              <div className="w-8 h-8 mx-auto rounded-full bg-blue-50 text-[#1F5EFF] flex items-center justify-center font-bold">
+              <div className="w-8 h-8 mx-auto rounded-full bg-blue-50 text-[var(--sw-brand)] flex items-center justify-center font-bold">
                 <Clock className="w-4 h-4" />
               </div>
               <div className="text-[10px] text-gray-600 mt-1 font-medium">待付款</div>
@@ -120,7 +124,7 @@ export const MPProfilePage: React.FC = () => {
                 <Ticket className="w-4 h-4 text-orange-500" />
                 <span>我的卡券包</span>
               </div>
-              <span className="text-[#1F5EFF] font-bold flex items-center text-[10px]">
+              <span className="text-[var(--sw-brand)] font-bold flex items-center text-[10px]">
                 <span>3 张可用</span>
                 <ChevronRight className="w-3.5 h-3.5 text-gray-300 ml-0.5" />
               </span>
@@ -179,7 +183,7 @@ export const MPProfilePage: React.FC = () => {
                 <ShieldCheck className="w-4 h-4 text-blue-600" />
                 <span>企业安全认证凭证</span>
               </div>
-              <span className="text-emerald-600 font-bold text-[10px]">已认证 &gt;</span>
+              <span className={`${user.phoneVerified ? 'text-emerald-600' : 'text-amber-600'} font-bold text-[10px]`}>{user.phoneVerified ? '手机已验证' : '手机待验证'} &gt;</span>
             </button>
           </div>
         </div>

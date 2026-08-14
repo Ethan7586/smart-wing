@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMall, LaptopPage } from '../../context/MallContext';
-import { Search, ShoppingCart, Building2, ChevronDown, User, CreditCard, Headphones, FileText, Sparkles, MapPin, Ticket, Zap, Gift, Menu, ShieldCheck } from 'lucide-react';
+import { Search, ShoppingCart, Building2, ChevronDown, User, CreditCard, Headphones, FileText, MapPin, Ticket, Zap, Gift, Menu, ShieldCheck } from 'lucide-react';
 
 interface LaptopHeaderProps {
   activeTab?: LaptopPage;
@@ -33,7 +33,7 @@ export const LaptopHeader: React.FC<LaptopHeaderProps> = ({ activeTab, onSelectT
   return (
     <header className="w-full bg-white border-b border-gray-200 sticky top-[48px] z-40 font-sans shadow-xs">
       {/* 第一层：企业身份、客服与账户快捷入口 (高度 26px) */}
-      <div className="bg-[#143A8F] text-white text-[11px] h-[26px] px-3 sm:px-4 flex items-center">
+      <div className="bg-[var(--sw-brand-dark)] text-white text-[11px] h-[26px] px-3 sm:px-4 flex items-center">
         <div className="max-w-[1240px] mx-auto w-full flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -53,7 +53,7 @@ export const LaptopHeader: React.FC<LaptopHeaderProps> = ({ activeTab, onSelectT
                         switchMall(m.id);
                         setShowMallMenu(false);
                       }}
-                      className={`w-full text-left px-3 py-1.5 hover:bg-blue-50 flex items-center justify-between cursor-pointer ${m.id === currentMall.id ? 'font-bold text-[#1F5EFF] bg-blue-50/60' : ''}`}
+                      className={`w-full text-left px-3 py-1.5 hover:bg-blue-50 flex items-center justify-between cursor-pointer ${m.id === currentMall.id ? 'font-bold text-[var(--sw-brand)] bg-blue-50/60' : ''}`}
                     >
                       <span className="truncate">{m.enterpriseName}</span>
                       <span className="text-[10px] text-gray-400">{m.logoText}</span>
@@ -92,9 +92,9 @@ export const LaptopHeader: React.FC<LaptopHeaderProps> = ({ activeTab, onSelectT
         <div className="max-w-[1240px] mx-auto w-full flex items-center justify-between gap-4">
           {/* Logo */}
           <div onClick={() => handleNavClick('home-1366')} className="flex items-center gap-2 cursor-pointer select-none flex-shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#143A8F] to-[#1F5EFF] flex items-center justify-center text-white font-black text-sm shadow-xs">翼</div>
+            <img src="/icon.svg" alt="" className="h-8 w-8 rounded-lg shadow-xs" />
             <div>
-              <div className="font-extrabold text-sm tracking-tight text-[#143A8F] leading-none flex items-center gap-1">
+              <div className="font-extrabold text-sm tracking-tight text-[var(--sw-brand-dark)] leading-none flex items-center gap-1">
                 <span>智慧翼企业福利商城</span>
                 <span className="text-[9px] bg-red-100 text-[#E5484D] font-bold px-1 py-0.2 rounded">笔记本专版</span>
               </div>
@@ -104,7 +104,7 @@ export const LaptopHeader: React.FC<LaptopHeaderProps> = ({ activeTab, onSelectT
 
           {/* 搜索框 & 热门搜索 */}
           <form onSubmit={handleSearch} className="flex-1 max-w-[500px] relative">
-            <div className="flex items-center border-2 border-[#1F5EFF] rounded-md overflow-hidden bg-white h-[32px] shadow-2xs">
+            <div className="flex items-center border-2 border-[var(--sw-brand)] rounded-md overflow-hidden bg-white h-[32px] shadow-2xs">
               <input
                 type="text"
                 value={searchKw}
@@ -112,7 +112,7 @@ export const LaptopHeader: React.FC<LaptopHeaderProps> = ({ activeTab, onSelectT
                 placeholder="搜索员工福利商品/电影卡/餐券/生活缴费..."
                 className="flex-1 px-3 text-xs text-gray-800 placeholder-gray-400 outline-none bg-transparent"
               />
-              <button type="submit" className="bg-[#1F5EFF] hover:bg-blue-700 text-white font-bold px-4 h-full flex items-center gap-1 text-xs transition-colors cursor-pointer">
+              <button type="submit" className="bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-bold px-4 h-full flex items-center gap-1 text-xs transition-colors cursor-pointer">
                 <Search className="w-3.5 h-3.5" />
                 <span>搜索</span>
               </button>
@@ -123,10 +123,10 @@ export const LaptopHeader: React.FC<LaptopHeaderProps> = ({ activeTab, onSelectT
           <div className="flex items-center gap-3 flex-shrink-0">
             {/* 福利卡余额卡片 */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-md px-2.5 py-1 flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-[#1F5EFF]" />
+              <CreditCard className="w-4 h-4 text-[var(--sw-brand)]" />
               <div>
                 <div className="text-[9px] text-gray-500 leading-none">福利卡可用余额</div>
-                <div className="text-xs font-black text-[#143A8F] leading-tight">¥{user.welfareBalance.toFixed(2)}</div>
+                <div className="text-xs font-black text-[var(--sw-brand-dark)] leading-tight">¥{user.welfareBalance.toFixed(2)}</div>
               </div>
             </div>
 
@@ -142,9 +142,9 @@ export const LaptopHeader: React.FC<LaptopHeaderProps> = ({ activeTab, onSelectT
             {/* 购物车 */}
             <button
               onClick={() => handleNavClick('cart')}
-              className="relative bg-white border border-gray-300 hover:border-[#1F5EFF] text-gray-700 hover:text-[#1F5EFF] font-bold px-3 py-1.5 rounded-md flex items-center gap-1.5 text-xs transition-all cursor-pointer shadow-2xs"
+              className="relative bg-white border border-gray-300 hover:border-[var(--sw-brand)] text-gray-700 hover:text-[var(--sw-brand)] font-bold px-3 py-1.5 rounded-md flex items-center gap-1.5 text-xs transition-all cursor-pointer shadow-2xs"
             >
-              <ShoppingCart className="w-4 h-4 text-[#1F5EFF]" />
+              <ShoppingCart className="w-4 h-4 text-[var(--sw-brand)]" />
               <span>购物车</span>
               {cartCount > 0 && <span className="bg-[#E5484D] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full min-w-[16px] text-center">{cartCount}</span>}
             </button>
@@ -153,11 +153,11 @@ export const LaptopHeader: React.FC<LaptopHeaderProps> = ({ activeTab, onSelectT
       </div>
 
       {/* 第三层：商品分类触发器与紧凑主导航栏 (高度 32px) */}
-      <div className="bg-[#143A8F] text-white text-xs h-[32px] px-3 sm:px-4 flex items-center">
+      <div className="bg-[var(--sw-brand-dark)] text-white text-xs h-[32px] px-3 sm:px-4 flex items-center">
         <div className="max-w-[1240px] mx-auto w-full flex items-center justify-between">
           <div className="flex items-center gap-1">
             {/* 分类菜单标头 */}
-            <div onClick={() => handleNavClick('category')} className="w-[200px] bg-[#1F5EFF] font-bold h-[32px] flex items-center justify-between px-3 cursor-pointer select-none text-white hover:bg-blue-600 transition-colors">
+            <div onClick={() => handleNavClick('category')} className="w-[200px] bg-[var(--sw-brand)] font-bold h-[32px] flex items-center justify-between px-3 cursor-pointer select-none text-white hover:bg-blue-600 transition-colors">
               <span className="flex items-center gap-1.5 text-xs">
                 <Menu className="w-4 h-4" />
                 <span>全部分类</span>

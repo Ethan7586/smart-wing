@@ -1,4 +1,3 @@
-import { MOCK_CATEGORIES as SOURCE_CATEGORIES, MOCK_ORDERS as SOURCE_ORDERS, MOCK_PRODUCTS as SOURCE_PRODUCTS } from '../mock/data';
 import type { Category, Order, OrderItem, OrderStatus, Product } from '../types';
 
 export type FrontendProduct = Product & {
@@ -89,14 +88,80 @@ export function toFrontendProducts(products: Product[]): FrontendProduct[] {
   return products.map(toFrontendProduct);
 }
 
-export const MOCK_PRODUCTS: FrontendProduct[] = toFrontendProducts(SOURCE_PRODUCTS);
+const CATEGORY_ICONS: Record<string, string> = {
+  cat_food: 'UtensilsCrossed',
+  cat_appliance: 'Tv',
+  cat_digital: 'Laptop',
+  cat_home: 'Home',
+  cat_personal: 'Sparkles',
+  cat_movie: 'Film',
+  cat_virtual: 'CreditCard',
+  cat_supermarket: 'ShoppingBag',
+  cat_life: 'Store',
+  cat_welfare_zone: 'Gift',
+};
 
-export const MOCK_CATEGORIES: FrontendCategory[] = SOURCE_CATEGORIES.map((category) => ({
-  ...category,
-  icon: category.iconName,
-  description: category.hotKeywords.join(' · '),
-  subCategories: category.children ?? [],
-}));
+/**
+ * Navigation categories are derived from the products returned by the API.
+ * A category with no database-backed product therefore cannot appear in the
+ * production storefront as an apparently stocked channel.
+ */
+export function toFrontendCategories(products: Product[]): FrontendCategory[] {
+  const categories = new Map<string, { name: string; titles: Set<string>; keywords: Set<string> }>();
+
+  products.forEach((product) => {
+    const category = categories.get(product.categoryId) ?? {
+      name: product.categoryName,
+      titles: new Set<string>(),
+      keywords: new Set<string>(),
+    };
+    category.titles.add(product.title);
+    [product.brand, ...product.tags].filter(Boolean).forEach((keyword) => category.keywords.add(keyword));
+    categories.set(product.categoryId, category);
+  });
+
+  return [...categories.entries()].map(([id, category]) => {
+    const hotKeywords = [...category.titles, ...category.keywords].slice(0, 3);
+    const iconName = CATEGORY_ICONS[id] ?? 'Gift';
+    return {
+      id,
+      name: category.name,
+      iconName,
+      hotKeywords,
+      children: [],
+      icon: iconName,
+      description: hotKeywords.join(' · '),
+      subCategories: [],
+    };
+  });
+}
+
+function productFromOrderSnapshot(order: Order, item: OrderItem): FrontendProduct {
+  return toFrontendProduct({
+    id: item.productId,
+    title: item.productTitle,
+    subtitle: '历史订单商品快照',
+    images: item.productImage ? [item.productImage] : [],
+    priceMarket: item.price,
+    priceMall: item.price,
+    priceWelfare: item.price,
+    categoryId: 'order_snapshot',
+    categoryName: '历史订单',
+    brand: order.supplierName,
+    tags: [],
+    supplierId: order.supplierId,
+    supplierName: order.supplierName,
+    supplierType: order.supplierType,
+    itemType: item.itemType,
+    allowedAccounts: [],
+    stock: 0,
+    salesCount: 0,
+    rating: 0,
+    reviewCount: 0,
+    deliverySla: '以订单履约记录为准',
+    purchasable: false,
+  });
+}
 
 export function toFrontendOrders(orders: Order[], products: FrontendProduct[]): FrontendOrder[] {
   return orders.map((order) => ({
@@ -107,7 +172,7 @@ export function toFrontendOrders(orders: Order[], products: FrontendProduct[]): 
     welfareDeduction: order.payment.welfareDeducted,
     statusText: statusText(order.status),
     items: order.items.map((item) => {
-      const product = products.find((candidate) => candidate.id === item.productId) ?? products[0] ?? MOCK_PRODUCTS[0];
+      const product = products.find((candidate) => candidate.id === item.productId) ?? productFromOrderSnapshot(order, item);
       return {
         ...item,
         product: {
@@ -131,5 +196,3 @@ export function toFrontendOrders(orders: Order[], products: FrontendProduct[]): 
     }),
   }));
 }
-
-export const MOCK_ORDERS: FrontendOrder[] = toFrontendOrders(SOURCE_ORDERS, MOCK_PRODUCTS);

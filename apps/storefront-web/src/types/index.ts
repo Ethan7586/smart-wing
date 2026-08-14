@@ -75,6 +75,8 @@ export interface Product {
   isHotRedeem?: boolean;
   isNewArrival?: boolean;
   isTest?: boolean;
+  purchasable?: boolean;
+  qualificationReason?: string;
   specs?: ProductSpec[];
   params?: ProductParam[];
   descriptionHtml?: string;
@@ -260,6 +262,9 @@ export interface UserProfile {
   welfareBalance: number;
   mealBalance: number;
   couponCount: number;
+  assuranceLevel: 'account' | 'phone';
+  phoneVerified: boolean;
+  paymentEligible: boolean;
 
   // 预留分销商字段
   distributorId?: string;
