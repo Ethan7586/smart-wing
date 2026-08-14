@@ -74,7 +74,9 @@ export const MPDetailPage: React.FC = () => {
         <p className="text-xs text-gray-500">{product.subtitle}</p>
 
         <div className="flex items-center gap-2 pt-1 text-[10px]">
-          <span className="bg-blue-50 text-[var(--sw-brand)] font-bold px-2 py-0.5 rounded border border-blue-100">{product.itemType === 'virtual_coupon' ? '虚拟电子码' : product.itemType === 'nearby_store' ? '到店扫码核销' : '实物包邮配送'}</span>
+          <span className="bg-blue-50 text-[var(--sw-brand)] font-bold px-2 py-0.5 rounded border border-blue-100">
+            {product.itemType === 'virtual_coupon' ? '虚拟电子码' : product.itemType === 'nearby_store' ? '到店扫码核销' : '实物包邮配送'}
+          </span>
           <span className="text-gray-400">品牌: {product.brand || '智慧翼精选'}</span>
           <span className="text-gray-400">库存: {product.stockCount} 件</span>
         </div>

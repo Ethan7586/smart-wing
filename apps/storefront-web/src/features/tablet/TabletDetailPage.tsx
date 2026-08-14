@@ -180,7 +180,10 @@ export const TabletDetailPage: React.FC = () => {
             加入购物车 ({cartCount})
           </button>
 
-          <button onClick={handleBuyNow} className="flex-1 bg-gradient-to-r from-[var(--sw-brand)] to-[var(--sw-brand-dark)] hover:opacity-95 text-white font-black text-xs py-3 rounded-2xl shadow-md transition-all cursor-pointer min-h-[48px]">
+          <button
+            onClick={handleBuyNow}
+            className="flex-1 bg-gradient-to-r from-[var(--sw-brand)] to-[var(--sw-brand-dark)] hover:opacity-95 text-white font-black text-xs py-3 rounded-2xl shadow-md transition-all cursor-pointer min-h-[48px]"
+          >
             福利卡全额兑换
           </button>
         </div>

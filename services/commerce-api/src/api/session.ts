@@ -109,13 +109,7 @@ export async function createTrackedSessionCookie(request: Request, env: WorkerEn
   return cookie;
 }
 
-export async function createTrackedMiniappSessionToken(
-  request: Request,
-  env: WorkerEnv,
-  employeeNo: string,
-  mallCode: string,
-  options: Omit<SessionOptions, 'target'>
-): Promise<{ accessToken: string; expiresIn: number }> {
+export async function createTrackedMiniappSessionToken(request: Request, env: WorkerEnv, employeeNo: string, mallCode: string, options: Omit<SessionOptions, 'target'>): Promise<{ accessToken: string; expiresIn: number }> {
   const secret = miniappSigningSecret(env);
   if (!secret || secret.length < 32) throw new Error('MINIAPP_SESSION_SIGNING_KEY_NOT_CONFIGURED');
   const sessionId = crypto.randomUUID();
@@ -209,12 +203,7 @@ async function readMiniappSessionToken(token: string, env: WorkerEnv, target: Se
   const [version, encodedPayload, encodedSignature, extra] = token.split('.');
   if (version !== 'swm1' || !encodedPayload || !encodedSignature || extra) return null;
   try {
-    const valid = await crypto.subtle.verify(
-      'HMAC',
-      await signingKey(secret),
-      Uint8Array.from(fromBase64Url(encodedSignature)).buffer,
-      new TextEncoder().encode(encodedPayload)
-    );
+    const valid = await crypto.subtle.verify('HMAC', await signingKey(secret), Uint8Array.from(fromBase64Url(encodedSignature)).buffer, new TextEncoder().encode(encodedPayload));
     if (!valid) return null;
     const payload = JSON.parse(new TextDecoder().decode(fromBase64Url(encodedPayload))) as SessionPayload;
     if (

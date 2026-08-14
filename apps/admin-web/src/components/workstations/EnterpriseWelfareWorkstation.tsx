@@ -122,7 +122,10 @@ export const EnterpriseWelfareWorkstation: React.FC<EnterpriseWelfareProps> = ({
               </div>
 
               <div className="flex items-center gap-2">
-                <button onClick={handleTriggerHrSync} className="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[var(--sw-brand)] border border-blue-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
+                <button
+                  onClick={handleTriggerHrSync}
+                  className="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[var(--sw-brand)] border border-blue-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>HR 组织架构同步</span>
                 </button>

@@ -58,10 +58,7 @@ function resolveSizeClass(force) {
 
   var rootStyle = '';
   if (isTablet) {
-    rootStyle =
-      '--sw-text-scale: ' + scale.toFixed(4) + '; ' +
-      '--sw-space-scale: ' + scale.toFixed(4) + '; ' +
-      '--sw-content-width: ' + contentWidth + 'px;';
+    rootStyle = '--sw-text-scale: ' + scale.toFixed(4) + '; ' + '--sw-space-scale: ' + scale.toFixed(4) + '; ' + '--sw-content-width: ' + contentWidth + 'px;';
   }
 
   cached = {

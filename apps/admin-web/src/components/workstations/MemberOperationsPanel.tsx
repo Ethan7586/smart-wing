@@ -1,6 +1,17 @@
 import React, { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, ClipboardCopy, FileUp, History, Link2, Plus, RefreshCw, Search } from 'lucide-react';
-import { cachedMemberOperations, createInvitation, createMember, disableInvitation, importMembers, loadMemberOperations, updateMemberProfile, type MemberOperationsData, type MemberProfile, type NewMember } from '../../services/memberOperations';
+import {
+  cachedMemberOperations,
+  createInvitation,
+  createMember,
+  disableInvitation,
+  importMembers,
+  loadMemberOperations,
+  updateMemberProfile,
+  type MemberOperationsData,
+  type MemberProfile,
+  type NewMember,
+} from '../../services/memberOperations';
 
 interface Props {
   active: boolean;
@@ -188,7 +199,9 @@ function Members({
             className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs outline-none focus:border-blue-400"
           />
         </label>
-        <span className="text-[11px] text-slate-400">共 {filtered.length} 人 · 每页 {pageSize} 人</span>
+        <span className="text-[11px] text-slate-400">
+          共 {filtered.length} 人 · 每页 {pageSize} 人
+        </span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
@@ -233,7 +246,9 @@ function Members({
           <button disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-lg border p-2 disabled:opacity-40" aria-label="上一页">
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span>第 {currentPage}/{pageCount} 页</span>
+          <span>
+            第 {currentPage}/{pageCount} 页
+          </span>
           <button disabled={currentPage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))} className="rounded-lg border p-2 disabled:opacity-40" aria-label="下一页">
             <ChevronRight className="h-4 w-4" />
           </button>

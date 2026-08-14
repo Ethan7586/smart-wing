@@ -26,14 +26,14 @@
 
 ### 1.1 `apps/storefront-web/src`
 
-| 项目 | 实测 | VI 规定 |
-| --- | ---: | --- |
-| 硬编码 hex | **166 处** | 应为 0，一律 `var(--sw-*)` |
-| `var(--sw-*)` 使用 | 509 处 | —— |
-| `#FF7A00`（橙） | **54 处 / 24 个文件** | 不在 VI 调色板内 |
-| `#E5484D`（红） | **53 处** | 不在 VI 调色板内（VI 风险色是 `#DC2626`） |
-| 字号 < 12px | **435 处**（10px×227、11px×142、9px×65、8px×1） | 字号阶梯下限 12px |
-| `font-black` / `font-extrabold` | **199 处** | 字重上限 700 |
+| 项目                            |                                            实测 | VI 规定                                   |
+| ------------------------------- | ----------------------------------------------: | ----------------------------------------- |
+| 硬编码 hex                      |                                      **166 处** | 应为 0，一律 `var(--sw-*)`                |
+| `var(--sw-*)` 使用              |                                          509 处 | ——                                        |
+| `#FF7A00`（橙）                 |                           **54 处 / 24 个文件** | 不在 VI 调色板内                          |
+| `#E5484D`（红）                 |                                       **53 处** | 不在 VI 调色板内（VI 风险色是 `#DC2626`） |
+| 字号 < 12px                     | **435 处**（10px×227、11px×142、9px×65、8px×1） | 字号阶梯下限 12px                         |
+| `font-black` / `font-extrabold` |                                      **199 处** | 字重上限 700                              |
 
 Tailwind 色系使用次数：
 
@@ -48,11 +48,11 @@ orange 62 · purple 30 · green 25 · indigo 21 · slate 12 · cyan 12 · rose 1
 
 ### 1.2 令牌分叉（已定位到单一原因）
 
-| 文件 | `shadow-card` | 是否忠实于 `tokens.json` |
-| --- | --- | --- |
-| `packages/design-system/src/tokens.json` | `elevation.card` = x0 / y1 / blur4 / α0.04 | 母版 |
-| `apps/wechat-miniapp/.../styles/tokens.wxss` | `0 2rpx 8rpx rgba(7,24,47,0.04)` | ✅ 换算等价（1pt = 2rpx） |
-| `packages/design-system/src/tokens.css` | `0 1px 2px 6% + 0 6px 18px 5%` 双层 | ❌ 偏离 |
+| 文件                                         | `shadow-card`                              | 是否忠实于 `tokens.json`  |
+| -------------------------------------------- | ------------------------------------------ | ------------------------- |
+| `packages/design-system/src/tokens.json`     | `elevation.card` = x0 / y1 / blur4 / α0.04 | 母版                      |
+| `apps/wechat-miniapp/.../styles/tokens.wxss` | `0 2rpx 8rpx rgba(7,24,47,0.04)`           | ✅ 换算等价（1pt = 2rpx） |
+| `packages/design-system/src/tokens.css`      | `0 1px 2px 6% + 0 6px 18px 5%` 双层        | ❌ 偏离                   |
 
 `overlay` 分歧更大：`tokens.json` 是 **y = −2px（向上）**，`tokens.css` 是 **y = 16px（向下）**，透明度翻倍。
 
@@ -110,6 +110,7 @@ pages/profile/              16 行    ⬜ 阶段 5
 **为什么**：`tokens.css` 是手写的，所以它必然漂移。修一次数值只解决今天的问题。
 
 **改动**
+
 - 新建或扩展生成器，从 `packages/design-system/src/tokens.json` 生成 `packages/design-system/src/tokens.css`
 - 参考实现：`scripts/build-miniapp-assets.mjs`（同一套读取逻辑，输出目标不同；Web 用 px，小程序用 rpx）
 - 阴影必须由 `tokens.json` 的 `elevation` 推导，不得保留手写值
@@ -117,6 +118,7 @@ pages/profile/              16 行    ⬜ 阶段 5
 - `package.json` 加 `build:web-tokens`，并纳入 `quality`
 
 **验收**
+
 1. `tokens.css` 首行是 `/* GENERATED`
 2. `--sw-shadow-card` 与 `elevation.card` 换算一致
 3. `--sw-shadow-overlay` 的 y 值为负（与母版一致）
@@ -134,6 +136,7 @@ pages/profile/              16 行    ⬜ 阶段 5
 **为什么**：这是整个计划的关键。批量替换 435 处字号而没有守门人，等于什么都没做 —— 几周内会涨回来。
 
 **改动**
+
 - 以 `scripts/check-miniapp-vi.mjs` 为模板，新建 `scripts/check-vi.mjs`，覆盖 `apps/storefront-web`、`apps/admin-web`、`apps/auth-web`
 - 规则：
   | 规则 | 拦什么 |
@@ -154,6 +157,7 @@ pages/profile/              16 行    ⬜ 阶段 5
 - 纳入 `npm run quality`
 
 **验收**
+
 1. 首次运行通过，生成 baseline，记录约 166 hex / 435 字号 / 199 字重
 2. 故意在任意 `.tsx` 加一处 `#123456`，运行必须失败
 3. 删掉任意一处既有违规，运行通过且 baseline 自动下降
@@ -180,6 +184,7 @@ pages/profile/              16 行    ⬜ 阶段 5
 **已知线索**：`#FF7A00` 分布在 **24 个文件**，其中包含 `HeaderBar.tsx`、`MobileBottomNav.tsx`、`ProductCard.tsx`、`QuickViewModal.tsx`、`ToastContainer.tsx` 等**框架级共享组件**。运营活动色通常不会出现在导航栏和 Toast 里，因此**大概率是历史原型带入的第二品牌色，而非甲方指定活动色**。
 
 **执行方要做的**
+
 1. 打开 `apps/storefront-web/src/components/common/ProductCard.tsx` 与 `HeaderBar.tsx`，确认这两色的实际语义（促销标签？主按钮？强调文字？）
 2. 写成一页说明交 Ethan 裁决，**不要自行决定**
 3. 两种结果的处理方式：
@@ -197,6 +202,7 @@ pages/profile/              16 行    ⬜ 阶段 5
 **这不是"向小程序看齐"，是 Web 当前处于违规状态。**
 
 **改动**
+
 - `apps/storefront-web/src/components/common/MobileBottomNav.tsx`
 - 五栏固定为 `首页 / 分类 / 会员码 / 订单 / 我的`，与 `tokens.json` 的 `wingCode.navigation` 逐字一致
 - 中央会员码：白色圆形承载、品牌蓝图标、上浮、克制阴影。尺寸取 `mobile-platforms.json` 的 iOS/Android 档位
@@ -204,6 +210,7 @@ pages/profile/              16 行    ⬜ 阶段 5
 - 会员码图标使用 `packages/design-system/src/brand/wing-code-symbol.svg`，**不得用通用图标库代替**
 
 **验收**
+
 1. 五栏文案与 `wingCode.navigation` 完全一致
 2. 购物车在四类页面均可见且有角标
 3. `check:vi` 通过
@@ -238,6 +245,7 @@ pages/profile/              16 行    ⬜ 阶段 5
 **范围**：动态会员码 / 数字会员卡 / 会员码安全状态。
 
 **硬要求**（`docs/mobile/WING-CODE-WECHAT-MINIAPP-MASTER-PLAN.md`）
+
 - 二维码与条形码并存，45 秒倒计时
 - 五种状态齐全：正常 / 手机未认证 / 账号冻结 / 会员码停用 / 核验失败。每种**必须同时有图标、文字、颜色**，不得只靠颜色
 - 码内不得出现姓名、手机号、企业名、余额、消费记录
@@ -253,6 +261,7 @@ pages/profile/              16 行    ⬜ 阶段 5
 Web 用 `__Host-` Cookie 会话，小程序没有 cookie 容器，因此账号密码登录同样进不来。
 
 **范围**
+
 - 服务端签发短期 Bearer 令牌，绑定 member / session / device / authzVersion
 - `apps/wechat-miniapp/miniprogram/utils/api.js` 接线（当前 `BASE_URL` 为空）
 - MP 后台配置 request 合法域名白名单（HTTPS）
@@ -268,6 +277,7 @@ Web 用 `__Host-` Cookie 会话，小程序没有 cookie 容器，因此账号�
 **现状**：`apps/storefront-web` 的 10 个业务页面没有一个直接调用 `/api/v1`，全部经由 `MallContext → mallService → MallState → localStorage + MOCK 数据`。`useProductionSync` 只覆盖 user/余额/mall/orders/ledger/products 六项；卡券、售后、收藏、地址仍由 localStorage 承担。`/home` 请求失败时 `setSessionStatus('guest')`，页面继续渲染 `MOCK_USER` 的余额与 `MOCK_ORDERS` 的订单，**无任何降级提示**。
 
 **要求**
+
 - API 失败必须呈现显式错误态，**不得静默回落到演示数据**
 - 参考小程序的做法：`data/demo.js` 的 `IS_DEMO` 标志 + 页面顶部演示横幅
 - `useProductionSync` 未覆盖的四类数据（卡券/售后/收藏/地址）要么接线，要么明确标注为演示
@@ -295,6 +305,7 @@ F3 独立进行，不阻塞上述任何一项，但影响系统可信度
 ```
 
 **依赖说明**
+
 - T2 必须早于任何批量清理，否则清理会回潮
 - D1 必须早于任何配色改动
 - D3 是唯一被外部资源阻塞的任务，不要让它挡住 F1/F2

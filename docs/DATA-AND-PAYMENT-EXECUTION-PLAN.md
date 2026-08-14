@@ -24,14 +24,14 @@
 
 ### 1.1 已经建好的
 
-| 模块 | 文件 | 状态 |
-| --- | --- | --- |
-| 微信登录 | `services/commerce-api/src/api/wechatAuthRoutes.ts` | 导出 `handleWechatSession` / `handleWechatBind` / `exchangeWechatCode` |
-| 微信支付 | `wechatPayClient / Config / Crypto / Models / Notification / Signature / PaymentRoutes / PaymentNotificationRoute` + 测试 | 导出 `handleWechatPrepay` / `handleWechatPaymentStatus` / `handleOrderByNumber` |
-| 令牌会话 | `services/commerce-api/src/api/session.ts:165` | **已支持 `Authorization: Bearer`** |
-| 小程序侧 | `utils/catalogApi.js`、`utils/wechatPayment.js`、`utils/api.js` | 已调 `/auth/wechat/session`、`/auth/wechat/bind`、`/products`、`/orders`、`/orders/by-number/` |
-| 数据库 | `20260814130000_wechat_order_payment_compliance.sql` | 已存在 |
-| 商品目录 | `api_catalog_qualified` RPC | 资格过滤在服务端完成 |
+| 模块     | 文件                                                                                                                      | 状态                                                                                           |
+| -------- | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 微信登录 | `services/commerce-api/src/api/wechatAuthRoutes.ts`                                                                       | 导出 `handleWechatSession` / `handleWechatBind` / `exchangeWechatCode`                         |
+| 微信支付 | `wechatPayClient / Config / Crypto / Models / Notification / Signature / PaymentRoutes / PaymentNotificationRoute` + 测试 | 导出 `handleWechatPrepay` / `handleWechatPaymentStatus` / `handleOrderByNumber`                |
+| 令牌会话 | `services/commerce-api/src/api/session.ts:165`                                                                            | **已支持 `Authorization: Bearer`**                                                             |
+| 小程序侧 | `utils/catalogApi.js`、`utils/wechatPayment.js`、`utils/api.js`                                                           | 已调 `/auth/wechat/session`、`/auth/wechat/bind`、`/products`、`/orders`、`/orders/by-number/` |
+| 数据库   | `20260814130000_wechat_order_payment_compliance.sql`                                                                      | 已存在                                                                                         |
+| 商品目录 | `api_catalog_qualified` RPC                                                                                               | 资格过滤在服务端完成                                                                           |
 
 **小程序没有 cookie 容器这堵墙已经拆掉了** —— `session.ts` 认 Bearer 令牌，`wechatAuthRoutes` 会签发 miniapp 会话令牌。
 
@@ -45,6 +45,7 @@
 > - `routes/storefrontRouter.ts`：订单查询、预支付、支付状态
 >
 > 正确复核方式：
+>
 > ```bash
 > grep -R -nE "auth/wechat|payments/wechat|payment-status|by-number" services/commerce-api/src/api/routes
 > git status --short -- services/commerce-api/src/api/routes services/commerce-api/src/api/wechat\*
@@ -54,13 +55,13 @@
 
 ### 1.3 其余缺口
 
-| 缺口 | 影响 |
-| --- | --- |
-| `member-code` 服务端完全不存在 | 会员码页只能显示标注过的模拟码 |
+| 缺口                                                                   | 影响                                                     |
+| ---------------------------------------------------------------------- | -------------------------------------------------------- |
+| `member-code` 服务端完全不存在                                         | 会员码页只能显示标注过的模拟码                           |
 | `apps/storefront-web/src/services/mallState.ts` 仍有 **20 处 `MOCK_`** | 主 Shop 与小程序不同源；`/home` 失败会静默回落到演示数据 |
-| 商户号 / API v3 密钥 / 证书 / 私钥 | 未配置则支付无法真实发起 |
-| request 合法域名白名单 | 未配置则小程序请求被微信拦截 |
-| **开放平台 UnionID** | 见第 4 节，**这是唯一会改数据库设计的决定** |
+| 商户号 / API v3 密钥 / 证书 / 私钥                                     | 未配置则支付无法真实发起                                 |
+| request 合法域名白名单                                                 | 未配置则小程序请求被微信拦截                             |
+| **开放平台 UnionID**                                                   | 见第 4 节，**这是唯一会改数据库设计的决定**              |
 
 ---
 
@@ -233,11 +234,11 @@ WECHAT_PAY_NOTIFY_URL        https://<域名>/api/v1/payments/wechat/notify
 
 **P-3｜两端各自的 openid 来源**
 
-| 端 | 换 openid 的方式 | AppID |
-| --- | --- | --- |
-| 小程序 | `wx.login` → `code2Session` | `wx4df4137881a1d2bc` |
-| 主 Shop（微信内） | 网页授权 `snsapi_base` → `code` 换 openid | `wxbcbec8d29708e1c4` |
-| 主 Shop（微信外） | **无法 JSAPI 支付** | 走 Native 扫码或提示在微信内打开 |
+| 端                | 换 openid 的方式                          | AppID                            |
+| ----------------- | ----------------------------------------- | -------------------------------- |
+| 小程序            | `wx.login` → `code2Session`               | `wx4df4137881a1d2bc`             |
+| 主 Shop（微信内） | 网页授权 `snsapi_base` → `code` 换 openid | `wxbcbec8d29708e1c4`             |
+| 主 Shop（微信外） | **无法 JSAPI 支付**                       | 走 Native 扫码或提示在微信内打开 |
 
 最后一行常被忽略：**在电脑浏览器打开的主 Shop 无法用 JSAPI**，必须另有方案或明确提示。
 
@@ -288,8 +289,8 @@ P-1 路由注册（半天）
 
 ## 7. 交给 Ethan 的三个决定
 
-| # | 事项 | 不定的后果 |
-| --- | --- | --- |
-| 1 | **开放平台 UnionID 办不办** | 同一员工在两端变成两个 Member，两份余额与订单。**越晚定，数据库改动越大** |
-| 2 | 商户号与 API v3 全套凭据 | 支付无法真实发起，只能停在模拟 |
-| 3 | 微信外访问主 Shop 的支付方案 | 电脑浏览器用户无法付款 |
+| #   | 事项                         | 不定的后果                                                                |
+| --- | ---------------------------- | ------------------------------------------------------------------------- |
+| 1   | **开放平台 UnionID 办不办**  | 同一员工在两端变成两个 Member，两份余额与订单。**越晚定，数据库改动越大** |
+| 2   | 商户号与 API v3 全套凭据     | 支付无法真实发起，只能停在模拟                                            |
+| 3   | 微信外访问主 Shop 的支付方案 | 电脑浏览器用户无法付款                                                    |

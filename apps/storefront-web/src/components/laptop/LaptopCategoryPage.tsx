@@ -142,7 +142,10 @@ export const LaptopCategoryPage: React.FC<LaptopCategoryPageProps> = ({ onSelect
             <div className="bg-white border border-gray-200 rounded-lg p-2.5 shadow-2xs flex items-center justify-between flex-wrap gap-2 text-xs">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="font-bold text-gray-500 mr-1">排序规则:</span>
-                <button onClick={() => setSortBy('default')} className={`px-3 py-1 rounded font-bold cursor-pointer transition-colors ${sortBy === 'default' ? 'bg-[var(--sw-brand)] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+                <button
+                  onClick={() => setSortBy('default')}
+                  className={`px-3 py-1 rounded font-bold cursor-pointer transition-colors ${sortBy === 'default' ? 'bg-[var(--sw-brand)] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                >
                   综合排序
                 </button>
                 <button onClick={() => setSortBy('sales')} className={`px-3 py-1 rounded font-bold cursor-pointer transition-colors ${sortBy === 'sales' ? 'bg-[var(--sw-brand)] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>

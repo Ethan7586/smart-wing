@@ -22,9 +22,7 @@ export function decide(membership: Membership, permission: Permission, resourceS
   if (membership.deniedPermissions?.includes(permission)) return { allowed: false, reason: 'PERMISSION_DENIED' };
   if (!membership.permissions.includes(permission)) return { allowed: false, reason: 'PERMISSION_MISSING' };
   const tenantMismatch = membership.context.tenantId !== resourceScope.tenantId;
-  const binding = membership.scopeBindings.find(
-    (candidate) => scopeMatches(candidate, membership, resourceScope) && (!tenantMismatch || isCrossTenantHierarchyBinding(candidate))
-  );
+  const binding = membership.scopeBindings.find((candidate) => scopeMatches(candidate, membership, resourceScope) && (!tenantMismatch || isCrossTenantHierarchyBinding(candidate)));
   // A cross-tenant decision is only possible through a server-validated global
   // hierarchy binding. Tenant and lower-level bindings remain hard isolated.
   if (tenantMismatch && !isCrossTenantHierarchyBinding(binding)) return { allowed: false, reason: 'TENANT_MISMATCH' };

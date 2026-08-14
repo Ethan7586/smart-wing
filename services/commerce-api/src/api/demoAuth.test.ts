@@ -4,9 +4,7 @@ import { getDemoAccounts, resolveDemoMembership, verifyDemoPassword } from './de
 describe('role-based public test account roster', () => {
   it('exposes all 25 named accounts only in test mode', () => {
     const accounts = getDemoAccounts({ APP_ENV: 'test', AUTH_MODE: 'test' });
-    const expected = ['buyer', 'seller', 'ops', 'cs', 'admin'].flatMap((prefix) =>
-      Array.from({ length: 5 }, (_, index) => `${prefix}${String(index + 1).padStart(3, '0')}`)
-    );
+    const expected = ['buyer', 'seller', 'ops', 'cs', 'admin'].flatMap((prefix) => Array.from({ length: 5 }, (_, index) => `${prefix}${String(index + 1).padStart(3, '0')}`));
 
     expect(expected.every((username) => accounts.some((account) => account.username === username))).toBe(true);
     expect(new Set(accounts.map((account) => account.username)).size).toBe(accounts.length);
@@ -49,11 +47,15 @@ describe('role-based public test account roster', () => {
           roleIds: [roleId],
           permissions,
           context: { tenantId: 'tenant-smart-wing', enterpriseId: 'enterprise-demo', mallId: 'mall-demo', userId: `user-test-${username.slice(0, -3)}-${username.slice(-3)}` },
-          scopeBindings: target === 'storefront'
-            ? [{ kind: 'self', resourceId: `user-test-buyer-${username.slice(-3)}` }]
-            : username.startsWith('admin')
-              ? [{ kind: 'enterprise', resourceId: 'enterprise-demo' }, { kind: 'mall', resourceId: 'mall-demo' }]
-              : [{ kind: 'mall', resourceId: 'mall-demo' }],
+          scopeBindings:
+            target === 'storefront'
+              ? [{ kind: 'self', resourceId: `user-test-buyer-${username.slice(-3)}` }]
+              : username.startsWith('admin')
+                ? [
+                    { kind: 'enterprise', resourceId: 'enterprise-demo' },
+                    { kind: 'mall', resourceId: 'mall-demo' },
+                  ]
+                : [{ kind: 'mall', resourceId: 'mall-demo' }],
           expiresAt: null,
           authzVersion: 1,
           actor: { tenantId: 'tenant-smart-wing', enterpriseId: 'enterprise-demo', mallId: 'mall-demo', mallCode: 'SMART_WING_DEMO', userId: `user-test-${username.slice(0, -3)}-${username.slice(-3)}`, employeeNo: username },
@@ -63,11 +65,7 @@ describe('role-based public test account roster', () => {
     );
 
     try {
-      const runtime = await resolveDemoMembership(
-        { APP_ENV: 'test', AUTH_MODE: 'test', SUPABASE_URL: 'https://supabase.example', SUPABASE_SERVICE_ROLE_KEY: 'service-role-key' },
-        account!,
-        target
-      );
+      const runtime = await resolveDemoMembership({ APP_ENV: 'test', AUTH_MODE: 'test', SUPABASE_URL: 'https://supabase.example', SUPABASE_SERVICE_ROLE_KEY: 'service-role-key' }, account!, target);
       expect(runtime?.membership.roleIds).toEqual([roleId]);
       expect(runtime?.membership.permissions).toEqual(permissions);
     } finally {

@@ -7,8 +7,7 @@ The WeChat mini program asset build embeds selected icon geometry from
 from Feather are distributed under the MIT License.
 
 Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2023 as part
-of Feather. All other copyright (c) for Lucide are held by Lucide Contributors
-2025.
+of Feather. All other copyright (c) for Lucide are held by Lucide Contributors 2025.
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above

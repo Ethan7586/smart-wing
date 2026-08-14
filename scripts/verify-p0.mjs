@@ -95,10 +95,15 @@ async function main() {
   }));
 
   // 注意：这一项会写入登录失败计数；同一来源 15 分钟内累计 5 次会被封禁 15 分钟。
-  await check('错误账号密码被拒绝', '/api/v1/auth/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: 'smoke-check-invalid-user', password: 'smoke-check-invalid-password' }) }, (r) => ({
-    ok: r.status === 401,
-    detail: r.status === 401 ? 'HTTP 401 INVALID_USERNAME_PASSWORD，登录保护生效' : `期望 401，实际 ${r.status}`,
-  }));
+  await check(
+    '错误账号密码被拒绝',
+    '/api/v1/auth/login',
+    { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: 'smoke-check-invalid-user', password: 'smoke-check-invalid-password' }) },
+    (r) => ({
+      ok: r.status === 401,
+      detail: r.status === 401 ? 'HTTP 401 INVALID_USERNAME_PASSWORD，登录保护生效' : `期望 401，实际 ${r.status}`,
+    })
+  );
 
   const failed = results.filter((item) => item.outcome === 'fail');
   const blocked = results.filter((item) => item.outcome === 'blocked');

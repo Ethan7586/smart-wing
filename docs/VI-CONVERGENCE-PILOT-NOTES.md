@@ -29,11 +29,11 @@ grep -rhoE "var\(--sw-[a-z0-9-]+" apps/*/src --include=*.tsx --include=*.css | s
 
 结果出乎意料：
 
-| | 数量 |
-| --- | ---: |
-| `tokens.css` 定义的变量 | 约 60 个 |
-| 三个应用**实际使用**的 | **8 个** |
-| 其中 `--sw-brand` 一个 | **554 次** |
+|                         |       数量 |
+| ----------------------- | ---------: |
+| `tokens.css` 定义的变量 |   约 60 个 |
+| 三个应用**实际使用**的  |   **8 个** |
+| 其中 `--sw-brand` 一个  | **554 次** |
 
 **这个数字改变了整件事的性质。** 原本以为是"高风险重构"，实际只有 8 个变量有真实调用方，改坏了立刻能发现。
 
@@ -52,11 +52,11 @@ diff <(grep -oE "^\s*--sw-[a-z0-9-]+:.*" tokens-before.css | sed 's/^ *//') \
      <(grep -oE "^\s*--sw-[a-z0-9-]+:.*" tokens.css      | sed 's/^ *//')
 ```
 
-| 类别 | 例子 | 处理 |
-| --- | --- | --- |
-| **有意修复** | `shadow-card` 双层 → 单层 | 这就是任务目标，保留 |
-| **无害归一** | `#1f5eff` → `#1F5EFF` | 跟随母版，不管 |
-| **意外回归** | 字体族丢引号、丢 `Arial` 兜底 | **必须修** |
+| 类别         | 例子                          | 处理                 |
+| ------------ | ----------------------------- | -------------------- |
+| **有意修复** | `shadow-card` 双层 → 单层     | 这就是任务目标，保留 |
+| **无害归一** | `#1f5eff` → `#1F5EFF`         | 跟随母版，不管       |
+| **意外回归** | 字体族丢引号、丢 `Arial` 兜底 | **必须修**           |
 
 第三类是我自己在写生成器时引入的。`type.families.chinese` 直接拼进去，结果 `'PingFang SC'` 变成了没引号的 `PingFang SC`，还把原有的 `Arial` 兜底弄丢了。
 
@@ -115,13 +115,13 @@ diff <(grep -oE "^\s*--sw-[a-z0-9-]+:.*" tokens-before.css | sed 's/^ *//') \
 
 Web 和小程序对同一个概念用了不同变量名：
 
-| 概念 | Web | 小程序 |
-| --- | --- | --- |
-| 辅助文字 | `--sw-muted` | `--sw-text-muted` |
-| 小圆角 | `--sw-radius-sm` | `--sw-radius-small` |
-| 小正文 | `--sw-font-size-body-sm` | `--sw-fs-bodySmall` |
-| 半格间距 | `--sw-space-0-5` | `--sw-space-half` |
-| 快动效 | `--sw-duration-fast` | `--sw-motion-fast` |
+| 概念     | Web                      | 小程序              |
+| -------- | ------------------------ | ------------------- |
+| 辅助文字 | `--sw-muted`             | `--sw-text-muted`   |
+| 小圆角   | `--sw-radius-sm`         | `--sw-radius-small` |
+| 小正文   | `--sw-font-size-body-sm` | `--sw-fs-bodySmall` |
+| 半格间距 | `--sw-space-0-5`         | `--sw-space-half`   |
+| 快动效   | `--sw-duration-fast`     | `--sw-motion-fast`  |
 
 看起来该顺手统一。**我没有做。**
 
@@ -172,13 +172,13 @@ npm run build:storefront && npm run build:admin && npm run build:auth
 
 净效果：
 
-| 变量 | 改前 | 改后 |
-| --- | --- | --- |
-| `--sw-shadow-card` | `0 1px 2px 6% + 0 6px 18px 5%` 双层 | `0 1px 4px rgba(7,24,47,.04)` |
-| `--sw-shadow-overlay` | `0 16px 40px 16%` | `0 -2px 12px rgba(7,24,47,.08)` |
-| `--sw-wing-code-shadow` | `0 8px 24px 22%` | `0 4px 12px rgba(31,94,255,.24)` |
-| `--sw-shadow-brand` | 存在 | 删除（0 调用） |
-| hex 大小写 | 小写 | 跟随母版大写 |
+| 变量                    | 改前                                | 改后                             |
+| ----------------------- | ----------------------------------- | -------------------------------- |
+| `--sw-shadow-card`      | `0 1px 2px 6% + 0 6px 18px 5%` 双层 | `0 1px 4px rgba(7,24,47,.04)`    |
+| `--sw-shadow-overlay`   | `0 16px 40px 16%`                   | `0 -2px 12px rgba(7,24,47,.08)`  |
+| `--sw-wing-code-shadow` | `0 8px 24px 22%`                    | `0 4px 12px rgba(31,94,255,.24)` |
+| `--sw-shadow-brand`     | 存在                                | 删除（0 调用）                   |
+| hex 大小写              | 小写                                | 跟随母版大写                     |
 
 **三个 Web 应用构建全部通过，`check:miniapp` 通过，生成器幂等。**
 

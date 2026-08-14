@@ -1,12 +1,5 @@
 {
-  "pages": [
-    "pages/home/home",
-    "pages/category/category",
-    "pages/membercode/membercode",
-    "pages/orders/orders",
-    "pages/order-detail/order-detail",
-    "pages/profile/profile"
-  ],
+  "pages": ["pages/home/home", "pages/category/category", "pages/membercode/membercode", "pages/orders/orders", "pages/order-detail/order-detail", "pages/profile/profile"],
   "window": {
     "navigationStyle": "custom",
     "backgroundColor": "#F5F7FA",

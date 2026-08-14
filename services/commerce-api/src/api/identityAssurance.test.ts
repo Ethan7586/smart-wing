@@ -55,20 +55,21 @@ describe('member identity assurance', () => {
   it('rejects an account-only member without invoking any payment operation', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        new Response(
-          JSON.stringify({
-            level: 'account',
-            accountAuthenticated: true,
-            accountAuthenticatedAt: '2026-08-13T00:00:00Z',
-            phoneVerified: false,
-            phoneVerifiedAt: null,
-            phoneVerificationMethod: null,
-            paymentEligible: false,
-            restrictedCapabilities: ['order.create', 'payment.execute'],
-          }),
-          { status: 200, headers: { 'content-type': 'application/json' } }
-        )
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              level: 'account',
+              accountAuthenticated: true,
+              accountAuthenticatedAt: '2026-08-13T00:00:00Z',
+              phoneVerified: false,
+              phoneVerifiedAt: null,
+              phoneVerificationMethod: null,
+              paymentEligible: false,
+              restrictedCapabilities: ['order.create', 'payment.execute'],
+            }),
+            { status: 200, headers: { 'content-type': 'application/json' } }
+          )
       )
     );
     expect(await requirePhoneVerified(env, authorization, 'account-only')).toBeInstanceOf(Response);

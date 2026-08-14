@@ -86,7 +86,10 @@ export const TabletPortraitHome: React.FC = () => {
             <span className="bg-amber-400 text-gray-900 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">企业员工专属福利日</span>
             <h2 className="text-xl font-black leading-tight">全场正品好物 企采补贴立省 30%</h2>
             <p className="text-xs text-blue-100 leading-relaxed">支持企业福利卡与餐卡余额无缝全额冲抵，开具增值税专用发票。</p>
-            <button onClick={() => setTabletPage('category')} className="bg-white text-[var(--sw-brand-dark)] hover:bg-yellow-300 transition-colors font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1 shadow-sm cursor-pointer min-h-[40px]">
+            <button
+              onClick={() => setTabletPage('category')}
+              className="bg-white text-[var(--sw-brand-dark)] hover:bg-yellow-300 transition-colors font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1 shadow-sm cursor-pointer min-h-[40px]"
+            >
               <span>进入福利专区</span>
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -150,7 +153,10 @@ export const TabletPortraitHome: React.FC = () => {
             </div>
           </div>
 
-          <button onClick={() => setTabletPage('cart')} className="bg-[var(--sw-brand)] hover:bg-blue-600 text-white font-bold text-xs px-6 py-2.5 rounded-2xl shadow-md transition-colors cursor-pointer flex items-center gap-1.5 min-h-[44px]">
+          <button
+            onClick={() => setTabletPage('cart')}
+            className="bg-[var(--sw-brand)] hover:bg-blue-600 text-white font-bold text-xs px-6 py-2.5 rounded-2xl shadow-md transition-colors cursor-pointer flex items-center gap-1.5 min-h-[44px]"
+          >
             <span>立即去结算</span>
             <ArrowRight className="w-4 h-4" />
           </button>

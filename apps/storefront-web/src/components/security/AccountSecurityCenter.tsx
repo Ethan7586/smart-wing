@@ -102,18 +102,12 @@ export const AccountSecurityCenter: React.FC<{ onSignedOut: () => void; onSecuri
         <div className={`rounded-md border p-4 ${data.phoneVerified ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div>
-              <div className={`text-sm font-bold ${data.phoneVerified ? 'text-emerald-900' : 'text-amber-900'}`}>
-                {data.phoneVerified ? '手机认证已完成' : '基础会员 · 手机待验证'}
-              </div>
+              <div className={`text-sm font-bold ${data.phoneVerified ? 'text-emerald-900' : 'text-amber-900'}`}>{data.phoneVerified ? '手机认证已完成' : '基础会员 · 手机待验证'}</div>
               <p className={`mt-1 text-xs leading-5 ${data.phoneVerified ? 'text-emerald-700' : 'text-amber-800'}`}>
-                {data.phoneVerified
-                  ? '账号与手机双重认证有效，当前可以提交订单并使用支付功能。'
-                  : '账号密码已经认证，可登录、浏览和管理购物车；提交订单和付款将在短信验证完成后解锁。'}
+                {data.phoneVerified ? '账号与手机双重认证有效，当前可以提交订单并使用支付功能。' : '账号密码已经认证，可登录、浏览和管理购物车；提交订单和付款将在短信验证完成后解锁。'}
               </p>
             </div>
-            <span className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${data.phoneVerified ? 'bg-emerald-600 text-white' : 'bg-amber-200 text-amber-900'}`}>
-              {data.phoneVerified ? '认证等级：手机' : '认证等级：账号'}
-            </span>
+            <span className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${data.phoneVerified ? 'bg-emerald-600 text-white' : 'bg-amber-200 text-amber-900'}`}>{data.phoneVerified ? '认证等级：手机' : '认证等级：账号'}</span>
           </div>
         </div>
       )}
@@ -128,16 +122,18 @@ export const AccountSecurityCenter: React.FC<{ onSignedOut: () => void; onSecuri
               更新密码并下线其他设备
             </ActionButton>
           </SecurityCard>
-          <SecurityCard icon={<Phone className="h-5 w-5" />} title={data.phoneVerified ? '更换已验证手机号' : '验证并绑定手机号'} subtitle={`当前状态：${data.phoneVerified ? data.phoneMasked ?? '已验证' : '未验证'}`}>
+          <SecurityCard icon={<Phone className="h-5 w-5" />} title={data.phoneVerified ? '更换已验证手机号' : '验证并绑定手机号'} subtitle={`当前状态：${data.phoneVerified ? (data.phoneMasked ?? '已验证') : '未验证'}`}>
             {!data.phoneVerificationAvailable && (
-              <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-5 text-amber-800">
-                短信通道尚未开通。当前保留绑定入口，但不会发送模拟验证码；通道开通后可直接在这里完成认证。
-              </p>
+              <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-5 text-amber-800">短信通道尚未开通。当前保留绑定入口，但不会发送模拟验证码；通道开通后可直接在这里完成认证。</p>
             )}
             <Field label={data.phoneVerified ? '新手机号' : '手机号'} value={phone.mobile} onChange={(mobile) => setPhone({ ...phone, mobile })} />
             <div className="flex gap-2">
               <Field label="验证码" value={phone.code} onChange={(code) => setPhone({ ...phone, code })} />
-              <button onClick={sendPhoneCode} disabled={loading || !data.phoneVerificationAvailable} className="mt-5 shrink-0 rounded border border-blue-200 bg-blue-50 px-3 text-xs font-bold text-[var(--sw-brand)] disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400">
+              <button
+                onClick={sendPhoneCode}
+                disabled={loading || !data.phoneVerificationAvailable}
+                className="mt-5 shrink-0 rounded border border-blue-200 bg-blue-50 px-3 text-xs font-bold text-[var(--sw-brand)] disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400"
+              >
                 获取验证码
               </button>
             </div>
