@@ -6,7 +6,7 @@ import { cacheFreshness, createCacheEnvelope, parseCacheEnvelope } from './cache
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 const MAX_FRESH_SECONDS = 24 * 60 * 60;
 const MAX_STALE_SECONDS = 7 * 24 * 60 * 60;
-const CACHE_KEY = /^sw:v1:[a-z0-9:_-]{1,240}$/;
+const CACHE_KEY = /^sw:v[12]:[a-z0-9:_-]{1,240}$/;
 
 const host = required('TAIR_HOST');
 const password = required('TAIR_PASSWORD');
@@ -62,7 +62,11 @@ async function writeEntry(request: IncomingMessage, response: ServerResponse, ke
   const freshSeconds = boundedInteger(body.freshSeconds, 1, MAX_FRESH_SECONDS);
   const staleSeconds = boundedInteger(body.staleSeconds, freshSeconds, MAX_STALE_SECONDS);
   if (!('data' in body)) return send(response, 400, { error: 'DATA_REQUIRED' });
-  const envelope = createCacheEnvelope(body.data, freshSeconds, staleSeconds);
+  const envelope = createCacheEnvelope(body.data, freshSeconds, staleSeconds, Date.now(), {
+    projectionVersion: optionalString(body.projectionVersion),
+    sourceCursor: optionalString(body.sourceCursor),
+    generatedAt: optionalString(body.generatedAt),
+  });
   await redis.set(key, JSON.stringify(envelope), { PX: staleSeconds * 1_000 });
   return send(response, 201, { cache: 'stored', storedAt: envelope.storedAt });
 }
@@ -123,6 +127,10 @@ function integer(value: string | undefined, fallback: number): number {
 function boundedInteger(value: unknown, minimum: number, maximum: number): number {
   if (!Number.isInteger(value) || Number(value) < minimum || Number(value) > maximum) throw new Error('INVALID_TTL');
   return Number(value);
+}
+
+function optionalString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
 }
 
 async function shutdown(signal: string): Promise<void> {

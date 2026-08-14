@@ -59,10 +59,38 @@ TAIR_TLS_ENABLED=true
 
 ```bash
 curl -fsS http://127.0.0.1:3002/health
-curl -sSI 'https://hbbtzn.com/api/v1/catalog/public/products?cursor=0&limit=200' | grep -i 'x-sw-catalog-cache'
+curl -sSI 'https://hbbtzn.com/api/v1/catalog/public/products?cursor=0&limit=24' | grep -Ei 'etag|x-sw-catalog-cache|x-sw-catalog-version'
 ```
 
 第一次可能为 `source`，第二次应为 `memory`；单独重启 Storefront 后应出现 `shared`，证明镜像不依赖 Web 进程内存。
+
+## 启用数据库异云备份
+
+这套备份用于“Supabase 仍为主库、阿里云保存可独立恢复副本”的阶段。它不是第二个可写主库，也不参与在线请求。
+
+1. 在阿里云创建**私有** OSS Bucket，开启版本控制，并为备份前缀配置生命周期；应用图片桶和数据库备份桶必须分开。
+2. 创建只允许该 Bucket `database/postgresql/*` 读写的 RAM 身份，不使用账号主 AccessKey。
+3. 从 Supabase 获取 PostgreSQL **Direct connection** 连接串，填入服务器专用环境文件；REST `service_role` key 不能替代数据库连接串。
+4. 服务器安装与主库兼容或更高版本的 `pg_dump` / `pg_restore`。
+
+```bash
+cd /opt/smart-wing
+cp infrastructure/aliyun/backup.env.example /opt/smart-wing/.env.backup
+chmod 600 /opt/smart-wing/.env.backup
+# 编辑 .env.backup，只填写备份专用连接串、Bucket 与最小权限 RAM 凭据
+install -d -m 0700 /var/backups/smart-wing/postgres
+cp infrastructure/aliyun/smart-wing-postgres-backup.service /etc/systemd/system/
+cp infrastructure/aliyun/smart-wing-postgres-backup.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl start smart-wing-postgres-backup.service
+journalctl -u smart-wing-postgres-backup.service --no-pager -n 100
+systemctl enable --now smart-wing-postgres-backup.timer
+systemctl list-timers smart-wing-postgres-backup.timer
+```
+
+只有日志返回 `"backup":"verified"` 才算一次成功：备份文件已完成、`pg_restore --list` 可读、SHA-256 清单已生成、OSS 对象长度已回读核对。每月将最新备份恢复到隔离的临时 PostgreSQL 并执行核心表数量与抽样校验；禁止直接在生产主库试恢复。
+
+备份任务与商城发布解耦。缺少 `.env.backup` 时日常发布仍正常，但不能声称数据库已具备异云恢复能力。
 
 `.env.production` 不进 Git，也不复制到 `apps/`。Cookie 必须保持 host-only，不设置 `.hbbtzn.com` 的共享 Domain。生产必须分别配置 `SESSION_SIGNING_KEY` 与 `ADMIN_SESSION_SIGNING_KEY`（两者不得相同），否则后台域不会签发或接受会话。
 

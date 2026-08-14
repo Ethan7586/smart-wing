@@ -10,12 +10,28 @@ describe('core read-cache envelope', () => {
   });
 
   it('rejects malformed or unsupported payloads', () => {
-    expect(parseCacheEnvelope('{"schemaVersion":2}')).toBeNull();
+    expect(parseCacheEnvelope('{"schemaVersion":1}')).toBeNull();
     expect(parseCacheEnvelope('not-json')).toBeNull();
   });
 
   it('round-trips a valid envelope', () => {
     const envelope = createCacheEnvelope(['a', 'b'], 60, 600, 2_000);
     expect(parseCacheEnvelope<string[]>(JSON.stringify(envelope))).toEqual(envelope);
+  });
+
+  it('carries a verifiable projection contract and rejects tampering', () => {
+    const envelope = createCacheEnvelope({ items: ['a'] }, 60, 600, 2_000, {
+      projectionVersion: 'catalog-42',
+      sourceCursor: 'cursor:0:limit:200',
+      generatedAt: '2026-08-15T00:00:00.000Z',
+    });
+    expect(envelope).toMatchObject({
+      schemaVersion: 2,
+      projectionVersion: 'catalog-42',
+      sourceCursor: 'cursor:0:limit:200',
+      generatedAt: '2026-08-15T00:00:00.000Z',
+    });
+    expect(envelope.contentHash).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(parseCacheEnvelope(JSON.stringify({ ...envelope, data: { items: ['changed'] } }))).toBeNull();
   });
 });

@@ -10,6 +10,7 @@ supabase/migrations/
 drizzle/
 package-lock.json
 apps/wechat-miniapp/miniprogram/data/assets.generated.js
+apps/wechat-miniapp/miniprogram/data/catalog-seed.generated.js
 apps/wechat-miniapp/miniprogram/data/catalog-taxonomy.generated.js
 apps/wechat-miniapp/miniprogram/styles/icons.wxss
 apps/wechat-miniapp/miniprogram/styles/tokens.wxss

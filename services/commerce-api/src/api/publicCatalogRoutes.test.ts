@@ -70,6 +70,17 @@ describe('public catalog', () => {
     await expect(response.json()).resolves.toMatchObject({ error: { code: 'PUBLIC_CATALOG_NOT_CONFIGURED' } });
   });
 
+  it('defaults public browsing to a small first-screen batch', async () => {
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(JSON.stringify([catalogRow]), { status: 200, headers: { 'content-type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const response = await handlePublicCatalog(new Request('https://hbbtzn.com/api/v1/catalog/public/products'), env, 'small-default');
+
+    expect(response.status).toBe(200);
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toMatchObject({ p_limit: 24, p_offset: 0 });
+    await expect(response.json()).resolves.toMatchObject({ pagination: { limit: 24 } });
+  });
+
   it('keeps writes disabled on the public catalog endpoint', async () => {
     const response = await handlePublicCatalog(new Request('https://hbbtzn.com/api/v1/catalog/public/products', { method: 'POST' }), env, 'catalog-method');
 
@@ -107,7 +118,17 @@ describe('public catalog', () => {
         new Response(
           JSON.stringify({
             cache: 'fresh',
-            envelope: { schemaVersion: 1, storedAt: Date.now(), expiresAt: Date.now() + 60_000, staleUntil: Date.now() + 600_000, data: [catalogRow] },
+            envelope: {
+              schemaVersion: 2,
+              projectionVersion: 'catalog.shared-test',
+              sourceCursor: 'cursor:0:limit:20:items:1',
+              contentHash: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+              generatedAt: '2026-08-15T00:00:00.000Z',
+              storedAt: Date.now(),
+              expiresAt: Date.now() + 60_000,
+              staleUntil: Date.now() + 600_000,
+              data: [catalogRow],
+            },
           }),
           { status: 200, headers: { 'content-type': 'application/json' } }
         )
@@ -120,6 +141,22 @@ describe('public catalog', () => {
     expect(response.headers.get('x-sw-catalog-cache-tier')).toBe('shared');
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain('127.0.0.1:3002/v1/entries/');
     expect(fetchMock.mock.calls.some((call) => String(call[0]).includes('supabase'))).toBe(false);
+  });
+
+  it('publishes a verifiable mirror contract and honors conditional requests', async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify([catalogRow]), { status: 200, headers: { 'content-type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetchMock);
+    const first = await handlePublicCatalog(new Request('https://hbbtzn.com/api/v1/catalog/public/products?limit=24'), env, 'etag-first');
+    const etag = first.headers.get('etag');
+    const body = (await first.json()) as { mirror: Record<string, unknown> };
+    expect(etag).toMatch(/^"catalog\.[a-f0-9]{24}"$/);
+    expect(body.mirror).toMatchObject({ schemaVersion: 2, catalogVersion: etag?.slice(1, -1), sourceCursor: 'cursor:0:limit:24:items:1' });
+    expect(body.mirror.contentHash).toMatch(/^sha256:[a-f0-9]{64}$/);
+
+    const second = await handlePublicCatalog(new Request('https://hbbtzn.com/api/v1/catalog/public/products?limit=24', { headers: { 'if-none-match': String(etag) } }), env, 'etag-second');
+    expect(second.status).toBe(304);
+    expect(second.headers.get('etag')).toBe(etag);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('keeps category-specific browsing on the canonical taxonomy query', async () => {

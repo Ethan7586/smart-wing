@@ -1,6 +1,6 @@
 # 智慧翼核心业务读镜像架构
 
-版本：1.0  
+版本：1.1
 日期：2026-08-15  
 目标：在不制造双主库的前提下，让 Web 与微信小程序获得北京同地域的高速、可降级业务读取能力。
 
@@ -73,24 +73,28 @@ Tair 应满足：
 
 ## 5. 缓存键与数据契约
 
-统一前缀：`sw:v1:`。禁止使用姓名、手机号、OpenID、订单明文或其他个人信息作为 key。
+统一前缀：`sw:v2:`。禁止使用姓名、手机号、OpenID、订单明文或其他个人信息作为 key。
 
 建议键：
 
 ```text
-sw:v1:catalog:public:{mall}:{queryHash}
-sw:v1:home:member:{membershipHash}:{authzVersion}
-sw:v1:orders:member:{membershipHash}:{version}:{cursorHash}
-sw:v1:member:summary:{membershipHash}:{version}
-sw:v1:authz:{membershipHash}:{authzVersion}
-sw:v1:wingcode:{challengeHash}
+sw:v2:catalog:public:{mall}:{queryHash}
+sw:v2:home:member:{membershipHash}:{authzVersion}
+sw:v2:orders:member:{membershipHash}:{version}:{cursorHash}
+sw:v2:member:summary:{membershipHash}:{version}
+sw:v2:authz:{membershipHash}:{authzVersion}
+sw:v2:wingcode:{challengeHash}
 ```
 
 每个 value 都使用统一信封：
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "projectionVersion": "catalog.0123456789abcdef01234567",
+  "sourceCursor": "cursor:0:limit:24:items:24",
+  "contentHash": "sha256:...",
+  "generatedAt": "2026-08-15T00:00:00.000Z",
   "storedAt": 0,
   "expiresAt": 0,
   "staleUntil": 0,
@@ -98,7 +102,7 @@ sw:v1:wingcode:{challengeHash}
 }
 ```
 
-读端必须能识别 `fresh / stale / expired`。schema 不认识、内容损坏或超过陈旧窗口时视为 miss，不得猜测修复。
+读端必须能识别 `fresh / stale / expired`。schema 不认识、内容哈希不一致或超过陈旧窗口时视为 miss，不得猜测修复。`projectionVersion` 用于跨端确认读到同一批业务投影，`sourceCursor` 用于定位来源窗口，`generatedAt` 用于判断投影年龄。
 
 ## 6. 一致性和失效
 
@@ -158,6 +162,10 @@ sw:v1:wingcode:{challengeHash}
 - stale 时立即响应并后台刷新；
 - 同一个目录窗口的并发回源会合并；
 - 响应头增加缓存层标记，便于验收而不泄漏数据。
+- 公共目录默认只返回首批 24 件，端侧保留 200 件本地快照并在后台按需续取；
+- 读镜像信封升级为 v2，带投影版本、来源游标、生成时间和 SHA-256 内容校验；
+- 公共目录提供 ETag，版本未变化时返回 304，不重复传输 JSON 正文；
+- 新增 PostgreSQL 自校验备份程序与 systemd 定时器，可将主库备份加密写入私有 OSS，并产生独立校验清单。
 
 ## 9. 分阶段实施
 
@@ -167,6 +175,8 @@ sw:v1:wingcode:{challengeHash}
 - 配置同 VPC、白名单和 TLS；
 - 写入 6 个环境变量；
 - 部署后验证第一次 source、第二次 memory/shared，重启 Storefront 后仍能 shared 命中。
+
+代码、协议和回退路径已经落地；Tair 实例与 OSS 私有备份桶仍需在阿里云控制台配置后才算运行态完成。
 
 ### P1：会员首页与订单读模型
 
@@ -194,6 +204,7 @@ sw:v1:wingcode:{challengeHash}
 - 重启 Storefront 后共享缓存仍命中；
 - 缓存命中率、回源率、陈旧响应率、刷新失败率均可观测；
 - 支付、账本和会员码核销测试证明缓存无法绕过主库校验。
+- 每日数据库备份必须同时通过 `pg_restore --list`、SHA-256 清单和 OSS 对象长度校验；每月至少在隔离数据库做一次恢复演练。
 
 ## 11. 架构评价
 

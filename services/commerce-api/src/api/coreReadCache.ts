@@ -1,7 +1,11 @@
 import type { WorkerEnv } from './types';
 
 interface SharedCacheEnvelope<T> {
-  schemaVersion: 1;
+  schemaVersion: 2;
+  projectionVersion: string;
+  sourceCursor: string | null;
+  contentHash: string;
+  generatedAt: string;
   storedAt: number;
   expiresAt: number;
   staleUntil: number;
@@ -13,7 +17,14 @@ interface SharedCacheResponse<T> {
   envelope: SharedCacheEnvelope<T>;
 }
 
-export type CoreReadResult<T> = { status: 'disabled' | 'miss' | 'unavailable' } | { status: 'fresh' | 'stale'; data: T; storedAt: number };
+export interface CoreProjectionMetadata {
+  projectionVersion: string;
+  sourceCursor: string | null;
+  contentHash: string;
+  generatedAt: string;
+}
+
+export type CoreReadResult<T> = { status: 'disabled' | 'miss' | 'unavailable' } | ({ status: 'fresh' | 'stale'; data: T; storedAt: number } & CoreProjectionMetadata);
 
 const READ_TIMEOUT_MS = 60;
 const WRITE_TIMEOUT_MS = 250;
@@ -30,13 +41,21 @@ export async function readCoreProjection<T>(env: WorkerEnv, key: string): Promis
     if (!response.ok) return { status: 'unavailable' };
     const body = (await response.json()) as SharedCacheResponse<T>;
     if (!validResponse(body)) return { status: 'unavailable' };
-    return { status: body.cache, data: body.envelope.data, storedAt: body.envelope.storedAt };
+    return {
+      status: body.cache,
+      data: body.envelope.data,
+      storedAt: body.envelope.storedAt,
+      projectionVersion: body.envelope.projectionVersion,
+      sourceCursor: body.envelope.sourceCursor,
+      contentHash: body.envelope.contentHash,
+      generatedAt: body.envelope.generatedAt,
+    };
   } catch {
     return { status: 'unavailable' };
   }
 }
 
-export async function writeCoreProjection<T>(env: WorkerEnv, key: string, data: T, freshSeconds: number, staleSeconds: number): Promise<boolean> {
+export async function writeCoreProjection<T>(env: WorkerEnv, key: string, data: T, freshSeconds: number, staleSeconds: number, metadata: CoreProjectionMetadata): Promise<boolean> {
   const endpoint = cacheEndpoint(env, key);
   if (!endpoint) return false;
   try {
@@ -46,7 +65,7 @@ export async function writeCoreProjection<T>(env: WorkerEnv, key: string, data: 
         authorization: `Bearer ${env.CORE_READ_CACHE_TOKEN}`,
         'content-type': 'application/json',
       },
-      body: JSON.stringify({ data, freshSeconds, staleSeconds }),
+      body: JSON.stringify({ data, freshSeconds, staleSeconds, ...metadata }),
       signal: AbortSignal.timeout(WRITE_TIMEOUT_MS),
     });
     return response.ok;
@@ -57,7 +76,7 @@ export async function writeCoreProjection<T>(env: WorkerEnv, key: string, data: 
 
 function cacheEndpoint(env: WorkerEnv, key: string): string | null {
   const raw = env.CORE_READ_CACHE_URL?.trim();
-  if (!raw || !env.CORE_READ_CACHE_TOKEN || !/^sw:v1:[a-z0-9:_-]{1,240}$/.test(key)) return null;
+  if (!raw || !env.CORE_READ_CACHE_TOKEN || !/^sw:v[12]:[a-z0-9:_-]{1,240}$/.test(key)) return null;
   try {
     const url = new URL(raw);
     const loopback = url.hostname === '127.0.0.1' || url.hostname === '::1' || url.hostname === 'localhost';
@@ -71,5 +90,15 @@ function cacheEndpoint(env: WorkerEnv, key: string): string | null {
 }
 
 function validResponse<T>(value: SharedCacheResponse<T>): boolean {
-  return Boolean(value && (value.cache === 'fresh' || value.cache === 'stale')) && value.envelope?.schemaVersion === 1 && Number.isFinite(value.envelope.storedAt) && value.envelope.data !== undefined;
+  const envelope = value?.envelope;
+  return (
+    Boolean(value && (value.cache === 'fresh' || value.cache === 'stale')) &&
+    envelope?.schemaVersion === 2 &&
+    typeof envelope.projectionVersion === 'string' &&
+    (envelope.sourceCursor === null || typeof envelope.sourceCursor === 'string') &&
+    /^sha256:[a-f0-9]{64}$/.test(envelope.contentHash) &&
+    Number.isFinite(Date.parse(envelope.generatedAt)) &&
+    Number.isFinite(envelope.storedAt) &&
+    envelope.data !== undefined
+  );
 }

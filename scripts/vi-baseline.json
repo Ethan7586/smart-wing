@@ -553,8 +553,7 @@
     "apps/storefront-web/src/screens/OrderDetailPage.tsx": {
       "hardcoded-color": 3,
       "font-size-floor": 9,
-      "font-weight-ceiling": 3,
-      "radius-off-scale": 10,
+      "radius-off-scale": 1,
       "semantic-duplicate": 5
     },
     "apps/storefront-web/src/screens/OrdersPage.tsx": {
@@ -566,8 +565,7 @@
     "apps/storefront-web/src/screens/PaymentResultPage.tsx": {
       "hardcoded-color": 3,
       "font-size-floor": 3,
-      "font-weight-ceiling": 6,
-      "radius-off-scale": 13,
+      "radius-off-scale": 2,
       "semantic-duplicate": 7
     },
     "apps/storefront-web/src/screens/ProductDetailPage.tsx": {
