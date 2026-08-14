@@ -60,7 +60,7 @@
       </view>
     </view>
 
-    <!-- 分类结构同步载入；会员商品在后台异步增强，不让网络空白页面。 -->
+    <!-- 分类结构先载入，公开商品随后异步增强，不要求会员登录。 -->
     <view class="sw-inset sync-row sync-{{syncState}}">
       <view wx:if="{{syncState === 'live'}}" class="i i-sm i-shield-check-success"></view>
       <view wx:elif="{{syncState === 'offline'}}" class="i i-sm i-wifi-off-muted"></view>
@@ -73,44 +73,7 @@
       </view>
     </view>
 
-    <!-- 首次使用只绑定现有会员；否则显示双栏分类。 -->
-    <view wx:if="{{bindingRequired}}" class="sw-inset binding-wrap">
-      <view class="binding-card sw-card">
-        <view class="binding-head">
-          <view class="i i-lg i-user-brand"></view>
-          <view class="binding-copy">
-            <text class="binding-title">绑定现有智慧翼会员</text>
-            <text class="binding-sub">绑定后自动读取与主商城一致的商品和购买资格</text>
-          </view>
-        </view>
-        <text class="binding-label">账号或手机号</text>
-        <input
-          class="binding-input"
-          value="{{bindingUsername}}"
-          maxlength="80"
-          placeholder="请输入现有智慧翼账号"
-          bindinput="onBindingUsername"
-        />
-        <text class="binding-label binding-label-next">密码</text>
-        <input
-          class="binding-input"
-          value="{{bindingPassword}}"
-          password
-          maxlength="128"
-          placeholder="请输入密码"
-          confirm-type="done"
-          bindinput="onBindingPassword"
-          bindconfirm="onBindMember"
-        />
-        <text wx:if="{{bindingError}}" class="binding-error">{{bindingError}}</text>
-        <view class="binding-submit sw-tap {{bindingBusy ? 'is-disabled' : ''}}" bindtap="onBindMember">
-          <text>{{bindingBusy ? '正在绑定…' : '绑定并同步商品'}}</text>
-        </view>
-        <text class="binding-note">密码只用于本次服务端身份确认，小程序不会保存。</text>
-      </view>
-    </view>
-
-    <view wx:else class="split">
+    <view class="split">
       <scroll-view class="rail" scroll-y enhanced show-scrollbar="{{false}}">
         <view
           wx:for="{{rail}}"

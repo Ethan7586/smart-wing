@@ -18,13 +18,15 @@ interface ProductionSyncSetters {
   setCatalogSyncStatus: Dispatch<SetStateAction<CatalogSyncStatus>>;
 }
 
-async function loadCompleteCatalog(): Promise<ApiProduct[]> {
+type CatalogPageLoader = typeof productionApi.listProducts;
+
+async function loadCompleteCatalog(loadPage: CatalogPageLoader): Promise<ApiProduct[]> {
   const items = new Map<string, ApiProduct>();
   let cursor: number | null = 0;
   let pageCount = 0;
 
   while (cursor !== null && pageCount < 60) {
-    const page = await productionApi.listProducts({
+    const page = await loadPage({
       cursor,
       limit: 100,
     });
@@ -39,8 +41,7 @@ async function loadCompleteCatalog(): Promise<ApiProduct[]> {
 export function useProductionSync(setters: ProductionSyncSetters, enabled = true) {
   const syncVersionRef = useRef(0);
 
-  const closeProductionData = () => {
-    setters.setProducts([]);
+  const closeMemberData = () => {
     setters.setUser({ ...EMPTY_GUEST_PROFILE });
     setters.setCurrentMall({ ...UNRESOLVED_MALL });
     setters.setMalls([]);
@@ -48,26 +49,50 @@ export function useProductionSync(setters: ProductionSyncSetters, enabled = true
     setters.setAccountLogs([]);
   };
 
+  const publishCatalog = (items: ApiProduct[], syncVersion: number) => {
+    if (syncVersion !== syncVersionRef.current) return false;
+    setters.setProducts(items.map(mapApiProduct));
+    setters.setCatalogSyncStatus('ready');
+    return true;
+  };
+
+  const refreshPublicCatalog = async () => {
+    const syncVersion = ++syncVersionRef.current;
+    setters.setProducts([]);
+    setters.setCatalogSyncStatus('syncing');
+    try {
+      publishCatalog(await loadCompleteCatalog(productionApi.listProducts), syncVersion);
+    } catch (error) {
+      if (syncVersion === syncVersionRef.current) setters.setCatalogSyncStatus('error');
+      throw error;
+    }
+  };
+
   const refreshProductionData = async () => {
     if (!enabled) return;
     const syncVersion = ++syncVersionRef.current;
-    // Never retain a previous or local catalogue while a fresh production
-    // qualification snapshot is being resolved.
+    // Public products are available to every visitor. Authentication only
+    // upgrades this snapshot with member pricing and purchase qualification.
     setters.setProducts([]);
     setters.setCatalogSyncStatus('syncing');
-    const catalogRequest = loadCompleteCatalog();
+    const publicCatalogRequest = loadCompleteCatalog(productionApi.listProducts);
+    void publicCatalogRequest.then((items) => publishCatalog(items, syncVersion)).catch(() => undefined);
     let snapshot: Awaited<ReturnType<typeof productionApi.getHomeSnapshot>>;
     try {
       snapshot = await productionApi.getHomeSnapshot();
     } catch (error) {
-      void catalogRequest.catch(() => undefined);
       if (syncVersion !== syncVersionRef.current) return;
-      closeProductionData();
-      setters.setCatalogSyncStatus('error');
+      closeMemberData();
+      setters.setSessionStatus('guest');
+      try {
+        publishCatalog(await publicCatalogRequest, syncVersion);
+      } catch {
+        if (syncVersion === syncVersionRef.current) setters.setCatalogSyncStatus('error');
+      }
       throw error;
     }
     if (syncVersion !== syncVersionRef.current) {
-      void catalogRequest.catch(() => undefined);
+      void publicCatalogRequest.catch(() => undefined);
       return;
     }
     const { bootstrap, accounts, orders: orderResult, accountLedgers: ledgerResult } = snapshot;
@@ -108,7 +133,7 @@ export function useProductionSync(setters: ProductionSyncSetters, enabled = true
     // interactive. The qualified catalog is heavier and can finish in the
     // background without hiding account actions such as logout.
     setters.setSessionStatus('authenticated');
-    void catalogRequest
+    void loadCompleteCatalog(productionApi.listQualifiedProducts)
       .then((items) => {
         if (syncVersion !== syncVersionRef.current) return;
         setters.setProducts(items.map(mapApiProduct));
@@ -140,5 +165,5 @@ export function useProductionSync(setters: ProductionSyncSetters, enabled = true
     };
   }, [enabled]);
 
-  return { refreshProductionData, cancelProductionSync };
+  return { refreshProductionData, refreshPublicCatalog, cancelProductionSync };
 }

@@ -1,4 +1,5 @@
 import { handleHealth, handleInitialPasswordChange, handleLogin, handleLogout, handleRegisteredCredentialDiscovery } from '../publicRoutes';
+import { handlePublicCatalog } from '../publicCatalogRoutes';
 import { handleRegistration, handleRegistrationOtp, handleUsernameRegistration } from '../registrationRoutes';
 import { handleResetPassword, handleSecurityOtp } from '../securityCenterRoutes';
 import type { WorkerEnv } from '../types';
@@ -12,6 +13,8 @@ export async function routePublicRequest(request: Request, env: WorkerEnv, reque
   switch (pathname) {
     case '/api/health':
       return handleHealth(request, env, requestId);
+    case `${API_PREFIX}/catalog/public/products`:
+      return handlePublicCatalog(request, env, requestId);
     case `${API_PREFIX}/auth/login`:
       return handleLogin(request, env, requestId);
     case `${API_PREFIX}/auth/credential/discover`:

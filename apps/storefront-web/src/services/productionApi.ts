@@ -129,6 +129,14 @@ export const productionApi = {
     if (options.category) query.set('category', options.category);
     if (options.cursor !== undefined) query.set('cursor', String(options.cursor));
     if (options.limit !== undefined) query.set('limit', String(options.limit));
+    return apiFetch(`/api/v1/catalog/public/products?${query.toString()}`);
+  },
+
+  async listQualifiedProducts(options: { category?: string; cursor?: number; limit?: number } = {}): Promise<{ items: ApiProduct[]; pagination: { nextCursor: number | null } }> {
+    const query = new URLSearchParams();
+    if (options.category) query.set('category', options.category);
+    if (options.cursor !== undefined) query.set('cursor', String(options.cursor));
+    if (options.limit !== undefined) query.set('limit', String(options.limit));
     return apiFetch(`/api/v1/products?${query.toString()}`);
   },
 

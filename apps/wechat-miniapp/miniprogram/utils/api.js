@@ -7,9 +7,9 @@ var REQUEST_TIMEOUT_MS = 10000;
 var TOKEN_REFRESH_LEEWAY_MS = 30000;
 var activeSessionRequest = null;
 var wechatPayment = require('./wechatPayment');
-// Catalog requests share the automatic WeChat session refresh used by orders.
-// Function declarations are hoisted, so authenticatedRequest is available here.
-var catalogApi = require('./catalogApi').createCatalogApi(authenticatedRequest, apiError);
+// Public browsing must never create a WeChat session. Membership is required
+// only for member pricing, qualification, balances and transactions.
+var catalogApi = require('./catalogApi').createCatalogApi(performRequest, apiError);
 
 function accessToken() {
   try {

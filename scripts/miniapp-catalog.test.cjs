@@ -38,7 +38,7 @@ test('shared taxonomy fills every approved category rail', () => {
   assert.equal(snapshot.tilesByKey.featured.length, 12);
 });
 
-test('qualified main-Shop products enrich both featured and taxonomy tiles', () => {
+test('public main-Shop products enrich both featured and taxonomy tiles', () => {
   const catalog = loadMiniModule(catalogPath);
   const snapshot = catalog.createSnapshot([
     {
@@ -59,11 +59,11 @@ test('invalid catalog envelopes fail visibly instead of becoming an empty succes
   assert.throws(() => catalog.itemsFromResponse({ products: [] }), /商品目录返回格式异常/);
 });
 
-test('category page starts authentication instead of waiting for a pre-existing token', () => {
+test('category page loads the public catalog without a member binding gate', () => {
   const source = fs.readFileSync(categoryPagePath, 'utf8');
   assert.doesNotMatch(source, /api\.isWired\(\)/);
   assert.match(source, /api\.listAllProducts\(\)/);
-  assert.match(source, /api\s*\.bindWechatMember\(/);
+  assert.doesNotMatch(source, /bindWechatMember|bindingRequired|WECHAT_BINDING_REQUIRED/);
 });
 
 test('catalog API paginates asynchronously and never calls the nonexistent categories route', async () => {
@@ -89,54 +89,41 @@ test('catalog API paginates asynchronously and never calls the nonexistent categ
     ['one', 'two']
   );
   assert.equal(calls.length, 2);
-  assert.ok(calls.every(({ url }) => url.includes('/api/v1/products?')));
+  assert.ok(calls.every(({ url }) => url.includes('/api/v1/catalog/public/products?')));
   assert.ok(calls.every(({ url }) => !url.includes('/api/v1/categories')));
-  assert.equal(calls[0].header.authorization, 'Bearer test-access-token');
+  assert.equal(calls[0].header.authorization, undefined);
 });
 
-test('a fresh install creates a WeChat session before loading every catalog page', async () => {
-  const storage = new Map();
+test('a fresh install loads products without creating a WeChat session', async () => {
   const calls = [];
   const api = freshApi({
-    getStorageSync: (key) => storage.get(key) || '',
-    setStorageSync: (key, value) => storage.set(key, value),
-    removeStorageSync: (key) => storage.delete(key),
-    login: ({ success }) => success({ code: 'one-time-wechat-code' }),
+    getStorageSync: () => '',
     request(options) {
       calls.push(options);
-      if (options.url.endsWith('/api/v1/auth/wechat/session')) {
-        options.success({ statusCode: 200, data: { authenticated: true, accessToken: 'live-token', expiresIn: 300 } });
-        return;
-      }
       options.success({ statusCode: 200, data: { items: [{ id: 'one' }], pagination: { nextCursor: null }, requestId: 'catalog-live' } });
     },
   });
   assert.equal(api.isWired(), false);
   const response = await api.listAllProducts();
   assert.equal(response.items.length, 1);
-  assert.equal(calls.length, 2);
-  assert.equal(calls[0].method, 'POST');
-  assert.deepEqual(calls[0].data, { code: 'one-time-wechat-code' });
-  assert.equal(calls[1].header.authorization, 'Bearer live-token');
+  assert.equal(calls.length, 1);
+  assert.ok(calls[0].url.includes('/api/v1/catalog/public/products?'));
+  assert.equal(calls[0].header.authorization, undefined);
 });
 
-test('an unbound WeChat identity returns a binding challenge without requesting products', async () => {
+test('an unbound WeChat identity is irrelevant to public product browsing', async () => {
   const calls = [];
   const api = freshApi({
     getStorageSync: () => '',
-    removeStorageSync() {},
-    login: ({ success }) => success({ code: 'unbound-code' }),
     request(options) {
       calls.push(options);
-      options.success({
-        statusCode: 409,
-        data: { error: { code: 'WECHAT_BINDING_REQUIRED', message: '首次使用需要绑定', bindingChallenge: 'challenge-id' } },
-      });
+      options.success({ statusCode: 200, data: { items: [{ id: 'public-one' }], pagination: { nextCursor: null }, requestId: 'public-catalog' } });
     },
   });
-  await assert.rejects(api.listAllProducts(), (error) => error.code === 'WECHAT_BINDING_REQUIRED' && error.bindingChallenge === 'challenge-id');
+  const response = await api.listAllProducts();
+  assert.equal(response.items[0].id, 'public-one');
   assert.equal(calls.length, 1);
-  assert.ok(calls[0].url.endsWith('/api/v1/auth/wechat/session'));
+  assert.ok(calls[0].url.includes('/api/v1/catalog/public/products?'));
 });
 
 test('an in-flight catalog sync can be aborted on reload or page unload', async () => {

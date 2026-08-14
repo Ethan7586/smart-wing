@@ -10,15 +10,8 @@ var FILTERS_PENDING = {
 
 function syncCopy(error) {
   var code = error && error.code;
-  if (code === 'WECHAT_BINDING_REQUIRED') {
-    return { state: 'auth', message: '首次使用请绑定现有智慧翼会员，绑定后自动同步商品', retryable: false };
-  }
   if (code === 'REQUEST_TIMEOUT') return { state: 'timeout', message: error.message, retryable: true };
   if (code === 'NETWORK_ERROR') return { state: 'offline', message: error.message, retryable: true };
-  if (code === 'AUTH_REQUIRED' || code === 'AUTH_CHANNEL_PENDING') {
-    return { state: 'auth', message: '分类结构已载入 · 商品数据等待会员登录', retryable: false };
-  }
-  if (code === 'CATALOG_FORBIDDEN') return { state: 'auth', message: error.message, retryable: false };
   return { state: 'error', message: (error && error.message) || '商品同步失败，已保留分类结构', retryable: true };
 }
 
@@ -37,11 +30,6 @@ Page({
     syncState: 'local',
     syncMessage: '正在载入统一分类结构',
     syncRetryable: false,
-    bindingRequired: false,
-    bindingUsername: '',
-    bindingPassword: '',
-    bindingBusy: false,
-    bindingError: '',
   },
 
   onLoad: function () {
@@ -76,8 +64,6 @@ Page({
 
   onUnload: function () {
     this._loadVersion += 1;
-    this._bindingChallenge = '';
-    this.data.bindingPassword = '';
     if (this._catalogRequest && typeof this._catalogRequest.abort === 'function') this._catalogRequest.abort();
   },
 
@@ -107,35 +93,22 @@ Page({
     var self = this;
     var activeVersion = typeof version === 'number' ? version : (this._loadVersion || 0) + 1;
     this._loadVersion = activeVersion;
-    this.setData({ bindingRequired: false, bindingError: '' });
-    this.applySync({ state: 'syncing', message: '正在登录并同步当前会员可见商品', retryable: false });
+    this.applySync({ state: 'syncing', message: '正在同步主商城公开商品', retryable: false });
     this._catalogRequest = api.listAllProducts();
     return this._catalogRequest
       .then(function (response) {
         if (activeVersion !== self._loadVersion) return false;
         var products = catalog.itemsFromResponse(response);
-        var purchasableCount = products.filter(function (product) {
-          return product.purchasable === true;
-        }).length;
         self.applySnapshot(catalog.createSnapshot(products), true);
         self.applySync({
           state: products.length ? 'live' : 'empty',
-          message: products.length ? '主商城已同步 · ' + products.length + ' 件可见 / ' + purchasableCount + ' 件可购' : '当前会员暂无可见商品',
+          message: products.length ? '主商城已同步 · ' + products.length + ' 件公开商品' : '主商城当前暂无公开商品',
           retryable: products.length === 0,
         });
         return true;
       })
       .catch(function (error) {
         if (activeVersion !== self._loadVersion) return false;
-        if (error && error.code === 'WECHAT_BINDING_REQUIRED') {
-          self._bindingChallenge = error.bindingChallenge || '';
-          self.setData({
-            bindingRequired: true,
-            bindingPassword: '',
-            bindingBusy: false,
-            bindingError: self._bindingChallenge ? '' : '绑定凭证缺失，请重新登录',
-          });
-        }
         self.applySync(syncCopy(error));
         return false;
       });
@@ -182,49 +155,6 @@ Page({
 
   onRetrySync: function () {
     this.refreshCatalog();
-  },
-
-  onBindingUsername: function (event) {
-    this.setData({ bindingUsername: (event.detail.value || '').trim(), bindingError: '' });
-  },
-
-  onBindingPassword: function (event) {
-    this.setData({ bindingPassword: event.detail.value || '', bindingError: '' });
-  },
-
-  onBindMember: function () {
-    var self = this;
-    var username = this.data.bindingUsername;
-    var password = this.data.bindingPassword;
-    if (this.data.bindingBusy) return;
-    if (!this._bindingChallenge) return this.refreshCatalog();
-    if (!username || !password) return this.setData({ bindingError: '请输入现有智慧翼账号和密码' });
-    this.setData({ bindingBusy: true, bindingError: '' });
-    api
-      .bindWechatMember({
-        bindingChallenge: this._bindingChallenge,
-        username: username,
-        password: password,
-      })
-      .then(
-        function () {
-          self._bindingChallenge = '';
-          self.setData({
-            bindingRequired: false,
-            bindingUsername: '',
-            bindingPassword: '',
-            bindingBusy: false,
-          });
-          self.refreshCatalog();
-        },
-        function (error) {
-          self.setData({
-            bindingBusy: false,
-            bindingPassword: '',
-            bindingError: (error && error.message) || '会员绑定失败，请核对账号后重试',
-          });
-        }
-      );
   },
 
   onPending: function (event) {
