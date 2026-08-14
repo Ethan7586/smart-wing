@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { createSessionCookie, readSession, targetForRequest } from './session';
+import { createSessionCookie, createTrackedMiniappSessionToken, readSession, targetForRequest } from './session';
 import type { WorkerEnv } from './types';
 
 const env: WorkerEnv = {
   SESSION_SIGNING_KEY: 'test-session-signing-key-that-is-longer-than-32-bytes',
   ADMIN_SESSION_SIGNING_KEY: 'test-admin-signing-key-that-is-longer-than-32-bytes',
+  MINIAPP_SESSION_SIGNING_KEY: 'test-miniapp-signing-key-that-is-longer-than-32-bytes',
+  SUPABASE_URL: 'https://database.example.test',
+  SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
 };
 const membership = { memberId: 'member-test', membershipId: 'membership-test', authzVersion: 3 };
 
@@ -66,5 +69,30 @@ describe('MVP session', () => {
     const encoded = btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     const request = new Request('https://hbbtzn.com/api/v1/auth/session', { headers: { cookie: `${name}=${encoded}.${value.split('.')[1]}` } });
     await expect(readSession(request, env)).resolves.toBeNull();
+  });
+
+  it('creates a separately signed revocable mini-program bearer session', async () => {
+    const previousFetch = globalThis.fetch;
+    globalThis.fetch = async () => new Response('true', { headers: { 'content-type': 'application/json' } });
+    try {
+      const session = await createTrackedMiniappSessionToken(new Request('https://hbbtzn.com/api/v1/auth/wechat/session'), env, 'SW0001', 'SMART_WING_DEMO', membership);
+      expect(session.accessToken).toMatch(/^swm1\./);
+      const request = new Request('https://hbbtzn.com/api/v1/orders', { headers: { authorization: `Bearer ${session.accessToken}` } });
+      await expect(readSession(request, env)).resolves.toMatchObject({ ...membership, channel: 'miniapp', target: 'storefront' });
+    } finally {
+      globalThis.fetch = previousFetch;
+    }
+  });
+
+  it('does not accept mini-program bearer sessions on the admin host', async () => {
+    const previousFetch = globalThis.fetch;
+    globalThis.fetch = async () => new Response('true', { headers: { 'content-type': 'application/json' } });
+    try {
+      const session = await createTrackedMiniappSessionToken(new Request('https://hbbtzn.com/api/v1/auth/wechat/session'), env, 'SW0001', 'SMART_WING_DEMO', membership);
+      const request = new Request('https://smart.hbbtzn.com/api/v1/orders', { headers: { authorization: `Bearer ${session.accessToken}` } });
+      await expect(readSession(request, env)).resolves.toBeNull();
+    } finally {
+      globalThis.fetch = previousFetch;
+    }
   });
 });

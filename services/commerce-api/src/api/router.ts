@@ -1,324 +1,44 @@
-import { handleAccountLedgers, handleAccounts, handleBootstrap } from './accountRoutes';
 import { resolveAuthorizationContext } from './auth';
-import { handleCart, handleDeleteCartItem } from './cartRoutes';
-import { handleAddresses, handleDeleteAddress } from './addressRoutes';
-import { apiError, json } from './http';
-import { handleAfterSales, handleCreateAfterSale, handleCreateOrder, handleExecuteRefund, handleFinanceReconciliation, handleInternalPayment, handleOrders, handleShipOrder } from './orderRoutes';
-import { handleAdminCatalog, handleAdminOverview, handleSetProductStatus } from './adminRoutes';
-import { handleHealth, handleInitialPasswordChange, handleLogin, handleLogout, handleProducts, handleRegisteredCredentialDiscovery } from './publicRoutes';
-import { handleRegistration, handleRegistrationOtp, handleUsernameRegistration } from './registrationRoutes';
-import { handleHomeSnapshot } from './homeRoutes';
-import { handleSimulationBenefitIssue, handleSimulationMixedPayment, handleSimulationRecharge, handleSimulationWallet } from './paymentSimulationRoutes';
-import { handleMembershipAccess, handleMembershipStatus, handlePermissionCommandCenter } from './permissionAdminRoutes';
-import { handleCreateCustomRole, handleCustomRoleCenter, handleSetCustomRoleStatus, handleUpdateCustomRole } from './customRoleRoutes';
-import { handleAdminCreateMember, handleCreateMemberInvite, handleDisableMemberInvite, handleMemberImport, handleMemberOperations, handleUpdateMemberProfile } from './memberOperationsRoutes';
-import { handleStepUp } from './stepUpRoutes';
-import { handleChangePassword, handleChangePhone, handleResetPassword, handleRevokeOtherSessions, handleRevokeSession, handleSecurityCenter, handleSecurityOtp } from './securityCenterRoutes';
-import { handleQualificationCenter, handleQualificationConfig } from './qualificationAdminRoutes';
-import {
-  handleEmployeeQualification,
-  handleQualificationGovernance,
-  handleQualificationHistory,
-  handleQualificationPreview,
-  handleQualificationReview,
-  handleQualificationRollback,
-  handleQualificationSimulation,
-} from './qualificationGovernanceRoutes';
+import { knownApiError } from './errorResponse';
+import { apiError } from './http';
+import { routeAdminRequest } from './routes/adminRouter';
+import { routePublicRequest } from './routes/publicRouter';
+import { routeSimulationRequest } from './routes/simulationRouter';
+import { routeStorefrontRequest } from './routes/storefrontRouter';
 import type { WorkerEnv } from './types';
 
 const API_PREFIX = '/api/v1';
+
+/** The only API entrypoint: public first, then one authenticated business boundary. */
 export async function routeApi(request: Request, env: WorkerEnv): Promise<Response | null> {
-  const url = new URL(request.url);
-  if (url.pathname !== '/api/health' && !url.pathname.startsWith(`${API_PREFIX}/`)) {
-    return null;
-  }
+  const pathname = new URL(request.url).pathname;
+  if (pathname !== '/api/health' && !pathname.startsWith(`${API_PREFIX}/`)) return null;
   const requestId = request.headers.get('cf-ray') ?? crypto.randomUUID();
 
   try {
-    if (url.pathname === '/api/health') return await handleHealth(request, env, requestId);
-    if (url.pathname === `${API_PREFIX}/auth/login`) {
-      return await handleLogin(request, env, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/auth/credential/discover`) {
-      return await handleRegisteredCredentialDiscovery(request, env, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/auth/password/initial-change`) {
-      return await handleInitialPasswordChange(request, env, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/auth/logout`) {
-      return await handleLogout(request, env, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/auth/registration/otp`) {
-      return await handleRegistrationOtp(request, env, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/auth/register`) {
-      return await handleRegistration(request, env, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/auth/register/username`) {
-      return await handleUsernameRegistration(request, env, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/auth/security/otp`) {
-      return await handleSecurityOtp(request, env, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/auth/password/reset`) {
-      return await handleResetPassword(request, env, requestId);
-    }
+    const publicResponse = await routePublicRequest(request, env, requestId);
+    if (publicResponse) return publicResponse;
 
     const authorization = await resolveAuthorizationContext(request, env);
     if (!authorization) {
       return apiError(401, 'AUTHENTICATION_REQUIRED', '生产身份认证尚未配置，服务端已拒绝匿名业务操作', requestId);
     }
-    if (url.pathname === `${API_PREFIX}/products`) {
-      return await handleProducts(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/bootstrap`) {
-      return await handleBootstrap(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/home`) {
-      return await handleHomeSnapshot(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/auth/session`) {
-      return json({ authenticated: true, authorization: publicAuthorization(authorization), requestId });
-    }
-    if (url.pathname === `${API_PREFIX}/auth/step-up`) {
-      return await handleStepUp(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/auth/security-center`) {
-      return await handleSecurityCenter(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/auth/password/change`) {
-      return await handleChangePassword(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/auth/phone/change`) {
-      return await handleChangePhone(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/auth/sessions/revoke-others`) {
-      return await handleRevokeOtherSessions(request, env, authorization, requestId);
-    }
-    const authSessionMatch = url.pathname.match(/^\/api\/v1\/auth\/sessions\/([0-9a-f-]{36})$/i);
-    if (authSessionMatch) {
-      return await handleRevokeSession(request, env, authorization, authSessionMatch[1], requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/accounts`) {
-      return await handleAccounts(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/cart`) {
-      return await handleCart(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/addresses`) {
-      return await handleAddresses(request, env, authorization, requestId);
-    }
-    const addressMatch = url.pathname.match(/^\/api\/v1\/addresses\/([^/]+)$/);
-    if (addressMatch) {
-      return await handleDeleteAddress(request, env, authorization, decodeURIComponent(addressMatch[1]), requestId);
-    }
-    const cartItemMatch = url.pathname.match(/^\/api\/v1\/cart\/([^/]+)$/);
-    if (cartItemMatch) {
-      return await handleDeleteCartItem(request, env, authorization, decodeURIComponent(cartItemMatch[1]), requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/account-ledgers`) {
-      return await handleAccountLedgers(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/simulation/wallet`) {
-      return await handleSimulationWallet(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/simulation/recharges`) {
-      return await handleSimulationRecharge(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/simulation/benefits`) {
-      return await handleSimulationBenefitIssue(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/after-sales`) {
-      return request.method === 'POST' ? await handleCreateAfterSale(request, env, authorization, requestId) : await handleAfterSales(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/orders`) {
-      return request.method === 'POST' ? await handleCreateOrder(request, env, authorization, requestId) : await handleOrders(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/products`) {
-      return await handleAdminCatalog(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/overview`) {
-      return await handleAdminOverview(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/access-control`) {
-      return await handlePermissionCommandCenter(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/roles`) {
-      return request.method === 'POST' ? await handleCreateCustomRole(request, env, authorization, requestId) : await handleCustomRoleCenter(request, env, authorization, requestId);
-    }
-    const roleStatusMatch = url.pathname.match(/^\/api\/v1\/admin\/roles\/([^/]+)\/status$/);
-    if (roleStatusMatch) {
-      return await handleSetCustomRoleStatus(request, env, authorization, decodeURIComponent(roleStatusMatch[1]), requestId);
-    }
-    const roleMatch = url.pathname.match(/^\/api\/v1\/admin\/roles\/([^/]+)$/);
-    if (roleMatch) {
-      return await handleUpdateCustomRole(request, env, authorization, decodeURIComponent(roleMatch[1]), requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/member-operations`) {
-      return await handleMemberOperations(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/member-operations/invitations`) {
-      return await handleCreateMemberInvite(request, env, authorization, requestId);
-    }
-    const invitationMatch = url.pathname.match(/^\/api\/v1\/admin\/member-operations\/invitations\/([^/]+)$/);
-    if (invitationMatch) {
-      return await handleDisableMemberInvite(request, env, authorization, decodeURIComponent(invitationMatch[1]), requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/member-operations/members`) {
-      return await handleAdminCreateMember(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/member-operations/imports`) {
-      return await handleMemberImport(request, env, authorization, requestId);
-    }
-    const memberProfileMatch = url.pathname.match(/^\/api\/v1\/admin\/member-operations\/members\/([^/]+)$/);
-    if (memberProfileMatch) {
-      return await handleUpdateMemberProfile(request, env, authorization, decodeURIComponent(memberProfileMatch[1]), requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/qualification-center`) {
-      return await handleQualificationCenter(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/qualification-center/config`) {
-      return await handleQualificationConfig(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/qualification-center/governance`) {
-      return await handleQualificationGovernance(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/qualification-center/preview`) {
-      return await handleQualificationPreview(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/qualification-center/review`) {
-      return await handleQualificationReview(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/qualification-center/history`) {
-      return await handleQualificationHistory(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/qualification-center/rollback`) {
-      return await handleQualificationRollback(request, env, authorization, requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/admin/qualification-center/simulate`) {
-      return await handleQualificationSimulation(request, env, authorization, requestId);
-    }
-    const employeeQualificationMatch = url.pathname.match(/^\/api\/v1\/admin\/qualification-center\/employees\/([^/]+)$/);
-    if (employeeQualificationMatch) {
-      return await handleEmployeeQualification(request, env, authorization, decodeURIComponent(employeeQualificationMatch[1]), requestId);
-    }
-    const membershipAccessMatch = url.pathname.match(/^\/api\/v1\/admin\/memberships\/([^/]+)\/access$/);
-    if (membershipAccessMatch) {
-      return await handleMembershipAccess(request, env, authorization, decodeURIComponent(membershipAccessMatch[1]), requestId);
-    }
-    const membershipStatusMatch = url.pathname.match(/^\/api\/v1\/admin\/memberships\/([^/]+)\/status$/);
-    if (membershipStatusMatch) {
-      return await handleMembershipStatus(request, env, authorization, decodeURIComponent(membershipStatusMatch[1]), requestId);
-    }
-    const productStatusMatch = url.pathname.match(/^\/api\/v1\/admin\/products\/([^/]+)\/status$/);
-    if (productStatusMatch) {
-      return await handleSetProductStatus(request, env, authorization, decodeURIComponent(productStatusMatch[1]), requestId);
-    }
-    if (url.pathname === `${API_PREFIX}/finance/reconciliation`) {
-      return await handleFinanceReconciliation(request, env, authorization, requestId);
-    }
-    const refundMatch = url.pathname.match(/^\/api\/v1\/after-sales\/([^/]+)\/refund$/);
-    if (refundMatch) {
-      return await handleExecuteRefund(request, env, authorization, decodeURIComponent(refundMatch[1]), requestId);
-    }
-    const paymentMatch = url.pathname.match(/^\/api\/v1\/orders\/([^/]+)\/payments\/internal$/);
-    if (paymentMatch) {
-      return await handleInternalPayment(request, env, authorization, decodeURIComponent(paymentMatch[1]), requestId);
-    }
-    const simulatedPaymentMatch = url.pathname.match(/^\/api\/v1\/orders\/([^/]+)\/payments\/simulated$/);
-    if (simulatedPaymentMatch) {
-      return await handleSimulationMixedPayment(request, env, authorization, decodeURIComponent(simulatedPaymentMatch[1]), requestId);
-    }
-    const shipMatch = url.pathname.match(/^\/api\/v1\/orders\/([^/]+)\/ship$/);
-    if (shipMatch) {
-      return await handleShipOrder(request, env, authorization, decodeURIComponent(shipMatch[1]), requestId);
+
+    for (const route of [routeStorefrontRequest, routeAdminRequest, routeSimulationRequest]) {
+      const response = await route(request, env, authorization, requestId);
+      if (response) return response;
     }
     return apiError(404, 'API_NOT_FOUND', '接口不存在', requestId);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'unknown';
     console.error(
       JSON.stringify({
         level: 'error',
         event: 'api_request_failed',
         requestId,
-        path: url.pathname,
-        message,
+        path: pathname,
+        message: error instanceof Error ? error.message : 'unknown',
       })
     );
-    for (const [needle, status, code, text] of [
-      ['IDEMPOTENCY_CONFLICT', 409, 'IDEMPOTENCY_CONFLICT', '相同幂等键不能用于不同请求'],
-      ['INSUFFICIENT_INVENTORY', 409, 'INSUFFICIENT_INVENTORY', '部分商品库存不足'],
-      ['INSUFFICIENT_ACCOUNT_BALANCE', 409, 'INSUFFICIENT_ACCOUNT_BALANCE', '账户余额不足'],
-      ['ORDER_NOT_FOUND', 404, 'ORDER_NOT_FOUND', '订单不存在'],
-      ['ORDER_NOT_PAYABLE', 409, 'ORDER_NOT_PAYABLE', '订单当前状态不可支付'],
-      ['ORDER_NOT_SHIPPABLE', 409, 'ORDER_NOT_SHIPPABLE', '订单当前状态不可发货'],
-      ['PRODUCT_NOT_FOUND', 404, 'PRODUCT_NOT_FOUND', '商品不存在'],
-      ['INVALID_PRODUCT_STATUS_INPUT', 422, 'INVALID_PRODUCT_STATUS_INPUT', '商品状态参数无效'],
-      ['ACCOUNT_NOT_ACTIVE', 409, 'ACCOUNT_NOT_ACTIVE', '账户当前不可用'],
-      ['PAYMENT_TOTAL_MISMATCH', 422, 'PAYMENT_TOTAL_MISMATCH', '账户扣款合计必须等于订单应付金额'],
-      ['PHONE_VERIFICATION_REQUIRED', 403, 'PHONE_VERIFICATION_REQUIRED', '完成手机短信验证后才能提交订单和付款'],
-      ['SKU_NOT_AVAILABLE', 422, 'SKU_NOT_AVAILABLE', '订单中存在无效商品'],
-      ['SKU_NOT_ELIGIBLE', 403, 'SKU_NOT_ELIGIBLE', '当前员工资格不能购买该商品'],
-      ['CITY_NOT_ELIGIBLE', 403, 'CITY_NOT_ELIGIBLE', '当前城市不在该商品的可售范围'],
-      ['PURCHASE_LIMIT_EXCEEDED', 409, 'PURCHASE_LIMIT_EXCEEDED', '已超过该商品的限购数量或金额'],
-      ['INVALID_AFTER_SALE_INPUT', 422, 'INVALID_AFTER_SALE_INPUT', '售后申请信息不完整'],
-      ['ORDER_NOT_AFTER_SALE_ELIGIBLE', 409, 'ORDER_NOT_AFTER_SALE_ELIGIBLE', '订单当前状态不可申请售后'],
-      ['AFTER_SALE_AMOUNT_EXCEEDED', 422, 'AFTER_SALE_AMOUNT_EXCEEDED', '售后申请金额超过订单实付金额'],
-      ['AFTER_SALE_ALREADY_EXISTS', 409, 'AFTER_SALE_ALREADY_EXISTS', '该订单已有处理中售后申请'],
-      ['AFTER_SALE_NOT_REFUNDABLE', 409, 'AFTER_SALE_NOT_REFUNDABLE', '该售后当前不可退款'],
-      ['REFUND_AMOUNT_EXCEEDED', 422, 'REFUND_AMOUNT_EXCEEDED', '退款金额超过可退金额'],
-      ['REFUND_CHANNEL_UNSUPPORTED', 422, 'REFUND_CHANNEL_UNSUPPORTED', '订单含未接入退款通道，不能自动退款'],
-      ['IDEMPOTENCY_KEY_INVALID', 422, 'IDEMPOTENCY_KEY_INVALID', '退款幂等键无效'],
-      ['SELF_ACCESS_MUTATION_FORBIDDEN', 409, 'SELF_ACCESS_MUTATION_FORBIDDEN', '不能修改自己的会员权限'],
-      ['OWNER_MEMBERSHIP_PROTECTED', 409, 'OWNER_MEMBERSHIP_PROTECTED', 'Owner 身份受保护，不能通过日常后台修改'],
-      ['OWNER_ROLE_PROTECTED', 409, 'OWNER_ROLE_PROTECTED', 'Owner 角色受保护，不能通过日常后台授予或撤销'],
-      ['ROLE_GRANT_EXCEEDS_ACTOR', 403, 'ROLE_GRANT_EXCEEDS_ACTOR', '不能授予自己尚未拥有的角色权限'],
-      ['SCOPE_GRANT_EXCEEDS_ACTOR', 403, 'SCOPE_GRANT_EXCEEDS_ACTOR', '不能授予超出自己管理范围的数据范围'],
-      ['TARGET_MEMBERSHIP_OUTSIDE_ACTOR_SCOPE', 403, 'TARGET_MEMBERSHIP_OUTSIDE_ACTOR_SCOPE', '目标会员不在当前管理员的数据范围内'],
-      ['ACCESS_CHANGE_REASON_REQUIRED', 422, 'ACCESS_CHANGE_REASON_REQUIRED', '必须填写有效的变更原因'],
-      ['MEMBERSHIP_STATUS_INVALID', 422, 'MEMBERSHIP_STATUS_INVALID', '会员状态无效'],
-      ['MEMBERSHIP_NOT_FOUND', 404, 'MEMBERSHIP_NOT_FOUND', '会员身份不存在或不在当前管理范围'],
-      ['MEMBERSHIP_SCOPE_KIND_RESERVED', 422, 'MEMBERSHIP_SCOPE_KIND_RESERVED', '该数据范围尚未启用'],
-      ['MEMBERSHIP_SCOPE_OUTSIDE_TENANT', 422, 'MEMBERSHIP_SCOPE_OUTSIDE_TENANT', '数据范围不属于当前会员上下文'],
-      ['ROLE_NOT_FOUND', 422, 'ROLE_NOT_FOUND', '角色不存在或不属于当前平台'],
-      ['ROLE_CODE_CONFLICT', 409, 'ROLE_CODE_CONFLICT', '角色编码已存在'],
-      ['CUSTOM_ROLE_INPUT_INVALID', 422, 'CUSTOM_ROLE_INPUT_INVALID', '自定义角色资料无效'],
-      ['CUSTOM_ROLE_STATUS_INVALID', 422, 'CUSTOM_ROLE_STATUS_INVALID', '角色状态或变更原因无效'],
-      ['SYSTEM_ROLE_READ_ONLY', 409, 'SYSTEM_ROLE_READ_ONLY', '系统角色只能查看，不能直接修改'],
-      ['SELF_ROLE_MUTATION_FORBIDDEN', 409, 'SELF_ROLE_MUTATION_FORBIDDEN', '不能编辑或停用自己正在使用的角色'],
-      ['PERMISSION_NOT_FOUND', 422, 'PERMISSION_NOT_FOUND', '权限代码不存在'],
-      ['QUALIFICATION_CONFIG_NOT_FOUND', 404, 'QUALIFICATION_CONFIG_NOT_FOUND', '资格配置不存在或不属于当前商城'],
-      ['QUALIFICATION_VERSION_CONFLICT', 409, 'QUALIFICATION_VERSION_CONFLICT', '配置已被其他管理员修改，请刷新后重试'],
-      ['QUALIFICATION_CODE_CONFLICT', 409, 'QUALIFICATION_CODE_CONFLICT', '编码已存在，请更换编码后重试'],
-      ['QUALIFICATION_CHANGE_REASON_REQUIRED', 422, 'QUALIFICATION_CHANGE_REASON_REQUIRED', '必须填写至少四个字的变更原因'],
-      ['QUALIFICATION_ACTIVE_RESOURCE_EMPTY', 422, 'QUALIFICATION_ACTIVE_RESOURCE_EMPTY', '发布前必须配置适用对象和资源范围'],
-      ['QUALIFICATION_LIMIT_REQUIRED', 422, 'QUALIFICATION_LIMIT_REQUIRED', '限售模板至少需要一个有效限额'],
-      ['QUALIFICATION_RESOURCE_OUTSIDE_MALL', 403, 'QUALIFICATION_RESOURCE_OUTSIDE_MALL', '所选资源不属于当前商城或管理范围'],
-      ['QUALIFICATION_CONFIG_INVALID', 422, 'QUALIFICATION_CONFIG_INVALID', '资格配置内容无效'],
-      ['QUALIFICATION_CONFIG_KIND_INVALID', 422, 'QUALIFICATION_CONFIG_KIND_INVALID', '资格配置类型无效'],
-      ['QUALIFICATION_STATUS_INVALID', 422, 'QUALIFICATION_STATUS_INVALID', '资格配置状态无效'],
-      ['QUALIFICATION_APPROVAL_ALREADY_PENDING', 409, 'QUALIFICATION_APPROVAL_ALREADY_PENDING', '该配置已有待审批变更'],
-      ['QUALIFICATION_APPROVAL_NOT_FOUND', 404, 'QUALIFICATION_APPROVAL_NOT_FOUND', '审批申请不存在'],
-      ['QUALIFICATION_APPROVAL_NOT_PENDING', 409, 'QUALIFICATION_APPROVAL_NOT_PENDING', '审批申请已处理或失效'],
-      ['QUALIFICATION_SELF_APPROVAL_FORBIDDEN', 409, 'QUALIFICATION_SELF_APPROVAL_FORBIDDEN', '申请人与审批人必须是不同人员'],
-      ['QUALIFICATION_APPROVER_INVALID', 403, 'QUALIFICATION_APPROVER_INVALID', '当前身份没有资格审批权限'],
-      ['QUALIFICATION_HISTORY_NOT_FOUND', 404, 'QUALIFICATION_HISTORY_NOT_FOUND', '历史版本不存在'],
-      ['EMPLOYEE_QUALIFICATION_USER_NOT_FOUND', 404, 'EMPLOYEE_QUALIFICATION_USER_NOT_FOUND', '员工不属于当前商城'],
-      ['EMPLOYEE_QUALIFICATION_TAG_SOURCE_CONFLICT', 409, 'EMPLOYEE_QUALIFICATION_TAG_SOURCE_CONFLICT', '标签由外部系统维护，不能手工覆盖'],
-      ['EMPLOYEE_QUALIFICATION_INVALID', 422, 'EMPLOYEE_QUALIFICATION_INVALID', '员工资格内容无效'],
-    ] as const) {
-      if (message.includes(needle)) return apiError(status, code, text, requestId);
-    }
-    return apiError(500, 'INTERNAL_ERROR', '服务暂时不可用', requestId);
+    return knownApiError(error, requestId);
   }
-}
-
-function publicAuthorization(context: import('./types').AuthorizationContext) {
-  return {
-    memberId: context.membership.memberId,
-    membershipId: context.membership.id,
-    target: context.membership.target,
-    roles: context.roles,
-    permissions: context.permissions,
-  };
 }

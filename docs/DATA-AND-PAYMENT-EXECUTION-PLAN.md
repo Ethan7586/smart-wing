@@ -35,15 +35,22 @@
 
 **小程序没有 cookie 容器这堵墙已经拆掉了** —— `session.ts` 认 Bearer 令牌，`wechatAuthRoutes` 会签发 miniapp 会话令牌。
 
-### 1.2 最要紧的缺口
+### 1.2 路由接线的真实状态（2026-08-14 复核）
 
-> **微信登录与支付的处理器全部写好，但 `services/commerce-api/src/api/router.ts` 一条都没注册。**
+> **处理器已经在当前工作区接线，但接线文件尚未纳入 Git；干净检出仍然没有这批能力。**
 >
-> 复核命令：
+> `router.ts` 现在只负责分层调度，所以仅在这个文件中搜索 `wechat|prepay|notify` 会产生错误结论。实际注册位置是：
+>
+> - `routes/publicRouter.ts`：微信登录、首次绑定、微信支付通知
+> - `routes/storefrontRouter.ts`：订单查询、预支付、支付状态
+>
+> 正确复核方式：
 > ```bash
-> grep -nE "wechat|prepay|notify" services/commerce-api/src/api/router.ts
+> grep -R -nE "auth/wechat|payments/wechat|payment-status|by-number" services/commerce-api/src/api/routes
+> git status --short -- services/commerce-api/src/api/routes services/commerce-api/src/api/wechat\*
 > ```
-> 当前输出为空。也就是说小程序调 `/api/v1/auth/wechat/session` 会拿到 404，代码写得再对也跑不通。
+
+当前第一优先级不是重复写路由，而是验证公开/鉴权边界，把现有接线连同测试形成一个可回退提交。
 
 ### 1.3 其余缺口
 
@@ -57,13 +64,13 @@
 
 ---
 
-## 2. 第一步：把路由接上（半天，解锁其余全部）
+## 2. 第一步：核实并固化路由接线（半天，解锁其余全部）
 
-**这是所有后续工作的前置。** 在 `router.ts` 的 `resolveAuthorizationContext` 之前/之后按需注册：
+**这是所有后续工作的前置。** 路由已经拆分注册，必须保持以下边界：
 
 ```
 POST /api/v1/auth/wechat/session      handleWechatSession    ← 免鉴权（登录入口）
-POST /api/v1/auth/wechat/bind         handleWechatBind       ← 需已有会话
+POST /api/v1/auth/wechat/bind         handleWechatBind       ← 免会话；一次性绑定凭证 + 账号密码 + 限流
 GET  /api/v1/orders/by-number/{no}    handleOrderByNumber
 POST /api/v1/orders/{id}/payments/wechat/prepay   handleWechatPrepay
 GET  /api/v1/orders/{id}/payment-status           handleWechatPaymentStatus
@@ -73,15 +80,17 @@ POST /api/v1/payments/wechat/notify   微信异步通知   ← 免鉴权，靠�
 **注册位置很关键：**
 
 - `auth/wechat/session` 必须在 `resolveAuthorizationContext` **之前**（用户此时还没有会话）
+- `auth/wechat/bind` 同样在鉴权之前——它本身就是首次绑定并签发会话的入口；安全边界是一次性绑定凭证、既有账号密码和登录限流
 - `payments/wechat/notify` 同理，**它的身份来自微信签名，不是用户会话**。放在鉴权之后会永远 401
 - 其余全部在鉴权之后
 
 **验收**
 
-1. `grep -nE "wechat|prepay|notify" router.ts` 有输出
-2. 未登录调 `/auth/wechat/session` 不返回 401
-3. 已有的 `wechatPaymentRoutes.test.ts` / `wechatAuthRoutes.test.ts` / `wechatPayNotification.test.ts` 全绿
-4. 小程序真机点一次登录，能拿到令牌
+1. 路由边界回归测试证明 `session` / `bind` / `notify` 在用户鉴权之前分发
+2. 路由边界回归测试证明 `prepay` 在用户鉴权之后，匿名请求返回 401
+3. `wechatPaymentRoutes.test.ts` / `wechatAuthRoutes.test.ts` / `wechatPayNotification.test.ts` 全绿
+4. 接线文件和依赖进入一个可回退提交
+5. 配置真实服务器密钥后，小程序真机点一次登录，能拿到令牌
 
 ---
 
@@ -202,7 +211,7 @@ member_identities
 
 ### 4.3 任务
 
-**P-1｜路由注册** —— 见第 2 节，前置
+**P-1｜路由注册** —— 见第 2 节；工作区已接线，待验证并入库
 
 **P-2｜商户配置**
 

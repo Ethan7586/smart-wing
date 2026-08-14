@@ -4,6 +4,8 @@ import { PERMISSIONS } from './permissions';
 export { PERMISSIONS, PERMISSION_CATALOG } from './permissions';
 export type { PermissionDefinition, PermissionRisk } from './permissions';
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
+export { ORDER_STATUS, PAYMENT_STATUS, toPaymentStatus } from './commerce';
+export type { OrderPaymentStatus, OrderStatus, PaymentStatus, WechatPaymentAttemptStatus } from './commerce';
 
 export type MembershipStatus = 'invited' | 'active' | 'suspended' | 'offboarded' | 'expired';
 export type MembershipTarget = 'storefront' | 'admin';

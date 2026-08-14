@@ -26,6 +26,25 @@ export interface WorkerEnv {
   IDENTITY_LOOKUP_KEY?: string;
   /** Separate signing key for smart.hbbtzn.com sessions. */
   ADMIN_SESSION_SIGNING_KEY?: string;
+  /** Public identifier of the production WeChat mini program. */
+  WECHAT_MINIAPP_APP_ID?: string;
+  /** Server-only secret used exclusively for jscode2session. */
+  WECHAT_MINIAPP_APP_SECRET?: string;
+  /** Independent HMAC key for revocable mini-program bearer sessions. */
+  MINIAPP_SESSION_SIGNING_KEY?: string;
+  /** Direct-merchant WeChat Pay merchant number bound to the mini program. */
+  WECHAT_PAY_MCH_ID?: string;
+  WECHAT_PAY_MERCHANT_SERIAL_NO?: string;
+  /** PEM-encoded merchant API certificate private key; server secret only. */
+  WECHAT_PAY_MERCHANT_PRIVATE_KEY?: string;
+  /** Exactly 32-byte API v3 key for notification resource decryption. */
+  WECHAT_PAY_API_V3_KEY?: string;
+  /** PEM-encoded WeChat Pay platform public key or platform certificate key. */
+  WECHAT_PAY_PLATFORM_PUBLIC_KEY?: string;
+  /** Expected Wechatpay-Serial value for notification verification. */
+  WECHAT_PAY_PLATFORM_KEY_ID?: string;
+  /** Public HTTPS payment notification endpoint. */
+  WECHAT_PAY_NOTIFY_URL?: string;
 }
 
 /**

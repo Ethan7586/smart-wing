@@ -190,7 +190,7 @@ type RegisteredCandidate = { memberId?: string; membershipId?: string; target?: 
 type LocalLogin = { runtime: MembershipRuntime | null; credentialFound: boolean; mustResetPassword: boolean; passwordHash: string | null };
 const DUMMY_PASSWORD_HASH = `pbkdf2-sha256$310000$AAAAAAAAAAAAAAAAAAAAAA==$${'A'.repeat(43)}=`;
 
-async function authenticateLocalMember(identifier: string, password: string, target: 'storefront' | 'admin' | undefined, env: WorkerEnv): Promise<LocalLogin> {
+export async function authenticateLocalMember(identifier: string, password: string, target: 'storefront' | 'admin' | undefined, env: WorkerEnv): Promise<LocalLogin> {
   const mobile = normalizeChineseMobile(identifier);
   const username = normalizeLocalUsername(identifier);
   const normalizedIdentifier = identifier.trim().toLowerCase();
