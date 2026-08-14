@@ -2,14 +2,14 @@
   分类 — 尚未实现。
 
   04-开发顺序与停顿点 要求单页实现、逐页验收。本页留空是为了让底栏可以跳转，
-  不是为了占位好看；不得在此处堆砌演示界面。阶段 4 才建设本页。
+  不是为了占位好看；不得在此处堆砌演示界面。阶段 2 才建设本页。
 -->
 <view class="sw-page stub">
   <view class="stub-nav" style="height: {{navTotalHeight}}px;"></view>
   <view class="stub-body sw-inset">
     <view class="i i-xl i-inbox-muted"></view>
     <text class="stub-title">分类</text>
-    <text class="stub-note">本页将在阶段 4建设</text>
+    <text class="stub-note">本页将在阶段 2建设</text>
     <text class="stub-detail">分类、搜索、商品列表与资格标签</text>
   </view>
   <view class="stub-spacer"></view>
