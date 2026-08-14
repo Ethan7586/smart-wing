@@ -55,7 +55,8 @@ describe('public catalog', () => {
       access: { mode: 'public', memberPricing: false, purchaseQualification: false },
     });
     const requestBody = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
-    expect(requestBody).toEqual({ p_mall_slug: 'smart-wing-demo', p_category: null, p_limit: 24, p_offset: 0 });
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://db.example/rest/v1/rpc/api_public_catalog_window');
+    expect(requestBody).toEqual({ p_mall_slug: 'smart-wing-demo', p_limit: 24, p_offset: 0 });
   });
 
   it('rejects malformed server-side mall configuration before database access', async () => {
@@ -97,5 +98,21 @@ describe('public catalog', () => {
     const secondRequest = JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body));
     expect(firstRequest).toMatchObject({ p_limit: 100, p_offset: 0 });
     expect(secondRequest).toMatchObject({ p_limit: 100, p_offset: 100 });
+  });
+
+  it('keeps category-specific browsing on the canonical taxonomy query', async () => {
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(JSON.stringify([catalogRow]), { status: 200, headers: { 'content-type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const response = await handlePublicCatalog(new Request('https://hbbtzn.com/api/v1/catalog/public/products?category=food&limit=20'), env, 'food-category');
+
+    expect(response.status).toBe(200);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://db.example/rest/v1/rpc/api_catalog');
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+      p_mall_slug: 'smart-wing-demo',
+      p_category: 'food',
+      p_limit: 20,
+      p_offset: 0,
+    });
   });
 });

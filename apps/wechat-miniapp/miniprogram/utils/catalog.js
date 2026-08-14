@@ -54,6 +54,17 @@ function secureImage(value) {
   return typeof value === 'string' && (/^https:\/\//.test(value) || /^\//.test(value)) ? value : null;
 }
 
+function productTile(product, index) {
+  return {
+    key: 'public-product-' + (product.id || index),
+    label: product.name || product.title || '商品信息待同步',
+    matchCodes: [],
+    image: secureImage(product.coverUrl),
+    productCount: 1,
+    productId: product.id || '',
+  };
+}
+
 function productMatches(product, tile, railKey) {
   var productTaxonomy = product && product.taxonomy;
   if (!productTaxonomy) return false;
@@ -86,9 +97,17 @@ function enrichTiles(tilesByKey, products) {
 function createSnapshot(products) {
   var safeProducts = Array.isArray(products) ? products : [];
   var base = baseTilesByKey();
+  var tilesByKey = safeProducts.length ? enrichTiles(base, safeProducts) : base;
+  var featuredProducts = safeProducts.filter(function (product) {
+    return product && typeof product.id === 'string';
+  });
+  if (featuredProducts.length) {
+    tilesByKey.featured = featuredProducts.slice(0, 12).map(productTile);
+  }
   return {
     rail: rail(),
-    tilesByKey: safeProducts.length ? enrichTiles(base, safeProducts) : base,
+    tilesByKey: tilesByKey,
+    products: safeProducts,
     productCount: safeProducts.length,
     taxonomyVersion: taxonomy.version,
   };
@@ -110,6 +129,13 @@ function preferredRailKey(snapshot, currentKey) {
   return rails.length ? rails[0].key : '';
 }
 
+function tileProductCount(tiles) {
+  return (Array.isArray(tiles) ? tiles : []).reduce(function (total, tile) {
+    var count = Number(tile && tile.productCount);
+    return total + (Number.isFinite(count) && count > 0 ? count : 0);
+  }, 0);
+}
+
 function itemsFromResponse(response) {
   if (!response || !Array.isArray(response.items)) {
     var error = new Error('商品目录返回格式异常');
@@ -124,5 +150,6 @@ function itemsFromResponse(response) {
 module.exports = {
   createSnapshot: createSnapshot,
   preferredRailKey: preferredRailKey,
+  tileProductCount: tileProductCount,
   itemsFromResponse: itemsFromResponse,
 };

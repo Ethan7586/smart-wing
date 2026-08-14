@@ -221,6 +221,13 @@
   margin-right: 4rpx;
 }
 
+.quota-pending {
+  font-size: var(--sw-fs-h3);
+  line-height: var(--sw-lh-h3);
+  font-weight: var(--sw-fw-h3);
+  color: var(--sw-text-secondary);
+}
+
 .phone-notice {
   display: flex;
   align-items: center;
@@ -234,4 +241,8 @@
   font-size: var(--sw-fs-caption);
   line-height: var(--sw-lh-caption);
   color: var(--sw-danger);
+}
+
+.notice-info .phone-notice-text {
+  color: var(--sw-text-secondary);
 }

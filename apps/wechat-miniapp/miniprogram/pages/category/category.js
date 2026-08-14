@@ -26,6 +26,8 @@ Page({
     filters: {},
     rail: [],
     railKey: '',
+    railTitle: '',
+    railProductCount: 0,
     tiles: [],
     syncState: 'local',
     syncMessage: '正在载入统一分类结构',
@@ -123,7 +125,24 @@ Page({
   applySnapshot: function (snapshot, keepSelection) {
     var current = keepSelection ? this.data.railKey : '';
     var key = catalog.preferredRailKey(snapshot, current);
+    var tiles = snapshot.tilesByKey[key] || [];
+    var currentRail = snapshot.rail.find(function (item) {
+      return item.key === key;
+    });
+    var visibleTiles = snapshot.productCount
+      ? tiles.filter(function (tile) {
+          return tile.productCount > 0;
+        })
+      : tiles;
     this._tilesByKey = snapshot.tilesByKey;
+    this._rail = snapshot.rail;
+    this._catalogProductCount = snapshot.productCount;
+    this._productsById = {};
+    (snapshot.products || []).forEach(
+      function (product) {
+        this._productsById[product.id] = product;
+      }.bind(this)
+    );
     this.setData({
       loading: false,
       loadError: null,
@@ -131,7 +150,9 @@ Page({
       filters: FILTERS_PENDING,
       rail: snapshot.rail,
       railKey: key,
-      tiles: snapshot.tilesByKey[key] || [],
+      railTitle: currentRail ? currentRail.label : '公开商品',
+      railProductCount: key === 'featured' ? snapshot.productCount : catalog.tileProductCount(tiles),
+      tiles: visibleTiles,
     });
   },
 
@@ -142,7 +163,21 @@ Page({
   onSelectRail: function (event) {
     var key = event.currentTarget.dataset.key;
     if (key === this.data.railKey || !this._tilesByKey[key]) return;
-    this.setData({ railKey: key, tiles: this._tilesByKey[key] });
+    var railItem = (this._rail || []).find(function (item) {
+      return item.key === key;
+    });
+    var tiles = this._tilesByKey[key];
+    var visibleTiles = this._catalogProductCount
+      ? tiles.filter(function (tile) {
+          return tile.productCount > 0;
+        })
+      : tiles;
+    this.setData({
+      railKey: key,
+      railTitle: railItem ? railItem.label : '公开商品',
+      railProductCount: key === 'featured' ? this._catalogProductCount : catalog.tileProductCount(tiles),
+      tiles: visibleTiles,
+    });
   },
 
   onImageError: function (event) {
@@ -161,7 +196,19 @@ Page({
       wx.showToast({ title: '当前分类暂无公开商品', icon: 'none' });
       return;
     }
+    if (item.productId && this._productsById[item.productId]) {
+      wx.setStorageSync('sw-public-product-' + item.productId, this._productsById[item.productId]);
+      wx.navigateTo({ url: '/pages/product-detail/product-detail?id=' + encodeURIComponent(item.productId) });
+      return;
+    }
     var title = encodeURIComponent(item.label || '公开商品');
+    var category = encodeURIComponent(this.data.railKey === 'featured' ? '' : this.data.railKey);
+    wx.navigateTo({ url: '/pages/products/products?title=' + title + '&category=' + category });
+  },
+
+  onOpenRailProducts: function () {
+    if (!this.data.railProductCount) return;
+    var title = encodeURIComponent(this.data.railTitle || '公开商品');
     var category = encodeURIComponent(this.data.railKey === 'featured' ? '' : this.data.railKey);
     wx.navigateTo({ url: '/pages/products/products?title=' + title + '&category=' + category });
   },

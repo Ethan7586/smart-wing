@@ -38,7 +38,7 @@ test('shared taxonomy fills every approved category rail', () => {
   assert.equal(snapshot.tilesByKey.featured.length, 12);
 });
 
-test('public main-Shop products enrich both featured and taxonomy tiles', () => {
+test('public main-Shop products enrich their taxonomy tile', () => {
   const catalog = loadMiniModule(catalogPath);
   const snapshot = catalog.createSnapshot([
     {
@@ -47,11 +47,9 @@ test('public main-Shop products enrich both featured and taxonomy tiles', () => 
       taxonomy: { l1: 'food', l2: 'food_snack', l3: 'food_snack_nuts' },
     },
   ]);
-  const featured = snapshot.tilesByKey.featured.find(({ key }) => key === 'featured_snack');
   const leaf = snapshot.tilesByKey.food.find(({ key }) => key === 'food_snack_nuts');
-  assert.equal(featured.image, 'https://cdn.example.test/nuts.webp');
-  assert.equal(featured.productCount, 1);
-  assert.equal(leaf.image, featured.image);
+  assert.equal(leaf.image, 'https://cdn.example.test/nuts.webp');
+  assert.equal(leaf.productCount, 1);
 });
 
 test('unclassified welfare inventory remains reachable instead of disappearing from mobile browse', () => {
@@ -66,7 +64,24 @@ test('unclassified welfare inventory remains reachable instead of disappearing f
   const review = snapshot.tilesByKey.welfare.find(({ key }) => key === 'welfare_review_unclassified');
   assert.equal(review.productCount, 1);
   assert.equal(review.image, 'https://m.media-amazon.com/images/I/review.jpg');
-  assert.equal(catalog.preferredRailKey(snapshot, 'featured'), 'welfare');
+  assert.equal(catalog.preferredRailKey(snapshot, 'featured'), 'featured');
+  assert.equal(catalog.tileProductCount(snapshot.tilesByKey.welfare), 1);
+});
+
+test('featured browse renders real public products before empty taxonomy slots', () => {
+  const catalog = loadMiniModule(catalogPath);
+  const products = Array.from({ length: 20 }, (_, index) => ({
+    id: `public-${index}`,
+    name: `公开商品 ${index}`,
+    coverUrl: `https://cdn.example.test/${index}.jpg`,
+    taxonomy: { l1: 'welfare', l2: 'welfare_review', l3: 'welfare_review_unclassified' },
+  }));
+  const snapshot = catalog.createSnapshot(products);
+  assert.equal(snapshot.tilesByKey.featured.length, 12);
+  assert.equal(snapshot.tilesByKey.featured[0].productId, 'public-0');
+  assert.equal(snapshot.tilesByKey.featured[0].label, '公开商品 0');
+  assert.equal(snapshot.productCount, 20);
+  assert.equal(catalog.preferredRailKey(snapshot, 'featured'), 'featured');
 });
 
 test('a populated current rail stays selected after public catalog refresh', () => {

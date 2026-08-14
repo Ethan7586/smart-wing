@@ -1,5 +1,6 @@
 var demo = require('../../data/demo');
 var api = require('../../utils/api');
+var accountPresentation = require('../../utils/accountPresentation');
 var sizeClassUtil = require('../../utils/sizeClass');
 
 var app = getApp();
@@ -13,10 +14,17 @@ function formatCents(cents) {
 }
 
 function decorateProducts(list) {
-  return list.map(function (item) {
+  return (Array.isArray(list) ? list : []).map(function (item) {
+    var priceCents = Number(item.priceCents);
+    var marketPriceCents = Number(item.marketPriceCents);
     return Object.assign({}, item, {
-      price: formatCents(item.priceCents),
-      marketPrice: item.marketPriceCents ? formatCents(item.marketPriceCents) : '',
+      skuId: item.skuId || item.id,
+      title: item.title || item.name || '商品信息待同步',
+      price: Number.isFinite(priceCents) && priceCents > 0 ? formatCents(priceCents) : '',
+      marketPrice: Number.isFinite(marketPriceCents) && marketPriceCents > priceCents ? formatCents(marketPriceCents) : '',
+      tag: item.tag || (item.isTest ? '测试目录' : '公开商品'),
+      source: item.source || item.supplierName || '主商城',
+      image: item.image || item.coverUrl || null,
     });
   });
 }
@@ -34,8 +42,9 @@ Page({
     scope: {},
     quotaLabel: '',
     quotaAmount: '',
-    phoneVerified: true,
-    phoneNotice: '',
+    quotaPendingText: '',
+    identityNotice: '',
+    identityNoticeTone: 'info',
     cartCount: 0,
     entries: [],
     hero: {},
@@ -74,25 +83,19 @@ Page({
     }
   },
 
-  /**
-   * Real data first. Only if the API layer is not wired at all do we fall back
-   * to the seed set, and that fallback is announced on screen. A wired API that
-   * *fails* must surface an error state — it must never silently show demo
-   * numbers as if they were the member's own balance.
-   */
   loadHome: function () {
     var self = this;
     this.setData({ loading: true, loadError: null });
-
-    if (!api.isWired()) {
-      this.applySnapshot(demo, true);
-      return;
-    }
-
-    api
-      .getHomeSnapshot()
-      .then(function (snapshot) {
-        self.applySnapshot(snapshot, false);
+    var memberRequest = api.isWired()
+      ? api.getHomeSnapshot().catch(function (error) {
+          return { memberError: error };
+        })
+      : Promise.resolve(null);
+    Promise.all([api.listProducts({ cursor: 0, limit: 200 }), memberRequest])
+      .then(function (results) {
+        var catalog = results[0];
+        if (!catalog || !Array.isArray(catalog.items)) throw new Error('公开商品目录返回格式异常');
+        self.applySnapshot(results[1], catalog.items);
       })
       .catch(function (error) {
         self.setData({
@@ -102,23 +105,31 @@ Page({
       });
   },
 
-  applySnapshot: function (snapshot, isDemo) {
+  applySnapshot: function (home, products) {
+    var member = home && !home.memberError ? accountPresentation.memberSummary(home) : null;
+    var signedIn = Boolean(member && (member.memberName || member.employeeNo));
+    var welfareCents = member && Number.isFinite(member.welfareCents) ? member.welfareCents : null;
+    var memberError = home && home.memberError;
     this.setData({
       loading: false,
       loadError: null,
-      isDemo: isDemo,
-      scope: snapshot.scope,
-      quotaLabel: snapshot.assets.monthlyQuotaLabel,
-      quotaAmount: formatCents(snapshot.assets.monthlyQuotaCents),
-      phoneVerified: snapshot.assets.phoneVerified,
-      phoneNotice: snapshot.assets.phoneNotice,
-      cartCount: snapshot.cartCount,
-      entries: snapshot.entries,
-      hero: snapshot.hero,
-      partners: snapshot.partners,
-      segments: snapshot.segments,
-      memberCodeCta: snapshot.memberCodeCta,
-      recommendations: decorateProducts(snapshot.recommendations),
+      isDemo: false,
+      scope: {
+        enterpriseName: (member && (member.enterpriseName || member.mallName)) || '公开福利商城',
+        departmentName: (member && member.departmentName) || '登录后识别企业福利',
+      },
+      quotaLabel: signedIn ? '福利卡余额' : '会员福利资产',
+      quotaAmount: welfareCents === null ? '' : formatCents(welfareCents),
+      quotaPendingText: signedIn ? '资产待同步' : '登录后查看',
+      identityNotice: memberError ? '会员福利暂不可用，公开商品仍可浏览' : signedIn && !member.phoneVerified ? '手机未认证 · 支付与核验功能受限' : signedIn ? '会员身份与福利资产已连接' : '登录后识别福利资产与可购资格',
+      identityNoticeTone: signedIn && member && !member.phoneVerified ? 'danger' : 'info',
+      cartCount: 0,
+      entries: demo.entries,
+      hero: demo.hero,
+      partners: demo.partners,
+      segments: demo.segments,
+      memberCodeCta: demo.memberCodeCta,
+      recommendations: decorateProducts(products.slice(0, 2)),
     });
   },
 

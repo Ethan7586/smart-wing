@@ -40,7 +40,7 @@
       <view class="idcard">
         <view class="idcard-mark sw-brand-mark"></view>
         <view class="idcard-text">
-          <text class="idcard-name">{{signedIn ? (member.memberName || '智慧翼会员') : '未登录'}}</text>
+          <text class="idcard-name">{{signedIn ? (member.memberName || '会员资料待同步') : '未登录'}}</text>
           <text class="idcard-org">{{signedIn ? (member.enterpriseName || '企业信息待同步') : '登录后查看福利资产与订单'}}</text>
         </view>
         <view wx:if="{{!signedIn}}" class="signin sw-tap" data-label="登录" bindtap="onPending">
@@ -63,11 +63,11 @@
             <text class="asset-label">餐卡</text>
           </view>
           <view class="asset sw-tap" data-label="卡券" bindtap="onPending">
-            <text class="asset-value">{{voucherCount}}</text>
+            <text class="asset-value">{{voucherCount === null ? '—' : voucherCount}}</text>
             <text class="asset-label">卡券</text>
           </view>
           <view class="asset sw-tap" data-label="积分" bindtap="onPending">
-            <text class="asset-value">{{points}}</text>
+            <text class="asset-value">{{points === null ? '—' : points}}</text>
             <text class="asset-label">积分</text>
           </view>
         </block>

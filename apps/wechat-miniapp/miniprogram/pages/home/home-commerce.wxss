@@ -288,6 +288,13 @@
   font-variant-numeric: tabular-nums;
   color: var(--sw-danger);
 }
+.product-price-pending {
+  display: block;
+  margin-top: 8rpx;
+  font-size: var(--sw-fs-bodySmall);
+  line-height: var(--sw-lh-bodySmall);
+  color: var(--sw-text-muted);
+}
 .product-market {
   margin-left: 8rpx;
   font-family: var(--sw-font-num);

@@ -7,8 +7,6 @@ var REQUEST_TIMEOUT_MS = 10000;
 var TOKEN_REFRESH_LEEWAY_MS = 30000;
 var activeSessionRequest = null;
 var wechatPayment = require('./wechatPayment');
-// Public browsing must never create a WeChat session. Membership is required
-// only for member pricing, qualification, balances and transactions.
 var catalogApi = require('./catalogApi').createCatalogApi(performRequest, apiError, wx);
 
 function accessToken() {
@@ -138,7 +136,6 @@ function performRequest(method, path, data, options) {
   };
   return promise;
 }
-
 function wxLoginCode() {
   return new Promise(function (resolve, reject) {
     var settled = false;
@@ -164,7 +161,6 @@ function wxLoginCode() {
     });
   });
 }
-
 function createWechatSession() {
   return wxLoginCode()
     .then(function (code) {
@@ -221,77 +217,70 @@ function authenticatedRequest(method, path, data, options) {
   return promise;
 }
 
-module.exports = {
-  isWired: function () {
-    return Boolean(BASE_URL && hasFreshAccessToken());
-  },
-  connectionState: function () {
-    return BASE_URL && hasFreshAccessToken() ? { ready: true } : { ready: false, code: 'WECHAT_SESSION_REQUIRED' };
-  },
-  clearAccessToken: clearAccessToken,
-  ensureWechatSession: ensureWechatSession,
-  createWechatSession: function () {
-    return ensureWechatSession({ force: true });
-  },
-  bindWechatMember: function (input) {
-    var body = input || {};
-    if (!body.bindingChallenge || !body.username || !body.password) {
-      return Promise.reject(apiError('INVALID_WECHAT_BIND_INPUT', '会员绑定信息不完整'));
-    }
-    return performRequest('POST', '/api/v1/auth/wechat/bind', { bindingChallenge: body.bindingChallenge, username: body.username, password: body.password }, { auth: false }).then(storeSession);
-  },
-  getHomeSnapshot: function () {
-    return performRequest('GET', '/api/v1/home');
-  },
-  getBootstrap: function () {
-    return performRequest('GET', '/api/v1/bootstrap');
-  },
-  listProducts: catalogApi.listProducts,
-  readCachedProducts: catalogApi.readCachedProducts,
-  catalogCacheLimit: catalogApi.cacheLimit,
-  getCart: function () {
-    return performRequest('GET', '/api/v1/cart');
-  },
-  listOrders: function () {
-    return authenticatedRequest('GET', '/api/v1/orders');
-  },
-  getOrderByNumber: function (orderNo) {
-    var validOrderNo = wechatPayment.normalizeOrderNo(orderNo);
-    if (!validOrderNo) return wechatPayment.rejectedRequest(apiError('INVALID_ORDER_NO', '订单编号无效，请从订单列表重新进入'));
-    return authenticatedRequest('GET', '/api/v1/orders/by-number/' + encodeURIComponent(validOrderNo));
-  },
-  createWechatPrepay: function (orderId, idempotencyKey) {
-    var validOrderId = wechatPayment.normalizeOrderId(orderId);
-    if (!validOrderId) return wechatPayment.rejectedRequest(apiError('INVALID_ORDER_ID', '订单标识无效，请重新打开订单'));
-    if (!idempotencyKey || idempotencyKey.length > 120) {
-      return wechatPayment.rejectedRequest(apiError('INVALID_IDEMPOTENCY_KEY', '支付请求标识无效，请重新发起支付'));
-    }
-    return authenticatedRequest(
-      'POST',
-      '/api/v1/orders/' + encodeURIComponent(validOrderId) + '/payments/wechat/prepay',
-      {},
-      {
-        headers: { 'Idempotency-Key': idempotencyKey },
+var memberApi = require('./memberApi').createMemberApi({
+  storage: wx,
+  catalogApi: catalogApi,
+  performRequest: performRequest,
+  authenticatedRequest: authenticatedRequest,
+  apiError: apiError,
+  storeSession: storeSession,
+});
+
+module.exports = Object.assign(
+  {
+    isWired: function () {
+      return Boolean(BASE_URL && hasFreshAccessToken());
+    },
+    connectionState: function () {
+      return BASE_URL && hasFreshAccessToken() ? { ready: true } : { ready: false, code: 'WECHAT_SESSION_REQUIRED' };
+    },
+    clearAccessToken: clearAccessToken,
+    ensureWechatSession: ensureWechatSession,
+    createWechatSession: function () {
+      return ensureWechatSession({ force: true });
+    },
+    listProducts: catalogApi.listProducts,
+    readCachedProducts: catalogApi.readCachedProducts,
+    catalogCacheLimit: catalogApi.cacheLimit,
+    getCart: function () {
+      return performRequest('GET', '/api/v1/cart');
+    },
+    getOrderByNumber: function (orderNo) {
+      var validOrderNo = wechatPayment.normalizeOrderNo(orderNo);
+      if (!validOrderNo) return wechatPayment.rejectedRequest(apiError('INVALID_ORDER_NO', '订单编号无效，请从订单列表重新进入'));
+      return authenticatedRequest('GET', '/api/v1/orders/by-number/' + encodeURIComponent(validOrderNo));
+    },
+    createWechatPrepay: function (orderId, idempotencyKey) {
+      var validOrderId = wechatPayment.normalizeOrderId(orderId);
+      if (!validOrderId) return wechatPayment.rejectedRequest(apiError('INVALID_ORDER_ID', '订单标识无效，请重新打开订单'));
+      if (!idempotencyKey || idempotencyKey.length > 120) {
+        return wechatPayment.rejectedRequest(apiError('INVALID_IDEMPOTENCY_KEY', '支付请求标识无效，请重新发起支付'));
       }
-    );
+      return authenticatedRequest(
+        'POST',
+        '/api/v1/orders/' + encodeURIComponent(validOrderId) + '/payments/wechat/prepay',
+        {},
+        {
+          headers: { 'Idempotency-Key': idempotencyKey },
+        }
+      );
+    },
+    getPaymentStatus: function (orderId) {
+      var validOrderId = wechatPayment.normalizeOrderId(orderId);
+      if (!validOrderId) return wechatPayment.rejectedRequest(apiError('INVALID_ORDER_ID', '订单标识无效，请重新打开订单'));
+      return authenticatedRequest('GET', '/api/v1/orders/' + encodeURIComponent(validOrderId) + '/payment-status');
+    },
+    normalizeOrderNo: wechatPayment.normalizeOrderNo,
+    createIdempotencyKey: wechatPayment.createIdempotencyKey,
+    requestWechatPayment: function (payment) {
+      return wechatPayment.requestWechatPayment(payment, apiError);
+    },
+    pollPaymentStatus: function (orderId, options) {
+      return wechatPayment.pollPaymentStatus(orderId, options, module.exports.getPaymentStatus, apiError);
+    },
+    createMemberCodeChallenge: function () {
+      return notWired('/api/v1/member-code/challenge (未实现)');
+    },
   },
-  getPaymentStatus: function (orderId) {
-    var validOrderId = wechatPayment.normalizeOrderId(orderId);
-    if (!validOrderId) return wechatPayment.rejectedRequest(apiError('INVALID_ORDER_ID', '订单标识无效，请重新打开订单'));
-    return authenticatedRequest('GET', '/api/v1/orders/' + encodeURIComponent(validOrderId) + '/payment-status');
-  },
-  normalizeOrderNo: wechatPayment.normalizeOrderNo,
-  createIdempotencyKey: wechatPayment.createIdempotencyKey,
-  requestWechatPayment: function (payment) {
-    return wechatPayment.requestWechatPayment(payment, apiError);
-  },
-  pollPaymentStatus: function (orderId, options) {
-    return wechatPayment.pollPaymentStatus(orderId, options, module.exports.getPaymentStatus, apiError);
-  },
-  getMemberCard: function () {
-    return notWired('/api/v1/member-card (未实现)');
-  },
-  createMemberCodeChallenge: function () {
-    return notWired('/api/v1/member-code/challenge (未实现)');
-  },
-};
+  memberApi
+);

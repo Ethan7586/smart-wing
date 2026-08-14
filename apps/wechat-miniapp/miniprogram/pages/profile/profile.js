@@ -1,11 +1,13 @@
 var api = require('../../utils/api');
+var accountPresentation = require('../../utils/accountPresentation');
 var sizeClassUtil = require('../../utils/sizeClass');
 
 var app = getApp();
 
 /** Cents to a grouped decimal string. Money maths never happens in WXML. */
 function formatCents(cents) {
-  var value = Number(cents) || 0;
+  if (!Number.isFinite(Number(cents))) return '—';
+  var value = Number(cents);
   var yuan = Math.floor(Math.abs(value) / 100);
   var fraction = String(Math.abs(value) % 100).padStart(2, '0');
   return String(yuan).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + fraction;
@@ -21,10 +23,10 @@ Page({
 
     signedIn: false,
     member: null,
-    welfare: '0.00',
-    meal: '0.00',
-    voucherCount: 0,
-    points: 0,
+    welfare: '—',
+    meal: '—',
+    voucherCount: null,
+    points: null,
 
     orderShortcuts: [
       { key: 'unpaid', label: '待付款', icon: 'credit-card' },
@@ -47,7 +49,9 @@ Page({
         rightInset: area.rightInset,
       },
     });
-    this.loadProfile();
+    var cached = api.readCachedHomeSnapshot();
+    if (cached) this.applyProfile(cached.data);
+    this.loadProfile(Boolean(cached));
   },
 
   onResize: function () {
@@ -60,6 +64,8 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 4 });
     }
+    if (this._hasShownOnce && this._loadedAt && Date.now() - this._loadedAt > 120000) this.loadProfile(true);
+    this._hasShownOnce = true;
   },
 
   /**
@@ -67,42 +73,46 @@ Page({
    * fails the page shows an error and zeroes, it does not fall back to a
    * seed figure that would read as the member's own money.
    */
-  loadProfile: function () {
+  loadProfile: function (refreshing) {
     var self = this;
-    this.setData({ loading: true, loadError: null });
-
-    if (!api.isWired()) {
-      this.setData({ loading: false, signedIn: false, member: null });
-      return;
-    }
+    this.setData({ loading: !refreshing && !this._dataReady, loadError: null });
 
     api
-      .getBootstrap()
-      .then(function (bootstrap) {
-        var accounts = (bootstrap && bootstrap.accounts) || {};
-        self.setData({
-          loading: false,
-          signedIn: true,
-          member: bootstrap.member || bootstrap.scope || null,
-          welfare: formatCents(accounts.welfareCents),
-          meal: formatCents(accounts.mealCents),
-          voucherCount: accounts.voucherCount || 0,
-          points: accounts.points || 0,
-        });
+      .getHomeSnapshot()
+      .then(function (home) {
+        self.applyProfile(home);
       })
       .catch(function (error) {
         var code = error && error.code;
         if (code === 'AUTH_REQUIRED' || code === 'AUTH_CHANNEL_PENDING') {
-          self.setData({ loading: false, signedIn: false, member: null, loadError: null });
+          if (!self._dataReady) self.setData({ loading: false, signedIn: false, member: null, loadError: null });
           return;
         }
-        self.setData({
-          loading: false,
-          signedIn: false,
-          member: null,
-          loadError: (error && error.message) || '账户信息加载失败，请重试',
-        });
+        if (!self._dataReady)
+          self.setData({
+            loading: false,
+            signedIn: false,
+            member: null,
+            loadError: (error && error.message) || '账户信息加载失败，请重试',
+          });
       });
+  },
+
+  applyProfile: function (home) {
+    var member = accountPresentation.memberSummary(home);
+    if (!member.memberName && !member.employeeNo) throw { code: 'INVALID_PROFILE_RESPONSE', message: '会员资料返回格式异常' };
+    this._dataReady = true;
+    this._loadedAt = Date.now();
+    this.setData({
+      loading: false,
+      signedIn: true,
+      member: member,
+      welfare: formatCents(member.welfareCents),
+      meal: formatCents(member.mealCents),
+      voucherCount: null,
+      points: null,
+      loadError: null,
+    });
   },
 
   onOpenMemberCode: function () {

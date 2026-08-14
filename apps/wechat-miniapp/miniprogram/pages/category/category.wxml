@@ -88,6 +88,16 @@
       </scroll-view>
 
       <scroll-view class="grid-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="grid-summary">
+          <view class="grid-summary-copy">
+            <text class="grid-summary-title">{{railTitle}}</text>
+            <text class="grid-summary-count">{{railProductCount ? railProductCount + ' 件公开商品' : '暂无公开商品'}}</text>
+          </view>
+          <view wx:if="{{railProductCount}}" class="grid-summary-action sw-tap" bindtap="onOpenRailProducts">
+            <text>查看全部</text>
+            <view class="i i-sm i-chevron-right-muted"></view>
+          </view>
+        </view>
         <view wx:if="{{tiles.length}}" class="grid">
           <view
             wx:for="{{tiles}}"

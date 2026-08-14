@@ -75,15 +75,18 @@
           <view>
             <text class="sw-caption quota-label">{{quotaLabel}}</text>
             <view class="quota-value">
-              <text class="quota-symbol">¥</text>
-              <text class="sw-amount">{{quotaAmount}}</text>
+              <block wx:if="{{quotaAmount}}">
+                <text class="quota-symbol">¥</text>
+                <text class="sw-amount">{{quotaAmount}}</text>
+              </block>
+              <text wx:else class="quota-pending">{{quotaPendingText}}</text>
             </view>
           </view>
           <view class="i i-chevron-right-muted"></view>
         </view>
-        <view wx:if="{{!phoneVerified}}" class="phone-notice">
-          <view class="i i-sm i-shield-alert-danger"></view>
-          <text class="phone-notice-text">{{phoneNotice}}</text>
+        <view wx:if="{{identityNotice}}" class="phone-notice notice-{{identityNoticeTone}}">
+          <view class="i i-sm {{identityNoticeTone === 'danger' ? 'i-shield-alert-danger' : 'i-lock-muted'}}"></view>
+          <text class="phone-notice-text">{{identityNotice}}</text>
         </view>
       </view>
     </view>
@@ -203,9 +206,12 @@
           <text class="product-title">{{item.title}}</text>
           <view class="product-tag">{{item.tag}}</view>
           <view class="product-price">
-            <text class="product-price-symbol">¥</text>
-            <text class="product-price-value">{{item.price}}</text>
-            <text wx:if="{{item.marketPrice}}" class="product-market">¥{{item.marketPrice}}</text>
+            <block wx:if="{{item.price}}">
+              <text class="product-price-symbol">¥</text>
+              <text class="product-price-value">{{item.price}}</text>
+              <text wx:if="{{item.marketPrice}}" class="product-market">¥{{item.marketPrice}}</text>
+            </block>
+            <text wx:else class="product-price-pending">价格待同步</text>
           </view>
           <text class="product-source">来源：{{item.source}}</text>
         </view>
