@@ -9,6 +9,25 @@ export const ROLES = {
 };
 
 export const ICON_MANIFEST = {
+  // 阶段 3 会员码
+  'qr-code': ['brand'],
+  barcode: ['ink'],
+  'rotate-cw': ['brand', 'white'],
+  sun: ['brand'],
+  snowflake: ['danger'],
+  'eye-off': ['muted', 'white'],
+  lock: ['danger'],
+  clock: ['muted'],
+  'circle-check-big': ['success'],
+  // 阶段 5 我的
+  'credit-card': ['brand'],
+  wallet: ['brand'],
+  gift: ['brand'],
+  headphones: ['brand'],
+  'file-text': ['brand'],
+  'map-pin-house': ['brand'],
+  'log-out': ['danger'],
+
   house: ['secondary', 'brand'],
   'layout-grid': ['secondary', 'brand'],
   'receipt-text': ['secondary', 'brand'],

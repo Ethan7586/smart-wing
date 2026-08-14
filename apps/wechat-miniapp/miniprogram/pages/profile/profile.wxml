@@ -1,16 +1,146 @@
 <!--
-  我的 — 尚未实现。
+  我的 — 构图对照
+  docs/mobile/design-previews/smart-wing-unified-mall-05-profile-security.png
 
-  04-开发顺序与停顿点 要求单页实现、逐页验收。本页留空是为了让底栏可以跳转，
-  不是为了占位好看；不得在此处堆砌演示界面。阶段 5 才建设本页。
+  未登录时不显示任何余额数字。企业不得默认看到员工个人消费明细，
+  员工自己也不该看到一个来路不明的数字（总纲 §2、§16）。
 -->
-<view class="sw-page stub">
-  <view class="stub-nav" style="height: {{navTotalHeight}}px;"></view>
-  <view class="stub-body sw-inset">
-    <view class="i i-xl i-inbox-muted"></view>
-    <text class="stub-title">我的</text>
-    <text class="stub-note">本页将在阶段 5建设</text>
-    <text class="stub-detail">会员身份、资产、账号安全与退出登录</text>
+<view class="sw-page profile {{sizeClass}}" style="{{sizeStyle}}">
+
+  <view class="nav" style="padding-top: {{nav.statusBarHeight}}px;">
+    <view class="nav-row" style="height: {{nav.navContentHeight}}px; padding-right: {{nav.rightInset}}px;">
+      <text class="nav-title">我的</text>
+      <view class="nav-actions">
+        <view class="nav-action sw-tap" data-label="账号安全" bindtap="onPending">
+          <view class="i i-shield-check-success"></view>
+        </view>
+      </view>
+    </view>
   </view>
-  <view class="stub-spacer"></view>
+  <view style="height: {{nav.navTotalHeight}}px;"></view>
+
+  <view wx:if="{{loadError}}" class="sw-inset state-block">
+    <view class="i i-lg i-wifi-off-muted"></view>
+    <text class="sw-small state-text">{{loadError}}</text>
+    <view class="retry" bindtap="onRetry">
+      <view class="i i-sm i-refresh-cw-brand"></view>
+      <text class="retry-text">重试</text>
+    </view>
+  </view>
+
+  <view wx:elif="{{loading}}" class="sw-inset skeleton-wrap">
+    <view class="sw-skeleton sk-id"></view>
+    <view class="sw-skeleton sk-assets"></view>
+    <view class="sw-skeleton sk-rows"></view>
+  </view>
+
+  <block wx:else>
+    <!-- 会员身份 -->
+    <view class="sw-inset">
+      <view class="idcard">
+        <view class="idcard-mark sw-brand-mark"></view>
+        <view class="idcard-text">
+          <text class="idcard-name">{{signedIn ? (member.memberName || '智慧翼会员') : '未登录'}}</text>
+          <text class="idcard-org">{{signedIn ? (member.enterpriseName || '企业信息待同步') : '登录后查看福利资产与订单'}}</text>
+        </view>
+        <view wx:if="{{!signedIn}}" class="signin sw-tap" data-label="登录" bindtap="onPending">
+          <text class="signin-text">登录</text>
+        </view>
+        <view wx:else class="i i-chevron-right-muted"></view>
+      </view>
+    </view>
+
+    <!-- 福利资产。未登录不显示任何数字。 -->
+    <view class="sw-inset">
+      <view class="sw-card assets">
+        <block wx:if="{{signedIn}}">
+          <view class="asset sw-tap" data-label="福利卡" bindtap="onPending">
+            <text class="asset-value">¥{{welfare}}</text>
+            <text class="asset-label">福利卡</text>
+          </view>
+          <view class="asset sw-tap" data-label="餐卡" bindtap="onPending">
+            <text class="asset-value">¥{{meal}}</text>
+            <text class="asset-label">餐卡</text>
+          </view>
+          <view class="asset sw-tap" data-label="卡券" bindtap="onPending">
+            <text class="asset-value">{{voucherCount}}</text>
+            <text class="asset-label">卡券</text>
+          </view>
+          <view class="asset sw-tap" data-label="积分" bindtap="onPending">
+            <text class="asset-value">{{points}}</text>
+            <text class="asset-label">积分</text>
+          </view>
+        </block>
+        <view wx:else class="assets-locked">
+          <view class="i i-sm i-lock-danger"></view>
+          <text class="assets-locked-text">登录后显示福利卡、餐卡、卡券与积分</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 会员码入口 -->
+    <view class="sw-inset">
+      <view class="membercode-cta sw-tap" bindtap="onOpenMemberCode">
+        <view class="membercode-cta-mark sw-membercode-mark"></view>
+        <view class="membercode-cta-text">
+          <text class="membercode-cta-title">我的会员码</text>
+          <text class="membercode-cta-desc">到店出示身份与权益 · 不是支付码</text>
+        </view>
+        <view class="i i-chevron-right-muted"></view>
+      </view>
+    </view>
+
+    <!-- 订单快捷 -->
+    <view class="sw-inset section-head">
+      <text class="sw-h3">我的订单</text>
+      <text class="section-more" bindtap="onOpenOrders">全部</text>
+    </view>
+    <view class="sw-inset">
+      <view class="sw-card shortcuts">
+        <view
+          wx:for="{{orderShortcuts}}"
+          wx:key="key"
+          class="shortcut sw-tap"
+          data-label="{{item.label}}"
+          bindtap="onOpenOrders"
+        >
+          <view class="shortcut-icon">
+            <view class="i i-{{item.icon}}-brand"></view>
+          </view>
+          <text class="shortcut-label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 账号与服务 -->
+    <view class="sw-inset section-head">
+      <text class="sw-h3">账号与服务</text>
+    </view>
+    <view class="sw-inset">
+      <view class="sw-card row-link sw-tap" data-label="收货地址" bindtap="onPending">
+        <view class="i i-map-pin-house-brand"></view>
+        <text class="row-text">收货地址</text>
+        <view class="i i-chevron-right-muted"></view>
+      </view>
+      <view class="sw-card row-link sw-tap" data-label="账号安全" bindtap="onPending">
+        <view class="i i-shield-check-success"></view>
+        <text class="row-text">账号与安全</text>
+        <view class="i i-chevron-right-muted"></view>
+      </view>
+      <view class="sw-card row-link sw-tap" data-label="联系客服" bindtap="onPending">
+        <view class="i i-headphones-brand"></view>
+        <text class="row-text">联系客服</text>
+        <view class="i i-chevron-right-muted"></view>
+      </view>
+    </view>
+
+    <view wx:if="{{signedIn}}" class="sw-inset">
+      <view class="signout sw-tap" data-label="退出登录" bindtap="onPending">
+        <view class="i i-sm i-log-out-danger"></view>
+        <text class="signout-text">退出登录</text>
+      </view>
+    </view>
+  </block>
+
+  <view class="tabbar-spacer"></view>
 </view>
