@@ -1,5 +1,5 @@
-var CACHE_KEY = 'sw-public-catalog-window-v2';
-var CACHE_VERSION = 2;
+var CACHE_KEY = 'sw-public-catalog-window-v3';
+var CACHE_VERSION = 3;
 var CACHE_LIMIT = 200;
 var CACHE_TTL_MS = 15 * 60 * 1000;
 

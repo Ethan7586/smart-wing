@@ -1,4 +1,5 @@
 import { apiError, json, methodNotAllowed } from './http';
+import { publicCatalogCoverUrl } from './publicCatalogImages';
 import { callRpc } from './supabase';
 import type { WorkerEnv } from './types';
 
@@ -78,8 +79,8 @@ export async function handlePublicCatalog(request: Request, env: WorkerEnv, requ
   const catalog = await cachedCatalogRows(env, mallSlug, category, limit, cursor);
   const rows = catalog.rows;
 
-  const response = json({
-    items: rows.map((row) => ({
+  const items = await Promise.all(
+    rows.map(async (row) => ({
       id: row.id,
       skuId: row.sku_id,
       name: row.name,
@@ -95,7 +96,7 @@ export async function handlePublicCatalog(request: Request, env: WorkerEnv, requ
         l3: row.taxonomy_l3,
         status: row.classification_status,
       },
-      coverUrl: row.cover_url,
+      coverUrl: await publicCatalogCoverUrl(request, env, row.id, row.cover_url),
       priceCents: Number(row.price_cents),
       marketPriceCents: row.market_price_cents === null ? null : Number(row.market_price_cents),
       availableStock: row.available_stock,
@@ -108,7 +109,10 @@ export async function handlePublicCatalog(request: Request, env: WorkerEnv, requ
         visibilityReason: 'PUBLIC_CATALOG',
         purchaseReason: 'LOGIN_REQUIRED',
       },
-    })),
+    }))
+  );
+  const response = json({
+    items,
     access: { mode: 'public', memberPricing: false, purchaseQualification: false },
     pagination: {
       cursor,
