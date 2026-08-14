@@ -110,6 +110,13 @@ function preferredRailKey(snapshot, currentKey) {
   return rails.length ? rails[0].key : '';
 }
 
+function tileProductCount(tiles) {
+  return (Array.isArray(tiles) ? tiles : []).reduce(function (total, tile) {
+    var count = Number(tile && tile.productCount);
+    return total + (Number.isFinite(count) && count > 0 ? count : 0);
+  }, 0);
+}
+
 function itemsFromResponse(response) {
   if (!response || !Array.isArray(response.items)) {
     var error = new Error('商品目录返回格式异常');
@@ -124,5 +131,6 @@ function itemsFromResponse(response) {
 module.exports = {
   createSnapshot: createSnapshot,
   preferredRailKey: preferredRailKey,
+  tileProductCount: tileProductCount,
   itemsFromResponse: itemsFromResponse,
 };

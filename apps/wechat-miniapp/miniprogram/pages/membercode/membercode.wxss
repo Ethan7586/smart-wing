@@ -17,9 +17,14 @@
   display: flex;
   align-items: center;
   padding-left: var(--sw-page-inset);
+  padding-right: var(--sw-page-inset);
+  box-sizing: border-box;
 }
 
 .nav-title {
+  display: block;
+  flex-shrink: 0;
+  white-space: nowrap;
   font-size: var(--sw-fs-h2);
   line-height: var(--sw-lh-h2);
   font-weight: var(--sw-fw-h2);

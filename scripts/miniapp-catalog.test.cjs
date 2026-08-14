@@ -67,6 +67,7 @@ test('unclassified welfare inventory remains reachable instead of disappearing f
   assert.equal(review.productCount, 1);
   assert.equal(review.image, 'https://m.media-amazon.com/images/I/review.jpg');
   assert.equal(catalog.preferredRailKey(snapshot, 'featured'), 'welfare');
+  assert.equal(catalog.tileProductCount(snapshot.tilesByKey.welfare), 1);
 });
 
 test('a populated current rail stays selected after public catalog refresh', () => {

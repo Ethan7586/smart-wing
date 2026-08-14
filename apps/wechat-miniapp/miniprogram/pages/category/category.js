@@ -26,6 +26,8 @@ Page({
     filters: {},
     rail: [],
     railKey: '',
+    railTitle: '',
+    railProductCount: 0,
     tiles: [],
     syncState: 'local',
     syncMessage: '正在载入统一分类结构',
@@ -123,7 +125,12 @@ Page({
   applySnapshot: function (snapshot, keepSelection) {
     var current = keepSelection ? this.data.railKey : '';
     var key = catalog.preferredRailKey(snapshot, current);
+    var tiles = snapshot.tilesByKey[key] || [];
+    var currentRail = snapshot.rail.find(function (item) {
+      return item.key === key;
+    });
     this._tilesByKey = snapshot.tilesByKey;
+    this._rail = snapshot.rail;
     this.setData({
       loading: false,
       loadError: null,
@@ -131,7 +138,9 @@ Page({
       filters: FILTERS_PENDING,
       rail: snapshot.rail,
       railKey: key,
-      tiles: snapshot.tilesByKey[key] || [],
+      railTitle: currentRail ? currentRail.label : '公开商品',
+      railProductCount: catalog.tileProductCount(tiles),
+      tiles: tiles,
     });
   },
 
@@ -142,7 +151,16 @@ Page({
   onSelectRail: function (event) {
     var key = event.currentTarget.dataset.key;
     if (key === this.data.railKey || !this._tilesByKey[key]) return;
-    this.setData({ railKey: key, tiles: this._tilesByKey[key] });
+    var railItem = (this._rail || []).find(function (item) {
+      return item.key === key;
+    });
+    var tiles = this._tilesByKey[key];
+    this.setData({
+      railKey: key,
+      railTitle: railItem ? railItem.label : '公开商品',
+      railProductCount: catalog.tileProductCount(tiles),
+      tiles: tiles,
+    });
   },
 
   onImageError: function (event) {
@@ -162,6 +180,13 @@ Page({
       return;
     }
     var title = encodeURIComponent(item.label || '公开商品');
+    var category = encodeURIComponent(this.data.railKey === 'featured' ? '' : this.data.railKey);
+    wx.navigateTo({ url: '/pages/products/products?title=' + title + '&category=' + category });
+  },
+
+  onOpenRailProducts: function () {
+    if (!this.data.railProductCount) return;
+    var title = encodeURIComponent(this.data.railTitle || '公开商品');
     var category = encodeURIComponent(this.data.railKey === 'featured' ? '' : this.data.railKey);
     wx.navigateTo({ url: '/pages/products/products?title=' + title + '&category=' + category });
   },
