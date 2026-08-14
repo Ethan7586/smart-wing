@@ -66,6 +66,19 @@ test('unclassified welfare inventory remains reachable instead of disappearing f
   const review = snapshot.tilesByKey.welfare.find(({ key }) => key === 'welfare_review_unclassified');
   assert.equal(review.productCount, 1);
   assert.equal(review.image, 'https://m.media-amazon.com/images/I/review.jpg');
+  assert.equal(catalog.preferredRailKey(snapshot, 'featured'), 'welfare');
+});
+
+test('a populated current rail stays selected after public catalog refresh', () => {
+  const catalog = loadMiniModule(catalogPath);
+  const snapshot = catalog.createSnapshot([
+    {
+      id: 'snack-product',
+      coverUrl: 'https://cdn.example.test/snack.jpg',
+      taxonomy: { l1: 'food', l2: 'food_snack', l3: 'food_snack_nuts' },
+    },
+  ]);
+  assert.equal(catalog.preferredRailKey(snapshot, 'featured'), 'featured');
 });
 
 test('invalid catalog envelopes fail visibly instead of becoming an empty success', () => {
