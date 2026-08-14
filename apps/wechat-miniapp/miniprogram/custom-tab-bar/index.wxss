@@ -68,6 +68,14 @@
   color: var(--sw-text-secondary);
 }
 
+/* The centre sits lower than the four siblings on purpose: the disc has to
+   read as floating above the row, not slotted into it. Raising the sides is
+   what creates that, because lowering the disc would mean changing the frozen
+   24rpx protrusion. */
+.tab-label-center {
+  top: var(--sw-tab-center-label-top);
+}
+
 .tab-label.is-on {
   color: var(--sw-brand);
 }

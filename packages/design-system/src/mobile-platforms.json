@@ -55,10 +55,11 @@
       "返回后台立即刷新会员码"
     ],
     "tabBarHeight": 136,
-    "tabIconTop": 42,
-    "tabLabelTop": 98,
-    "tabGeometryNote": "VI 冻结圆盘 112rpx 与上浮 24rpx，两者都不动，圆盘下沿固定在 88rpx。栏高不是 VI 规定项，由它承接调整。净空 10rpx（5pt）是 Ethan 2026-08-14 在 16rpx 基础上收紧三分之一后确认的值。收紧时图标顶与栏高必须同步上移，否则图标会顶到文字、底部留白会变胖。五个标签统一定位在 tabLabelTop，不随各档文字系数漂移。",
-    "tabLabelClearance": 10
+    "tabIconTop": 26,
+    "tabLabelTop": 82,
+    "tabGeometryNote": "VI 冻结圆盘 112rpx 与上浮 24rpx，都不动，圆盘下沿固定 88rpx。中央要浮在整排之上、而不是与两侧齐平，做法是把左右四项上移，不是把中央下移 —— 后者要改冻结的上浮值。左右图标 26–74、文字 82–110；中央圆盘 −24–88、文字 98–126。圆盘下沿比两侧图标低 14rpx，中央文字比两侧低 16rpx，层次由此产生。中央净空 10rpx 是 Ethan 确认过的收紧值。五组文字各自绝对定位，不随档位文字系数漂移。",
+    "tabLabelClearance": 10,
+    "tabCenterLabelTop": 98
   },
   "sizeClassPrinciple": "布局跟随屏幕比例缩放，文字保持物理尺寸大致恒定。rpx 会把两者一起缩放，所以文字需要按档位反向补偿。四档同时成立，都是正式移动端 VI，不是主次关系。",
   "sizeClasses": [

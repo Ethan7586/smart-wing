@@ -47,7 +47,7 @@ function pathOf(root, full) {
 }
 
 function waiverMap(lines, file, absoluteFailures) {
-  const waivers = new Map();
+  const waivers = [];
   lines.forEach((raw, index) => {
     for (const match of raw.matchAll(/(?:\/\/|\/\*)\s*vi-allow:\s*([a-z-]+)\s*(.*)/g)) {
       const rule = match[1];
@@ -60,8 +60,7 @@ function waiverMap(lines, file, absoluteFailures) {
       } else if (!reason) {
         absoluteFailures.push({ file, line: index + 1, rule: 'waiver-without-reason', detail: `vi-allow: ${rule} 必须写明理由` });
       } else {
-        if (!waivers.has(index + 1)) waivers.set(index + 1, new Set());
-        waivers.get(index + 1).add(rule);
+        waivers.push({ line: index + 1, rule, used: false });
       }
     }
   });
@@ -149,7 +148,15 @@ for (const sourceRoot of ROOTS) {
     const file = pathOf(cli.root, full);
     const contexts = analyseSource(readFileSync(full, 'utf8'), extname(full));
     const waivers = waiverMap(contexts.rawLines, file, absoluteFailures);
-    const active = scanViRules(contexts, radiusValues).filter((item) => !waivers.get(item.line)?.has(item.rule));
+    const active = scanViRules(contexts, radiusValues).filter((item) => {
+      const waiver = waivers.find((entry) => entry.line === item.line && entry.rule === item.rule);
+      if (!waiver) return true;
+      waiver.used = true;
+      return false;
+    });
+    for (const waiver of waivers.filter((entry) => !entry.used)) {
+      absoluteFailures.push({ file, line: waiver.line, rule: 'waiver-without-violation', detail: `vi-allow: ${waiver.rule} 没有对应的同一行违规` });
+    }
     for (const item of active) findings.push({ file, ...item });
     for (const item of active) {
       counts[file] ||= {};

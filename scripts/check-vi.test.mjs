@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CHECKER = join(REPO, 'scripts/check-vi.mjs');
 const temporaryRoots = [];
+const ALL_DEBT_RULES = ['hardcoded-color', 'font-size-floor', 'font-weight-ceiling', 'radius-off-scale', 'palette-drift', 'semantic-duplicate'];
 
 function write(root, path, contents) {
   const target = join(root, path);
@@ -111,6 +112,17 @@ test('a waiver needs a same-line reason; a reasoned waiver works', () => {
   assert.deepEqual(JSON.parse(readFileSync(join(root, 'scripts/vi-baseline.json'), 'utf8')).files, {});
 });
 
+test('a waiver must be a comment and must suppress a real same-line violation', () => {
+  const root = fixture(`
+const prose = 'vi-allow: hardcoded-color — 这不是注释';
+export const x = <div className="bg-[var(--sw-brand)]" />; // vi-allow: hardcoded-color — 已无违规
+`);
+  const result = run(root, '--update-baseline');
+  assert.equal(result.status, 1);
+  assert.match(output(result), /\[waiver-without-violation\]/);
+  assert.doesNotMatch(output(result), /waiver-without-reason/);
+});
+
 test('every debt rule fails while similar VI-safe code passes', () => {
   const legal = `
 const ticket = '工单 #9910';
@@ -125,8 +137,26 @@ export const x = <div className="bg-[var(--sw-brand)] text-xs font-bold rounded-
   write(root, 'apps/storefront-web/src/App.tsx', `${legal}\nexport const bad = <div className="bg-[#123456] text-[11px] font-extrabold rounded-md hover:text-purple-600 dark:bg-orange-50" />;\n`);
   const result = run(root, '--check');
   assert.equal(result.status, 1);
-  for (const rule of ['hardcoded-color', 'font-size-floor', 'font-weight-ceiling', 'radius-off-scale', 'palette-drift', 'semantic-duplicate']) {
+  for (const rule of ALL_DEBT_RULES) {
     assert.match(output(result), new RegExp(`\\[${rule}\\]`));
+  }
+});
+
+test('CSS and inline style values use the same VI floors and scales', () => {
+  const root = fixture(`
+export const x = <div style={{ color: '#123456', fontSize: 11, fontWeight: 800, borderRadius: 14 }} />;
+`);
+  write(root, 'apps/admin-web/src/styles.css', '.bad { color: rgb(1, 2, 3); font-size: 11px; font-weight: 900; border-radius: 6px; }\n');
+  const initialized = run(root, '--update-baseline');
+  assert.equal(initialized.status, 0);
+  const files = JSON.parse(readFileSync(join(root, 'scripts/vi-baseline.json'), 'utf8')).files;
+  for (const file of ['apps/storefront-web/src/App.tsx', 'apps/admin-web/src/styles.css']) {
+    assert.deepEqual(files[file], {
+      'hardcoded-color': 1,
+      'font-size-floor': 1,
+      'font-weight-ceiling': 1,
+      'radius-off-scale': 1,
+    });
   }
 });
 

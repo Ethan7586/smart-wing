@@ -211,6 +211,7 @@ ${Object.entries(t.icon.sizes)
   --sw-tab-icon-top: calc(${wechat.tabIconTop}rpx * var(--sw-space-scale));
   --sw-tab-label-clearance: calc(${wechat.tabLabelClearance}rpx * var(--sw-space-scale));
   --sw-tab-label-top: calc(${wechat.tabLabelTop}rpx * var(--sw-space-scale));
+  --sw-tab-center-label-top: calc(${wechat.tabCenterLabelTop}rpx * var(--sw-space-scale));
   --sw-tab-label-size: calc(${wechat.tabLabelSize}rpx * var(--sw-text-scale));
   --sw-tab-label-line-height: calc(${wechat.tabLabelLineHeight}rpx * var(--sw-text-scale));
 
