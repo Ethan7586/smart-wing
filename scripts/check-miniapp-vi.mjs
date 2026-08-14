@@ -117,6 +117,11 @@ for (const { full, rel } of files) {
     // Tablet rule no-750-absolutes. 750rpx means "the whole screen", which stops
     // being true the moment the tablet content column is capped — anything
     // measured against it overflows the column.
+    // calc() may multiply by a var() but may not divide by one. The whole
+    // declaration is dropped silently and the layout collapses to auto width —
+    // this is what turned the two-column product grid into a half-width column.
+    check('calc-divide-var', /\/\s*var\(/.test(code), 'calc() 不能除以 CSS 变量，整条声明会被丢弃；请在生成器里算成字面值');
+
     check('screen-width-absolute', !generated && /\b750rpx\b/.test(code), '不得以 750rpx 为宽度基准，平板内容列封顶后会溢出；改用百分比或 flex');
   });
 

@@ -217,7 +217,9 @@ ${Object.entries(t.icon.sizes)
 
   /* size-class defaults — overridden by the .sz-* class on the page root */
   --sw-product-columns: 2;
+  --sw-product-width: calc(100% / 2 - 16rpx);
   --sw-partner-visible: 5;
+  --sw-partner-width: calc(100% / 5 - 16rpx);
 
   /* elevation — shadows are only for overlays, the tab bar, the member code
      entry, the digital card and high-level containers */
@@ -241,8 +243,13 @@ ${platforms.sizeClasses
 ${s.textScale === null ? '  /* text-scale 与 space-scale 由 utils/sizeClass.js 按屏宽运行时注入 */' : `  --sw-text-scale: ${s.textScale};`}
 ${s.spaceScale === null ? '' : `  --sw-space-scale: ${s.spaceScale};
 `}  --sw-page-inset: calc(${s.pageHorizontalInset}rpx * var(--sw-space-scale));
+  /* Widths are emitted with a literal divisor. calc() may multiply by a
+     var() but may not divide by one — the whole declaration is dropped, and
+     the grid silently collapses to auto width. */
   --sw-product-columns: ${s.productColumns};
+  --sw-product-width: calc(100% / ${s.productColumns} - 16rpx);
   --sw-partner-visible: ${s.partnerVisible};
+  --sw-partner-width: calc(100% / ${s.partnerVisible} - 16rpx);
 }`
   )
   .join('\n\n')}

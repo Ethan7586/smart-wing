@@ -123,7 +123,9 @@ page,
 
   /* size-class defaults — overridden by the .sz-* class on the page root */
   --sw-product-columns: 2;
+  --sw-product-width: calc(100% / 2 - 16rpx);
   --sw-partner-visible: 5;
+  --sw-partner-width: calc(100% / 5 - 16rpx);
 
   /* elevation — shadows are only for overlays, the tab bar, the member code
      entry, the digital card and high-level containers */
@@ -145,8 +147,13 @@ page,
   --sw-text-scale: 1.12;
   --sw-space-scale: 1;
   --sw-page-inset: calc(24rpx * var(--sw-space-scale));
+  /* Widths are emitted with a literal divisor. calc() may multiply by a
+     var() but may not divide by one — the whole declaration is dropped, and
+     the grid silently collapses to auto width. */
   --sw-product-columns: 2;
+  --sw-product-width: calc(100% / 2 - 16rpx);
   --sw-partner-visible: 4.5;
+  --sw-partner-width: calc(100% / 4.5 - 16rpx);
 }
 
 .sz-standard {
@@ -154,8 +161,13 @@ page,
   --sw-text-scale: 1;
   --sw-space-scale: 1;
   --sw-page-inset: calc(32rpx * var(--sw-space-scale));
+  /* Widths are emitted with a literal divisor. calc() may multiply by a
+     var() but may not divide by one — the whole declaration is dropped, and
+     the grid silently collapses to auto width. */
   --sw-product-columns: 2;
+  --sw-product-width: calc(100% / 2 - 16rpx);
   --sw-partner-visible: 5;
+  --sw-partner-width: calc(100% / 5 - 16rpx);
 }
 
 .sz-regular {
@@ -163,8 +175,13 @@ page,
   --sw-text-scale: 0.94;
   --sw-space-scale: 1;
   --sw-page-inset: calc(32rpx * var(--sw-space-scale));
+  /* Widths are emitted with a literal divisor. calc() may multiply by a
+     var() but may not divide by one — the whole declaration is dropped, and
+     the grid silently collapses to auto width. */
   --sw-product-columns: 2;
+  --sw-product-width: calc(100% / 2 - 16rpx);
   --sw-partner-visible: 5.5;
+  --sw-partner-width: calc(100% / 5.5 - 16rpx);
 }
 
 .sz-large {
@@ -172,24 +189,39 @@ page,
   --sw-text-scale: 0.9;
   --sw-space-scale: 1;
   --sw-page-inset: calc(40rpx * var(--sw-space-scale));
+  /* Widths are emitted with a literal divisor. calc() may multiply by a
+     var() but may not divide by one — the whole declaration is dropped, and
+     the grid silently collapses to auto width. */
   --sw-product-columns: 3;
+  --sw-product-width: calc(100% / 3 - 16rpx);
   --sw-partner-visible: 6.5;
+  --sw-partner-width: calc(100% / 6.5 - 16rpx);
 }
 
 .sz-tablet {
   /* 平板 · iPad 竖屏、8–11 寸安卓平板、折叠机展开 · 参考宽度 768pt */
   /* text-scale 与 space-scale 由 utils/sizeClass.js 按屏宽运行时注入 */
   --sw-page-inset: calc(32rpx * var(--sw-space-scale));
+  /* Widths are emitted with a literal divisor. calc() may multiply by a
+     var() but may not divide by one — the whole declaration is dropped, and
+     the grid silently collapses to auto width. */
   --sw-product-columns: 3;
+  --sw-product-width: calc(100% / 3 - 16rpx);
   --sw-partner-visible: 7.5;
+  --sw-partner-width: calc(100% / 7.5 - 16rpx);
 }
 
 .sz-tabletWide {
   /* 平板宽屏 · iPad 横屏、12 寸以上平板、桌面端微信 · 参考宽度 1024pt */
   /* text-scale 与 space-scale 由 utils/sizeClass.js 按屏宽运行时注入 */
   --sw-page-inset: calc(32rpx * var(--sw-space-scale));
+  /* Widths are emitted with a literal divisor. calc() may multiply by a
+     var() but may not divide by one — the whole declaration is dropped, and
+     the grid silently collapses to auto width. */
   --sw-product-columns: 4;
+  --sw-product-width: calc(100% / 4 - 16rpx);
   --sw-partner-visible: 9;
+  --sw-partner-width: calc(100% / 9 - 16rpx);
 }
 
 /* Brand marks, inlined because WXSS cannot reach packages/design-system. */
