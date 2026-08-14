@@ -129,8 +129,20 @@ Page({
     var currentRail = snapshot.rail.find(function (item) {
       return item.key === key;
     });
+    var visibleTiles = snapshot.productCount
+      ? tiles.filter(function (tile) {
+          return tile.productCount > 0;
+        })
+      : tiles;
     this._tilesByKey = snapshot.tilesByKey;
     this._rail = snapshot.rail;
+    this._catalogProductCount = snapshot.productCount;
+    this._productsById = {};
+    (snapshot.products || []).forEach(
+      function (product) {
+        this._productsById[product.id] = product;
+      }.bind(this)
+    );
     this.setData({
       loading: false,
       loadError: null,
@@ -139,8 +151,8 @@ Page({
       rail: snapshot.rail,
       railKey: key,
       railTitle: currentRail ? currentRail.label : '公开商品',
-      railProductCount: catalog.tileProductCount(tiles),
-      tiles: tiles,
+      railProductCount: key === 'featured' ? snapshot.productCount : catalog.tileProductCount(tiles),
+      tiles: visibleTiles,
     });
   },
 
@@ -155,11 +167,16 @@ Page({
       return item.key === key;
     });
     var tiles = this._tilesByKey[key];
+    var visibleTiles = this._catalogProductCount
+      ? tiles.filter(function (tile) {
+          return tile.productCount > 0;
+        })
+      : tiles;
     this.setData({
       railKey: key,
       railTitle: railItem ? railItem.label : '公开商品',
-      railProductCount: catalog.tileProductCount(tiles),
-      tiles: tiles,
+      railProductCount: key === 'featured' ? this._catalogProductCount : catalog.tileProductCount(tiles),
+      tiles: visibleTiles,
     });
   },
 
@@ -177,6 +194,11 @@ Page({
     var item = event.currentTarget.dataset.item;
     if (!item || !item.productCount) {
       wx.showToast({ title: '当前分类暂无公开商品', icon: 'none' });
+      return;
+    }
+    if (item.productId && this._productsById[item.productId]) {
+      wx.setStorageSync('sw-public-product-' + item.productId, this._productsById[item.productId]);
+      wx.navigateTo({ url: '/pages/product-detail/product-detail?id=' + encodeURIComponent(item.productId) });
       return;
     }
     var title = encodeURIComponent(item.label || '公开商品');

@@ -5,6 +5,7 @@ const test = require('node:test');
 
 const root = path.join(__dirname, '..');
 const presentationPath = path.join(root, 'apps/wechat-miniapp/miniprogram/utils/accountPresentation.js');
+const runtimeCachePath = path.join(root, 'apps/wechat-miniapp/miniprogram/utils/runtimeCache.js');
 
 function loadMiniModule(file) {
   const module = { exports: {} };
@@ -73,5 +74,23 @@ test('runtime pages no longer read the removed assets contract or generic member
   assert.doesNotMatch(home, /snapshot\.assets|monthlyQuotaLabel/);
   assert.doesNotMatch(profilePage, /if \(!api\.isWired\(\)\)/);
   assert.match(memberCodePage, /loadCard:[\s\S]*?\.getMemberCard\(\)/);
+  assert.match(profilePage, /readCachedHomeSnapshot\(\)/);
+  assert.match(fs.readFileSync(path.join(root, 'apps/wechat-miniapp/miniprogram/pages/orders/orders.js'), 'utf8'), /readCachedOrders\(\)/);
   assert.doesNotMatch(profile, /智慧翼会员/);
+});
+
+test('member runtime cache preserves a valid empty order result for instant rendering', () => {
+  const values = {};
+  const cache = loadMiniModule(runtimeCachePath).createRuntimeCache({
+    getStorageSync: (key) => values[key],
+    setStorageSync: (key, value) => {
+      values[key] = value;
+    },
+    removeStorageSync: (key) => delete values[key],
+  });
+  cache.writeHome(homeEnvelope());
+  cache.writeOrders({ items: [] });
+  assert.equal(cache.readHome().data.bootstrap.actor.displayName, '张三');
+  assert.deepEqual(cache.readOrders().data.items, []);
+  assert.equal(cache.readOrders().stale, false);
 });

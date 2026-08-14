@@ -49,7 +49,9 @@ Page({
         rightInset: area.rightInset,
       },
     });
-    this.loadProfile();
+    var cached = api.readCachedHomeSnapshot();
+    if (cached) this.applyProfile(cached.data);
+    this.loadProfile(Boolean(cached));
   },
 
   onResize: function () {
@@ -62,6 +64,8 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 4 });
     }
+    if (this._hasShownOnce && this._loadedAt && Date.now() - this._loadedAt > 120000) this.loadProfile(true);
+    this._hasShownOnce = true;
   },
 
   /**
@@ -69,38 +73,46 @@ Page({
    * fails the page shows an error and zeroes, it does not fall back to a
    * seed figure that would read as the member's own money.
    */
-  loadProfile: function () {
+  loadProfile: function (refreshing) {
     var self = this;
-    this.setData({ loading: true, loadError: null });
+    this.setData({ loading: !refreshing && !this._dataReady, loadError: null });
 
     api
       .getHomeSnapshot()
       .then(function (home) {
-        var member = accountPresentation.memberSummary(home);
-        if (!member.memberName && !member.employeeNo) throw { code: 'INVALID_PROFILE_RESPONSE', message: '会员资料返回格式异常' };
-        self.setData({
-          loading: false,
-          signedIn: true,
-          member: member,
-          welfare: formatCents(member.welfareCents),
-          meal: formatCents(member.mealCents),
-          voucherCount: null,
-          points: null,
-        });
+        self.applyProfile(home);
       })
       .catch(function (error) {
         var code = error && error.code;
         if (code === 'AUTH_REQUIRED' || code === 'AUTH_CHANNEL_PENDING') {
-          self.setData({ loading: false, signedIn: false, member: null, loadError: null });
+          if (!self._dataReady) self.setData({ loading: false, signedIn: false, member: null, loadError: null });
           return;
         }
-        self.setData({
-          loading: false,
-          signedIn: false,
-          member: null,
-          loadError: (error && error.message) || '账户信息加载失败，请重试',
-        });
+        if (!self._dataReady)
+          self.setData({
+            loading: false,
+            signedIn: false,
+            member: null,
+            loadError: (error && error.message) || '账户信息加载失败，请重试',
+          });
       });
+  },
+
+  applyProfile: function (home) {
+    var member = accountPresentation.memberSummary(home);
+    if (!member.memberName && !member.employeeNo) throw { code: 'INVALID_PROFILE_RESPONSE', message: '会员资料返回格式异常' };
+    this._dataReady = true;
+    this._loadedAt = Date.now();
+    this.setData({
+      loading: false,
+      signedIn: true,
+      member: member,
+      welfare: formatCents(member.welfareCents),
+      meal: formatCents(member.mealCents),
+      voucherCount: null,
+      points: null,
+      loadError: null,
+    });
   },
 
   onOpenMemberCode: function () {

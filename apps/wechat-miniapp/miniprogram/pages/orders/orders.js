@@ -9,7 +9,6 @@ var FILTERS = [
   { key: 'pending_receipt', label: '待收货' },
   { key: 'completed', label: '已完成' },
 ];
-
 function centsValue(value) {
   if (value === null || value === undefined || value === '') return NaN;
   return Number(value);
@@ -134,12 +133,20 @@ Page({
         rightInset: area.rightInset,
       },
     });
-    this.loadOrders(false);
+    var cached = api.readCachedOrders();
+    if (cached && cached.data && Array.isArray(cached.data.items)) {
+      this._orders = cached.data.items.map(normalizeOrder).filter(function (order) {
+        return Boolean(order.id && order.orderNo);
+      });
+      this._dataReady = true;
+      this.applyFilter(this.data.activeFilter);
+    }
+    this.loadOrders(Boolean(cached));
   },
 
   onShow: function () {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ selected: 3 });
-    if (this._hasShownOnce && this._loadedAt && !this.data.loading) this.loadOrders(true);
+    if (this._hasShownOnce && this._loadedAt && Date.now() - this._loadedAt > 30000 && !this.data.loading) this.loadOrders(true);
     this._hasShownOnce = true;
   },
 
@@ -162,7 +169,7 @@ Page({
     var self = this;
     if (this._ordersRequest && typeof this._ordersRequest.abort === 'function') this._ordersRequest.abort();
     this.setData({
-      loading: !refreshing || !this._orders.length,
+      loading: !this._dataReady,
       refreshing: Boolean(refreshing),
       error: null,
       bindingRequired: false,
@@ -175,6 +182,7 @@ Page({
         self._orders = response.items.map(normalizeOrder).filter(function (order) {
           return Boolean(order.id && order.orderNo);
         });
+        self._dataReady = true;
         self._loadedAt = Date.now();
         self.applyFilter(self.data.activeFilter);
         self.setData({ loading: false, refreshing: false, error: null });
@@ -183,6 +191,11 @@ Page({
       function (error) {
         if (error && error.code === 'REQUEST_ABORTED') return;
         var view = errorView(error);
+        if (self._dataReady && ['timeout', 'offline', 'error'].indexOf(view.kind) >= 0) {
+          self.setData({ loading: false, refreshing: false });
+          wx.stopPullDownRefresh();
+          return;
+        }
         self._bindingChallenge = view.kind === 'binding' ? error.bindingChallenge || '' : '';
         self.setData({
           loading: false,
