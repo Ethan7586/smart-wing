@@ -16,7 +16,9 @@ App({
     this.globalData.safeArea = safeArea.readSafeArea(true);
     this.globalData.sizeClass = sizeClass.resolveSizeClass(true);
     api.prefetchPublicCatalog();
-    api.prefetchAccountData();
+    setTimeout(function () {
+      api.prefetchAccountData();
+    }, 800);
   },
 
   onShow: function () {

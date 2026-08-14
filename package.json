@@ -14,6 +14,7 @@
   "scripts": {
     "brand:assets": "node scripts/build-brand-assets.mjs",
     "build:miniapp-assets": "node scripts/build-miniapp-assets.mjs",
+    "build:miniapp-catalog-seed": "node scripts/build-miniapp-catalog-seed.mjs",
     "check:miniapp": "node scripts/check-miniapp-vi.mjs",
     "check:vi": "node scripts/check-vi.mjs --check",
     "update:vi-baseline": "node scripts/check-vi.mjs --update-baseline",

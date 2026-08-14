@@ -5,6 +5,7 @@ const test = require('node:test');
 
 const root = path.join(__dirname, '..');
 const apiPath = path.join(root, 'apps/wechat-miniapp/miniprogram/utils/api.js');
+const seedPath = path.join(root, 'apps/wechat-miniapp/miniprogram/data/catalog-seed.generated.js');
 
 function loadMiniModule(file, globals = {}) {
   const module = { exports: {} };
@@ -44,6 +45,15 @@ test('parallel consumers share one catalog request and one cache projection', as
   const [one, two] = await Promise.all([first, second]);
   assert.equal(one.items[0].id, 'shared');
   assert.equal(two.items[0].id, 'shared');
+});
+
+test('a fresh install has a complete generated catalog before the network responds', () => {
+  const seed = loadMiniModule(seedPath);
+  const api = freshApi({ getStorageSync: () => '' });
+  const cached = api.readCachedProducts();
+  assert.equal(seed.items.length, 200);
+  assert.equal(cached.items.length, 200);
+  assert.equal(cached.cache.source, 'bundle');
 });
 
 test('large catalog cache writes asynchronously and remains immediately readable from memory', async () => {

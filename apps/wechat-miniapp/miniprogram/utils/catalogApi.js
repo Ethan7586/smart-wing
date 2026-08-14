@@ -2,6 +2,7 @@ var CACHE_KEY = 'sw-public-catalog-window-v3';
 var CACHE_VERSION = 3;
 var CACHE_LIMIT = 200;
 var CACHE_TTL_MS = 15 * 60 * 1000;
+var bundledSeed = require('../data/catalog-seed.generated');
 
 function createCatalogApi(performRequest, apiError, storage) {
   var storageApi = storage || {};
@@ -104,6 +105,18 @@ function createCatalogApi(performRequest, apiError, storage) {
           if (envelope) memoryCache[key] = envelope;
         }
       }
+      if ((!envelope || envelope.version !== CACHE_VERSION) && bundledSeed && bundledSeed.version === 1 && Array.isArray(bundledSeed.items)) {
+        key = storageKey('');
+        envelope = {
+          version: CACHE_VERSION,
+          storedAt: Date.parse(bundledSeed.generatedAt) || 0,
+          category: '',
+          items: cacheItems(bundledSeed.items),
+          requestId: 'bundled-catalog-seed',
+          source: 'bundle',
+        };
+        memoryCache[key] = envelope;
+      }
       if (!envelope || envelope.version !== CACHE_VERSION || !Array.isArray(envelope.items)) return null;
       var items = envelope.items.slice(0, CACHE_LIMIT);
       if (category) {
@@ -120,6 +133,7 @@ function createCatalogApi(performRequest, apiError, storage) {
           hit: true,
           stale: Date.now() - Number(envelope.storedAt || 0) > CACHE_TTL_MS,
           storedAt: Number(envelope.storedAt || 0),
+          source: envelope.source || 'storage',
         },
       };
     } catch (_error) {
