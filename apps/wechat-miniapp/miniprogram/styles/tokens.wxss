@@ -113,10 +113,10 @@ page,
   --sw-membercode-size: calc(112rpx * var(--sw-space-scale));
   --sw-membercode-protrusion: calc(24rpx * var(--sw-space-scale));
   --sw-touch-min: calc(88rpx * var(--sw-space-scale));
-  --sw-tabbar-height: calc(144rpx * var(--sw-space-scale));
-  --sw-tab-icon-top: calc(48rpx * var(--sw-space-scale));
-  --sw-tab-label-clearance: calc(16rpx * var(--sw-space-scale));
-  --sw-tab-label-top: calc(104rpx * var(--sw-space-scale));
+  --sw-tabbar-height: calc(136rpx * var(--sw-space-scale));
+  --sw-tab-icon-top: calc(42rpx * var(--sw-space-scale));
+  --sw-tab-label-clearance: calc(10rpx * var(--sw-space-scale));
+  --sw-tab-label-top: calc(98rpx * var(--sw-space-scale));
   --sw-tab-label-size: calc(20rpx * var(--sw-text-scale));
   --sw-tab-label-line-height: calc(28rpx * var(--sw-text-scale));
 

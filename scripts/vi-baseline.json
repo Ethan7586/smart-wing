@@ -1,0 +1,593 @@
+{
+  "version": 1,
+  "roots": ["apps/storefront-web/src", "apps/admin-web/src", "apps/auth-web/src"],
+  "extensions": [".css", ".js", ".jsx", ".scss", ".ts", ".tsx"],
+  "rules": ["hardcoded-color", "font-size-floor", "font-weight-ceiling", "radius-off-scale", "palette-drift", "semantic-duplicate"],
+  "files": {
+    "apps/admin-web/src/App.tsx": {
+      "hardcoded-color": 3,
+      "font-size-floor": 1,
+      "radius-off-scale": 1
+    },
+    "apps/admin-web/src/components/AccountSecurityModal.tsx": {
+      "font-size-floor": 8,
+      "radius-off-scale": 1,
+      "palette-drift": 2
+    },
+    "apps/admin-web/src/components/CaseCenterDrawer.tsx": {
+      "font-size-floor": 11,
+      "radius-off-scale": 3,
+      "palette-drift": 9
+    },
+    "apps/admin-web/src/components/CommandPaletteModal.tsx": {
+      "font-size-floor": 2,
+      "radius-off-scale": 1,
+      "palette-drift": 8
+    },
+    "apps/admin-web/src/components/GuardrailModal.tsx": {
+      "font-size-floor": 7,
+      "radius-off-scale": 5,
+      "palette-drift": 5
+    },
+    "apps/admin-web/src/components/Header.tsx": {
+      "hardcoded-color": 4,
+      "font-size-floor": 8,
+      "palette-drift": 4
+    },
+    "apps/admin-web/src/components/Sidebar.tsx": {
+      "hardcoded-color": 3,
+      "font-size-floor": 6,
+      "radius-off-scale": 1,
+      "palette-drift": 1
+    },
+    "apps/admin-web/src/components/workstations/CockpitWorkstation.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 6,
+      "radius-off-scale": 4,
+      "palette-drift": 17
+    },
+    "apps/admin-web/src/components/workstations/CustomRoleCenterPanel.tsx": {
+      "font-size-floor": 3,
+      "radius-off-scale": 2,
+      "palette-drift": 3
+    },
+    "apps/admin-web/src/components/workstations/CustomRoleEditor.tsx": {
+      "font-size-floor": 7,
+      "palette-drift": 4
+    },
+    "apps/admin-web/src/components/workstations/EmployeeQualificationPanel.tsx": {
+      "font-size-floor": 3,
+      "font-weight-ceiling": 1
+    },
+    "apps/admin-web/src/components/workstations/EnterpriseWelfareWorkstation.tsx": {
+      "font-size-floor": 16,
+      "radius-off-scale": 11,
+      "palette-drift": 11
+    },
+    "apps/admin-web/src/components/workstations/FinancialReconciliationWorkstation.tsx": {
+      "font-size-floor": 9,
+      "radius-off-scale": 10,
+      "palette-drift": 19
+    },
+    "apps/admin-web/src/components/workstations/MemberAccessEditor.tsx": {
+      "font-size-floor": 4,
+      "palette-drift": 3
+    },
+    "apps/admin-web/src/components/workstations/MemberOperationsPanel.tsx": {
+      "font-size-floor": 4,
+      "radius-off-scale": 1,
+      "palette-drift": 5
+    },
+    "apps/admin-web/src/components/workstations/MembershipPermissionWorkstation.tsx": {
+      "font-size-floor": 6,
+      "radius-off-scale": 5,
+      "palette-drift": 5
+    },
+    "apps/admin-web/src/components/workstations/OrderFulfillmentWorkstation.tsx": {
+      "font-size-floor": 16,
+      "radius-off-scale": 7,
+      "palette-drift": 33
+    },
+    "apps/admin-web/src/components/workstations/ProductGovernanceWorkstation.tsx": {
+      "font-size-floor": 25,
+      "radius-off-scale": 12,
+      "palette-drift": 30
+    },
+    "apps/admin-web/src/components/workstations/QualificationCenterSections.tsx": {
+      "font-size-floor": 4
+    },
+    "apps/admin-web/src/components/workstations/QualificationCenterWorkstation.tsx": {
+      "font-size-floor": 1,
+      "font-weight-ceiling": 1
+    },
+    "apps/admin-web/src/components/workstations/QualificationConfigDialog.tsx": {
+      "font-size-floor": 1,
+      "font-weight-ceiling": 1
+    },
+    "apps/admin-web/src/components/workstations/QualificationGovernancePanel.tsx": {
+      "font-size-floor": 5,
+      "font-weight-ceiling": 1
+    },
+    "apps/admin-web/src/components/workstations/QualificationHistorySimulator.tsx": {
+      "font-size-floor": 6
+    },
+    "apps/admin-web/src/components/workstations/StepUpModal.tsx": {
+      "palette-drift": 3
+    },
+    "apps/admin-web/src/components/workstations/SupplierGovernanceWorkstation.tsx": {
+      "font-size-floor": 13,
+      "radius-off-scale": 8,
+      "palette-drift": 7
+    },
+    "apps/admin-web/src/components/workstations/SystemControlWorkstation.tsx": {
+      "font-size-floor": 9,
+      "radius-off-scale": 7,
+      "palette-drift": 7
+    },
+    "apps/auth-web/src/index.css": {
+      "hardcoded-color": 1
+    },
+    "apps/auth-web/src/screens/AdminDashboardScreen.tsx": {
+      "font-size-floor": 6,
+      "radius-off-scale": 1,
+      "palette-drift": 1
+    },
+    "apps/auth-web/src/screens/AuthCallbackScreen.tsx": {
+      "font-size-floor": 1,
+      "palette-drift": 5
+    },
+    "apps/auth-web/src/screens/LoginPage.tsx": {
+      "hardcoded-color": 1,
+      "font-size-floor": 37,
+      "font-weight-ceiling": 3,
+      "radius-off-scale": 14,
+      "palette-drift": 11
+    },
+    "apps/auth-web/src/screens/StorefrontHomeScreen.tsx": {
+      "font-weight-ceiling": 1,
+      "radius-off-scale": 1,
+      "palette-drift": 3
+    },
+    "apps/storefront-web/src/App.tsx": {
+      "hardcoded-color": 2
+    },
+    "apps/storefront-web/src/components/common/CategoryMegaMenu.tsx": {
+      "font-size-floor": 2,
+      "radius-off-scale": 6
+    },
+    "apps/storefront-web/src/components/common/Footer.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 9,
+      "font-weight-ceiling": 1,
+      "radius-off-scale": 2,
+      "semantic-duplicate": 1
+    },
+    "apps/storefront-web/src/components/common/HeaderBar.tsx": {
+      "hardcoded-color": 4,
+      "font-size-floor": 7,
+      "font-weight-ceiling": 3,
+      "radius-off-scale": 13,
+      "semantic-duplicate": 8
+    },
+    "apps/storefront-web/src/components/common/HeaderEnterpriseBar.tsx": {
+      "font-size-floor": 4,
+      "radius-off-scale": 4,
+      "semantic-duplicate": 1
+    },
+    "apps/storefront-web/src/components/common/MobileBottomNav.tsx": {
+      "hardcoded-color": 1,
+      "font-size-floor": 2
+    },
+    "apps/storefront-web/src/components/common/MvpSessionBar.tsx": {
+      "radius-off-scale": 1
+    },
+    "apps/storefront-web/src/components/common/ProductCard.tsx": {
+      "hardcoded-color": 5,
+      "font-size-floor": 18,
+      "font-weight-ceiling": 2,
+      "radius-off-scale": 14,
+      "palette-drift": 4,
+      "semantic-duplicate": 5
+    },
+    "apps/storefront-web/src/components/common/QuickViewModal.tsx": {
+      "hardcoded-color": 3,
+      "font-size-floor": 2,
+      "font-weight-ceiling": 1,
+      "radius-off-scale": 11,
+      "semantic-duplicate": 3
+    },
+    "apps/storefront-web/src/components/common/ToastContainer.tsx": {
+      "hardcoded-color": 3,
+      "radius-off-scale": 2,
+      "semantic-duplicate": 2
+    },
+    "apps/storefront-web/src/components/home/HomeProductSections.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 2,
+      "font-weight-ceiling": 1,
+      "radius-off-scale": 9,
+      "palette-drift": 4
+    },
+    "apps/storefront-web/src/components/laptop/LaptopAccountPane1366.tsx": {
+      "hardcoded-color": 1,
+      "font-size-floor": 14,
+      "font-weight-ceiling": 7,
+      "radius-off-scale": 9,
+      "semantic-duplicate": 1
+    },
+    "apps/storefront-web/src/components/laptop/LaptopAccountPane1440.tsx": {
+      "font-size-floor": 9,
+      "font-weight-ceiling": 3,
+      "radius-off-scale": 7
+    },
+    "apps/storefront-web/src/components/laptop/LaptopCartCheckoutPage.tsx": {
+      "hardcoded-color": 3,
+      "font-size-floor": 8,
+      "font-weight-ceiling": 5,
+      "radius-off-scale": 13,
+      "semantic-duplicate": 1
+    },
+    "apps/storefront-web/src/components/laptop/LaptopCategoryPage.tsx": {
+      "hardcoded-color": 4,
+      "font-size-floor": 13,
+      "font-weight-ceiling": 1,
+      "radius-off-scale": 16,
+      "semantic-duplicate": 1
+    },
+    "apps/storefront-web/src/components/laptop/LaptopDetailPage.tsx": {
+      "hardcoded-color": 4,
+      "font-size-floor": 5,
+      "font-weight-ceiling": 5,
+      "radius-off-scale": 8,
+      "semantic-duplicate": 2
+    },
+    "apps/storefront-web/src/components/laptop/LaptopFrame.tsx": {
+      "hardcoded-color": 1
+    },
+    "apps/storefront-web/src/components/laptop/LaptopHeader.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 12,
+      "font-weight-ceiling": 3,
+      "radius-off-scale": 12,
+      "palette-drift": 1,
+      "semantic-duplicate": 8
+    },
+    "apps/storefront-web/src/components/laptop/LaptopHomePage1366.tsx": {
+      "hardcoded-color": 4,
+      "font-size-floor": 18,
+      "font-weight-ceiling": 6,
+      "radius-off-scale": 13,
+      "palette-drift": 12,
+      "semantic-duplicate": 8
+    },
+    "apps/storefront-web/src/components/laptop/LaptopHomePage1440.tsx": {
+      "hardcoded-color": 4,
+      "font-size-floor": 11,
+      "font-weight-ceiling": 6,
+      "radius-off-scale": 14,
+      "palette-drift": 14,
+      "semantic-duplicate": 10
+    },
+    "apps/storefront-web/src/components/laptop/LaptopOrdersPage.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 7,
+      "font-weight-ceiling": 1,
+      "radius-off-scale": 5
+    },
+    "apps/storefront-web/src/components/laptop/LaptopTopSwitcher.tsx": {
+      "font-size-floor": 10,
+      "font-weight-ceiling": 1,
+      "radius-off-scale": 3,
+      "palette-drift": 3,
+      "semantic-duplicate": 3
+    },
+    "apps/storefront-web/src/components/mobile/AndroidBottomNav.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 2
+    },
+    "apps/storefront-web/src/components/mobile/AndroidStatusBar.tsx": {
+      "hardcoded-color": 1,
+      "font-size-floor": 4,
+      "radius-off-scale": 1,
+      "semantic-duplicate": 3
+    },
+    "apps/storefront-web/src/components/mobile/MobileFrame.tsx": {
+      "hardcoded-color": 3,
+      "font-size-floor": 1,
+      "radius-off-scale": 3
+    },
+    "apps/storefront-web/src/components/mobile/MobileOrdersPage.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 8,
+      "font-weight-ceiling": 2
+    },
+    "apps/storefront-web/src/components/mobile/MobileTopBarSwitcher.tsx": {
+      "font-size-floor": 10,
+      "font-weight-ceiling": 1,
+      "radius-off-scale": 5,
+      "palette-drift": 5,
+      "semantic-duplicate": 2
+    },
+    "apps/storefront-web/src/components/mobile/PendingInterfaceModal.tsx": {
+      "font-size-floor": 1,
+      "font-weight-ceiling": 1
+    },
+    "apps/storefront-web/src/components/mobile/TabletFrame.tsx": {
+      "hardcoded-color": 3,
+      "font-size-floor": 1,
+      "radius-off-scale": 4
+    },
+    "apps/storefront-web/src/components/mobile/TabletNavRail.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 6,
+      "font-weight-ceiling": 2,
+      "semantic-duplicate": 1
+    },
+    "apps/storefront-web/src/components/mobile/WeChatCapsule.tsx": {
+      "hardcoded-color": 1,
+      "font-size-floor": 2,
+      "semantic-duplicate": 3
+    },
+    "apps/storefront-web/src/components/mobile/WeChatTabBar.tsx": {
+      "hardcoded-color": 1,
+      "font-size-floor": 2
+    },
+    "apps/storefront-web/src/components/security/AccountSecurityCenter.tsx": {
+      "font-size-floor": 8,
+      "radius-off-scale": 14,
+      "palette-drift": 3
+    },
+    "apps/storefront-web/src/features/android/AndroidCheckoutPage.tsx": {
+      "hardcoded-color": 7,
+      "font-size-floor": 11,
+      "font-weight-ceiling": 3,
+      "radius-off-scale": 3,
+      "palette-drift": 5,
+      "semantic-duplicate": 1
+    },
+    "apps/storefront-web/src/features/android/AndroidDetailPage.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 8,
+      "font-weight-ceiling": 2,
+      "radius-off-scale": 1,
+      "semantic-duplicate": 2
+    },
+    "apps/storefront-web/src/features/android/AndroidHomePage.tsx": {
+      "hardcoded-color": 3,
+      "font-size-floor": 9,
+      "font-weight-ceiling": 7,
+      "radius-off-scale": 1,
+      "palette-drift": 1,
+      "semantic-duplicate": 1
+    },
+    "apps/storefront-web/src/features/android/AndroidProfilePage.tsx": {
+      "hardcoded-color": 1,
+      "font-size-floor": 19,
+      "font-weight-ceiling": 4,
+      "radius-off-scale": 2,
+      "palette-drift": 3,
+      "semantic-duplicate": 3
+    },
+    "apps/storefront-web/src/features/android/AndroidSearchPage.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 4,
+      "font-weight-ceiling": 2
+    },
+    "apps/storefront-web/src/features/architecture/ArchitectureCanvas.tsx": {
+      "hardcoded-color": 20
+    },
+    "apps/storefront-web/src/features/catalog/CategoryResults.tsx": {
+      "hardcoded-color": 3,
+      "font-size-floor": 2,
+      "font-weight-ceiling": 1,
+      "radius-off-scale": 15,
+      "semantic-duplicate": 1
+    },
+    "apps/storefront-web/src/features/catalog/TaxonomyFilter.tsx": {
+      "radius-off-scale": 1
+    },
+    "apps/storefront-web/src/features/checkout/CheckoutAddressModal.tsx": {
+      "radius-off-scale": 10
+    },
+    "apps/storefront-web/src/features/checkout/CheckoutAddressSelector.tsx": {
+      "radius-off-scale": 3
+    },
+    "apps/storefront-web/src/features/miniprogram/MPCartPage.tsx": {
+      "hardcoded-color": 3,
+      "font-size-floor": 5,
+      "font-weight-ceiling": 3,
+      "radius-off-scale": 2
+    },
+    "apps/storefront-web/src/features/miniprogram/MPCategoryPage.tsx": {
+      "hardcoded-color": 3,
+      "font-size-floor": 10,
+      "font-weight-ceiling": 2,
+      "radius-off-scale": 4,
+      "palette-drift": 1
+    },
+    "apps/storefront-web/src/features/miniprogram/MPDetailPage.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 9,
+      "font-weight-ceiling": 2,
+      "radius-off-scale": 1,
+      "semantic-duplicate": 3
+    },
+    "apps/storefront-web/src/features/miniprogram/MPHomePage.tsx": {
+      "hardcoded-color": 6,
+      "font-size-floor": 15,
+      "font-weight-ceiling": 7,
+      "radius-off-scale": 3,
+      "palette-drift": 10,
+      "semantic-duplicate": 4
+    },
+    "apps/storefront-web/src/features/miniprogram/MPProductFeed.tsx": {
+      "hardcoded-color": 1,
+      "font-size-floor": 5,
+      "font-weight-ceiling": 2,
+      "radius-off-scale": 2
+    },
+    "apps/storefront-web/src/features/miniprogram/MPProfilePage.tsx": {
+      "hardcoded-color": 1,
+      "font-size-floor": 18,
+      "font-weight-ceiling": 4,
+      "radius-off-scale": 2,
+      "palette-drift": 4,
+      "semantic-duplicate": 4
+    },
+    "apps/storefront-web/src/features/product/ProductDetailActionPanel.tsx": {
+      "hardcoded-color": 1,
+      "font-weight-ceiling": 2,
+      "radius-off-scale": 4
+    },
+    "apps/storefront-web/src/features/product/ProductDetailTabs.tsx": {
+      "hardcoded-color": 1,
+      "font-size-floor": 1,
+      "font-weight-ceiling": 1,
+      "radius-off-scale": 5
+    },
+    "apps/storefront-web/src/features/tablet/TabletCartCheckoutPage.tsx": {
+      "hardcoded-color": 4,
+      "font-size-floor": 5,
+      "font-weight-ceiling": 5,
+      "radius-off-scale": 5,
+      "semantic-duplicate": 1
+    },
+    "apps/storefront-web/src/features/tablet/TabletCategoryPage.tsx": {
+      "hardcoded-color": 4,
+      "font-size-floor": 10,
+      "font-weight-ceiling": 7,
+      "radius-off-scale": 4,
+      "palette-drift": 1
+    },
+    "apps/storefront-web/src/features/tablet/TabletDetailPage.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 5,
+      "font-weight-ceiling": 11
+    },
+    "apps/storefront-web/src/features/tablet/TabletLandscapeAccountPane.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 8,
+      "font-weight-ceiling": 6,
+      "radius-off-scale": 1,
+      "semantic-duplicate": 2
+    },
+    "apps/storefront-web/src/features/tablet/TabletLandscapeHome.tsx": {
+      "hardcoded-color": 3,
+      "font-size-floor": 7,
+      "font-weight-ceiling": 8,
+      "radius-off-scale": 1,
+      "semantic-duplicate": 2
+    },
+    "apps/storefront-web/src/features/tablet/TabletOrdersPage.tsx": {
+      "hardcoded-color": 4,
+      "font-size-floor": 7,
+      "font-weight-ceiling": 7,
+      "radius-off-scale": 1
+    },
+    "apps/storefront-web/src/features/tablet/TabletPortraitHome.tsx": {
+      "hardcoded-color": 4,
+      "font-size-floor": 7,
+      "font-weight-ceiling": 12,
+      "radius-off-scale": 1,
+      "semantic-duplicate": 4
+    },
+    "apps/storefront-web/src/screens/AfterSalePage.tsx": {
+      "font-size-floor": 3,
+      "font-weight-ceiling": 1,
+      "radius-off-scale": 13,
+      "semantic-duplicate": 1
+    },
+    "apps/storefront-web/src/screens/ArchitecturePage.tsx": {
+      "font-weight-ceiling": 1
+    },
+    "apps/storefront-web/src/screens/BalancePage.tsx": {
+      "hardcoded-color": 1,
+      "font-size-floor": 4,
+      "font-weight-ceiling": 3,
+      "radius-off-scale": 8,
+      "semantic-duplicate": 9
+    },
+    "apps/storefront-web/src/screens/CartPage.tsx": {
+      "hardcoded-color": 5,
+      "font-size-floor": 9,
+      "font-weight-ceiling": 4,
+      "radius-off-scale": 15
+    },
+    "apps/storefront-web/src/screens/CategoryPage.tsx": {
+      "font-size-floor": 2,
+      "radius-off-scale": 21,
+      "semantic-duplicate": 3
+    },
+    "apps/storefront-web/src/screens/CheckoutPage.tsx": {
+      "hardcoded-color": 5,
+      "font-size-floor": 6,
+      "font-weight-ceiling": 3,
+      "radius-off-scale": 22,
+      "semantic-duplicate": 9
+    },
+    "apps/storefront-web/src/screens/CouponsPage.tsx": {
+      "hardcoded-color": 1,
+      "font-size-floor": 4,
+      "font-weight-ceiling": 4,
+      "radius-off-scale": 11,
+      "palette-drift": 3,
+      "semantic-duplicate": 2
+    },
+    "apps/storefront-web/src/screens/HomePage.tsx": {
+      "hardcoded-color": 1,
+      "font-size-floor": 9,
+      "font-weight-ceiling": 4,
+      "radius-off-scale": 17,
+      "palette-drift": 5,
+      "semantic-duplicate": 7
+    },
+    "apps/storefront-web/src/screens/MvpConsolePage.tsx": {
+      "font-size-floor": 1,
+      "font-weight-ceiling": 2,
+      "radius-off-scale": 7,
+      "palette-drift": 1,
+      "semantic-duplicate": 1
+    },
+    "apps/storefront-web/src/screens/MvpDeliveryPage.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 2,
+      "font-weight-ceiling": 9,
+      "radius-off-scale": 3
+    },
+    "apps/storefront-web/src/screens/OrderDetailPage.tsx": {
+      "hardcoded-color": 3,
+      "font-size-floor": 9,
+      "font-weight-ceiling": 3,
+      "radius-off-scale": 10,
+      "semantic-duplicate": 5
+    },
+    "apps/storefront-web/src/screens/OrdersPage.tsx": {
+      "font-size-floor": 7,
+      "font-weight-ceiling": 3,
+      "radius-off-scale": 16,
+      "semantic-duplicate": 9
+    },
+    "apps/storefront-web/src/screens/PaymentResultPage.tsx": {
+      "hardcoded-color": 3,
+      "font-size-floor": 3,
+      "font-weight-ceiling": 6,
+      "radius-off-scale": 13,
+      "semantic-duplicate": 7
+    },
+    "apps/storefront-web/src/screens/ProductDetailPage.tsx": {
+      "hardcoded-color": 4,
+      "font-size-floor": 1,
+      "font-weight-ceiling": 2,
+      "radius-off-scale": 14,
+      "semantic-duplicate": 3
+    },
+    "apps/storefront-web/src/screens/UserCenterPage.tsx": {
+      "hardcoded-color": 1,
+      "font-size-floor": 12,
+      "font-weight-ceiling": 4,
+      "radius-off-scale": 18,
+      "palette-drift": 3,
+      "semantic-duplicate": 13
+    }
+  }
+}

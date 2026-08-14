@@ -16,7 +16,7 @@
     "build:miniapp-assets": "node scripts/build-miniapp-assets.mjs",
     "check:miniapp": "node scripts/check-miniapp-vi.mjs",
     "check:vi": "node scripts/check-vi.mjs --check",
-    "update:vi-baseline": "node scripts/check-vi.mjs",
+    "update:vi-baseline": "node scripts/check-vi.mjs --update-baseline",
     "test:vi": "node --test scripts/check-vi.test.mjs",
     "dev:storefront": "npm run dev --workspace @smart-wing/storefront-web",
     "dev:admin": "npm run dev --workspace @smart-wing/admin-web",

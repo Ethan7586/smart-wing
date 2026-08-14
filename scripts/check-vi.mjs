@@ -1,6 +1,7 @@
 /**
- * Web VI debt guard. Build mode creates/lowers the debt baseline; --check is
- * read-only for CI. Existing debt may stay or fall, but may never rise.
+ * Web VI debt guard. --update-baseline creates or explicitly updates the debt
+ * ledger; --check is read-only for CI. Existing debt may stay or fall, but may
+ * never rise without a written reason.
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'node:fs';
@@ -26,6 +27,7 @@ function options(argv) {
     else throw new Error(`未知参数：${arg}`);
   }
   if (result.check && result.update) throw new Error('--check 与 --update-baseline 不能同时使用');
+  if (!result.check && !result.update) throw new Error('请选择 --check 或 --update-baseline；检查模式不会隐式写 baseline');
   result.baseline = resolve(result.root, result.baseline || 'scripts/vi-baseline.json');
   return result;
 }
@@ -47,9 +49,12 @@ function pathOf(root, full) {
 function waiverMap(lines, file, absoluteFailures) {
   const waivers = new Map();
   lines.forEach((raw, index) => {
-    for (const match of raw.matchAll(/vi-allow:\s*([a-z-]+)\s*(.*)/g)) {
+    for (const match of raw.matchAll(/(?:\/\/|\/\*)\s*vi-allow:\s*([a-z-]+)\s*(.*)/g)) {
       const rule = match[1];
-      const reason = match[2].replace(/\*\/.*$/, '').replace(/^[-—:\s]+/, '').trim();
+      const reason = match[2]
+        .replace(/\*\/.*$/, '')
+        .replace(/^[-—:\s]+/, '')
+        .trim();
       if (!RULES.includes(rule)) {
         absoluteFailures.push({ file, line: index + 1, rule: 'waiver-unknown-rule', detail: rule });
       } else if (!reason) {
@@ -86,7 +91,8 @@ function sameSchema(baseline) {
     JSON.stringify(baseline.roots) === JSON.stringify(ROOTS) &&
     JSON.stringify(baseline.extensions) === JSON.stringify(EXTENSIONS) &&
     JSON.stringify(baseline.rules) === JSON.stringify(RULES) &&
-    baseline.files && typeof baseline.files === 'object'
+    baseline.files &&
+    typeof baseline.files === 'object'
   );
 }
 
@@ -178,7 +184,7 @@ if (absoluteFailures.length) {
 }
 
 if (!baseline) {
-  if (cli.check) {
+  if (!cli.update) {
     console.error('VI check FAILED — baseline 不存在；先运行 npm run update:vi-baseline');
     process.exit(1);
   }
@@ -193,13 +199,16 @@ if (increases.length && (!cli.update || !cli.reason.trim())) {
   console.error(`VI check FAILED — ${increases.length} 个文件/规则的存量上升`);
   for (const item of increases) {
     console.error(`  ${item.file} [${item.rule}] ${item.before} → ${item.now}`);
-    findings.filter((finding) => finding.file === item.file && finding.rule === item.rule).slice(0, 5).forEach((finding) => console.error(`    :${finding.line} ${finding.detail}`));
+    findings
+      .filter((finding) => finding.file === item.file && finding.rule === item.rule)
+      .slice(0, 5)
+      .forEach((finding) => console.error(`    :${finding.line} ${finding.detail}`));
   }
   if (cli.update) console.error('接受上升必须同时提供 --reason "书面理由"；优先使用单行 vi-allow');
   process.exit(1);
 }
 
-if (cli.update || (!cli.check && decreases.length)) {
+if (cli.update) {
   writeBaseline(cli.baseline, current);
   console.log(`VI baseline 已更新${cli.reason ? `（${cli.reason}）` : ''}：${decreases.length} 项下降，${increases.length} 项获准上升`);
 } else if (decreases.length) {

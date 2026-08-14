@@ -1,8 +1,6 @@
 import ts from 'typescript';
 
 const WHOLE_COLOR = /^\s*(?:#(?:[\da-f]{8}|[\da-f]{6}|[\da-f]{4}|[\da-f]{3})|(?:rgb|hsl)a?\s*\([^)]*\))\s*$/i;
-const COLOR_STYLE = /(?:color|background|border|shadow|fill|stroke|gradient|style)$/i;
-
 function lineAt(source, offset) {
   return source.slice(0, offset).split('\n').length;
 }
@@ -48,7 +46,6 @@ function analyseScript(source, extension) {
     const value = staticValue(initializer, sourceFile, source);
     if (!value) return;
     contexts.styles.push({ property: name, ...value, origin: 'script' });
-    if (COLOR_STYLE.test(name) && !WHOLE_COLOR.test(value.text)) contexts.colors.push({ text: value.text, line: value.line });
   };
 
   const visit = (node) => {
@@ -58,11 +55,7 @@ function analyseScript(source, extension) {
       for (const span of node.templateSpans) addString(span.literal.text, span.literal.getStart(sourceFile));
     }
     if (ts.isPropertyAssignment(node)) addStyle(propertyName(node.name), node.initializer);
-    if (
-      ts.isBinaryExpression(node) &&
-      node.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
-      ts.isPropertyAccessExpression(node.left)
-    ) {
+    if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isPropertyAccessExpression(node.left)) {
       addStyle(node.left.name.text, node.right);
     }
     ts.forEachChild(node, visit);
