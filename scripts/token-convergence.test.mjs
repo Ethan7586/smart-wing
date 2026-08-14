@@ -71,10 +71,20 @@ function webExpectations() {
     ['--sw-duration-slow', `${tokens.motion.slowMs}ms`],
     ['--sw-ease-standard', `cubic-bezier(${tokens.motion.standardEasing.join(', ')})`],
     ['--sw-ease-emphasized', `cubic-bezier(${tokens.motion.emphasizedEasing.join(', ')})`],
+    ['--sw-wing-code-size-ios', rem(platforms.ios.wingCodeButtonSize)],
+    ['--sw-wing-code-protrusion-ios', rem(platforms.ios.wingCodeProtrusion)],
+    ['--sw-min-touch-target-ios', rem(platforms.ios.minimumTouchTarget)],
+    ['--sw-mobile-nav-height-ios', rem(platforms.ios.wingCodeButtonSize - platforms.ios.wingCodeProtrusion + tokens.spacing['3'])],
+    ['--sw-wing-code-size-android', rem(platforms.android.wingCodeButtonSize)],
+    ['--sw-wing-code-protrusion-android', rem(platforms.android.wingCodeProtrusion)],
+    ['--sw-min-touch-target-android', rem(platforms.android.minimumTouchTarget)],
+    ['--sw-mobile-nav-height-android', rem(platforms.android.wingCodeButtonSize - platforms.android.wingCodeProtrusion + tokens.spacing['3'])],
     ['--sw-wing-code-size', rem(platforms.ios.wingCodeButtonSize)],
+    ['--sw-wing-code-protrusion', rem(platforms.ios.wingCodeProtrusion)],
     ['--sw-wing-code-shadow', shadow(tokens.elevation.memberCode, 'rem')],
     ['--sw-wing-code-valid-seconds', String(tokens.wingCode.validSeconds)],
     ['--sw-min-touch-target', rem(platforms.ios.minimumTouchTarget)],
+    ['--sw-mobile-nav-height', rem(platforms.ios.wingCodeButtonSize - platforms.ios.wingCodeProtrusion + tokens.spacing['3'])],
   ]);
   for (const [name, value] of Object.entries(c.semantic)) expected.set(`--sw-${name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`, value);
   for (const [name, style] of Object.entries(type.styles)) {

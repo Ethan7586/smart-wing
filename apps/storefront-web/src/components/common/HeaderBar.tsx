@@ -45,7 +45,7 @@ export const HeaderBar: React.FC = () => {
     <header className="w-full bg-white border-b border-gray-200 select-none sticky top-0 z-40 shadow-xs">
       <HeaderEnterpriseBar />
       <div className="max-w-[1280px] mx-auto py-3 px-3 md:py-3.5 md:px-4 flex items-center justify-between gap-3 md:gap-6">
-        <div onClick={() => navigateTo('home')} className="flex items-center gap-3 cursor-pointer group">
+        <div onClick={() => navigateTo('home')} className="group flex shrink-0 cursor-pointer items-center gap-3">
           <img src="/icon.svg" alt="" className="h-10 w-10 rounded-xl shadow-md shadow-blue-500/10 transition-transform group-hover:scale-105" />
           <div className="hidden sm:block">
             <div className="flex items-center gap-1.5">
@@ -59,7 +59,7 @@ export const HeaderBar: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="flex-1 max-w-2xl relative" ref={searchContainerRef}>
+        <div className="relative min-w-0 max-w-2xl flex-1" ref={searchContainerRef}>
           <div className="flex items-center">
             <div className="relative flex-1">
               <input
@@ -72,11 +72,11 @@ export const HeaderBar: React.FC = () => {
                 onFocus={() => setShowSearchSuggest(true)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
                 placeholder="搜索福利卡可兑商品、米面粮油、影音卡券、附近门店..."
-                className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border-2 border-[var(--sw-brand)] rounded-l-md focus:outline-none focus:bg-white text-gray-900 placeholder-gray-400"
+                className="w-full min-w-0 pl-10 pr-4 py-2.5 text-sm bg-gray-50 border-2 border-[var(--sw-brand)] rounded-l-md focus:outline-none focus:bg-white text-gray-900 placeholder-gray-400"
               />
               <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
-            <button onClick={() => handleSearchSubmit()} className="bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-medium text-sm px-6 py-2.5 rounded-r-md transition-colors flex items-center gap-1.5 cursor-pointer">
+            <button onClick={() => handleSearchSubmit()} className="bg-[var(--sw-brand)] hover:bg-blue-700 text-white font-medium text-sm px-3 sm:px-6 py-2.5 rounded-r-md transition-colors flex shrink-0 items-center gap-1.5 cursor-pointer">
               <span>搜索</span>
             </button>
           </div>
@@ -120,7 +120,10 @@ export const HeaderBar: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div onClick={() => navigateTo('balance', { accountTab: 'welfare' })} className="hidden lg:flex bg-[var(--sw-brand-light)] hover:bg-blue-100 border border-blue-200 rounded-md p-2 items-center gap-2.5 cursor-pointer transition-colors">
+          <div
+            onClick={() => navigateTo('balance', { accountTab: 'welfare' })}
+            className="hidden lg:flex bg-[var(--sw-brand-light)] hover:bg-blue-100 border border-blue-200 rounded-md p-2 items-center gap-2.5 cursor-pointer transition-colors"
+          >
             <div className="w-8 h-8 rounded bg-[var(--sw-brand)] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
               <CreditCard className="w-4 h-4" />
             </div>
@@ -138,10 +141,14 @@ export const HeaderBar: React.FC = () => {
               <div className="text-sm font-black text-[#FF7A00] mt-0.5">¥{user.mealBalance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</div>
             </div>
           </div>
-          <button onClick={() => navigateTo('cart')} className="relative bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-md flex items-center gap-2 font-medium text-xs shadow-xs transition-colors cursor-pointer">
+          <button
+            onClick={() => navigateTo('cart')}
+            aria-label={`购物车，${cartCount} 件商品`}
+            className="relative flex min-h-[var(--sw-min-touch-target)] min-w-[var(--sw-min-touch-target)] shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md bg-gray-900 px-3 py-2.5 text-xs font-medium text-white shadow-xs transition-colors hover:bg-black sm:px-4"
+          >
             <ShoppingCart className="w-4 h-4 text-blue-300" />
             <span className="hidden sm:inline">购物车</span>
-            {cartCount > 0 && <span className="bg-[#FF7A00] text-white font-bold text-[10px] px-1.5 py-0.2 rounded-full">{cartCount}</span>}
+            {cartCount > 0 && <span className="min-w-5 rounded-full bg-[#FF7A00] px-1 text-xs font-bold leading-5 text-white">{cartCount > 99 ? '99+' : cartCount}</span>}
           </button>
         </div>
       </div>

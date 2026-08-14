@@ -110,7 +110,7 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA] text-gray-800 flex flex-col justify-between pb-16 md:pb-0 font-sans antialiased selection:bg-[var(--sw-brand)] selection:text-white">
+    <div className="min-h-screen bg-[#F5F7FA] text-gray-800 flex flex-col justify-between pb-[calc(var(--sw-mobile-nav-height)_+_env(safe-area-inset-bottom))] md:pb-0 font-sans antialiased selection:bg-[var(--sw-brand)] selection:text-white">
       {/* 顶部企业导航栏 */}
       <HeaderBar />
       <MvpSessionBar />

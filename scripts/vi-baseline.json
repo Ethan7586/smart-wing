@@ -164,7 +164,7 @@
     },
     "apps/storefront-web/src/components/common/HeaderBar.tsx": {
       "hardcoded-color": 4,
-      "font-size-floor": 7,
+      "font-size-floor": 6,
       "font-weight-ceiling": 3,
       "radius-off-scale": 13,
       "semantic-duplicate": 8
@@ -173,10 +173,6 @@
       "font-size-floor": 4,
       "radius-off-scale": 4,
       "semantic-duplicate": 1
-    },
-    "apps/storefront-web/src/components/common/MobileBottomNav.tsx": {
-      "hardcoded-color": 1,
-      "font-size-floor": 2
     },
     "apps/storefront-web/src/components/common/MvpSessionBar.tsx": {
       "radius-off-scale": 1
