@@ -1,9 +1,11 @@
 var safeArea = require('../utils/safeArea');
+var sizeClass = require('../utils/sizeClass');
 
 Component({
   data: {
     selected: 0,
     safeBottom: 0,
+    sizeStyle: '',
     // Order is frozen by 冻结决议 8. Member code is always centre and never
     // replaced by an avatar, a publish button or a plain scanner.
     tabs: [
@@ -17,7 +19,8 @@ Component({
 
   lifetimes: {
     attached: function () {
-      this.setData({ safeBottom: safeArea.readSafeArea().safeAreaBottom });
+      var size = sizeClass.resolveSizeClass();
+      this.setData({ safeBottom: safeArea.readSafeArea().safeAreaBottom, sizeStyle: size.rootStyle });
     },
   },
 

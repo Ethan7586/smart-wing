@@ -113,6 +113,11 @@ for (const { full, rel } of files) {
 
     // Flex gap is unreliable on older WeChat Android base libraries.
     check('flex-gap', /^\s*(row-|column-)?gap:/.test(code), '低版本安卓基础库对 flex gap 支持不稳定，请改用 margin');
+
+    // Tablet rule no-750-absolutes. 750rpx means "the whole screen", which stops
+    // being true the moment the tablet content column is capped — anything
+    // measured against it overflows the column.
+    check('screen-width-absolute', !generated && /\b750rpx\b/.test(code), '不得以 750rpx 为宽度基准，平板内容列封顶后会溢出；改用百分比或 flex');
   });
 
   if (generated && !source.startsWith('/* GENERATED')) {

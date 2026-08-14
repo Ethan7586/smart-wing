@@ -14,7 +14,12 @@
   overflow: visible;
 }
 
+/* Follows the tablet content column. Unset on phones, so max-width is none
+   and the bar keeps full bleed. */
 .tabbar-inner {
+  max-width: var(--sw-content-width, none);
+  margin-left: auto;
+  margin-right: auto;
   display: flex;
   align-items: stretch;
   height: 108rpx;

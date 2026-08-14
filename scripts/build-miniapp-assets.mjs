@@ -174,6 +174,10 @@ page,
      roughly constant in physical size. Every type token is therefore multiplied
      by a per-size-class factor, defaulting to 1 at the 375pt baseline. */
   --sw-text-scale: 1;
+  /* Absolute dimensions. 1 on phones because rpx is already correct there; on
+     tablets sizeClass.js sets 375/screenWidth so icons, spacing and touch
+     targets fall back to the same physical size a phone gives them. */
+  --sw-space-scale: 1;
 ${Object.entries(t.typography.styles)
   .map(
     ([name, style]) =>
@@ -185,7 +189,7 @@ ${Object.entries(t.typography.styles)
 ${Object.entries(t.spacing)
   .map(([name, pt]) => `  --sw-space-${name}: ${rpx(pt)};`)
   .join('\n')}
-  --sw-page-inset: ${wechat.pageHorizontalInset}rpx;
+  --sw-page-inset: calc(${wechat.pageHorizontalInset}rpx * var(--sw-space-scale));
 
   /* radius */
 ${Object.entries(t.radius)
@@ -196,13 +200,13 @@ ${Object.entries(t.radius)
 
   /* icon */
 ${Object.entries(t.icon.sizes)
-  .map(([name, pt]) => `  --sw-icon-${name}: ${rpx(pt)};`)
+  .map(([name, pt]) => `  --sw-icon-${name}: calc(${rpx(pt)} * var(--sw-space-scale));`)
   .join('\n')}
 
   /* member code entry — from mobile-platforms.json wechatMiniProgram */
-  --sw-membercode-size: ${wechat.wingCodeButtonSize}rpx;
-  --sw-membercode-protrusion: ${wechat.wingCodeProtrusion}rpx;
-  --sw-touch-min: ${wechat.minimumTouchTarget}rpx;
+  --sw-membercode-size: calc(${wechat.wingCodeButtonSize}rpx * var(--sw-space-scale));
+  --sw-membercode-protrusion: calc(${wechat.wingCodeProtrusion}rpx * var(--sw-space-scale));
+  --sw-touch-min: calc(${wechat.minimumTouchTarget}rpx * var(--sw-space-scale));
   --sw-tab-label-size: calc(${wechat.tabLabelSize}rpx * var(--sw-text-scale));
   --sw-tab-label-line-height: calc(${wechat.tabLabelLineHeight}rpx * var(--sw-text-scale));
 
@@ -229,8 +233,9 @@ ${platforms.sizeClasses
   .map(
     (s) => `.sz-${s.key} {
   /* ${s.label} · ${s.devices} · 参考宽度 ${s.referenceWidthPt}pt */
-  --sw-text-scale: ${s.textScale};
-  --sw-page-inset: ${s.pageHorizontalInset}rpx;
+${s.textScale === null ? '  /* text-scale 与 space-scale 由 utils/sizeClass.js 按屏宽运行时注入 */' : `  --sw-text-scale: ${s.textScale};`}
+${s.spaceScale === null ? '' : `  --sw-space-scale: ${s.spaceScale};
+`}  --sw-page-inset: calc(${s.pageHorizontalInset}rpx * var(--sw-space-scale));
   --sw-product-columns: ${s.productColumns};
   --sw-partner-visible: ${s.partnerVisible};
 }`

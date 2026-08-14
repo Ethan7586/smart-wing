@@ -155,3 +155,17 @@ page {
   min-width: var(--sw-touch-min);
   min-height: var(--sw-touch-min);
 }
+
+/**
+ * Tablet content column.
+ *
+ * --sw-content-width is only set by utils/sizeClass.js on tablets. On phones it
+ * is unset, so max-width resolves to none and the page keeps full bleed. The
+ * margin either side is intentional: stretching cards across a 1024pt panel is
+ * not adaptation, it is a phone layout that got bigger.
+ */
+.sw-page {
+  max-width: var(--sw-content-width, none);
+  margin-left: auto;
+  margin-right: auto;
+}

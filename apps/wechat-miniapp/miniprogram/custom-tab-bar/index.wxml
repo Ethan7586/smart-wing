@@ -6,7 +6,7 @@
   was written correctly and still rendered as black squares for exactly that
   reason. cover-view is only needed to overlay map / video / canvas / camera.
 -->
-<view class="sw-tokens tabbar" style="padding-bottom: {{safeBottom}}px;">
+<view class="sw-tokens tabbar" style="padding-bottom: {{safeBottom}}px; {{sizeStyle}}">
   <view class="tabbar-inner">
     <view
       wx:for="{{tabs}}"

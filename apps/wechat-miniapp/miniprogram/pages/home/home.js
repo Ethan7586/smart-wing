@@ -1,5 +1,6 @@
 var demo = require('../../data/demo');
 var api = require('../../utils/api');
+var sizeClassUtil = require('../../utils/sizeClass');
 
 var app = getApp();
 
@@ -24,6 +25,7 @@ Page({
   data: {
     nav: { statusBarHeight: 0, navContentHeight: 0, navTotalHeight: 0, rightInset: 0 },
     sizeClass: '',
+    sizeStyle: '',
     scrolled: false,
     loading: true,
     loadError: null,
@@ -48,6 +50,7 @@ Page({
     var size = app.getSizeClass();
     this.setData({
       sizeClass: size.className,
+      sizeStyle: size.rootStyle,
       nav: {
         statusBarHeight: area.statusBarHeight,
         navContentHeight: area.navContentHeight,
@@ -56,6 +59,13 @@ Page({
       },
     });
     this.loadHome();
+  },
+
+  /** Tablets rotate and split-screen; a launch-time measurement goes stale. */
+  onResize: function () {
+    sizeClassUtil.clearSizeClassCache();
+    var next = app.getSizeClass(true);
+    this.setData({ sizeClass: next.className, sizeStyle: next.rootStyle });
   },
 
   onShow: function () {

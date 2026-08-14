@@ -53,6 +53,10 @@ page,
      roughly constant in physical size. Every type token is therefore multiplied
      by a per-size-class factor, defaulting to 1 at the 375pt baseline. */
   --sw-text-scale: 1;
+  /* Absolute dimensions. 1 on phones because rpx is already correct there; on
+     tablets sizeClass.js sets 375/screenWidth so icons, spacing and touch
+     targets fall back to the same physical size a phone gives them. */
+  --sw-space-scale: 1;
   --sw-fs-display: calc(64rpx * var(--sw-text-scale));
   --sw-lh-display: calc(80rpx * var(--sw-text-scale));
   --sw-fw-display: 700;
@@ -89,7 +93,7 @@ page,
   --sw-space-8: 128rpx;
   --sw-space-half: 8rpx;
   --sw-space-1_5: 24rpx;
-  --sw-page-inset: 32rpx;
+  --sw-page-inset: calc(32rpx * var(--sw-space-scale));
 
   /* radius */
   --sw-radius-small: 16rpx;
@@ -99,16 +103,16 @@ page,
   --sw-radius-full: 9999rpx;
 
   /* icon */
-  --sw-icon-small: 32rpx;
-  --sw-icon-medium: 40rpx;
-  --sw-icon-standard: 48rpx;
-  --sw-icon-large: 56rpx;
-  --sw-icon-extraLarge: 64rpx;
+  --sw-icon-small: calc(32rpx * var(--sw-space-scale));
+  --sw-icon-medium: calc(40rpx * var(--sw-space-scale));
+  --sw-icon-standard: calc(48rpx * var(--sw-space-scale));
+  --sw-icon-large: calc(56rpx * var(--sw-space-scale));
+  --sw-icon-extraLarge: calc(64rpx * var(--sw-space-scale));
 
   /* member code entry — from mobile-platforms.json wechatMiniProgram */
-  --sw-membercode-size: 112rpx;
-  --sw-membercode-protrusion: 24rpx;
-  --sw-touch-min: 88rpx;
+  --sw-membercode-size: calc(112rpx * var(--sw-space-scale));
+  --sw-membercode-protrusion: calc(24rpx * var(--sw-space-scale));
+  --sw-touch-min: calc(88rpx * var(--sw-space-scale));
   --sw-tab-label-size: calc(20rpx * var(--sw-text-scale));
   --sw-tab-label-line-height: calc(28rpx * var(--sw-text-scale));
 
@@ -134,7 +138,8 @@ page,
 .sz-compact {
   /* 紧凑 · iPhone SE 一代 / 5s、小屏安卓、分屏窗口 · 参考宽度 320pt */
   --sw-text-scale: 1.12;
-  --sw-page-inset: 24rpx;
+  --sw-space-scale: 1;
+  --sw-page-inset: calc(24rpx * var(--sw-space-scale));
   --sw-product-columns: 2;
   --sw-partner-visible: 4.5;
 }
@@ -142,7 +147,8 @@ page,
 .sz-standard {
   /* 标准 · iPhone SE2/SE3、13 mini、多数安卓 · 参考宽度 375pt */
   --sw-text-scale: 1;
-  --sw-page-inset: 32rpx;
+  --sw-space-scale: 1;
+  --sw-page-inset: calc(32rpx * var(--sw-space-scale));
   --sw-product-columns: 2;
   --sw-partner-visible: 5;
 }
@@ -150,7 +156,8 @@ page,
 .sz-regular {
   /* 常规 · iPhone 14/15/16、主流大屏安卓 · 参考宽度 410pt */
   --sw-text-scale: 0.94;
-  --sw-page-inset: 32rpx;
+  --sw-space-scale: 1;
+  --sw-page-inset: calc(32rpx * var(--sw-space-scale));
   --sw-product-columns: 2;
   --sw-partner-visible: 5.5;
 }
@@ -158,9 +165,26 @@ page,
 .sz-large {
   /* 宽屏 · Pro Max、大屏安卓、折叠机内屏 · 参考宽度 440pt */
   --sw-text-scale: 0.9;
-  --sw-page-inset: 40rpx;
+  --sw-space-scale: 1;
+  --sw-page-inset: calc(40rpx * var(--sw-space-scale));
   --sw-product-columns: 3;
   --sw-partner-visible: 6.5;
+}
+
+.sz-tablet {
+  /* 平板 · iPad 竖屏、8–11 寸安卓平板、折叠机展开 · 参考宽度 768pt */
+  /* text-scale 与 space-scale 由 utils/sizeClass.js 按屏宽运行时注入 */
+  --sw-page-inset: calc(32rpx * var(--sw-space-scale));
+  --sw-product-columns: 3;
+  --sw-partner-visible: 7.5;
+}
+
+.sz-tabletWide {
+  /* 平板宽屏 · iPad 横屏、12 寸以上平板、桌面端微信 · 参考宽度 1024pt */
+  /* text-scale 与 space-scale 由 utils/sizeClass.js 按屏宽运行时注入 */
+  --sw-page-inset: calc(32rpx * var(--sw-space-scale));
+  --sw-product-columns: 4;
+  --sw-partner-visible: 9;
 }
 
 /* Brand marks, inlined because WXSS cannot reach packages/design-system. */

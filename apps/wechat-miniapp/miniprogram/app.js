@@ -23,8 +23,8 @@ App({
   },
 
   /** Page roots apply this class so the size-class tokens take effect. */
-  getSizeClass: function () {
-    if (!this.globalData.sizeClass) this.globalData.sizeClass = sizeClass.resolveSizeClass(true);
+  getSizeClass: function (force) {
+    if (force || !this.globalData.sizeClass) this.globalData.sizeClass = sizeClass.resolveSizeClass(true);
     return this.globalData.sizeClass;
   },
 
