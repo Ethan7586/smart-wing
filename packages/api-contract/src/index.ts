@@ -6,6 +6,24 @@ export type { PermissionDefinition, PermissionRisk } from './permissions';
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 export { ORDER_STATUS, PAYMENT_STATUS, toPaymentStatus } from './commerce';
 export type { OrderPaymentStatus, OrderStatus, PaymentStatus, WechatPaymentAttemptStatus } from './commerce';
+export { CLIENT_PLATFORM, REQUIRED_DELIVERY_PLATFORMS, RESERVED_DELIVERY_PLATFORMS } from './platform';
+export type {
+  AsyncOperation,
+  AsyncOperationState,
+  ClientPaymentInvocation,
+  ClientPlatform,
+  CommercePlatformAdapters,
+  ConsistencyMode,
+  PlatformCredential,
+  PlatformIdentityAdapter,
+  PlatformLifecycleAdapter,
+  PlatformNavigationAdapter,
+  PlatformPaymentAdapter,
+  PlatformShareAdapter,
+  PlatformStorageAdapter,
+  PlatformTelemetryAdapter,
+  ResponseMeta,
+} from './platform';
 
 export type MembershipStatus = 'invited' | 'active' | 'suspended' | 'offboarded' | 'expired';
 export type MembershipTarget = 'storefront' | 'admin';

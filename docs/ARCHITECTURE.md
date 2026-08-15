@@ -21,9 +21,27 @@ database/supabase ───────► migrations / RPC / audit baseline
 apps/storefront-web ─────► smart-wing-core-read-cache (127.0.0.1:3002)
                                └─ 阿里云 Tair（北京同 VPC，只读镜像）
 
-Web / 微信小程序 ────────► img.hbbtzn.com
+Web / 微信小程序 / 未来原生端 ─► img.hbbtzn.com
                                └─ 阿里云 CDN + OSS（共享媒体源）
 ```
+
+## 多端业务边界
+
+当前每项业务能力必须由 Web 与微信小程序同批实现和验收；鸿蒙、iOS、Android 通过稳定平台端口预留接入。业务规则、同步事务和异步状态机只存在于共享合同与 Commerce API，客户端只实现身份、支付、安全存储、分享、导航、生命周期和遥测适配。
+
+```text
+Web / 微信小程序 / 鸿蒙 / iOS / Android
+                   │
+             平台薄适配器
+                   │
+       packages/api-contract
+                   │
+       services/commerce-api
+                   │
+       PostgreSQL 权威事务
+```
+
+正式规范见 `docs/MULTI-PLATFORM-DELIVERY-STANDARD.md`；机器可读完成度见 `packages/api-contract/src/delivery-matrix.json`。单端完成不得对外表述为整体完成。
 
 ## 目录职责
 
@@ -32,7 +50,7 @@ Web / 微信小程序 ────────► img.hbbtzn.com
 - `apps/auth-web`：统一登录的前端原型；只保存界面状态与 API 调用，不保存 token、票据或任何密钥。
 - `services/commerce-api`：唯一的服务端业务目录，包含商城 API、会话、订单、账户和后台 AI API。
 - `services/core-read-cache`：北京同地域共享读镜像的私有 sidecar；只加速读取，不拥有业务写权限。
-- `packages/api-contract`：Member、Membership、接口错误等共享类型。
+- `packages/api-contract`：Member、Membership、接口错误、多端一致性与平台适配端口等共享类型。
 - `packages/authz`：会员状态、权限和范围的纯规则函数；服务端实际鉴权应由此扩展。
 - `packages/design-system`：跨商城与后台使用的视觉令牌。
 - `database/supabase`：唯一数据库演进来源。已应用迁移不可修改，只能新增。
