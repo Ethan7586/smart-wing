@@ -73,8 +73,13 @@ test('food commerce is consistently hidden until qualification is approved', () 
   assert.equal(snapshot.products[0].id, 'digital-product');
   assert.equal(snapshot.tilesByKey.food, undefined);
   assert.equal(
-    snapshot.tilesByKey.featured.some(({ label }) => /食品|零食|粮油|乳品|酒水|母婴|保健/.test(label)),
+    snapshot.tilesByKey.featured.some(({ label }) => /食品|零食|粮油|乳品|酒水|保健/.test(label)),
     false
+  );
+  assert.equal(policy.isFeaturedTileVisible({ code: 'featured_baby', matchCodes: ['supermarket_family_toys'] }), true);
+  assert.equal(
+    catalog.createSnapshot([]).tilesByKey.featured.some(({ label }) => /母婴/.test(label)),
+    true
   );
   assert.equal(policy.isHomeSegmentVisible({ key: 'grocery' }), false);
   assert.equal(policy.isHomeSegmentVisible({ key: 'dining' }), false);

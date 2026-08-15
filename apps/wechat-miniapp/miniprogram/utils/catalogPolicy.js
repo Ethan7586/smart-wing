@@ -15,7 +15,6 @@ var FOOD_FEATURED_KEYS = {
   featured_fresh: true,
   featured_deli: true,
   featured_drink: true,
-  featured_baby: true,
   featured_health: true,
 };
 var FOOD_HOME_SEGMENTS = { grocery: true, dining: true };
