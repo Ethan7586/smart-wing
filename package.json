@@ -16,7 +16,7 @@
     "build:miniapp-assets": "node scripts/build-miniapp-assets.mjs",
     "build:miniapp-catalog-seed": "node scripts/build-miniapp-catalog-seed.mjs",
     "sync:catalog-media": "node scripts/sync-catalog-media-to-oss.mjs",
-    "publish:catalog-manifest": "node scripts/publish-catalog-manifest-to-oss.mjs",
+    "publish:catalog-manifest": "node --env-file-if-exists=.env.production scripts/publish-catalog-manifest-to-oss.mjs",
     "test:catalog-media-cache": "node --test scripts/catalog-media-cache.test.mjs",
     "test:catalog-manifest": "node --test scripts/catalog-manifest.test.mjs",
     "backup:postgres": "node scripts/postgres-backup.mjs",
