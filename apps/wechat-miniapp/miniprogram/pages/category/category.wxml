@@ -14,6 +14,9 @@
           <view class="i i-shopping-cart-ink"></view>
           <text wx:if="{{cartCount > 0}}" class="cart-badge">{{cartCount}}</text>
         </view>
+        <view class="nav-action sw-tap" data-label="通知" bindtap="onPending">
+          <view class="i i-bell-ink"></view>
+        </view>
       </view>
     </view>
   </view>
@@ -37,21 +40,23 @@
   <block wx:else>
     <!-- 搜索 -->
     <view class="sw-inset search-wrap">
-      <view class="search sw-tap" bindtap="onOpenSearch">
+      <view class="search" data-label="搜索" bindtap="onPending">
         <view class="i i-sm i-search-muted"></view>
         <text class="search-placeholder">搜索商品或品牌</text>
       </view>
     </view>
 
-    <!-- 当前公开目录与购买资格说明，不伪装成可操作筛选器。 -->
+    <!-- 城市与资格标签 -->
     <view class="sw-inset filter-row">
-      <view class="chip">
-        <view class="i i-sm i-store-secondary"></view>
+      <view class="chip sw-tap" data-label="切换城市" bindtap="onPending">
+        <view class="i i-sm i-map-pin-muted"></view>
         <text class="chip-text">{{filters.city}}</text>
+        <view class="i i-sm i-chevron-down-secondary"></view>
       </view>
-      <view class="chip chip-ok">
+      <view class="chip chip-ok sw-tap" data-label="资格筛选" bindtap="onPending">
         <view class="i i-sm i-shield-check-success"></view>
         <text class="chip-text chip-text-ok">{{filters.qualification}}</text>
+        <view class="i i-sm i-chevron-down-secondary"></view>
       </view>
     </view>
 

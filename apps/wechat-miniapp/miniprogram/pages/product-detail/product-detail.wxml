@@ -8,12 +8,7 @@
   </view>
   <view class="nav-spacer" style="height: {{nav.navTotalHeight}}px;"></view>
 
-  <view wx:if="{{loading}}" class="state-block sw-inset">
-    <view class="i i-lg i-refresh-cw-brand"></view>
-    <text class="sw-small">正在加载商品信息</text>
-  </view>
-
-  <view wx:elif="{{error}}" class="state-block sw-inset">
+  <view wx:if="{{error}}" class="state-block sw-inset">
     <view class="i i-lg i-inbox-muted"></view>
     <text class="sw-small">{{error}}</text>
     <view class="retry sw-tap" bindtap="onBack"><text>返回商品列表</text></view>

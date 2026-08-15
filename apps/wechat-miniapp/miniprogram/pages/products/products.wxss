@@ -27,35 +27,7 @@
   line-height: var(--sw-lh-h3);
   font-weight: var(--sw-fw-h3);
 }
-.search-wrap {
-  margin-top: var(--sw-space-1);
-}
-.search {
-  display: flex;
-  align-items: center;
-  min-height: var(--sw-touch-min);
-  padding: 0 var(--sw-space-1_5);
-  border: 1rpx solid var(--sw-border);
-  border-radius: var(--sw-radius-full);
-  background: var(--sw-surface);
-  box-sizing: border-box;
-}
-.search-input {
-  flex: 1;
-  min-width: 0;
-  margin-left: var(--sw-space-1);
-  font-size: var(--sw-fs-bodySmall);
-  color: var(--sw-text);
-}
-.search-clear {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--sw-touch-min);
-  min-width: var(--sw-touch-min);
-}
 .public-note {
-  margin-top: var(--sw-space-1);
   display: flex;
   align-items: center;
   min-height: var(--sw-touch-min);

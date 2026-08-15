@@ -1,6 +1,15 @@
+<!--
+  会员码 — 构图对照
+  docs/mobile/design-previews/smart-wing-member-card-code-v2.png
+  与 smart-wing-unified-mall-01-browse-v2-cart-restored.png 第 3 屏。
+
+  会员码不是支付码。码内不写姓名、手机号、企业名、余额与消费记录 ——
+  只承载短期挑战凭证，见 docs/mobile/WING-CODE-WECHAT-MINIAPP-MASTER-PLAN.md §6。
+-->
 <view class="sw-page membercode {{sizeClass}}" style="{{sizeStyle}}">
+
   <view class="nav" style="padding-top: {{nav.statusBarHeight}}px;">
-    <view class="nav-row" style="height: {{nav.navContentHeight}}px; padding-right: {{nav.rightInset}}px;">
+    <view class="nav-row" style="height: {{nav.navContentHeight}}px;">
       <text class="nav-title">会员码</text>
     </view>
   </view>
@@ -9,7 +18,7 @@
   <view wx:if="{{loadError}}" class="sw-inset state-block">
     <view class="i i-lg i-wifi-off-muted"></view>
     <text class="sw-small state-text">{{loadError}}</text>
-    <view class="retry sw-tap" bindtap="onRetry">
+    <view class="retry" bindtap="onRetry">
       <view class="i i-sm i-refresh-cw-brand"></view>
       <text class="retry-text">重试</text>
     </view>
@@ -20,24 +29,18 @@
     <view class="sw-skeleton sk-code"></view>
   </view>
 
-  <view wx:elif="{{!signedIn}}" class="sw-inset access-card">
-    <view class="access-mark sw-membercode-mark"></view>
-    <text class="sw-h2 access-title">登录后使用会员码</text>
-    <text class="sw-small access-desc">微信登录用于确认会员身份；未登录不会生成或展示任何会员凭证。</text>
-    <view class="primary-action sw-tap" bindtap="onOpenAuth">登录或注册</view>
-  </view>
-
   <block wx:else>
+    <!-- 数字会员卡 -->
     <view class="sw-inset">
       <view class="card">
         <view class="card-pattern sw-brand-pattern"></view>
         <view class="card-head">
-          <text class="card-name">{{card.memberName}}</text>
-          <text class="card-level">{{card.level || '会员'}}</text>
+          <text class="card-name">{{card.memberName || '未登录会员'}}</text>
+          <text class="card-level">{{card.level || '待认证'}}</text>
         </view>
-        <text class="card-org">{{card.enterpriseName || '企业信息待同步'}}</text>
+        <text class="card-org">{{card.enterpriseName || '登录后显示所属企业'}}</text>
         <view class="card-foot">
-          <text class="card-no">会员编号 {{card.maskedNo}}</text>
+          <text class="card-no">会员编号 {{card.maskedNo || '****  ****  ****'}}</text>
           <view class="card-verify {{card.phoneVerified ? 'is-ok' : 'is-warn'}}">
             <view class="i i-sm {{card.phoneVerified ? 'i-shield-check-success' : 'i-shield-alert-danger'}}"></view>
             <text class="card-verify-text">{{card.phoneVerified ? '手机已认证' : '手机未认证'}}</text>
@@ -46,6 +49,7 @@
       </view>
     </view>
 
+    <!-- 安全状态：图标 + 文字 + 颜色三者齐全 -->
     <view class="sw-inset">
       <view class="status status-{{state.tone}}">
         <view class="i i-sm {{state.icon}}"></view>
@@ -56,29 +60,62 @@
       </view>
     </view>
 
-    <view wx:if="{{!card.phoneVerified}}" class="sw-inset">
-      <view class="verification-card">
-        <view class="i i-lg i-shield-alert-danger"></view>
-        <text class="sw-h3 verification-title">完成手机认证</text>
-        <text class="sw-small verification-desc">认证成功后，系统才允许申请短期、可撤销的门店核验凭证。</text>
-        <view class="primary-action sw-tap" bindtap="onVerifyPhone">去认证手机号</view>
-      </view>
-    </view>
-
-    <view wx:else class="sw-inset">
-      <view class="verification-card">
-        <view class="i i-lg i-shield-check-success"></view>
-        <text class="sw-h3 verification-title">安全保护已启用</text>
-        <text class="sw-small verification-desc">门店凭证仅可由服务端实时签发，过期后自动失效。</text>
-      </view>
-    </view>
-
+    <!-- 动态会员码 -->
     <view class="sw-inset">
-      <button plain class="sw-card row-link contact-button" open-type="contact">
-        <view class="i i-headphones-brand"></view>
-        <text class="row-text">联系平台客服</text>
+      <view class="code-card">
+        <view wx:if="{{simulated}}" class="sim-flag">
+          <view class="i i-sm i-triangle-alert-danger"></view>
+          <text>模拟码 · 服务端挑战凭证接口尚未接通，不可用于真实核验</text>
+        </view>
+
+        <view class="qr">
+          <view class="i i-xl i-qr-code-brand"></view>
+          <text class="qr-note">{{challenge ? challenge : '等待服务端签发'}}</text>
+        </view>
+
+        <view class="bar">
+          <view class="i i-barcode-ink bar-icon"></view>
+        </view>
+
+        <view class="countdown">
+          <view class="i i-sm i-clock-muted"></view>
+          <text class="countdown-text">{{seconds}} 秒后自动刷新</text>
+        </view>
+
+        <view class="warn">
+          <view class="i i-sm i-eye-off-muted"></view>
+          <text class="warn-text">请勿截图转发 · 会员码不是支付码</text>
+        </view>
+
+        <view class="actions">
+          <view class="act sw-tap" bindtap="onRefresh">
+            <view class="i i-sm i-rotate-cw-brand"></view>
+            <text class="act-text">刷新会员码</text>
+          </view>
+          <view class="act sw-tap" bindtap="onBrighten">
+            <view class="i i-sm i-sun-brand"></view>
+            <text class="act-text">调亮屏幕</text>
+          </view>
+          <view class="act sw-tap" data-label="冻结会员码" bindtap="onPending">
+            <view class="i i-sm i-snowflake-danger"></view>
+            <text class="act-text act-danger">冻结</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 核验记录与客服 -->
+    <view class="sw-inset">
+      <view class="sw-card row-link sw-tap" data-label="核验记录" bindtap="onPending">
+        <view class="i i-file-text-brand"></view>
+        <text class="row-text">核验记录</text>
         <view class="i i-chevron-right-muted"></view>
-      </button>
+      </view>
+      <view class="sw-card row-link sw-tap" data-label="联系客服" bindtap="onPending">
+        <view class="i i-headphones-brand"></view>
+        <text class="row-text">联系客服</text>
+        <view class="i i-chevron-right-muted"></view>
+      </view>
     </view>
   </block>
 

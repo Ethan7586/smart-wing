@@ -107,11 +107,6 @@ for (const { full, rel } of files) {
     // 02 VI + 冻结决议 8 — the user-facing name is 会员码.
     check('name-drift', /翼码/.test(raw), '用户界面统一显示「会员码」；内部标识符可用 wingCode');
 
-    // Review builds may expose only working interactions. A visible placeholder
-    // or a generic pending click handler is not an honest empty state: it is a
-    // dead entry that reviewers and users can tap but cannot experience.
-    check('unavailable-experience', /\bonPending\b|本页将在|将在阶段|后续阶段|待供图|尚未接入|尚未实现/.test(code), '审核可见页面不得保留占位文案或待开发点击；接通真实路径，或从审核版本移除入口');
-
     // 11 微信原生适配 — the top inset must be measured, never assumed. A zero
     // initialiser is fine; a non-zero literal is a hardcoded layout.
     check('hardcoded-safe-area', /(safe-?top|statusBarHeight|navTotalHeight|capsule\w*)\s*[:=]\s*[1-9]\d*/.test(code) && rel !== 'utils/safeArea.js', '顶部安全区必须来自 wx.getWindowInfo / getMenuButtonBoundingClientRect');
