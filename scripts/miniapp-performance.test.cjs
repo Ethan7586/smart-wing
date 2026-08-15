@@ -132,12 +132,55 @@ test('product lists render a small first batch and defer offscreen images', () =
   assert.match(categoryView, /lazy-load/);
 });
 
-test('app launch does not start catalog, login, home, or order requests', () => {
+test('app launch paints layout before starting the background WeChat session', () => {
   const source = fs.readFileSync(appPath, 'utf8');
   const launchBlock = source.match(/onLaunch:\s*function\s*\(\)\s*\{([\s\S]*?)\n\s*\},/);
   assert.ok(launchBlock, 'app.js must expose a readable onLaunch block');
-  assert.doesNotMatch(source, /require\(['"]\.\/utils\/api['"]\)/);
+  assert.match(source, /require\(['"]\.\/utils\/api['"]\)/);
+  assert.match(launchBlock[1], /ensureSilentSession\(false\)/);
+  assert.ok(launchBlock[1].indexOf('readSafeArea') < launchBlock[1].indexOf('ensureSilentSession'), 'safe area must be ready before background login');
+  assert.ok(launchBlock[1].indexOf('resolveSizeClass') < launchBlock[1].indexOf('ensureSilentSession'), 'size class must be ready before background login');
   assert.doesNotMatch(launchBlock[1], /prefetch|wx\.request|wx\.login|setTimeout/);
+});
+
+test('parallel protected consumers share one silent WeChat login request', async () => {
+  const storage = new Map();
+  let loginCalls = 0;
+  let sessionCalls = 0;
+  const api = freshApi({
+    getStorageSync(key) {
+      return storage.get(key) || '';
+    },
+    setStorageSync(key, value) {
+      storage.set(key, value);
+    },
+    removeStorageSync(key) {
+      storage.delete(key);
+    },
+    login(options) {
+      loginCalls += 1;
+      options.success({ code: 'one-time-code' });
+    },
+    request(options) {
+      sessionCalls += 1;
+      options.success({
+        statusCode: 200,
+        data: {
+          authenticated: true,
+          accessToken: 'miniapp-token',
+          expiresIn: 3600,
+          authorization: { membershipId: 'membership-one' },
+        },
+      });
+      return { abort() {} };
+    },
+  });
+
+  await Promise.all([api.ensureWechatSession(), api.ensureWechatSession()]);
+
+  assert.equal(loginCalls, 1);
+  assert.equal(sessionCalls, 1);
+  assert.equal(storage.get('sw_member_access_token'), 'miniapp-token');
 });
 
 test('member code paints stale server-confirmed card without waiting for refresh', async () => {

@@ -9,7 +9,6 @@ import { createTrackedMiniappSessionToken } from './session';
 import { callRpc, isSupabaseConfigured } from './supabase';
 import type { WorkerEnv } from './types';
 
-const BINDING_SECONDS = 10 * 60;
 const WECHAT_CODE_ENDPOINT = 'https://api.weixin.qq.com/sns/jscode2session';
 
 interface WechatCodeSession {
@@ -21,6 +20,11 @@ interface WechatCodeSession {
 interface WechatIdentityCandidate {
   memberId?: string;
   membershipId?: string;
+}
+
+interface WechatEnrollmentResult extends WechatIdentityCandidate {
+  status?: string;
+  created?: boolean;
 }
 
 interface WechatRegistrationResult extends WechatIdentityCandidate {
@@ -38,31 +42,31 @@ export async function handleWechatSession(request: Request, env: WorkerEnv, requ
 
   const exchanged = await exchangeWechatCode(env, code);
   if (!exchanged.ok) return apiError(exchanged.status, exchanged.code, exchanged.message, requestId);
-  const candidate = await callRpc<WechatIdentityCandidate | null>(env, 'api_resolve_wechat_identity', {
+  let candidate = await callRpc<WechatIdentityCandidate | null>(env, 'api_resolve_wechat_identity', {
     p_app_id: env.WECHAT_MINIAPP_APP_ID,
     p_open_id: exchanged.openId,
   });
   if (!candidate?.memberId || !candidate.membershipId) {
-    const bindingChallenge = await callRpc<string>(env, 'api_create_wechat_binding_challenge', {
+    const enrolled = await callRpc<WechatEnrollmentResult | null>(env, 'api_ensure_wechat_member', {
       p_app_id: env.WECHAT_MINIAPP_APP_ID,
       p_open_id: exchanged.openId,
       p_union_id: exchanged.unionId ?? null,
-      p_expires_at: new Date(Date.now() + BINDING_SECONDS * 1_000).toISOString(),
+      p_mall_slug: env.PUBLIC_MALL_SLUG?.trim() || 'smart-wing-demo',
+      p_request_id: requestId,
+      p_user_agent: (request.headers.get('user-agent') ?? '').slice(0, 300),
     });
-    return json(
-      {
-        error: {
-          code: 'WECHAT_BINDING_REQUIRED',
-          message: '首次使用需要绑定已有智慧翼会员账号',
-          requestId,
-          bindingChallenge,
-          expiresIn: BINDING_SECONDS,
-        },
-      },
-      { status: 409 }
-    );
+    if (enrolled?.status === 'mall_unavailable') return apiError(503, 'WECHAT_ENROLLMENT_UNAVAILABLE', '微信会员建档服务暂时不可用', requestId);
+    if (enrolled?.status === 'identity_conflict') return apiError(409, 'WECHAT_IDENTITY_CONFLICT', '微信身份状态冲突，请稍后重试', requestId);
+    if (enrolled?.status === 'identity_inactive') return apiError(403, 'WECHAT_MEMBERSHIP_INACTIVE', '微信会员身份当前不可用', requestId);
+    if (enrolled?.status !== 'active' || !enrolled.memberId || !enrolled.membershipId) {
+      return apiError(503, 'WECHAT_ENROLLMENT_FAILED', '微信会员建档暂未完成，请稍后重试', requestId);
+    }
+    candidate = enrolled;
   }
-  const runtime = await resolveMembershipRuntimeByIds(env, candidate.memberId, candidate.membershipId, 'storefront');
+  const memberId = candidate?.memberId;
+  const membershipId = candidate?.membershipId;
+  if (!memberId || !membershipId) return apiError(503, 'WECHAT_ENROLLMENT_FAILED', '微信会员建档暂未完成，请稍后重试', requestId);
+  const runtime = await resolveMembershipRuntimeByIds(env, memberId, membershipId, 'storefront');
   if (!runtime) return apiError(403, 'WECHAT_MEMBERSHIP_INACTIVE', '绑定的会员身份当前不可用', requestId);
   return issueMiniappSession(request, env, runtime, requestId);
 }
