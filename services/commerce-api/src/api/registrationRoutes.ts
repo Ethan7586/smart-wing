@@ -3,6 +3,8 @@ import { apiError, json, methodNotAllowed } from './http';
 import { readTrustedClientIp } from './loginRateLimitBypass';
 import { generateOtp, hashPassword, maskMobile, normalizeChineseMobile, normalizeLocalUsername, phoneLookupSubject, validRegistrationPassword, verificationCodeHash } from './registrationSecurity';
 import { readJsonBody } from './routerSupport';
+import { deliverOtp, otpDeliveryAvailable } from './otpDelivery';
+import { SmsDeliveryError } from './smsProvider';
 import { callRpc } from './supabase';
 import type { WorkerEnv } from './types';
 
@@ -11,7 +13,7 @@ type RegisterResult = { status?: string; memberId?: string; membershipId?: strin
 export async function handleRegistrationOtp(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
   if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
   if (!registrationEnabled(env)) return apiError(503, 'SELF_REGISTRATION_DISABLED', '会员自主注册暂未开放', requestId);
-  if (!debugSmsEnabled(env)) return apiError(503, 'SMS_PROVIDER_NOT_CONFIGURED', '短信服务尚未配置，暂不能发送验证码', requestId);
+  if (!otpDeliveryAvailable(env)) return apiError(503, 'SMS_PROVIDER_NOT_CONFIGURED', '短信服务尚未配置，暂不能发送验证码', requestId);
   const body = await readJsonBody(request);
   const mobile = body.ok && isRecord(body.value) ? normalizeChineseMobile(body.value.mobile) : null;
   if (!mobile) return apiError(422, 'INVALID_MOBILE', '请输入正确的11位手机号码', requestId);
@@ -30,7 +32,13 @@ export async function handleRegistrationOtp(request: Request, env: WorkerEnv, re
     p_expires_at: new Date(Date.now() + 5 * 60 * 1_000).toISOString(),
   });
   if (!created) return apiError(429, 'OTP_RATE_LIMITED', '验证码发送过于频繁，请稍后重试', requestId);
-  return json({ challengeId, expiresInSeconds: 300, resendAfterSeconds: 60, debugCode: code, requestId });
+  try {
+    const delivery = await deliverOtp(env, { mobile, code, challengeId, purpose: 'registration' });
+    return json({ challengeId, expiresInSeconds: 300, resendAfterSeconds: 60, ...(delivery.debugCode ? { debugCode: delivery.debugCode } : {}), requestId });
+  } catch (error) {
+    const providerCode = error instanceof SmsDeliveryError ? error.code : 'SMS_DELIVERY_FAILED';
+    return apiError(providerCode === 'SMS_PROVIDER_NOT_CONFIGURED' ? 503 : 502, providerCode, '验证码发送失败，请稍后重试', requestId);
+  }
 }
 
 export async function handleRegistration(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
@@ -111,9 +119,6 @@ function registrationEnabled(env: WorkerEnv): boolean {
 }
 function usernameRegistrationEnabled(env: WorkerEnv): boolean {
   return env.USERNAME_REGISTRATION_ENABLED === 'true' || env.APP_ENV === 'development' || env.APP_ENV === 'test';
-}
-function debugSmsEnabled(env: WorkerEnv): boolean {
-  return (env.APP_ENV === 'development' || env.APP_ENV === 'test') && (env.SMS_PROVIDER === undefined || env.SMS_PROVIDER === 'debug');
 }
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);

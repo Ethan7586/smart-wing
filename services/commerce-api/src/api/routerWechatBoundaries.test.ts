@@ -11,7 +11,7 @@ async function errorCode(response: Response | null): Promise<string | undefined>
 }
 
 describe('WeChat route authentication boundaries', () => {
-  it.each(['/api/v1/auth/wechat/session', '/api/v1/auth/wechat/bind', '/api/v1/payments/wechat/notify'])('dispatches public endpoint %s before user authentication', async (pathname) => {
+  it.each(['/api/v1/auth/wechat/session', '/api/v1/auth/wechat/bind', '/api/v1/auth/wechat/register', '/api/v1/payments/wechat/notify'])('dispatches public endpoint %s before user authentication', async (pathname) => {
     const response = await routeApi(new Request(`https://hbbtzn.com${pathname}`), env);
 
     expect(response?.status).toBe(405);

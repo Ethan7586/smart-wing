@@ -20,8 +20,19 @@ export interface WorkerEnv {
   SELF_REGISTRATION_ENABLED?: string;
   /** Username/password registration has its own production release switch. */
   USERNAME_REGISTRATION_ENABLED?: string;
+  /** Independent release switch for create-and-bind registration in WeChat. */
+  WECHAT_REGISTRATION_ENABLED?: string;
   /** Debug OTP is permitted only outside production. A real SMS provider follows. */
   SMS_PROVIDER?: string;
+  /** Approved Aliyun SMS signature and one-time-code template. */
+  ALIYUN_SMS_SIGN_NAME?: string;
+  ALIYUN_SMS_TEMPLATE_CODE_VERIFICATION?: string;
+  ALIYUN_SMS_REGION_ID?: string;
+  ALIYUN_SMS_ENDPOINT?: string;
+  /** Prefer an ECS RAM role. Dedicated SMS AKs remain a migration fallback. */
+  ALIYUN_SMS_ECS_RAM_ROLE?: string;
+  ALIYUN_SMS_ACCESS_KEY_ID?: string;
+  ALIYUN_SMS_ACCESS_KEY_SECRET?: string;
   /** Exact test-client IPs that may skip only the login failure limiter. */
   TEST_LOGIN_RATE_LIMIT_BYPASS_IPS?: string;
   /** Required ISO timestamp at which the temporary bypass begins. */

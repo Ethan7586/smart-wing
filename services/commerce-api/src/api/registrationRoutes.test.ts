@@ -18,15 +18,14 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe('member registration routes', () => {
   it('creates a random debug challenge without exposing it in production', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => new Response('true', { status: 200, headers: { 'content-type': 'application/json' } }))
-    );
+    const database = vi.fn(async (_input: string | URL | Request) => new Response('true', { status: 200, headers: { 'content-type': 'application/json' } }));
+    vi.stubGlobal('fetch', database);
     const response = await handleRegistrationOtp(post('/otp', { mobile: '13800138000' }), env, 'otp-request');
     expect(response.status).toBe(200);
     const payload = (await response.json()) as Record<string, unknown>;
     expect(payload.challengeId).toEqual(expect.any(String));
     expect(payload.debugCode).toMatch(/^\d{6}$/);
+    expect(database.mock.calls.map(([input]) => String(input))).toEqual([expect.stringContaining('/rpc/api_create_registration_challenge'), expect.stringContaining('/rpc/api_record_phone_challenge_delivery')]);
 
     const production = await handleRegistrationOtp(post('/otp', { mobile: '13800138000' }), { ...env, APP_ENV: 'production', SMS_PROVIDER: 'debug' }, 'prod-request');
     expect(production.status).toBe(503);

@@ -3,6 +3,7 @@ import { apiError, json, methodNotAllowed } from './http';
 import { isTestLoginRateLimitBypassed, readTrustedClientIp } from './loginRateLimitBypass';
 import { resolveMembershipRuntimeByIds, type MembershipRuntime } from './membershipContext';
 import { authenticateLocalMember } from './publicRoutes';
+import { hashPassword, normalizeLocalUsername, validRegistrationPassword } from './registrationSecurity';
 import { readJsonBody } from './routerSupport';
 import { createTrackedMiniappSessionToken } from './session';
 import { callRpc, isSupabaseConfigured } from './supabase';
@@ -20,6 +21,12 @@ interface WechatCodeSession {
 interface WechatIdentityCandidate {
   memberId?: string;
   membershipId?: string;
+}
+
+interface WechatRegistrationResult extends WechatIdentityCandidate {
+  status?: string;
+  username?: string;
+  employeeNo?: string;
 }
 
 export async function handleWechatSession(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
@@ -93,6 +100,48 @@ export async function handleWechatBind(request: Request, env: WorkerEnv, request
   return issueMiniappSession(request, env, login.runtime, requestId);
 }
 
+export async function handleWechatRegistration(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
+  if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
+  if (!wechatRegistrationEnabled(env)) return apiError(503, 'WECHAT_REGISTRATION_DISABLED', '微信新会员注册暂未开放', requestId);
+  if (!wechatAuthConfigured(env)) return apiError(503, 'WECHAT_AUTH_NOT_CONFIGURED', '微信登录服务尚未完成服务器配置', requestId);
+  const body = await readJsonBody(request);
+  const input = body.ok && isRecord(body.value) ? body.value : null;
+  const bindingChallenge = typeof input?.bindingChallenge === 'string' ? input.bindingChallenge.trim() : '';
+  const username = normalizeLocalUsername(input?.username);
+  const password = typeof input?.password === 'string' ? input.password : '';
+  const displayName = readText(input?.displayName, 60);
+  const inviteCode = readText(input?.inviteCode, 80)?.toUpperCase();
+  if (!isUuid(bindingChallenge) || !username || !displayName || !inviteCode || input?.acceptedTerms !== true) {
+    return apiError(422, 'INVALID_WECHAT_REGISTRATION', '请完整填写用户名、姓名和企业邀请码，并同意服务协议', requestId);
+  }
+  if (!validRegistrationPassword(password)) return apiError(422, 'WEAK_PASSWORD', '密码至少10位，并同时包含字母和数字', requestId);
+  const ipHash = await sha256(`${readTrustedClientIp(request) ?? 'unknown'}:${env.MINIAPP_SESSION_SIGNING_KEY}`);
+  if (!(await callRpc<boolean>(env, 'api_username_registration_allowed', { p_ip_hash: ipHash }))) {
+    return apiError(429, 'REGISTRATION_RATE_LIMITED', '注册尝试过多，请1小时后重试', requestId);
+  }
+  const result = await callRpc<WechatRegistrationResult>(env, 'api_register_and_bind_wechat_member', {
+    p_challenge_id: bindingChallenge,
+    p_username: username,
+    p_password_hash: await hashPassword(password),
+    p_display_name: displayName,
+    p_invite_code_hash: await sha256(inviteCode),
+    p_ip_hash: ipHash,
+    p_request_id: requestId,
+    p_user_agent: (request.headers.get('user-agent') ?? '').slice(0, 300),
+    p_terms_version: '2026-08-13',
+  });
+  if (result?.status === 'account_exists') return apiError(409, 'USERNAME_UNAVAILABLE', '该用户名已被使用，请更换后重试', requestId);
+  if (result?.status === 'invalid_invite') return apiError(422, 'INVALID_INVITATION', '企业邀请码无效、已过期或不支持账号注册', requestId);
+  if (result?.status === 'rate_limited') return apiError(429, 'REGISTRATION_RATE_LIMITED', '注册尝试过多，请1小时后重试', requestId);
+  if (result?.status === 'binding_expired') return apiError(409, 'WECHAT_BINDING_EXPIRED', '微信注册凭证已过期，请重新进入注册页', requestId);
+  if (result?.status !== 'active' || !result.memberId || !result.membershipId) {
+    return apiError(422, 'INVALID_WECHAT_REGISTRATION', '注册信息无效', requestId);
+  }
+  const runtime = await resolveMembershipRuntimeByIds(env, result.memberId, result.membershipId, 'storefront');
+  if (!runtime) return apiError(503, 'WECHAT_REGISTRATION_INCOMPLETE', '会员已创建，但会话暂未就绪，请重新登录', requestId);
+  return issueMiniappSession(request, env, runtime, requestId);
+}
+
 export async function exchangeWechatCode(
   env: Pick<WorkerEnv, 'WECHAT_MINIAPP_APP_ID' | 'WECHAT_MINIAPP_APP_SECRET'>,
   code: string,
@@ -119,6 +168,10 @@ export async function exchangeWechatCode(
 
 function wechatAuthConfigured(env: WorkerEnv): boolean {
   return Boolean(isSupabaseConfigured(env) && env.WECHAT_MINIAPP_APP_ID && env.WECHAT_MINIAPP_APP_SECRET && env.MINIAPP_SESSION_SIGNING_KEY && env.MINIAPP_SESSION_SIGNING_KEY.length >= 32);
+}
+
+function wechatRegistrationEnabled(env: WorkerEnv): boolean {
+  return env.WECHAT_REGISTRATION_ENABLED === 'true' || (env.WECHAT_REGISTRATION_ENABLED === undefined && env.USERNAME_REGISTRATION_ENABLED === 'true') || env.APP_ENV === 'development' || env.APP_ENV === 'test';
 }
 
 async function issueMiniappSession(request: Request, env: WorkerEnv, runtime: MembershipRuntime, requestId: string): Promise<Response> {
@@ -148,4 +201,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isUuid(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function readText(value: unknown, maximum: number): string | null {
+  const result = typeof value === 'string' ? value.trim() : '';
+  return result && result.length <= maximum ? result : null;
 }

@@ -4,7 +4,7 @@ import { handlePublicCatalogImage, isPublicCatalogImagePath } from '../publicCat
 import { handleRegistration, handleRegistrationOtp, handleUsernameRegistration } from '../registrationRoutes';
 import { handleResetPassword, handleSecurityOtp } from '../securityCenterRoutes';
 import type { WorkerEnv } from '../types';
-import { handleWechatBind, handleWechatSession } from '../wechatAuthRoutes';
+import { handleWechatBind, handleWechatRegistration, handleWechatSession } from '../wechatAuthRoutes';
 import { handleWechatPaymentNotification } from '../wechatPaymentNotificationRoute';
 
 const API_PREFIX = '/api/v1';
@@ -39,6 +39,8 @@ export async function routePublicRequest(request: Request, env: WorkerEnv, reque
       return handleWechatSession(request, env, requestId);
     case `${API_PREFIX}/auth/wechat/bind`:
       return handleWechatBind(request, env, requestId);
+    case `${API_PREFIX}/auth/wechat/register`:
+      return handleWechatRegistration(request, env, requestId);
     case `${API_PREFIX}/payments/wechat/notify`:
       return handleWechatPaymentNotification(request, env, requestId);
     default:

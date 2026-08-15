@@ -65,4 +65,6 @@ Web / 微信小程序 / 鸿蒙 / iOS / Android
 
 核心缓存的完整边界、数据分级和失效方式见 `docs/CORE-BUSINESS-READ-MIRROR.md`。任何订单、支付、余额、库存预占和会员码消费仍以 PostgreSQL 事务为唯一真相，Tair 不得成为第二写库。
 
+微信注册、阿里云短信、运行评分与反复断联的分层结论见 `docs/AUTH-RELIABILITY-ARCHITECTURE-2026-08-15.md`。Supabase Dashboard 的浏览器登录状态不参与生产请求；真实运行只依赖服务器端配置和数据库可用性。
+
 `apps/admin-web` 由旧项目导入，8 个超长遗留文件暂列在行数门禁例外清单中。它们不属于新代码，后续按工作台拆分后再移出例外。

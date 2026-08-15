@@ -10,6 +10,8 @@
     "pages/orders/orders",
     "pages/order-detail/order-detail",
     "pages/payment-result/payment-result",
+    "pages/auth/auth",
+    "pages/phone-verification/phone-verification",
     "pages/profile/profile"
   ],
   "window": {

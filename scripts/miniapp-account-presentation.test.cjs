@@ -79,6 +79,21 @@ test('runtime pages no longer read the removed assets contract or generic member
   assert.doesNotMatch(profile, /智慧翼会员/);
 });
 
+test('mini-program exposes real WeChat registration and Aliyun-backed phone verification entry points', () => {
+  const appConfig = JSON.parse(fs.readFileSync(path.join(root, 'apps/wechat-miniapp/miniprogram/app.json'), 'utf8'));
+  const memberApi = fs.readFileSync(path.join(root, 'apps/wechat-miniapp/miniprogram/utils/memberApi.js'), 'utf8');
+  const authPage = fs.readFileSync(path.join(root, 'apps/wechat-miniapp/miniprogram/pages/auth/auth.js'), 'utf8');
+  const phonePage = fs.readFileSync(path.join(root, 'apps/wechat-miniapp/miniprogram/pages/phone-verification/phone-verification.js'), 'utf8');
+  assert.ok(appConfig.pages.includes('pages/auth/auth'));
+  assert.ok(appConfig.pages.includes('pages/phone-verification/phone-verification'));
+  assert.match(memberApi, /\/api\/v1\/auth\/wechat\/register/);
+  assert.match(memberApi, /\/api\/v1\/auth\/security\/otp/);
+  assert.match(memberApi, /\/api\/v1\/auth\/phone\/change/);
+  assert.match(authPage, /registerWechatMember\(input\)/);
+  assert.match(phonePage, /requestPhoneVerification\(mobile\)/);
+  assert.match(phonePage, /verifyPhone\(/);
+});
+
 test('member runtime cache preserves a valid empty order result for instant rendering', () => {
   const values = {};
   const cache = loadMiniModule(runtimeCachePath).createRuntimeCache({

@@ -5,6 +5,8 @@ import { readTrustedClientIp } from './loginRateLimitBypass';
 import { resolveMembershipRuntime } from './membershipContext';
 import { generateOtp, hashPassword, maskMobile, normalizeChineseMobile, phoneLookupSubject, validRegistrationPassword, verificationCodeHash } from './registrationSecurity';
 import { readJsonBody } from './routerSupport';
+import { deliverOtp, otpDeliveryAvailable } from './otpDelivery';
+import { SmsDeliveryError } from './smsProvider';
 import { clearSessionCookie, readSession } from './session';
 import { callRpc } from './supabase';
 import type { AuthorizationContext, WorkerEnv } from './types';
@@ -16,7 +18,7 @@ export async function handleSecurityCenter(request: Request, env: WorkerEnv, aut
   const session = await readSession(request, env);
   if (!session) return apiError(401, 'AUTHENTICATION_REQUIRED', '当前会话已失效', requestId);
   const data = await callRpc<Record<string, unknown> | null>(env, 'api_account_security_center', { p_member_id: auth.membership.memberId, p_current_session_id: session.sessionId });
-  return data ? json({ ...data, phoneVerificationAvailable: debugSmsEnabled(env), requestId }) : apiError(404, 'SECURITY_PROFILE_NOT_FOUND', '安全资料不存在', requestId);
+  return data ? json({ ...data, phoneVerificationAvailable: otpDeliveryAvailable(env), requestId }) : apiError(404, 'SECURITY_PROFILE_NOT_FOUND', '安全资料不存在', requestId);
 }
 
 export async function handleChangePassword(request: Request, env: WorkerEnv, auth: AuthorizationContext, requestId: string): Promise<Response> {
@@ -35,7 +37,7 @@ export async function handleChangePassword(request: Request, env: WorkerEnv, aut
 
 export async function handleSecurityOtp(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
   if (request.method !== 'POST') return methodNotAllowed(['POST'], requestId);
-  if (!debugSmsEnabled(env)) return apiError(503, 'SMS_PROVIDER_NOT_CONFIGURED', '短信服务尚未配置', requestId);
+  if (!otpDeliveryAvailable(env)) return apiError(503, 'SMS_PROVIDER_NOT_CONFIGURED', '短信服务尚未配置', requestId);
   const input = await objectBody(request);
   const mobile = normalizeChineseMobile(input?.mobile);
   const purpose = input?.purpose === 'password_reset' || input?.purpose === 'phone_change' ? input.purpose : null;
@@ -57,7 +59,13 @@ export async function handleSecurityOtp(request: Request, env: WorkerEnv, reques
     p_expires_at: new Date(Date.now() + 5 * 60 * 1_000).toISOString(),
   });
   if (!created) return apiError(429, 'OTP_RATE_LIMITED', '验证码发送过于频繁，请稍后重试', requestId);
-  return json({ challengeId, expiresInSeconds: 300, resendAfterSeconds: 60, debugCode: code, requestId });
+  try {
+    const delivery = await deliverOtp(env, { mobile, code, challengeId, purpose });
+    return json({ challengeId, expiresInSeconds: 300, resendAfterSeconds: 60, ...(delivery.debugCode ? { debugCode: delivery.debugCode } : {}), requestId });
+  } catch (error) {
+    const providerCode = error instanceof SmsDeliveryError ? error.code : 'SMS_DELIVERY_FAILED';
+    return apiError(providerCode === 'SMS_PROVIDER_NOT_CONFIGURED' ? 503 : 502, providerCode, '验证码发送失败，请稍后重试', requestId);
+  }
 }
 
 export async function handleResetPassword(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
@@ -116,9 +124,6 @@ export async function handleRevokeOtherSessions(request: Request, env: WorkerEnv
   if (!current) return apiError(401, 'AUTHENTICATION_REQUIRED', '当前会话已失效', requestId);
   const count = await callRpc<number>(env, 'api_revoke_other_auth_sessions', { p_actor_member_id: auth.membership.memberId, p_current_session_id: current.sessionId, p_reason: 'user_revoked_others' });
   return json({ revokedCount: count, requestId });
-}
-function debugSmsEnabled(env: WorkerEnv) {
-  return (env.APP_ENV === 'development' || env.APP_ENV === 'test') && (env.SMS_PROVIDER === undefined || env.SMS_PROVIDER === 'debug');
 }
 async function objectBody(request: Request) {
   const body = await readJsonBody(request);

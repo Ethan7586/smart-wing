@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
-import { exchangeWechatCode } from './wechatAuthRoutes';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { exchangeWechatCode, handleWechatRegistration } from './wechatAuthRoutes';
+import type { WorkerEnv } from './types';
 
 const env = {
   WECHAT_MINIAPP_APP_ID: 'wx-test-app',
@@ -38,3 +39,75 @@ describe('WeChat mini-program code exchange', () => {
     await expect(exchangeWechatCode(env, 'code', fetcher as typeof fetch)).resolves.toMatchObject({ ok: false, status: 502, code: 'WECHAT_AUTH_UNAVAILABLE' });
   });
 });
+
+afterEach(() => vi.unstubAllGlobals());
+
+describe('WeChat mini-program registration', () => {
+  it('atomically creates and binds one membership before issuing a session', async () => {
+    const runtime = {
+      id: 'membership-one',
+      memberId: 'member-one',
+      target: 'storefront',
+      status: 'active',
+      roleIds: ['employee'],
+      permissions: [],
+      deniedPermissions: [],
+      context: { tenantId: 'tenant-one', enterpriseId: 'enterprise-one', mallId: 'mall-one', userId: 'user-one' },
+      scopeBindings: [{ kind: 'self', resourceId: 'user-one' }],
+      authzVersion: 1,
+      actor: {
+        tenantId: 'tenant-one',
+        enterpriseId: 'enterprise-one',
+        mallId: 'mall-one',
+        mallCode: 'MALL',
+        userId: 'user-one',
+        employeeNo: 'E-001',
+      },
+    };
+    const database = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes('/rpc/api_username_registration_allowed')) return response(true);
+      if (url.includes('/rpc/api_register_and_bind_wechat_member')) {
+        return response({ status: 'active', memberId: 'member-one', membershipId: 'membership-one', username: 'new.employee', employeeNo: 'E-001' });
+      }
+      if (url.includes('/rpc/api_resolve_membership_context')) return response(runtime);
+      if (url.includes('/rpc/api_create_auth_session')) return response(true);
+      return new Response('unexpected RPC', { status: 500 });
+    });
+    vi.stubGlobal('fetch', database);
+    const registrationEnv: WorkerEnv = {
+      APP_ENV: 'test',
+      AUTH_MODE: 'test',
+      SUPABASE_URL: 'https://db.example',
+      SUPABASE_SERVICE_ROLE_KEY: 'service-role',
+      WECHAT_MINIAPP_APP_ID: 'wx-test-app',
+      WECHAT_MINIAPP_APP_SECRET: 'server-only-secret',
+      MINIAPP_SESSION_SIGNING_KEY: 'miniapp-session-key-longer-than-thirty-two-bytes',
+      USERNAME_REGISTRATION_ENABLED: 'true',
+    };
+    const request = new Request('https://hbbtzn.com/api/v1/auth/wechat/register', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-real-ip': '203.0.113.9', 'user-agent': 'WeChat Mini Program' },
+      body: JSON.stringify({
+        bindingChallenge: '11111111-1111-4111-8111-111111111111',
+        username: 'New.Employee',
+        password: 'SmartWing2026',
+        displayName: '新员工',
+        inviteCode: 'SW-EMPLOYEE-2026',
+        acceptedTerms: true,
+      }),
+    });
+
+    const result = await handleWechatRegistration(request, registrationEnv, 'wechat-register');
+    expect(result.status).toBe(200);
+    await expect(result.json()).resolves.toMatchObject({ authenticated: true, accessToken: expect.stringMatching(/^swm1\./) });
+    const urls = database.mock.calls.map(([value]) => String(value));
+    expect(urls.filter((url) => url.includes('/rpc/api_register_and_bind_wechat_member'))).toHaveLength(1);
+    expect(urls.some((url) => url.includes('/rpc/api_register_username_member'))).toBe(false);
+    expect(urls.some((url) => url.includes('/rpc/api_bind_wechat_identity'))).toBe(false);
+  });
+});
+
+function response(value: unknown): Response {
+  return new Response(JSON.stringify(value), { status: 200, headers: { 'content-type': 'application/json' } });
+}

@@ -205,6 +205,15 @@
   background: var(--sw-text-disabled);
 }
 
+.binding-register {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--sw-touch-min);
+  color: var(--sw-brand);
+  font-size: var(--sw-fs-bodySmall);
+}
+
 .binding-note {
   display: block;
   margin-top: var(--sw-space-1);

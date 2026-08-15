@@ -49,7 +49,8 @@
         value="{{bindingUsername}}"
         placeholder="请输入账号"
         maxlength="80"
-        bindinput="onBindingUsernameInput"
+        data-field="bindingUsername"
+        bindinput="onBindingInput"
       />
       <text class="binding-label binding-label-next">密码</text>
       <input
@@ -58,12 +59,16 @@
         password
         placeholder="请输入密码"
         maxlength="160"
-        bindinput="onBindingPasswordInput"
+        data-field="bindingPassword"
+        bindinput="onBindingInput"
       />
       <text wx:if="{{bindingError}}" class="binding-error">{{bindingError}}</text>
       <view class="binding-submit sw-tap {{bindingBusy ? 'is-disabled' : ''}}" bindtap="onBindMember">
         <text>{{bindingBusy ? '正在绑定…' : '绑定并查看订单'}}</text>
       </view>
+      <navigator class="binding-register sw-tap" url="/pages/auth/auth?mode=register">
+        <text>还没有账号？注册新会员</text>
+      </navigator>
       <text class="binding-note">密码只用于本次服务端身份确认，小程序不会保存。</text>
     </view>
   </view>

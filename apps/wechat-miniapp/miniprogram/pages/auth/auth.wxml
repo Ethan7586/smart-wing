@@ -1,0 +1,57 @@
+<view class="sw-page auth {{sizeClass}}" style="{{sizeStyle}}">
+  <view class="nav" style="padding-top: {{nav.statusBarHeight}}px;">
+    <view class="nav-row" style="height: {{nav.navContentHeight}}px; padding-right: {{nav.rightInset}}px;">
+      <view class="back sw-tap" bindtap="onBack"><view class="i i-arrow-left-ink"></view></view>
+      <text class="nav-title">会员登录与注册</text>
+    </view>
+  </view>
+  <view style="height: {{nav.navTotalHeight}}px;"></view>
+
+  <view class="sw-inset auth-body">
+    <view class="brand-head">
+      <view class="brand-mark sw-brand-mark"></view>
+      <view class="brand-copy">
+        <text class="sw-h2">连接智慧翼会员</text>
+        <text class="brand-note">微信确认身份，企业邀请码确认归属</text>
+      </view>
+    </view>
+
+    <view class="mode-row">
+      <view class="mode sw-tap {{mode === 'register' ? 'is-on' : ''}}" data-mode="register" bindtap="onSwitchMode">注册新会员</view>
+      <view class="mode sw-tap {{mode === 'bind' ? 'is-on' : ''}}" data-mode="bind" bindtap="onSwitchMode">绑定已有账号</view>
+    </view>
+
+    <view wx:if="{{preparing}}" class="state-card sw-card">
+      <view class="i i-md i-refresh-cw-brand"></view>
+      <text>正在确认微信身份…</text>
+    </view>
+    <view wx:elif="{{!ready}}" class="state-card sw-card">
+      <view class="i i-md i-wifi-off-muted"></view>
+      <text>{{error || '微信身份尚未就绪'}}</text>
+      <view class="retry sw-tap" bindtap="prepareWechatIdentity">重试</view>
+    </view>
+
+    <view wx:else class="form sw-card">
+      <block wx:if="{{mode === 'register'}}">
+        <text class="field-label">姓名</text>
+        <input class="field-input" data-field="displayName" value="{{displayName}}" maxlength="60" placeholder="用于会员身份展示" bindinput="onInput" />
+        <text class="field-label field-next">企业邀请码</text>
+        <input class="field-input" data-field="inviteCode" value="{{inviteCode}}" maxlength="80" placeholder="由所属企业提供" bindinput="onInput" />
+      </block>
+      <text class="field-label {{mode === 'register' ? 'field-next' : ''}}">账号</text>
+      <input class="field-input" data-field="username" value="{{username}}" maxlength="80" placeholder="请输入登录账号" bindinput="onInput" />
+      <text class="field-label field-next">密码</text>
+      <input class="field-input" data-field="password" value="{{password}}" password maxlength="160" placeholder="至少10位，同时包含字母和数字" bindinput="onInput" />
+
+      <view wx:if="{{mode === 'register'}}" class="terms sw-tap" bindtap="onToggleTerms">
+        <view class="terms-box {{acceptedTerms ? 'is-on' : ''}}"><view wx:if="{{acceptedTerms}}" class="i i-sm i-check-white"></view></view>
+        <text>我已阅读并同意智慧翼服务协议与隐私规则</text>
+      </view>
+      <text wx:if="{{error}}" class="form-error">{{error}}</text>
+      <view class="submit sw-tap {{busy ? 'is-disabled' : ''}}" bindtap="onSubmit">
+        <text>{{busy ? '正在处理…' : mode === 'register' ? '注册并登录' : '绑定并登录'}}</text>
+      </view>
+      <text class="security-note">密码仅传给智慧翼服务端完成本次确认，不在小程序本地保存。</text>
+    </view>
+  </view>
+</view>

@@ -88,6 +88,56 @@ function createMemberApi(dependencies) {
         return deps.storeSession(response);
       });
     },
+    registerWechatMember: function (input) {
+      var body = input || {};
+      if (!body.bindingChallenge || !body.username || !body.password || !body.displayName || !body.inviteCode || body.acceptedTerms !== true) {
+        return Promise.reject(deps.apiError('INVALID_WECHAT_REGISTRATION', '微信注册信息不完整'));
+      }
+      return deps
+        .performRequest(
+          'POST',
+          '/api/v1/auth/wechat/register',
+          {
+            bindingChallenge: body.bindingChallenge,
+            username: body.username,
+            password: body.password,
+            displayName: body.displayName,
+            inviteCode: body.inviteCode,
+            acceptedTerms: true,
+          },
+          { auth: false }
+        )
+        .then(function (response) {
+          runtimeCache.clear();
+          return deps.storeSession(response);
+        });
+    },
+    requestPhoneVerification: function (mobile) {
+      if (!/^1[3-9]\d{9}$/.test(String(mobile || '').trim())) {
+        return Promise.reject(deps.apiError('INVALID_MOBILE', '请输入正确的11位手机号码'));
+      }
+      return deps.authenticatedRequest('POST', '/api/v1/auth/security/otp', {
+        mobile: String(mobile).trim(),
+        purpose: 'phone_change',
+      });
+    },
+    verifyPhone: function (input) {
+      var body = input || {};
+      if (!/^1[3-9]\d{9}$/.test(String(body.mobile || '').trim()) || !body.challengeId || !/^\d{6}$/.test(String(body.code || '')) || !body.currentPassword) {
+        return Promise.reject(deps.apiError('INVALID_PHONE_VERIFICATION', '手机号验证信息不完整'));
+      }
+      return deps
+        .authenticatedRequest('POST', '/api/v1/auth/phone/change', {
+          newMobile: String(body.mobile).trim(),
+          challengeId: body.challengeId,
+          code: String(body.code),
+          currentPassword: body.currentPassword,
+        })
+        .then(function (response) {
+          runtimeCache.clear();
+          return response;
+        });
+    },
     getHomeSnapshot: getHomeSnapshot,
     readCachedHomeSnapshot: runtimeCache.readHome,
     getBootstrap: function () {

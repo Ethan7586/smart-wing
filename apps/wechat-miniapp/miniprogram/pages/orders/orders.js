@@ -264,12 +264,12 @@ Page({
     this.applyFilter(this.data.activeFilter);
   },
 
-  onBindingUsernameInput: function (event) {
-    this.setData({ bindingUsername: (event.detail.value || '').trim(), bindingError: '' });
-  },
-
-  onBindingPasswordInput: function (event) {
-    this.setData({ bindingPassword: event.detail.value || '', bindingError: '' });
+  onBindingInput: function (event) {
+    var field = event.currentTarget.dataset.field;
+    if (['bindingUsername', 'bindingPassword'].indexOf(field) < 0) return;
+    var update = { bindingError: '' };
+    update[field] = field === 'bindingUsername' ? (event.detail.value || '').trim() : event.detail.value || '';
+    this.setData(update);
   },
 
   onBindMember: function () {

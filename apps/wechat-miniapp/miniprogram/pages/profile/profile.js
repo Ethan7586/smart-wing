@@ -65,7 +65,7 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 4 });
     }
-    if (this._hasShownOnce && this._loadedAt && Date.now() - this._loadedAt > 120000) this.loadProfile(true);
+    if (this._hasShownOnce && (!this._loadedAt || Date.now() - this._loadedAt > 120000)) this.loadProfile(true);
     this._hasShownOnce = true;
   },
 
@@ -85,7 +85,7 @@ Page({
       })
       .catch(function (error) {
         var code = error && error.code;
-        if (code === 'AUTH_REQUIRED' || code === 'AUTH_CHANNEL_PENDING') {
+        if (code === 'AUTH_REQUIRED' || code === 'AUTH_CHANNEL_PENDING' || code === 'WECHAT_BINDING_REQUIRED') {
           if (!self._dataReady) self.setData({ loading: false, signedIn: false, member: null, loadError: null });
           return;
         }
@@ -122,6 +122,15 @@ Page({
 
   onOpenOrders: function () {
     wx.switchTab({ url: '/pages/orders/orders' });
+  },
+
+  onOpenAuth: function () {
+    wx.navigateTo({ url: '/pages/auth/auth' });
+  },
+
+  onOpenSecurity: function () {
+    if (!this.data.signedIn) return this.onOpenAuth();
+    wx.navigateTo({ url: '/pages/phone-verification/phone-verification' });
   },
 
   onRetry: function () {

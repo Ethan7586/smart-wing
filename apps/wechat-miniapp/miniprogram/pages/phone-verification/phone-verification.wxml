@@ -1,0 +1,35 @@
+<view class="sw-page phone-page {{sizeClass}}" style="{{sizeStyle}}">
+  <view class="nav" style="padding-top: {{nav.statusBarHeight}}px;">
+    <view class="nav-row" style="height: {{nav.navContentHeight}}px; padding-right: {{nav.rightInset}}px;">
+      <view class="back sw-tap" bindtap="onBack"><view class="i i-arrow-left-ink"></view></view>
+      <text class="nav-title">手机认证</text>
+    </view>
+  </view>
+  <view style="height: {{nav.navTotalHeight}}px;"></view>
+
+  <view class="sw-inset phone-body">
+    <view class="assurance-head">
+      <view class="assurance-icon"><view class="i i-lg i-shield-check-success"></view></view>
+      <text class="sw-h2">验证本人手机号码</text>
+      <text class="assurance-note">用于身份核验、账号找回和交易安全，不会作为公开资料展示。</text>
+    </view>
+
+    <view class="sw-card form">
+      <text class="field-label">手机号码</text>
+      <view class="code-row">
+        <input class="field-input mobile-input" type="number" maxlength="11" data-field="mobile" value="{{mobile}}" placeholder="请输入11位手机号码" bindinput="onInput" />
+        <view class="code-button sw-tap {{sending || countdown ? 'is-disabled' : ''}}" bindtap="onSendCode">
+          <text>{{sending ? '发送中…' : countdown ? countdown + '秒' : '获取验证码'}}</text>
+        </view>
+      </view>
+      <text class="field-label field-next">短信验证码</text>
+      <input class="field-input" type="number" maxlength="6" data-field="code" value="{{code}}" placeholder="请输入6位验证码" bindinput="onInput" />
+      <text class="field-label field-next">当前账号密码</text>
+      <input class="field-input" password maxlength="128" data-field="currentPassword" value="{{currentPassword}}" placeholder="用于确认是本人操作" bindinput="onInput" />
+      <text wx:if="{{error}}" class="form-error">{{error}}</text>
+      <view class="submit sw-tap {{submitting ? 'is-disabled' : ''}}" bindtap="onSubmit">
+        <text>{{submitting ? '正在验证…' : '完成手机认证'}}</text>
+      </view>
+    </view>
+  </view>
+</view>
