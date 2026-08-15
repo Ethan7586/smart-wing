@@ -8,6 +8,7 @@ const apiPath = path.join(root, 'apps/wechat-miniapp/miniprogram/utils/api.js');
 const seedPath = path.join(root, 'apps/wechat-miniapp/miniprogram/data/catalog-seed.generated.js');
 const criticalSeedPath = path.join(root, 'apps/wechat-miniapp/miniprogram/data/catalog-seed-critical.generated.js');
 const appPath = path.join(root, 'apps/wechat-miniapp/miniprogram/app.js');
+const memberApiPath = path.join(root, 'apps/wechat-miniapp/miniprogram/utils/memberApi.js');
 
 function loadMiniModule(file, globals = {}) {
   const module = { exports: {} };
@@ -137,4 +138,39 @@ test('app launch does not start catalog, login, home, or order requests', () => 
   assert.ok(launchBlock, 'app.js must expose a readable onLaunch block');
   assert.doesNotMatch(source, /require\(['"]\.\/utils\/api['"]\)/);
   assert.doesNotMatch(launchBlock[1], /prefetch|wx\.request|wx\.login|setTimeout/);
+});
+
+test('member code paints stale server-confirmed card without waiting for refresh', async () => {
+  const storedAt = Date.now() - 10 * 60 * 1000;
+  let homeRequests = 0;
+  const memberApi = loadMiniModule(memberApiPath).createMemberApi({
+    storage: {
+      getStorageSync(key) {
+        if (key !== 'sw-member-home-v1') return '';
+        return {
+          version: 1,
+          storedAt,
+          data: {
+            bootstrap: {
+              actor: { employeeNo: 'E-001', displayName: 'Ethan', assurance: { phoneVerified: true } },
+              scope: { enterpriseName: '示范企业', mallName: '智慧翼福利商城' },
+            },
+            accounts: { items: [] },
+          },
+        };
+      },
+      setStorage() {},
+    },
+    catalogApi: { readCachedProducts: () => null, listProducts: () => Promise.resolve(null), cacheLimit: 200 },
+    authenticatedRequest() {
+      homeRequests += 1;
+      return new Promise(() => {});
+    },
+    performRequest: () => Promise.resolve(null),
+    apiError: (code, message) => ({ code, message }),
+    storeSession: (value) => value,
+  });
+  const card = await memberApi.getMemberCard();
+  assert.equal(card.memberName, 'Ethan');
+  assert.equal(homeRequests, 1, 'stale cache should revalidate once in the background');
 });

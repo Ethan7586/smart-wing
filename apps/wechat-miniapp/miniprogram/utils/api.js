@@ -279,7 +279,11 @@ module.exports = Object.assign(
     hydrateBundledCatalog: catalogApi.hydrateBundledCatalog,
     catalogCacheLimit: catalogApi.cacheLimit,
     createMemberCodeChallenge: function () {
-      return notWired('/api/v1/member-code/challenge (未实现)');
+      return authenticatedRequest('POST', '/api/v1/member-code/challenge', {});
+    },
+    revokeMemberCodeChallenge: function (challengeId) {
+      if (!challengeId) return Promise.resolve({ revoked: false });
+      return authenticatedRequest('POST', '/api/v1/member-code/challenge/revoke', { challengeId: challengeId });
     },
   },
   memberApi,

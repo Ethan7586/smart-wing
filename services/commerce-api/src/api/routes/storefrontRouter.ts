@@ -3,6 +3,7 @@ import { handleAddresses, handleDeleteAddress } from '../addressRoutes';
 import { handleCart, handleDeleteCartItem } from '../cartRoutes';
 import { handleHomeSnapshot } from '../homeRoutes';
 import { json } from '../http';
+import { handleMemberCodeChallenge, handleRevokeMemberCodeChallenge } from '../memberCodeRoutes';
 import { handleAfterSales, handleCreateAfterSale, handleCreateOrder, handleInternalPayment, handleOrders } from '../orderRoutes';
 import { handleProducts } from '../publicRoutes';
 import { handleChangePassword, handleChangePhone, handleRevokeOtherSessions, handleRevokeSession, handleSecurityCenter } from '../securityCenterRoutes';
@@ -21,6 +22,10 @@ export async function routeStorefrontRequest(request: Request, env: WorkerEnv, a
       return handleBootstrap(request, env, authorization, requestId);
     case `${API_PREFIX}/home`:
       return handleHomeSnapshot(request, env, authorization, requestId);
+    case `${API_PREFIX}/member-code/challenge`:
+      return handleMemberCodeChallenge(request, env, authorization, requestId);
+    case `${API_PREFIX}/member-code/challenge/revoke`:
+      return handleRevokeMemberCodeChallenge(request, env, authorization, requestId);
     case `${API_PREFIX}/auth/session`:
       return json({ authenticated: true, authorization: publicAuthorization(authorization), requestId });
     case `${API_PREFIX}/auth/step-up`:

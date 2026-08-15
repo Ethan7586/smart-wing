@@ -149,9 +149,15 @@ function createMemberApi(dependencies) {
     prefetchPublicCatalog: prefetchPublicCatalog,
     getMemberCard: function () {
       var cached = runtimeCache.readHome();
-      if (cached && !cached.stale) {
+      if (cached) {
         var cachedCard = accountPresentation.memberCard(cached.data);
-        if (cachedCard) return Promise.resolve(cachedCard);
+        if (cachedCard) {
+          // Paint the last server-confirmed card immediately. A stale card may
+          // improve perceived speed, but it never authorizes a member code:
+          // challenge issuance is independently validated by the server.
+          if (cached.stale) getHomeSnapshot().catch(function () {});
+          return Promise.resolve(cachedCard);
+        }
       }
       return getHomeSnapshot().then(function (response) {
         var card = accountPresentation.memberCard(response);

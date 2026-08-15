@@ -1,5 +1,6 @@
 import { handleAdminCatalog, handleAdminOverview, handleSetProductStatus } from '../adminRoutes';
 import { handleCreateCustomRole, handleCustomRoleCenter, handleSetCustomRoleStatus, handleUpdateCustomRole } from '../customRoleRoutes';
+import { handleVerifyMemberCodeChallenge } from '../memberCodeRoutes';
 import { handleAdminCreateMember, handleCreateMemberInvite, handleDisableMemberInvite, handleMemberImport, handleMemberOperations, handleUpdateMemberProfile } from '../memberOperationsRoutes';
 import { handleExecuteRefund, handleFinanceReconciliation, handleShipOrder } from '../orderRoutes';
 import { handleMembershipAccess, handleMembershipStatus, handlePermissionCommandCenter } from '../permissionAdminRoutes';
@@ -34,6 +35,8 @@ export async function routeAdminRequest(request: Request, env: WorkerEnv, author
       return handleCreateMemberInvite(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/member-operations/members`:
       return handleAdminCreateMember(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/member-code/verify`:
+      return handleVerifyMemberCodeChallenge(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/member-operations/imports`:
       return handleMemberImport(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/qualification-center`:

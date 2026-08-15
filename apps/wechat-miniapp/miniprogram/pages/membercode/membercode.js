@@ -2,18 +2,12 @@ var api = require('../../utils/api');
 var sizeClassUtil = require('../../utils/sizeClass');
 
 var app = getApp();
-
-/**
- * The five states 会员码主方案 §6 requires. Each carries an icon, a colour and
- * words — VI 4.2 forbids colour as the only signal, and a frozen member must
- * understand why the code stopped working.
- */
 var STATES = {
-  ready: { key: 'ready', icon: 'i-shield-check-success', tone: 'ok', title: '会员码正常', desc: '可在合作门店出示核验' },
+  ready: { key: 'ready', icon: 'i-shield-check-success', tone: 'ok', title: '会员码正常', desc: '45 秒动态更新，核验后立即失效' },
   unverified: { key: 'unverified', icon: 'i-shield-alert-danger', tone: 'warn', title: '手机未认证', desc: '完成短信验证后才能核验权益' },
   frozen: { key: 'frozen', icon: 'i-snowflake-danger', tone: 'danger', title: '账号已冻结', desc: '请联系企业管理员或客服处理' },
   disabled: { key: 'disabled', icon: 'i-lock-danger', tone: 'danger', title: '会员码已停用', desc: '会员关系已停用或离职，核验被拒绝' },
-  failed: { key: 'failed', icon: 'i-circle-alert-danger', tone: 'danger', title: '核验失败', desc: '凭证已失效，请刷新后重试' },
+  failed: { key: 'failed', icon: 'i-circle-alert-danger', tone: 'danger', title: '会员码不可用', desc: '凭证未签发，请重试' },
 };
 
 Page({
@@ -23,23 +17,21 @@ Page({
     sizeStyle: '',
     loading: true,
     loadError: null,
-
     card: null,
     state: STATES.ready,
-    /** Countdown seconds. Comes from tokens.json wingCode.validSeconds. */
-    seconds: 45,
-    /**
-     * True while the code on screen is a local placeholder rather than a
-     * server-issued challenge. 会员码主方案 §6 forbids passing a static image
-     * off as a live code, so the page says so instead of hiding it.
-     */
-    simulated: true,
-    challenge: '',
+    codeStatus: 'idle',
+    codeError: '',
+    challengeId: '',
+    expiresAt: '',
+    matrix: null,
+    seconds: 0,
   },
 
   onLoad: function () {
     var area = app.getSafeArea();
     var size = app.getSizeClass();
+    this._requestVersion = 0;
+    this._visible = true;
     this.setData({
       sizeClass: size.className,
       sizeStyle: size.rootStyle,
@@ -53,118 +45,143 @@ Page({
     this.loadCard();
   },
 
+  onShow: function () {
+    this._visible = true;
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ selected: 2 });
+    if (this.data.card && this.data.state.key === 'ready' && this.data.codeStatus !== 'ready') this.issueChallenge();
+  },
+
+  onHide: function () {
+    this._visible = false;
+    this.closeChallenge();
+  },
+
+  onUnload: function () {
+    this._visible = false;
+    this.closeChallenge();
+  },
+
   onResize: function () {
     sizeClassUtil.clearSizeClassCache();
     var next = app.getSizeClass(true);
     this.setData({ sizeClass: next.className, sizeStyle: next.rootStyle });
-  },
-
-  onShow: function () {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 2 });
-    }
-    this.startTicking();
-  },
-
-  /** A code left running in the background is a code someone screenshotted. */
-  onHide: function () {
-    this.stopTicking();
-  },
-
-  onUnload: function () {
-    this.stopTicking();
+    if (this.data.codeStatus === 'ready') this.drawMatrix(this.data.matrix);
   },
 
   loadCard: function () {
     var self = this;
     this.setData({ loading: true, loadError: null });
-
     api
       .getMemberCard()
       .then(function (card) {
         self.applyCard(card);
       })
       .catch(function (error) {
-        // A missing endpoint is not the same as a broken one. Either way the
-        // card must not invent a membership.
-        self.setData({
-          loading: false,
-          card: null,
-          loadError: (error && error.message) || '会员卡加载失败，请重试',
-        });
+        self.setData({ loading: false, card: null, loadError: (error && error.message) || '会员卡加载失败，请重试' });
       });
   },
 
   applyCard: function (card) {
-    // No card means no verified identity, so the code cannot be "ready" — the
-    // card header already says 手机未认证 and the status band must agree with it.
     var state = STATES.unverified;
     if (card && card.status === 'frozen') state = STATES.frozen;
     else if (card && card.status === 'disabled') state = STATES.disabled;
     else if (card && card.phoneVerified === false) state = STATES.unverified;
     else if (card) state = STATES.ready;
-
-    this.setData({
-      loading: false,
-      loadError: null,
-      card: card,
-      state: state,
-      simulated: true,
-    });
-    this.refreshChallenge();
+    this.setData({ loading: false, loadError: null, card: card, state: state });
+    if (state.key === 'ready' && this._visible) this.issueChallenge();
   },
 
-  /**
-   * The real contract is POST /api/v1/member-code/challenge, which returns a
-   * short-lived opaque credential. It does not exist server-side yet, so the
-   * page renders a clearly-labelled placeholder and keeps the refresh cycle
-   * so the wiring is a one-line change later.
-   */
-  refreshChallenge: function () {
+  issueChallenge: function () {
     var self = this;
-    if (!api.isWired()) {
-      this.setData({ challenge: '', simulated: true, seconds: 45 });
-      return;
-    }
+    var version = ++this._requestVersion;
+    this.stopTicking();
+    this.setData({ codeStatus: 'issuing', codeError: '', challengeId: '', matrix: null, seconds: 0 });
     api
       .createMemberCodeChallenge()
       .then(function (result) {
-        self.setData({
-          challenge: (result && result.credential) || '',
-          simulated: false,
-          seconds: (result && result.validSeconds) || 45,
-        });
+        if (!self._visible || version !== self._requestVersion) return;
+        if (!validChallenge(result)) throw { message: '会员码签发结果无效，请重试' };
+        self.setData(
+          {
+            codeStatus: 'ready',
+            challengeId: result.challengeId,
+            expiresAt: result.expiresAt,
+            matrix: result.matrix,
+            seconds: secondsRemaining(result.expiresAt),
+          },
+          function () {
+            self.drawMatrix(result.matrix);
+            self.startTicking();
+          }
+        );
       })
-      .catch(function () {
-        self.setData({ challenge: '', simulated: true, seconds: 45 });
+      .catch(function (error) {
+        if (!self._visible || version !== self._requestVersion) return;
+        self.setData({ codeStatus: 'error', codeError: (error && error.message) || '会员码签发失败，请重试', matrix: null, seconds: 0 });
       });
+  },
+
+  drawMatrix: function (matrix) {
+    var self = this;
+    if (!Array.isArray(matrix) || !matrix.length) return;
+    wx.nextTick(function () {
+      wx.createSelectorQuery()
+        .in(self)
+        .select('.qr-canvas')
+        .boundingClientRect(function (rect) {
+          if (!rect || !rect.width || !self._visible) return;
+          var context = wx.createCanvasContext('memberCodeCanvas', self);
+          var quiet = 4;
+          var total = matrix.length + quiet * 2;
+          var cell = rect.width / total;
+          context.setFillStyle('white');
+          context.fillRect(0, 0, rect.width, rect.height);
+          context.setFillStyle('black');
+          matrix.forEach(function (row, rowIndex) {
+            row.forEach(function (dark, columnIndex) {
+              if (dark) context.fillRect((columnIndex + quiet) * cell, (rowIndex + quiet) * cell, Math.ceil(cell), Math.ceil(cell));
+            });
+          });
+          context.draw();
+        })
+        .exec();
+    });
   },
 
   startTicking: function () {
     var self = this;
     this.stopTicking();
     this._timer = setInterval(function () {
-      var next = self.data.seconds - 1;
-      if (next <= 0) {
-        self.refreshChallenge();
-        self.setData({ seconds: 45 });
+      var seconds = secondsRemaining(self.data.expiresAt);
+      if (seconds <= 0) {
+        self.stopTicking();
+        if (self._visible) self.issueChallenge();
         return;
       }
-      self.setData({ seconds: next });
-    }, 1000);
+      if (seconds !== self.data.seconds) self.setData({ seconds: seconds });
+    }, 250);
   },
 
   stopTicking: function () {
-    if (this._timer) {
-      clearInterval(this._timer);
-      this._timer = null;
-    }
+    if (this._timer) clearInterval(this._timer);
+    this._timer = null;
+  },
+
+  closeChallenge: function () {
+    this.stopTicking();
+    this._requestVersion += 1;
+    var challengeId = this.data.challengeId;
+    this.setData({ codeStatus: 'idle', challengeId: '', expiresAt: '', matrix: null, seconds: 0 });
+    if (challengeId) api.revokeMemberCodeChallenge(challengeId).catch(function () {});
   },
 
   onRefresh: function () {
-    this.refreshChallenge();
-    this.setData({ seconds: 45 });
-    wx.showToast({ title: '会员码已刷新', icon: 'none' });
+    this.issueChallenge();
+  },
+
+  onStopCode: function () {
+    this.closeChallenge();
+    this.setData({ codeStatus: 'revoked', codeError: '本次会员码已停用，点击刷新可重新签发' });
   },
 
   onBrighten: function () {
@@ -173,13 +190,20 @@ Page({
   },
 
   onRetry: function () {
-    this.loadCard();
+    if (this.data.loadError) this.loadCard();
+    else this.issueChallenge();
   },
 
   onPending: function (event) {
-    wx.showToast({
-      title: (event.currentTarget.dataset.label || '该功能') + '将在服务端接口接通后启用',
-      icon: 'none',
-    });
+    wx.showToast({ title: (event.currentTarget.dataset.label || '该功能') + '将在后续版本启用', icon: 'none' });
   },
 });
+
+function validChallenge(result) {
+  return Boolean(result && result.challengeId && result.expiresAt && Array.isArray(result.matrix) && result.matrix.length > 0);
+}
+
+function secondsRemaining(expiresAt) {
+  var value = Math.ceil((Date.parse(expiresAt) - Date.now()) / 1000);
+  return Number.isFinite(value) && value > 0 ? value : 0;
+}

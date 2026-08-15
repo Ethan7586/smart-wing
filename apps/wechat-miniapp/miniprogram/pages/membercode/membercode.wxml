@@ -63,21 +63,16 @@
     <!-- 动态会员码 -->
     <view class="sw-inset">
       <view class="code-card">
-        <view wx:if="{{simulated}}" class="sim-flag">
-          <view class="i i-sm i-triangle-alert-danger"></view>
-          <text>模拟码 · 服务端挑战凭证接口尚未接通，不可用于真实核验</text>
+        <view wx:if="{{codeStatus === 'ready'}}" class="qr-frame">
+          <canvas canvas-id="memberCodeCanvas" class="qr-canvas"></canvas>
+        </view>
+        <view wx:else class="qr-placeholder">
+          <view class="i i-xl {{codeStatus === 'issuing' ? 'i-refresh-cw-brand' : 'i-qr-code-brand'}}"></view>
+          <text class="qr-status-title">{{codeStatus === 'issuing' ? '正在签发安全会员码' : (codeError || '会员码尚不可用')}}</text>
+          <text class="qr-status-desc">{{state.key === 'unverified' ? '完成手机认证后即可使用' : '不会展示本地模拟码或静态码'}}</text>
         </view>
 
-        <view class="qr">
-          <view class="i i-xl i-qr-code-brand"></view>
-          <text class="qr-note">{{challenge ? challenge : '等待服务端签发'}}</text>
-        </view>
-
-        <view class="bar">
-          <view class="i i-barcode-ink bar-icon"></view>
-        </view>
-
-        <view class="countdown">
+        <view wx:if="{{codeStatus === 'ready'}}" class="countdown">
           <view class="i i-sm i-clock-muted"></view>
           <text class="countdown-text">{{seconds}} 秒后自动刷新</text>
         </view>
@@ -96,9 +91,9 @@
             <view class="i i-sm i-sun-brand"></view>
             <text class="act-text">调亮屏幕</text>
           </view>
-          <view class="act sw-tap" data-label="冻结会员码" bindtap="onPending">
-            <view class="i i-sm i-snowflake-danger"></view>
-            <text class="act-text act-danger">冻结</text>
+          <view class="act sw-tap" bindtap="onStopCode">
+            <view class="i i-sm i-lock-danger"></view>
+            <text class="act-text act-danger">停用本次码</text>
           </view>
         </view>
       </view>

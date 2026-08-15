@@ -219,25 +219,8 @@
   border: 1rpx solid var(--sw-border);
 }
 
-.sim-flag {
-  display: flex;
-  align-items: flex-start;
-  padding: var(--sw-space-1);
-  margin-bottom: var(--sw-space-1_5);
-  border-radius: var(--sw-radius-medium);
-  background: var(--sw-warning-surface);
-}
-
-.sim-flag text {
-  margin-left: 8rpx;
-  font-size: var(--sw-fs-caption);
-  line-height: var(--sw-lh-caption);
-  color: var(--sw-warning-strong);
-}
-
-/* The real code is a server-issued challenge rendered into this frame. The
-   quiet zone is reserved now so wiring it later does not move the layout. */
-.qr {
+.qr-frame,
+.qr-placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -245,29 +228,27 @@
   height: 380rpx;
   border-radius: var(--sw-radius-medium);
   background: var(--sw-surface-subtle);
-  border: 1rpx dashed var(--sw-border-strong);
+  border: 1rpx solid var(--sw-border);
 }
 
-.qr-note {
+.qr-canvas {
+  width: 340rpx;
+  height: 340rpx;
+  background: var(--sw-surface);
+}
+
+.qr-status-title {
   margin-top: var(--sw-space-1);
-  font-family: var(--sw-font-num);
+  font-size: var(--sw-fs-bodySmall);
+  line-height: var(--sw-lh-bodySmall);
+  color: var(--sw-text-secondary);
+}
+
+.qr-status-desc {
+  margin-top: 4rpx;
   font-size: var(--sw-fs-caption);
-  color: var(--sw-text-disabled);
-}
-
-.bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 96rpx;
-  margin-top: var(--sw-space-1_5);
-  border-radius: var(--sw-radius-medium);
-  background: var(--sw-surface-subtle);
-}
-
-.bar-icon {
-  width: 320rpx;
-  height: 56rpx;
+  line-height: var(--sw-lh-caption);
+  color: var(--sw-text-muted);
 }
 
 .countdown {
