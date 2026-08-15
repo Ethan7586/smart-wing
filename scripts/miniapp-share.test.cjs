@@ -5,6 +5,11 @@ const test = require('node:test');
 
 const root = path.join(__dirname, '..');
 const sharePath = path.join(root, 'apps/wechat-miniapp/miniprogram/utils/share.js');
+const shareImage = '/assets/share/mid-autumn-welfare-share.png';
+const shareImagePath = path.join(
+  root,
+  'apps/wechat-miniapp/miniprogram/assets/share/mid-autumn-welfare-share.png',
+);
 const publicPages = ['home', 'category', 'products', 'product-detail'];
 
 function loadShare(wxMock) {
@@ -26,8 +31,14 @@ test('share builders keep a valid mini-program path and timeline query', () => {
   assert.deepEqual(share.appMessage({ title: ' 商品 ', path: 'pages/product-detail/product-detail?id=one' }), {
     title: '商品',
     path: '/pages/product-detail/product-detail?id=one',
+    imageUrl: shareImage,
   });
-  assert.deepEqual(share.timeline({ title: ' 商品 ', query: '?id=one' }), { title: '商品', query: 'id=one' });
+  assert.deepEqual(share.timeline({ title: ' 商品 ', query: '?id=one' }), {
+    title: '商品',
+    query: 'id=one',
+    imageUrl: shareImage,
+  });
+  assert.equal(fs.statSync(shareImagePath).size > 0, true, 'formal share cover is missing');
 });
 
 test('copy URL uses the official Smart Wing domain', () => {

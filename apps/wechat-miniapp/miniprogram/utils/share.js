@@ -1,4 +1,5 @@
 var OFFICIAL_URL = 'https://hbbtzn.com/';
+var DEFAULT_SHARE_IMAGE = '/assets/share/mid-autumn-welfare-share.png';
 
 function cleanTitle(value) {
   var title = String(value || '').trim();
@@ -17,6 +18,11 @@ function cleanQuery(value) {
     .replace(/^\?/, '');
 }
 
+function cleanImage(value) {
+  var imageUrl = String(value || '').trim();
+  return imageUrl || DEFAULT_SHARE_IMAGE;
+}
+
 function enableMenu() {
   if (typeof wx === 'undefined' || typeof wx.showShareMenu !== 'function') return;
   wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] });
@@ -27,6 +33,7 @@ function appMessage(options) {
   return {
     title: cleanTitle(input.title),
     path: cleanPath(input.path),
+    imageUrl: cleanImage(input.imageUrl),
   };
 }
 
@@ -35,6 +42,7 @@ function timeline(options) {
   return {
     title: cleanTitle(input.title),
     query: cleanQuery(input.query),
+    imageUrl: cleanImage(input.imageUrl),
   };
 }
 
@@ -51,6 +59,7 @@ function copyOfficialUrl() {
 
 module.exports = {
   OFFICIAL_URL: OFFICIAL_URL,
+  DEFAULT_SHARE_IMAGE: DEFAULT_SHARE_IMAGE,
   enableMenu: enableMenu,
   appMessage: appMessage,
   timeline: timeline,
