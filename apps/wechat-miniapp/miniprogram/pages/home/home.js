@@ -163,7 +163,9 @@ Page({
       entries: demo.entries,
       hero: demo.hero,
       partners: demo.partners,
-      segments: demo.segments,
+      segments: demo.segments.filter(function (item) {
+        return item.reviewEnabled !== false;
+      }),
       memberCodeCta: demo.memberCodeCta,
       recommendations: decorateProducts(products.slice(0, 2)),
     });
