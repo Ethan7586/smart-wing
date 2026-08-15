@@ -48,18 +48,21 @@ async function optimizedWebp(source, width) {
   return sharp(source, { failOn: 'warning', limitInputPixels: 40_000_000 }).rotate().resize({ width, height: width, fit: 'inside', withoutEnlargement: true }).webp({ quality: 78, effort: 5, smartSubsample: true }).toBuffer();
 }
 
-async function patchProductCover(productId, coverUrl) {
+async function patchProductCovers(items) {
   const base = required('SUPABASE_URL').replace(/\/+$/, '');
   const key = required('SUPABASE_SERVICE_ROLE_KEY');
-  const url = new URL(`${base}/rest/v1/products`);
-  url.searchParams.set('id', `eq.${productId}`);
-  const response = await fetch(url, {
-    method: 'PATCH',
-    headers: { apikey: key, authorization: `Bearer ${key}`, 'content-type': 'application/json', prefer: 'return=minimal' },
-    body: JSON.stringify({ cover_url: coverUrl }),
+  const response = await fetch(`${base}/rest/v1/rpc/api_sync_catalog_media_covers`, {
+    method: 'POST',
+    headers: { apikey: key, authorization: `Bearer ${key}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ p_items: items.map(({ id, coverUrl }) => ({ id, coverUrl })) }),
     signal: AbortSignal.timeout(20_000),
   });
   if (!response.ok) throw new Error(`Database update failed (${response.status}): ${await response.text()}`);
+  const updated = Number(await response.text());
+  if (!Number.isInteger(updated) || updated < 0 || updated > items.length) {
+    throw new Error('Database update returned an invalid result');
+  }
+  return updated;
 }
 
 async function mapLimit(values, concurrency, mapper) {
@@ -132,7 +135,8 @@ async function main() {
   });
 
   if (!dryRun) {
-    for (const item of uploaded) await patchProductCover(item.id, item.coverUrl);
+    const updated = await patchProductCovers(uploaded);
+    console.log(`Linked ${updated} changed covers; ${uploaded.length - updated} were already current`);
   }
   await mkdir('.codex-temp', { recursive: true });
   const report = { generatedAt: new Date().toISOString(), dryRun, plan, items: uploaded };
