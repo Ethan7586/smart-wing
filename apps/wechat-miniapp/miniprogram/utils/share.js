@@ -1,5 +1,5 @@
 var OFFICIAL_URL = 'https://hbbtzn.com/';
-var DEFAULT_SHARE_IMAGE = '/assets/share/mid-autumn-welfare-share.png';
+var DEFAULT_SHARE_IMAGE = 'https://img.hbbtzn.com/share/mid-autumn-welfare-share-eaa9150.png';
 
 function cleanTitle(value) {
   var title = String(value || '').trim();
