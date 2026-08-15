@@ -2,7 +2,6 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
-
 const root = path.join(__dirname, '..');
 const catalogPath = path.join(root, 'apps/wechat-miniapp/miniprogram/utils/catalog.js');
 const apiPath = path.join(root, 'apps/wechat-miniapp/miniprogram/utils/api.js');
@@ -25,7 +24,6 @@ function loadMiniModule(file, globals = {}) {
 function freshApi(wxMock) {
   return loadMiniModule(apiPath, { wx: wxMock });
 }
-
 test('shared taxonomy fills every approved category rail', () => {
   const catalog = loadMiniModule(catalogPath);
   const snapshot = catalog.createSnapshot([]);
@@ -39,7 +37,6 @@ test('shared taxonomy fills every approved category rail', () => {
   assert.ok(snapshot.tilesByKey.featured.length > 0);
   assert.equal(snapshot.tilesByKey.food, undefined);
 });
-
 test('qualified public main-Shop products enrich their taxonomy tile', () => {
   const catalog = loadMiniModule(catalogPath);
   const snapshot = catalog.createSnapshot([
@@ -53,7 +50,6 @@ test('qualified public main-Shop products enrich their taxonomy tile', () => {
   assert.equal(leaf.image, 'https://cdn.example.test/kettle.webp');
   assert.equal(leaf.productCount, 1);
 });
-
 test('food commerce is consistently hidden until qualification is approved', () => {
   const catalog = loadMiniModule(catalogPath);
   const policy = loadMiniModule(policyPath);
