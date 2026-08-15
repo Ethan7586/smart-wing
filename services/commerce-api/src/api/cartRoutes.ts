@@ -2,16 +2,23 @@ import { can } from './auth';
 import { PERMISSIONS } from '@smart-wing/api-contract';
 import { apiError, json, methodNotAllowed } from './http';
 import { authorizationScope, invalidBody, readJsonBody } from './routerSupport';
+import { publicCatalogCoverUrl } from './publicCatalogImages';
 import { callRpc } from './supabase';
 import type { AuthorizationContext, WorkerEnv } from './types';
 
 export async function handleCart(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   if (!can(authorization, PERMISSIONS.orderCreate)) return apiError(403, 'FORBIDDEN', '没有管理购物车的权限', requestId);
   if (request.method === 'GET') {
-    const items = await callRpc<Array<Record<string, unknown>>>(env, 'api_cart_items_qualified', {
+    const rows = await callRpc<Array<Record<string, unknown>>>(env, 'api_cart_snapshot_qualified', {
       ...authorizationScope(authorization, true),
       p_membership_id: authorization.membership.id,
     });
+    const items = await Promise.all(
+      rows.map(async (row) => ({
+        ...row,
+        coverUrl: await publicCatalogCoverUrl(request, env, typeof row.productId === 'string' ? row.productId : '', typeof row.coverUrl === 'string' ? row.coverUrl : null),
+      }))
+    );
     return json({ items, requestId });
   }
   if (request.method !== 'PUT') return methodNotAllowed(['GET', 'PUT'], requestId);

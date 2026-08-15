@@ -10,7 +10,7 @@
     <view class="nav-row" style="height: {{nav.navContentHeight}}px; padding-right: {{nav.rightInset}}px;">
       <text class="nav-title">智慧翼福利商城</text>
       <view class="nav-actions">
-        <view class="nav-action sw-tap" data-label="购物车" bindtap="onPending">
+        <view class="nav-action sw-tap" bindtap="onOpenCart">
           <view class="i i-shopping-cart-ink"></view>
           <text wx:if="{{cartCount > 0}}" class="cart-badge">{{cartCount}}</text>
         </view>

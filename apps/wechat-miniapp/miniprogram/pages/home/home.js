@@ -187,6 +187,10 @@ Page({
     });
   },
 
+  onOpenCart: function () {
+    wx.navigateTo({ url: '/pages/cart/cart' });
+  },
+
   onOpenMemberCode: function () {
     wx.switchTab({ url: '/pages/membercode/membercode' });
   },

@@ -1,0 +1,65 @@
+<view class="sw-page cart-page {{sizeClass}}" style="{{sizeStyle}}">
+  <view class="nav" style="padding-top: {{nav.statusBarHeight}}px;">
+    <view class="nav-row" style="height: {{nav.navContentHeight}}px; padding-right: {{nav.rightInset}}px;">
+      <view class="back sw-tap" bindtap="onBack"><view class="i i-arrow-left-ink"></view></view>
+      <text class="nav-title">购物车</text>
+    </view>
+  </view>
+  <view class="nav-spacer" style="height: {{nav.navTotalHeight}}px;"></view>
+
+  <view wx:if="{{error}}" class="state-wrap sw-inset">
+    <view class="i i-xl {{error.kind === 'offline' ? 'i-wifi-off-muted' : 'i-triangle-alert-danger'}}"></view>
+    <text class="state-title">{{error.title}}</text>
+    <text class="state-copy">{{error.message}}</text>
+    <view wx:if="{{error.retryable}}" class="state-button sw-tap" bindtap="onRetry"><view class="i i-sm i-refresh-cw-brand"></view><text>重试</text></view>
+    <view wx:if="{{error.kind === 'binding' || error.kind === 'assurance'}}" class="state-button sw-tap" bindtap="onOpenBinding"><text>前往会员与认证</text></view>
+  </view>
+
+  <view wx:elif="{{loading}}" class="sw-inset skeleton-wrap">
+    <view class="sw-skeleton skeleton-card"></view>
+    <view class="sw-skeleton skeleton-card"></view>
+  </view>
+
+  <view wx:elif="{{!cart.rows.length}}" class="state-wrap sw-inset">
+    <view class="i i-xl i-shopping-cart-muted"></view>
+    <text class="state-title">购物车还是空的</text>
+    <text class="state-copy">从商品详情加入真实可购商品后，会显示在这里。</text>
+    <view class="state-button sw-tap" bindtap="onBack"><text>继续逛逛</text></view>
+  </view>
+
+  <view wx:else class="cart-content sw-inset">
+    <view wx:for="{{cart.groups}}" wx:key="key" wx:for-item="group" class="supplier sw-card">
+      <view class="supplier-head"><view class="i i-sm i-store-brand"></view><text>{{group.name}}</text></view>
+      <view wx:for="{{group.items}}" wx:key="id" wx:for-item="product" class="cart-row {{product.enabled ? '' : 'is-disabled'}}">
+        <view class="select sw-tap" data-id="{{product.id}}" bindtap="onToggleItem">
+          <view class="select-circle {{product.selected ? 'is-selected' : ''}}"><view wx:if="{{product.selected}}" class="i i-sm i-check-white"></view></view>
+        </view>
+        <image wx:if="{{product.image}}" class="product-image" src="{{product.image}}" mode="aspectFill" data-id="{{product.id}}" binderror="onImageError" />
+        <view wx:else class="product-image sw-slot"><view class="i i-md i-image-off-muted"></view></view>
+        <view class="product-copy">
+          <text class="product-name">{{product.name}}</text>
+          <text wx:if="{{product.specText}}" class="product-spec">{{product.specText}}</text>
+          <text wx:if="{{product.disabledCopy}}" class="product-disabled">{{product.disabledCopy}}</text>
+          <view class="product-bottom">
+            <text class="product-price">{{product.priceText ? '¥' + product.priceText : '价格待同步'}}</text>
+            <view class="stepper">
+              <view class="step sw-tap" data-id="{{product.id}}" bindtap="onDecrease"><view class="i i-sm i-minus-secondary"></view></view>
+              <text>{{product.quantity}}</text>
+              <view class="step sw-tap" data-id="{{product.id}}" bindtap="onIncrease"><view class="i i-sm i-plus-secondary"></view></view>
+            </view>
+          </view>
+        </view>
+        <view class="remove sw-tap" data-id="{{product.id}}" bindtap="onRemove"><view class="i i-sm i-trash-2-danger"></view></view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{cart.rows.length && !loading}}" class="checkout-bar">
+    <view class="select-all sw-tap" bindtap="onToggleAll">
+      <view class="select-circle {{cart.allSelected ? 'is-selected' : ''}}"><view wx:if="{{cart.allSelected}}" class="i i-sm i-check-white"></view></view>
+      <text>全选</text>
+    </view>
+    <view class="total-copy"><text class="total-label">合计</text><text class="total-value">¥{{cart.totalText}}</text></view>
+    <view class="checkout-button sw-tap {{cart.selectedCount ? '' : 'is-disabled'}}" bindtap="onCheckout"><text>结算（{{cart.selectedCount}}）</text></view>
+  </view>
+</view>

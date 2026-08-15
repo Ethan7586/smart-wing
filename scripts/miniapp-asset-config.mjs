@@ -32,7 +32,7 @@ export const ICON_MANIFEST = {
   'layout-grid': ['secondary', 'brand'],
   'receipt-text': ['secondary', 'brand'],
   user: ['secondary', 'brand'],
-  'shopping-cart': ['ink'],
+  'shopping-cart': ['ink', 'muted'],
   bell: ['ink'],
   search: ['muted'],
   'scan-line': ['muted'],
@@ -44,7 +44,7 @@ export const ICON_MANIFEST = {
   'house-plus': ['brand'],
   laptop: ['brand'],
   utensils: ['brand'],
-  'chevron-right': ['muted'],
+  'chevron-right': ['muted', 'secondary'],
   'arrow-left': ['ink'],
   package: ['brand'],
   'chevron-down': ['secondary'],
@@ -57,6 +57,12 @@ export const ICON_MANIFEST = {
   inbox: ['muted'],
   'triangle-alert': ['danger'],
   link: ['brand'],
+  plus: ['secondary'],
+  minus: ['secondary'],
+  'trash-2': ['danger'],
+  check: ['brand', 'white'],
+  truck: ['brand'],
+  x: ['secondary'],
 };
 
 export const PARTNER_LOGOS = {

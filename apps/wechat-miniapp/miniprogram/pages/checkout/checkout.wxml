@@ -1,0 +1,66 @@
+<view class="sw-page checkout-page {{sizeClass}}" style="{{sizeStyle}}">
+  <view class="nav" style="padding-top: {{nav.statusBarHeight}}px;">
+    <view class="nav-row" style="height: {{nav.navContentHeight}}px; padding-right: {{nav.rightInset}}px;">
+      <view class="back sw-tap" bindtap="onBack"><view class="i i-arrow-left-ink"></view></view>
+      <text class="nav-title">确认订单</text>
+    </view>
+  </view>
+  <view class="nav-spacer" style="height: {{nav.navTotalHeight}}px;"></view>
+
+  <view wx:if="{{error}}" class="state-wrap sw-inset">
+    <view class="i i-xl i-triangle-alert-danger"></view>
+    <text class="state-title">暂时不能结算</text>
+    <text class="state-copy">{{error}}</text>
+    <view class="state-button sw-tap" bindtap="onBack"><text>返回购物车</text></view>
+  </view>
+
+  <block wx:else>
+    <view class="sw-inset section-wrap">
+      <view class="sw-card address-card">
+        <view class="section-head"><view class="i i-md i-map-pin-brand"></view><text class="section-title">收货信息</text></view>
+        <view wx:if="{{addressLoading}}" class="address-loading"><view class="sw-skeleton line"></view><view class="sw-skeleton line short"></view></view>
+        <block wx:else>
+          <text class="address-message">{{addressMessage}}</text>
+          <view class="field-row"><text class="field-label">收货人</text><input value="{{recipient.name}}" maxlength="50" placeholder="真实姓名" data-field="name" bindinput="onFieldInput" /></view>
+          <view class="field-row"><text class="field-label">手机号</text><input value="{{recipient.mobile}}" type="number" maxlength="11" placeholder="11 位大陆手机号" data-field="mobile" bindinput="onFieldInput" /></view>
+          <picker mode="region" value="{{region}}" bindchange="onRegionChange">
+            <view class="field-row region-row"><text class="field-label">所在地区</text><text class="field-value {{recipient.province ? '' : 'is-placeholder'}}">{{regionText}}</text><view class="i i-sm i-chevron-right-secondary"></view></view>
+          </picker>
+          <view class="field-row detail-row"><text class="field-label">详细地址</text><textarea value="{{recipient.address}}" maxlength="200" auto-height placeholder="街道、楼栋、门牌号" data-field="address" bindinput="onFieldInput"></textarea></view>
+          <view class="save-row sw-tap" bindtap="onToggleSaveAddress"><text>保存为默认地址</text><view class="save-check {{saveAddress ? 'is-selected' : ''}}"><view wx:if="{{saveAddress}}" class="i i-sm i-check-white"></view></view></view>
+        </block>
+      </view>
+    </view>
+
+    <view class="sw-inset section-wrap">
+      <view class="sw-card goods-card">
+        <view class="section-head"><view class="i i-md i-package-brand"></view><text class="section-title">商品清单</text><text class="section-meta">共 {{items.length}} 项</text></view>
+        <view wx:for="{{items}}" wx:key="skuId" wx:for-item="product" class="goods-row">
+          <image wx:if="{{product.image}}" class="goods-image" src="{{product.image}}" mode="aspectFill" />
+          <view wx:else class="goods-image sw-slot"><view class="i i-sm i-image-off-muted"></view></view>
+          <view class="goods-copy"><text class="goods-name">{{product.name}}</text><text class="goods-spec">{{product.specText}}</text></view>
+          <view class="goods-money"><text>¥{{product.lineText}}</text><text>×{{product.quantity}}</text></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="sw-inset section-wrap">
+      <view class="sw-card payment-card">
+        <view class="section-head"><view class="i i-md i-credit-card-brand"></view><text class="section-title">支付方式</text></view>
+        <view class="wechat-row"><view class="i i-md i-credit-card-brand"></view><view class="wechat-copy"><text>微信支付</text><text>订单金额将由服务端重新校验</text></view><view class="i i-sm i-check-brand"></view></view>
+      </view>
+    </view>
+
+    <view class="sw-inset section-wrap amount-wrap">
+      <view class="sw-card amount-card">
+        <view class="amount-row"><text>商品金额</text><text>¥{{totalText}}</text></view>
+        <text class="amount-note">最终价格、库存与购买资格以服务端创建订单结果为准。</text>
+      </view>
+    </view>
+
+    <view class="submit-bar">
+      <view class="submit-total"><text>应付</text><text>¥{{totalText}}</text></view>
+      <view class="submit-button sw-tap {{submitting || addressLoading ? 'is-disabled' : ''}}" bindtap="onSubmit"><text>{{submitting ? '正在提交…' : '提交订单'}}</text></view>
+    </view>
+  </block>
+</view>

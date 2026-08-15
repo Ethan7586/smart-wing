@@ -1,0 +1,28 @@
+<view class="sw-page result-page {{sizeClass}}" style="{{sizeStyle}}">
+  <view class="nav" style="padding-top: {{nav.statusBarHeight}}px;">
+    <view class="nav-row" style="height: {{nav.navContentHeight}}px; padding-right: {{nav.rightInset}}px;"><text class="nav-title">支付结果</text></view>
+  </view>
+  <view class="nav-spacer" style="height: {{nav.navTotalHeight}}px;"></view>
+
+  <view wx:if="{{loading}}" class="sw-inset skeleton-wrap"><view class="sw-skeleton result-skeleton"></view></view>
+  <view wx:elif="{{error}}" class="state-wrap sw-inset">
+    <view class="i i-xl i-triangle-alert-danger"></view><text class="state-title">结果仍在确认</text><text class="state-copy">{{error}}</text>
+    <view class="state-button sw-tap" bindtap="onRetry"><view class="i i-sm i-refresh-cw-brand"></view><text>重新查询</text></view>
+  </view>
+  <view wx:elif="{{order}}" class="result-content sw-inset">
+    <view class="result-symbol {{order.paymentStatus === 'paid' ? 'is-success' : 'is-processing'}}">
+      <view class="i i-xl {{order.paymentStatus === 'paid' ? 'i-circle-check-big-success' : 'i-clock-muted'}}"></view>
+    </view>
+    <text class="result-title">{{order.paymentStatus === 'paid' ? '支付成功' : '支付结果确认中'}}</text>
+    <text class="result-copy">{{order.paymentStatus === 'paid' ? '款项已由服务端确认到账' : '小程序不会仅凭客户端回调判定到账，请稍后刷新订单。'}}</text>
+    <view class="sw-card result-card">
+      <view class="info-row"><text>订单金额</text><text>{{order.total ? '¥' + order.total : '待同步'}}</text></view>
+      <view class="info-row"><text>订单编号</text><text class="order-no">{{order.orderNo}}</text></view>
+      <view class="info-row"><text>支付状态</text><text>{{order.paymentStatusLabel}}</text></view>
+    </view>
+    <view class="result-actions">
+      <view class="secondary-button sw-tap" bindtap="onContinue"><text>继续逛逛</text></view>
+      <view class="primary-button sw-tap" bindtap="onOpenOrder"><text>查看订单</text></view>
+    </view>
+  </view>
+</view>

@@ -27,6 +27,7 @@ Page({
       orderNo: orderNo,
       entryFromWechatOrderCenter: Boolean(options && options.channel === 'wechat_order_center'),
     });
+    this._autoPay = Boolean(options && options.autoPay === '1');
     if (!orderNo) {
       this.setData({ loading: false, error: presentation.loadErrorView({ code: 'INVALID_ORDER_NO', message: '订单编号缺失或格式不正确' }) });
       return;
@@ -67,6 +68,19 @@ Page({
           throw { code: 'INVALID_ORDER_RESPONSE', message: '订单详情与请求编号不一致，系统已阻止展示' };
         }
         self.setData({ loading: false, error: null, order: order });
+        if (self._autoPay) {
+          self._autoPay = false;
+          if (order.canPay) {
+            if (typeof wx.nextTick === 'function')
+              wx.nextTick(function () {
+                self.onPay();
+              });
+            else
+              setTimeout(function () {
+                self.onPay();
+              }, 0);
+          }
+        }
         wx.stopPullDownRefresh();
       },
       function (error) {
@@ -180,8 +194,10 @@ Page({
     if (status === 'paid') {
       this._paymentIdempotencyKey = '';
       this.setData({ paymentBusy: false, paymentState: 'confirmed', paymentMessage: '支付已由服务端确认', 'order.canPay': false, 'order.paymentStatus': 'paid', 'order.paymentStatusLabel': '支付成功' });
-      if (showSuccess) wx.showToast({ title: '支付已确认', icon: 'success' });
-      this.loadOrder(true);
+      if (showSuccess) {
+        wx.showToast({ title: '支付已确认', icon: 'success' });
+        wx.redirectTo({ url: '/pages/payment-result/payment-result?orderNo=' + encodeURIComponent(this.data.orderNo) });
+      } else this.loadOrder(true);
       return;
     }
     var terminal = status === 'closed' || status === 'failed' || status === 'refunded';

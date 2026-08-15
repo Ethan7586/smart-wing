@@ -250,6 +250,10 @@ Page({
     });
   },
 
+  onOpenCart: function () {
+    wx.navigateTo({ url: '/pages/cart/cart' });
+  },
+
   onShareAppMessage: function () {
     return share.appMessage({ title: '智慧翼福利商城｜公开商品', path: '/pages/category/category' });
   },

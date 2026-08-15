@@ -3,10 +3,12 @@
 var BASE_URL = 'https://hbbtzn.com';
 var ACCESS_TOKEN_KEY = 'sw_member_access_token';
 var ACCESS_TOKEN_EXPIRY_KEY = 'sw_member_access_token_expires_at';
+var SESSION_SCOPE_KEY = 'sw_member_session_scope';
+var CART_CACHE_KEY = 'sw-cart-snapshot-v1';
+var CHECKOUT_DRAFT_KEY = 'sw-checkout-draft-v1';
 var REQUEST_TIMEOUT_MS = 10000;
 var TOKEN_REFRESH_LEEWAY_MS = 30000;
 var activeSessionRequest = null;
-var wechatPayment = require('./wechatPayment');
 var catalogApi = require('./catalogApi').createCatalogApi(performRequest, apiError, wx);
 
 function accessToken() {
@@ -27,14 +29,31 @@ function accessTokenExpiry() {
   }
 }
 
+function sessionScope() {
+  try {
+    var value = wx.getStorageSync(SESSION_SCOPE_KEY);
+    return typeof value === 'string' ? value.trim() : '';
+  } catch (_error) {
+    return '';
+  }
+}
+
 function hasFreshAccessToken() {
-  return Boolean(accessToken() && accessTokenExpiry() > Date.now() + TOKEN_REFRESH_LEEWAY_MS);
+  return Boolean(accessToken() && sessionScope() && accessTokenExpiry() > Date.now() + TOKEN_REFRESH_LEEWAY_MS);
 }
 
 function clearAccessToken() {
   try {
+    var scope = wx.getStorageSync(SESSION_SCOPE_KEY);
     wx.removeStorageSync(ACCESS_TOKEN_KEY);
     wx.removeStorageSync(ACCESS_TOKEN_EXPIRY_KEY);
+    wx.removeStorageSync(SESSION_SCOPE_KEY);
+    wx.removeStorageSync(CART_CACHE_KEY);
+    wx.removeStorageSync(CHECKOUT_DRAFT_KEY);
+    if (typeof scope === 'string' && scope) {
+      wx.removeStorageSync(CART_CACHE_KEY + ':' + scope);
+      wx.removeStorageSync(CHECKOUT_DRAFT_KEY + ':' + scope);
+    }
   } catch (_error) {
     // A failed local cleanup must not turn an API error into a false success.
   }
@@ -51,11 +70,20 @@ function expiryFromSession(response) {
 
 function storeSession(response) {
   var token = response && typeof response.accessToken === 'string' ? response.accessToken.trim() : '';
+  var authorization = response && response.authorization;
+  var scope = authorization && typeof authorization.membershipId === 'string' ? authorization.membershipId.trim() : '';
   if (!token || response.authenticated !== true) {
     throw apiError('INVALID_WECHAT_SESSION', '微信会话返回格式异常，请稍后重试');
   }
+  if (!scope) throw apiError('INVALID_WECHAT_SESSION', '微信会话缺少会员范围，请稍后重试');
+  var previousScope = wx.getStorageSync(SESSION_SCOPE_KEY);
+  if (typeof previousScope === 'string' && previousScope && previousScope !== scope) {
+    wx.removeStorageSync(CART_CACHE_KEY + ':' + previousScope);
+    wx.removeStorageSync(CHECKOUT_DRAFT_KEY + ':' + previousScope);
+  }
   wx.setStorageSync(ACCESS_TOKEN_KEY, token);
   wx.setStorageSync(ACCESS_TOKEN_EXPIRY_KEY, expiryFromSession(response));
+  wx.setStorageSync(SESSION_SCOPE_KEY, scope);
   return response;
 }
 
@@ -228,6 +256,10 @@ var memberApi = require('./memberApi').createMemberApi({
   apiError: apiError,
   storeSession: storeSession,
 });
+var checkoutApi = require('./checkoutApi').createCheckoutApi({
+  authenticatedRequest: authenticatedRequest,
+  apiError: apiError,
+});
 
 module.exports = Object.assign(
   {
@@ -246,45 +278,10 @@ module.exports = Object.assign(
     readCachedProducts: catalogApi.readCachedProducts,
     hydrateBundledCatalog: catalogApi.hydrateBundledCatalog,
     catalogCacheLimit: catalogApi.cacheLimit,
-    getCart: function () {
-      return performRequest('GET', '/api/v1/cart');
-    },
-    getOrderByNumber: function (orderNo) {
-      var validOrderNo = wechatPayment.normalizeOrderNo(orderNo);
-      if (!validOrderNo) return wechatPayment.rejectedRequest(apiError('INVALID_ORDER_NO', '订单编号无效，请从订单列表重新进入'));
-      return authenticatedRequest('GET', '/api/v1/orders/by-number/' + encodeURIComponent(validOrderNo));
-    },
-    createWechatPrepay: function (orderId, idempotencyKey) {
-      var validOrderId = wechatPayment.normalizeOrderId(orderId);
-      if (!validOrderId) return wechatPayment.rejectedRequest(apiError('INVALID_ORDER_ID', '订单标识无效，请重新打开订单'));
-      if (!idempotencyKey || idempotencyKey.length > 120) {
-        return wechatPayment.rejectedRequest(apiError('INVALID_IDEMPOTENCY_KEY', '支付请求标识无效，请重新发起支付'));
-      }
-      return authenticatedRequest(
-        'POST',
-        '/api/v1/orders/' + encodeURIComponent(validOrderId) + '/payments/wechat/prepay',
-        {},
-        {
-          headers: { 'Idempotency-Key': idempotencyKey },
-        }
-      );
-    },
-    getPaymentStatus: function (orderId) {
-      var validOrderId = wechatPayment.normalizeOrderId(orderId);
-      if (!validOrderId) return wechatPayment.rejectedRequest(apiError('INVALID_ORDER_ID', '订单标识无效，请重新打开订单'));
-      return authenticatedRequest('GET', '/api/v1/orders/' + encodeURIComponent(validOrderId) + '/payment-status');
-    },
-    normalizeOrderNo: wechatPayment.normalizeOrderNo,
-    createIdempotencyKey: wechatPayment.createIdempotencyKey,
-    requestWechatPayment: function (payment) {
-      return wechatPayment.requestWechatPayment(payment, apiError);
-    },
-    pollPaymentStatus: function (orderId, options) {
-      return wechatPayment.pollPaymentStatus(orderId, options, module.exports.getPaymentStatus, apiError);
-    },
     createMemberCodeChallenge: function () {
       return notWired('/api/v1/member-code/challenge (未实现)');
     },
   },
-  memberApi
+  memberApi,
+  checkoutApi
 );

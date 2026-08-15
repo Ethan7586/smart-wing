@@ -57,6 +57,39 @@ describe('phone assurance at order boundaries', () => {
   });
 });
 
+describe('order cart closure', () => {
+  it('removes only ordered SKU rows after idempotent order creation succeeds', async () => {
+    const database = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('/rpc/api_member_assurance')) {
+        return new Response(JSON.stringify({ phoneVerified: true, paymentEligible: true }), { status: 200, headers: { 'content-type': 'application/json' } });
+      }
+      if (url.includes('/rpc/api_create_order_and_clear_cart_authorized')) {
+        return new Response(JSON.stringify({ order: { id: 'order-one', orderNo: 'SW202608150001', status: 'pending_payment' }, cartItemsRemoved: 1 }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      }
+      return new Response('not found', { status: 404 });
+    });
+    vi.stubGlobal('fetch', database);
+    const request = new Request('https://hbbtzn.com/api/v1/orders', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'idempotency-key': 'checkout-order-one' },
+      body: JSON.stringify({
+        items: [{ skuId: 'sku-one', quantity: 1 }],
+        recipient: { name: '测试用户', mobile: '13800000000', province: '湖北省', city: '武汉市', district: '武昌区', address: '测试地址 1 号' },
+      }),
+    });
+
+    const response = await handleCreateOrder(request, env, authorization, 'checkout-request');
+
+    expect(response.status).toBe(201);
+    await expect(response.json()).resolves.toMatchObject({ order: { id: 'order-one' }, cartItemsRemoved: 1 });
+    expect(database.mock.calls.map((call) => String(call[0]))).toEqual([expect.stringContaining('/rpc/api_member_assurance'), expect.stringContaining('/rpc/api_create_order_and_clear_cart_authorized')]);
+  });
+});
+
 function accountOnlyDatabase() {
   return vi.fn(
     async () =>

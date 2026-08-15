@@ -1,0 +1,29 @@
+.state-wrap {
+  min-height: 68vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.state-title {
+  margin-top: var(--sw-space-1);
+  font-size: var(--sw-fs-h3);
+  font-weight: var(--sw-fw-h3);
+}
+.state-copy {
+  max-width: 560rpx;
+  margin-top: var(--sw-space-half);
+  color: var(--sw-text-secondary);
+  font-size: var(--sw-fs-bodySmall);
+}
+.state-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--sw-space-2);
+  padding: 0 var(--sw-space-2);
+  border: 1rpx solid var(--sw-border-strong);
+  border-radius: var(--sw-radius-full);
+  color: var(--sw-brand);
+}

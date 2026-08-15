@@ -3,6 +3,7 @@
     <view class="nav-row" style="height: {{nav.navContentHeight}}px; padding-right: {{nav.rightInset}}px;">
       <view class="back sw-tap" bindtap="onBack"><view class="i i-arrow-left-ink"></view></view>
       <text class="nav-title">商品详情</text>
+      <view class="cart-entry sw-tap" bindtap="onOpenCart"><view class="i i-shopping-cart-ink"></view></view>
     </view>
   </view>
   <view class="nav-spacer" style="height: {{nav.navTotalHeight}}px;"></view>
@@ -38,7 +39,10 @@
     </view>
 
     <view class="action-bar">
-      <view class="action-disabled"><text>{{product.isTest ? '测试商品不可购买' : '当前商品暂不可购买'}}</text></view>
+      <view class="cart-shortcut sw-tap" bindtap="onOpenCart"><view class="i i-shopping-cart-ink"></view><text>购物车</text></view>
+      <view wx:if="{{product.canBuy}}" class="add-button sw-tap {{cartBusy ? 'is-disabled' : ''}}" bindtap="onAddCart"><text>加入购物车</text></view>
+      <view wx:if="{{product.canBuy}}" class="buy-button sw-tap {{cartBusy ? 'is-disabled' : ''}}" bindtap="onBuyNow"><text>{{cartBusy ? '处理中…' : '立即购买'}}</text></view>
+      <view wx:else class="action-disabled"><text>{{product.isTest ? '测试商品不可购买' : '当前商品暂不可购买'}}</text></view>
     </view>
   </block>
 </view>

@@ -101,7 +101,7 @@ export async function handleCreateOrder(request: Request, env: WorkerEnv, author
     return apiError(422, 'INVALID_ORDER_INPUT', '订单商品或收货信息不完整', requestId);
   }
   const recipientCipher = await encryptJson(input.recipient, env.PII_ENCRYPTION_KEY);
-  const response = await callRpc<Record<string, unknown>>(env, 'api_create_order_authorized', {
+  const response = await callRpc<Record<string, unknown>>(env, 'api_create_order_and_clear_cart_authorized', {
     ...authorizationScope(authorization, true),
     p_items: input.items,
     p_recipient_cipher: JSON.parse(recipientCipher),

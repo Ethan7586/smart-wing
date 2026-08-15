@@ -27,6 +27,12 @@
   line-height: var(--sw-lh-h3);
   font-weight: var(--sw-fw-h3);
 }
+.cart-entry {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+}
 .hero-image {
   display: flex;
   width: 100%;
@@ -114,8 +120,44 @@
   background: var(--sw-surface);
   border-top: 1rpx solid var(--sw-border);
   box-shadow: var(--sw-shadow-overlay);
+  display: flex;
+  align-items: center;
+}
+.action-bar > view + view {
+  margin-left: var(--sw-space-1);
+}
+.cart-shortcut {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 96rpx;
+  flex: none;
+  color: var(--sw-text-secondary);
+  font-size: var(--sw-fs-caption);
+}
+.add-button,
+.buy-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 0 var(--sw-space-1);
+  border-radius: var(--sw-radius-full);
+  font-size: var(--sw-fs-bodySmall);
+  font-weight: var(--sw-fw-h3);
+}
+.add-button {
+  border: 1rpx solid var(--sw-brand);
+  color: var(--sw-brand);
+  background: var(--sw-surface);
+}
+.buy-button {
+  color: var(--sw-text-inverse);
+  background: var(--sw-brand);
 }
 .action-disabled {
+  flex: 1;
   min-height: var(--sw-touch-min);
   display: flex;
   align-items: center;
