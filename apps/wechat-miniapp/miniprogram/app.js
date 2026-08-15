@@ -1,14 +1,11 @@
 var safeArea = require('./utils/safeArea');
 var sizeClass = require('./utils/sizeClass');
-var demo = require('./data/demo');
 
 App({
   globalData: {
     safeArea: null,
     sizeClass: null,
-    /** True while no real API is wired. Pages must surface this, not hide it. */
-    isDemo: demo.IS_DEMO,
-    cartCount: demo.cartCount,
+    cartCount: 0,
   },
 
   onLaunch: function () {
@@ -42,9 +39,7 @@ App({
   },
 
   onUnhandledRejection: function (event) {
-    // API_NOT_WIRED is expected until phase 6; do not spam the console with it.
     var reason = event && event.reason;
-    if (reason && reason.code === 'API_NOT_WIRED') return;
     console.error('[app] unhandled rejection', reason);
   },
 });

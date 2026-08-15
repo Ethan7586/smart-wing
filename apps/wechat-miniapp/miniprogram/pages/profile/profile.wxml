@@ -54,19 +54,19 @@
     <view class="sw-inset">
       <view class="sw-card assets">
         <block wx:if="{{signedIn}}">
-          <view class="asset sw-tap" data-label="福利卡" bindtap="onPending">
+          <view class="asset">
             <text class="asset-value">¥{{welfare}}</text>
             <text class="asset-label">福利卡</text>
           </view>
-          <view class="asset sw-tap" data-label="餐卡" bindtap="onPending">
+          <view class="asset">
             <text class="asset-value">¥{{meal}}</text>
             <text class="asset-label">餐卡</text>
           </view>
-          <view class="asset sw-tap" data-label="卡券" bindtap="onPending">
+          <view class="asset">
             <text class="asset-value">{{voucherCount === null ? '—' : voucherCount}}</text>
             <text class="asset-label">卡券</text>
           </view>
-          <view class="asset sw-tap" data-label="积分" bindtap="onPending">
+          <view class="asset">
             <text class="asset-value">{{points === null ? '—' : points}}</text>
             <text class="asset-label">积分</text>
           </view>
@@ -93,7 +93,7 @@
     <!-- 订单快捷 -->
     <view class="sw-inset section-head">
       <text class="sw-h3">我的订单</text>
-      <text class="section-more" bindtap="onOpenOrders">全部</text>
+      <text class="section-more" data-key="all" bindtap="onOpenOrders">全部</text>
     </view>
     <view class="sw-inset">
       <view class="sw-card shortcuts">
@@ -101,7 +101,7 @@
           wx:for="{{orderShortcuts}}"
           wx:key="key"
           class="shortcut sw-tap"
-          data-label="{{item.label}}"
+          data-key="{{item.key}}"
           bindtap="onOpenOrders"
         >
           <view class="shortcut-icon">
@@ -117,21 +117,16 @@
       <text class="sw-h3">账号与服务</text>
     </view>
     <view class="sw-inset">
-      <view class="sw-card row-link sw-tap" data-label="收货地址" bindtap="onPending">
-        <view class="i i-map-pin-house-brand"></view>
-        <text class="row-text">收货地址</text>
-        <view class="i i-chevron-right-muted"></view>
-      </view>
       <view class="sw-card row-link sw-tap" bindtap="onOpenSecurity">
         <view class="i i-shield-check-success"></view>
         <text class="row-text">账号与安全</text>
         <view class="i i-chevron-right-muted"></view>
       </view>
-      <view class="sw-card row-link sw-tap" data-label="联系客服" bindtap="onPending">
+      <button plain class="sw-card row-link contact-button" open-type="contact">
         <view class="i i-headphones-brand"></view>
         <text class="row-text">联系客服</text>
         <view class="i i-chevron-right-muted"></view>
-      </view>
+      </button>
       <view class="sw-card row-link sw-tap" bindtap="onCopyOfficialUrl">
         <view class="i i-link-brand"></view>
         <text class="row-text">复制商城网址</text>
@@ -140,7 +135,7 @@
     </view>
 
     <view wx:if="{{signedIn}}" class="sw-inset">
-      <view class="signout sw-tap" data-label="退出登录" bindtap="onPending">
+      <view class="signout sw-tap" bindtap="onSignOut">
         <view class="i i-sm i-log-out-danger"></view>
         <text class="signout-text">退出登录</text>
       </view>

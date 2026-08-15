@@ -143,13 +143,13 @@ Page({
     }
     if (!cached || cached.stale) this.loadOrders(Boolean(cached));
   },
-
   onShow: function () {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) this.getTabBar().setData({ selected: 3 });
+    var requestedFilter = wx.getStorageSync('sw-orders-initial-filter');
+    if (requestedFilter) this.applyFilter(requestedFilter), wx.removeStorageSync('sw-orders-initial-filter');
     if (this._hasShownOnce && this._loadedAt && Date.now() - this._loadedAt > 120000 && !this.data.loading) this.loadOrders(true);
     this._hasShownOnce = true;
   },
-
   onResize: function () {
     sizeClassUtil.clearSizeClassCache();
     var next = app.getSizeClass(true);

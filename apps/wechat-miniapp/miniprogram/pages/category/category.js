@@ -4,9 +4,9 @@ var sizeClassUtil = require('../../utils/sizeClass');
 var share = require('../../utils/share');
 
 var app = getApp();
-var FILTERS_PENDING = {
-  city: '武汉市 · 预览',
-  qualification: '登录后识别可购资格',
+var CATALOG_SCOPE = {
+  city: '公开商城',
+  qualification: '购买资格结算时确认',
 };
 
 function syncCopy(error) {
@@ -169,7 +169,7 @@ Page({
       loading: false,
       loadError: null,
       cartCount: 0,
-      filters: FILTERS_PENDING,
+      filters: CATALOG_SCOPE,
       rail: snapshot.rail,
       railKey: key,
       railTitle: currentRail ? currentRail.label : '公开商品',
@@ -243,11 +243,8 @@ Page({
     this.refreshCatalog();
   },
 
-  onPending: function (event) {
-    wx.showToast({
-      title: (event.currentTarget.dataset.label || '该功能') + '将在阶段 2 后续页面接通',
-      icon: 'none',
-    });
+  onOpenSearch: function () {
+    wx.navigateTo({ url: '/pages/products/products?title=' + encodeURIComponent('搜索商品') + '&focus=1' });
   },
 
   onOpenCart: function () {

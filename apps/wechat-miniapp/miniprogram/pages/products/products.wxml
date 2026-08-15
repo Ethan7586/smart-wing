@@ -7,6 +7,25 @@
   </view>
   <view class="nav-spacer" style="height: {{nav.navTotalHeight}}px;"></view>
 
+  <view class="sw-inset search-wrap">
+    <view class="search">
+      <view class="i i-sm i-search-muted"></view>
+      <input
+        class="search-input"
+        value="{{query}}"
+        focus="{{focusSearch}}"
+        confirm-type="search"
+        maxlength="80"
+        placeholder="搜索当前 200 件商品"
+        bindinput="onSearchInput"
+        bindconfirm="onSearchConfirm"
+      />
+      <view wx:if="{{query}}" class="search-clear sw-tap" bindtap="onClearSearch">
+        <view class="i i-sm i-x-secondary"></view>
+      </view>
+    </view>
+  </view>
+
   <view class="sw-inset public-note">
     <view class="i i-sm i-shield-check-success"></view>
     <text>{{cacheText}} · 购买资格登录后确认</text>
@@ -24,7 +43,7 @@
 
   <view wx:elif="{{!products.length}}" class="state-block sw-inset">
     <view class="i i-lg i-inbox-muted"></view>
-    <text class="sw-small">当前分类暂无公开商品</text>
+    <text class="sw-small">{{emptyText}}</text>
   </view>
 
   <view wx:else class="product-grid sw-inset">

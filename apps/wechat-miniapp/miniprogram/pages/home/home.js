@@ -1,10 +1,21 @@
-var demo = require('../../data/demo');
 var api = require('../../utils/api');
 var accountPresentation = require('../../utils/accountPresentation');
 var sizeClassUtil = require('../../utils/sizeClass');
 var share = require('../../utils/share');
 
 var app = getApp();
+
+var HOME_CATEGORIES = [
+  { key: 'food', title: '商超到家', desc: '食品饮料与日用好物', icon: 'shopping-basket' },
+  { key: 'appliance', title: '家用电器', desc: '家庭电器与品质生活', icon: 'package' },
+  { key: 'digital', title: '数码办公', desc: '办公设备与数码产品', icon: 'laptop' },
+  { key: 'home', title: '家居日用', desc: '家居用品与收纳清洁', icon: 'store' },
+];
+
+var MEMBER_CODE_CTA = {
+  title: '到店出示会员码',
+  desc: '登录并完成手机认证后使用',
+};
 
 /** Cents to a grouped decimal string. Money maths never happens in WXML. */
 function formatCents(cents) {
@@ -43,7 +54,7 @@ Page({
     scrolled: false,
     loading: true,
     loadError: null,
-    isDemo: false,
+    signedIn: false,
 
     scope: {},
     quotaLabel: '',
@@ -52,11 +63,8 @@ Page({
     identityNotice: '',
     identityNoticeTone: 'info',
     cartCount: 0,
-    entries: [],
-    hero: {},
-    partners: [],
-    segments: [],
-    memberCodeCta: {},
+    segments: HOME_CATEGORIES,
+    memberCodeCta: MEMBER_CODE_CTA,
     recommendations: [],
   },
 
@@ -149,7 +157,7 @@ Page({
     this.setData({
       loading: false,
       loadError: null,
-      isDemo: false,
+      signedIn: signedIn,
       scope: {
         enterpriseName: (member && (member.enterpriseName || member.mallName)) || '公开福利商城',
         departmentName: (member && member.departmentName) || '登录后识别企业福利',
@@ -160,12 +168,9 @@ Page({
       identityNotice: memberError ? '会员福利暂不可用，公开商品仍可浏览' : signedIn && !member.phoneVerified ? '手机未认证 · 支付与核验功能受限' : signedIn ? '会员身份与福利资产已连接' : '登录后识别福利资产与可购资格',
       identityNoticeTone: signedIn && member && !member.phoneVerified ? 'danger' : 'info',
       cartCount: 0,
-      entries: demo.entries,
-      hero: demo.hero,
-      partners: demo.partners,
-      segments: demo.segments,
-      memberCodeCta: demo.memberCodeCta,
-      recommendations: decorateProducts(products.slice(0, 2)),
+      segments: HOME_CATEGORIES,
+      memberCodeCta: MEMBER_CODE_CTA,
+      recommendations: decorateProducts(products.slice(0, 6)),
     });
   },
 
@@ -179,16 +184,42 @@ Page({
     this.loadHome();
   },
 
-  // Phase 2 wires these. Announcing "not built" beats a dead tap.
-  onPending: function (event) {
-    wx.showToast({
-      title: (event.currentTarget.dataset.label || '该功能') + '将在后续阶段实现',
-      icon: 'none',
+  onOpenCart: function () {
+    wx.navigateTo({ url: '/pages/cart/cart' });
+  },
+
+  onOpenSearch: function () {
+    wx.navigateTo({ url: '/pages/products/products?title=' + encodeURIComponent('搜索商品') + '&focus=1' });
+  },
+
+  onOpenProfile: function () {
+    wx.switchTab({ url: '/pages/profile/profile' });
+  },
+
+  onOpenSegment: function (event) {
+    var segment = event.currentTarget.dataset.item;
+    if (!segment || !segment.key) return;
+    wx.navigateTo({
+      url: '/pages/products/products?title=' + encodeURIComponent(segment.title) + '&category=' + encodeURIComponent(segment.key),
     });
   },
 
-  onOpenCart: function () {
-    wx.navigateTo({ url: '/pages/cart/cart' });
+  onOpenAllProducts: function () {
+    wx.navigateTo({ url: '/pages/products/products?title=' + encodeURIComponent('全部公开商品') });
+  },
+
+  onOpenRecommendation: function (event) {
+    var index = Number(event.currentTarget.dataset.index);
+    var product = this.data.recommendations[index];
+    if (!product || !product.id) return;
+    wx.setStorageSync('sw-public-product-' + product.id, product);
+    wx.navigateTo({ url: '/pages/product-detail/product-detail?id=' + encodeURIComponent(product.id) });
+  },
+
+  onRecommendationImageError: function (event) {
+    var index = Number(event.currentTarget.dataset.index);
+    if (!Number.isInteger(index) || !this.data.recommendations[index]) return;
+    this.setData({ ['recommendations[' + index + '].image']: null });
   },
 
   onOpenMemberCode: function () {

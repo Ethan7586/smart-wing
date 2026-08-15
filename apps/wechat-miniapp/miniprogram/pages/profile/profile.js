@@ -30,9 +30,9 @@ Page({
     points: null,
 
     orderShortcuts: [
-      { key: 'unpaid', label: '待付款', icon: 'credit-card' },
-      { key: 'shipping', label: '待收货', icon: 'gift' },
-      { key: 'aftersale', label: '售后', icon: 'headphones' },
+      { key: 'pending_payment', label: '待付款', icon: 'credit-card' },
+      { key: 'pending_receipt', label: '待收货', icon: 'gift' },
+      { key: 'completed', label: '已完成', icon: 'circle-check-big' },
       { key: 'all', label: '全部订单', icon: 'file-text' },
     ],
   },
@@ -120,7 +120,9 @@ Page({
     wx.switchTab({ url: '/pages/membercode/membercode' });
   },
 
-  onOpenOrders: function () {
+  onOpenOrders: function (event) {
+    var key = (event && event.currentTarget && event.currentTarget.dataset && event.currentTarget.dataset.key) || 'all';
+    wx.setStorageSync('sw-orders-initial-filter', key);
     wx.switchTab({ url: '/pages/orders/orders' });
   },
 
@@ -141,10 +143,28 @@ Page({
     share.copyOfficialUrl();
   },
 
-  onPending: function (event) {
-    wx.showToast({
-      title: (event.currentTarget.dataset.label || '该功能') + '将在服务端接口接通后启用',
-      icon: 'none',
+  onSignOut: function () {
+    var self = this;
+    wx.showModal({
+      title: '退出登录',
+      content: '退出后仍可浏览公开商品，会员资产和订单将停止显示。',
+      confirmText: '退出',
+      success: function (result) {
+        if (!result.confirm) return;
+        api.clearAccessToken();
+        self._dataReady = false;
+        self._loadedAt = 0;
+        self.setData({
+          signedIn: false,
+          member: null,
+          welfare: '—',
+          meal: '—',
+          voucherCount: null,
+          points: null,
+          loadError: null,
+        });
+        wx.showToast({ title: '已退出登录', icon: 'success' });
+      },
     });
   },
 });

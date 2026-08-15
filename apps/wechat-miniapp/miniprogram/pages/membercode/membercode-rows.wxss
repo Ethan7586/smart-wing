@@ -40,6 +40,55 @@
   color: var(--sw-text);
 }
 
+.contact-button {
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  line-height: normal;
+}
+
+.access-card,
+.verification-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: var(--sw-space-2);
+  padding: var(--sw-space-3) var(--sw-space-2);
+  border-radius: var(--sw-radius-large);
+  border: 1rpx solid var(--sw-border);
+  background: var(--sw-surface);
+  text-align: center;
+}
+
+.access-mark {
+  width: 112rpx;
+  height: 112rpx;
+}
+
+.access-title,
+.verification-title {
+  margin-top: var(--sw-space-1_5);
+}
+
+.access-desc,
+.verification-desc {
+  margin-top: var(--sw-space-1);
+  color: var(--sw-text-secondary);
+}
+
+.primary-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--sw-touch-min);
+  margin-top: var(--sw-space-2);
+  border-radius: var(--sw-radius-medium);
+  background: var(--sw-brand);
+  color: var(--sw-text-inverse);
+  font-size: var(--sw-fs-bodySmall);
+}
+
 .tabbar-spacer {
   height: calc(var(--sw-tabbar-height) + var(--sw-space-2) + env(safe-area-inset-bottom, 0px));
 }

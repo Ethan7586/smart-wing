@@ -20,21 +20,68 @@ function presentProduct(product) {
 }
 
 Page({
-  data: { nav: {}, sizeClass: '', sizeStyle: '', product: null, error: '', cartBusy: false },
+  data: { nav: {}, sizeClass: '', sizeStyle: '', product: null, loading: true, error: '', cartBusy: false },
 
   onLoad: function (options) {
     share.enableMenu();
     var area = app.getSafeArea();
     var size = app.getSizeClass();
     var id = options.id ? decodeURIComponent(options.id) : '';
-    var stored = id ? wx.getStorageSync('sw-public-product-' + id) : null;
     this.setData({
       nav: area,
       sizeClass: size.className,
       sizeStyle: size.rootStyle,
-      product: stored && stored.id === id ? presentProduct(stored) : null,
-      error: stored && stored.id === id ? '' : '商品信息未缓存，请从商品列表重新进入',
     });
+    this.loadProduct(id);
+  },
+
+  findProduct: function (catalog, id) {
+    var items = catalog && Array.isArray(catalog.items) ? catalog.items : [];
+    return items.find(function (item) {
+      return item && item.id === id;
+    });
+  },
+
+  applyProduct: function (product) {
+    wx.setStorageSync('sw-public-product-' + product.id, product);
+    this.setData({ product: presentProduct(product), loading: false, error: '' });
+  },
+
+  loadProduct: function (id) {
+    var self = this;
+    if (!id) {
+      this.setData({ loading: false, error: '商品链接无效，请返回公开商品列表' });
+      return;
+    }
+    var stored = wx.getStorageSync('sw-public-product-' + id);
+    if (stored && stored.id === id) {
+      this.applyProduct(stored);
+      return;
+    }
+    var cached = api.readCachedProducts();
+    var cachedProduct = this.findProduct(cached, id);
+    if (cachedProduct) {
+      this.applyProduct(cachedProduct);
+      return;
+    }
+    this.setData({ loading: true, product: null, error: '' });
+    this._catalogRequest = api
+      .hydrateBundledCatalog()
+      .then(function (catalog) {
+        var product = self.findProduct(catalog, id);
+        if (product) return product;
+        return api.listProducts({ cursor: 0, limit: 200 }).then(function (response) {
+          return self.findProduct(response, id);
+        });
+      })
+      .then(function (product) {
+        if (!product) throw new Error('该商品已下架或链接已失效');
+        self.applyProduct(product);
+      })
+      .catch(function (error) {
+        if (error && error.code === 'REQUEST_ABORTED') return;
+        self.setData({ loading: false, product: null, error: (error && error.message) || '商品加载失败，请稍后重试' });
+      });
   },
 
   onResize: function () {
@@ -43,8 +90,16 @@ Page({
     this.setData({ sizeClass: next.className, sizeStyle: next.rootStyle });
   },
 
+  onUnload: function () {
+    if (this._catalogRequest && typeof this._catalogRequest.abort === 'function') this._catalogRequest.abort();
+  },
+
   onBack: function () {
-    wx.navigateBack();
+    if (getCurrentPages().length > 1) {
+      wx.navigateBack();
+      return;
+    }
+    wx.reLaunch({ url: '/pages/products/products?title=' + encodeURIComponent('全部公开商品') });
   },
 
   onImageError: function () {
