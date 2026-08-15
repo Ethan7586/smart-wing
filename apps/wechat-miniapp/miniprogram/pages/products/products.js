@@ -1,4 +1,5 @@
 var api = require('../../utils/api');
+var catalogPolicy = require('../../utils/catalogPolicy');
 var sizeClassUtil = require('../../utils/sizeClass');
 var share = require('../../utils/share');
 
@@ -40,9 +41,14 @@ Page({
     share.enableMenu();
     var area = app.getSafeArea();
     var size = app.getSizeClass();
+    var requestedCategory = options.category ? decodeURIComponent(options.category) : '';
+    if (!catalogPolicy.isRailVisible(requestedCategory)) {
+      wx.redirectTo({ url: '/pages/category/category' });
+      return;
+    }
     this.setData({
       title: options.title ? decodeURIComponent(options.title) : '公开商品',
-      category: options.category ? decodeURIComponent(options.category) : '',
+      category: requestedCategory,
       nav: area,
       sizeClass: size.className,
       sizeStyle: size.rootStyle,
@@ -52,7 +58,7 @@ Page({
     var cached = api.readCachedProducts(this.data.category);
     if (cached) {
       this.applyWindow(cached.items, true);
-      this.setData({ cacheText: '关键商品已就绪 · ' + cached.items.length + ' 件立即可见' });
+      this.setData({ cacheText: '关键商品已就绪 · ' + this._windowProducts.length + ' 件立即可见' });
       afterFirstPaint(
         function () {
           this.hydrateWindow();
@@ -75,7 +81,7 @@ Page({
             })
           : hydrated.items;
         self.applyWindow(items, true);
-        self.setData({ cacheText: '完整目录已就绪 · ' + items.length + ' 件已缓存' });
+        self.setData({ cacheText: '完整目录已就绪 · ' + self._windowProducts.length + ' 件可浏览' });
         if (hydrated.cache && hydrated.cache.stale) return self.refreshWindow(false);
         return true;
       })
@@ -105,7 +111,7 @@ Page({
   },
 
   applyWindow: function (items, resetVisible) {
-    this._windowProducts = (Array.isArray(items) ? items : []).slice(0, CACHE_WINDOW_SIZE).map(presentProduct);
+    this._windowProducts = catalogPolicy.filterProducts(items).slice(0, CACHE_WINDOW_SIZE).map(presentProduct);
     this._visibleCount = resetVisible ? Math.min(RENDER_BATCH_SIZE, this._windowProducts.length) : Math.min(Math.max(this._visibleCount, RENDER_BATCH_SIZE), this._windowProducts.length);
     this.setData({
       products: this._windowProducts.slice(0, this._visibleCount),

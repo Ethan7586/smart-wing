@@ -47,6 +47,20 @@ test('cart presentation uses only eligible real rows in the payable total', () =
   assert.equal(cart.rows[1].disabledCopy, '测试商品不可购买');
 });
 
+test('cart and checkout omit food rows while Mini Program qualification is unavailable', () => {
+  const checkoutState = loadMiniModule(path.join(miniRoot, 'utils/checkoutState.js'), { wx: {} });
+  const cart = checkoutState.presentCart([
+    item({ id: 'food-row', skuId: 'food-sku', categoryCode: 'food', taxonomy: { l1: 'food', l2: 'food_snack', l3: 'food_snack_nuts' } }),
+    item({ id: 'digital-row', skuId: 'digital-sku', categoryCode: 'digital', taxonomy: { l1: 'digital', l2: 'digital_office', l3: 'digital_office_equipment' } }),
+  ]);
+  assert.deepEqual(
+    cart.rows.map((row) => row.skuId),
+    ['digital-sku']
+  );
+  assert.equal(cart.selectedCount, 1);
+  assert.equal(cart.totalText, '25.00');
+});
+
 test('checkout draft contains only selected eligible rows and expires honestly', () => {
   const values = { sw_member_session_scope: 'membership-one' };
   const checkoutState = loadMiniModule(path.join(miniRoot, 'utils/checkoutState.js'), {

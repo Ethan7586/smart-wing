@@ -1,5 +1,7 @@
-var CART_CACHE_KEY = 'sw-cart-snapshot-v1';
-var CHECKOUT_DRAFT_KEY = 'sw-checkout-draft-v1';
+// V2 invalidates pre-qualification cached carts and checkout drafts.
+var CART_CACHE_KEY = 'sw-cart-snapshot-v2';
+var CHECKOUT_DRAFT_KEY = 'sw-checkout-draft-v2';
+var catalogPolicy = require('./catalogPolicy');
 var CART_TTL_MS = 2 * 60 * 1000;
 var DRAFT_TTL_MS = 10 * 60 * 1000;
 var SESSION_SCOPE_KEY = 'sw_member_session_scope';
@@ -83,7 +85,7 @@ function presentItem(item) {
 }
 
 function presentCart(items) {
-  var rows = (Array.isArray(items) ? items : []).map(presentItem);
+  var rows = catalogPolicy.filterProducts(items).map(presentItem);
   var groupMap = {};
   var groups = [];
   rows.forEach(function (item, index) {

@@ -2,6 +2,7 @@ var sizeClassUtil = require('../../utils/sizeClass');
 var share = require('../../utils/share');
 var api = require('../../utils/api');
 var checkoutState = require('../../utils/checkoutState');
+var catalogPolicy = require('../../utils/catalogPolicy');
 
 var app = getApp();
 
@@ -28,12 +29,13 @@ Page({
     var size = app.getSizeClass();
     var id = options.id ? decodeURIComponent(options.id) : '';
     var stored = id ? wx.getStorageSync('sw-public-product-' + id) : null;
+    var visible = stored && stored.id === id && catalogPolicy.isProductVisible(stored);
     this.setData({
       nav: area,
       sizeClass: size.className,
       sizeStyle: size.rootStyle,
-      product: stored && stored.id === id ? presentProduct(stored) : null,
-      error: stored && stored.id === id ? '' : '商品信息未缓存，请从商品列表重新进入',
+      product: visible ? presentProduct(stored) : null,
+      error: visible ? '' : stored && stored.id === id ? '该商品暂未在小程序开放' : '商品信息未缓存，请从商品列表重新进入',
     });
   },
 

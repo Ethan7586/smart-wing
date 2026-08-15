@@ -8,6 +8,7 @@
  */
 
 var taxonomy = require('../data/catalog-taxonomy.generated');
+var catalogPolicy = require('./catalogPolicy');
 
 function copyTile(tile) {
   return {
@@ -22,12 +23,12 @@ function copyTile(tile) {
 function baseTilesByKey() {
   var leaves = taxonomy.leaves || [];
   var result = {
-    featured: (taxonomy.mobileBrowse.featured || []).map(function (item) {
+    featured: (taxonomy.mobileBrowse.featured || []).filter(catalogPolicy.isFeaturedTileVisible).map(function (item) {
       return copyTile({ key: item.code, label: item.nameZh, matchCodes: item.matchCodes });
     }),
   };
 
-  (taxonomy.mobileBrowse.rail || []).forEach(function (categoryCode) {
+  (taxonomy.mobileBrowse.rail || []).filter(catalogPolicy.isRailVisible).forEach(function (categoryCode) {
     var categoryLeaves = leaves.filter(function (leaf) {
       return leaf.l1 === categoryCode;
     });
@@ -44,7 +45,7 @@ function rail() {
     categoryByCode[category.code] = category;
   });
   return [{ key: 'featured', label: '精选' }].concat(
-    (taxonomy.mobileBrowse.rail || []).map(function (code) {
+    (taxonomy.mobileBrowse.rail || []).filter(catalogPolicy.isRailVisible).map(function (code) {
       return { key: code, label: categoryByCode[code] ? categoryByCode[code].nameZh : code };
     })
   );
@@ -106,7 +107,7 @@ function enrichTiles(tilesByKey, products) {
 }
 
 function createSnapshot(products) {
-  var safeProducts = Array.isArray(products) ? products : [];
+  var safeProducts = catalogPolicy.filterProducts(products);
   var base = baseTilesByKey();
   var tilesByKey = safeProducts.length ? enrichTiles(base, safeProducts) : base;
   var featuredProducts = safeProducts.filter(function (product) {
@@ -153,9 +154,11 @@ function itemsFromResponse(response) {
     error.code = 'INVALID_CATALOG_RESPONSE';
     throw error;
   }
-  return response.items.filter(function (product) {
-    return product && typeof product.id === 'string' && product.taxonomy && typeof product.taxonomy.l1 === 'string';
-  });
+  return catalogPolicy.filterProducts(
+    response.items.filter(function (product) {
+      return product && typeof product.id === 'string' && product.taxonomy && typeof product.taxonomy.l1 === 'string';
+    })
+  );
 }
 
 module.exports = {

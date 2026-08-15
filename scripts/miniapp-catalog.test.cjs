@@ -7,6 +7,7 @@ const root = path.join(__dirname, '..');
 const catalogPath = path.join(root, 'apps/wechat-miniapp/miniprogram/utils/catalog.js');
 const apiPath = path.join(root, 'apps/wechat-miniapp/miniprogram/utils/api.js');
 const categoryPagePath = path.join(root, 'apps/wechat-miniapp/miniprogram/pages/category/category.js');
+const policyPath = path.join(root, 'apps/wechat-miniapp/miniprogram/utils/catalogPolicy.js');
 
 function loadMiniModule(file, globals = {}) {
   const module = { exports: {} };
@@ -30,26 +31,54 @@ test('shared taxonomy fills every approved category rail', () => {
   const snapshot = catalog.createSnapshot([]);
   assert.deepEqual(
     snapshot.rail.map(({ label }) => label),
-    ['精选', '食品饮料', '家用电器', '数码办公', '家居日用', '个护清洁', '企业福利专区']
+    ['精选', '家用电器', '数码办公', '家居日用', '个护清洁', '企业福利专区']
   );
   for (const item of snapshot.rail) {
     assert.ok(snapshot.tilesByKey[item.key].length > 0, `${item.label} must not render blank`);
   }
-  assert.equal(snapshot.tilesByKey.featured.length, 12);
+  assert.ok(snapshot.tilesByKey.featured.length > 0);
+  assert.equal(snapshot.tilesByKey.food, undefined);
 });
 
-test('public main-Shop products enrich their taxonomy tile', () => {
+test('qualified public main-Shop products enrich their taxonomy tile', () => {
   const catalog = loadMiniModule(catalogPath);
   const snapshot = catalog.createSnapshot([
     {
       id: 'product-one',
-      coverUrl: 'https://cdn.example.test/nuts.webp',
-      taxonomy: { l1: 'food', l2: 'food_snack', l3: 'food_snack_nuts' },
+      coverUrl: 'https://cdn.example.test/kettle.webp',
+      taxonomy: { l1: 'appliance', l2: 'appliance_kitchen', l3: 'appliance_kitchen_cook' },
     },
   ]);
-  const leaf = snapshot.tilesByKey.food.find(({ key }) => key === 'food_snack_nuts');
-  assert.equal(leaf.image, 'https://cdn.example.test/nuts.webp');
+  const leaf = snapshot.tilesByKey.appliance.find(({ key }) => key === 'appliance_kitchen_cook');
+  assert.equal(leaf.image, 'https://cdn.example.test/kettle.webp');
   assert.equal(leaf.productCount, 1);
+});
+
+test('food commerce is consistently hidden until qualification is approved', () => {
+  const catalog = loadMiniModule(catalogPath);
+  const policy = loadMiniModule(policyPath);
+  const food = {
+    id: 'food-product',
+    name: '食品商品',
+    taxonomy: { l1: 'food', l2: 'food_snack', l3: 'food_snack_nuts' },
+  };
+  const allowed = {
+    id: 'digital-product',
+    name: '办公设备',
+    taxonomy: { l1: 'digital', l2: 'digital_office', l3: 'digital_office_equipment' },
+  };
+  const snapshot = catalog.createSnapshot([food, allowed]);
+  assert.equal(policy.foodCommerceEnabled, false);
+  assert.equal(snapshot.productCount, 1);
+  assert.equal(snapshot.products[0].id, 'digital-product');
+  assert.equal(snapshot.tilesByKey.food, undefined);
+  assert.equal(
+    snapshot.tilesByKey.featured.some(({ label }) => /食品|零食|粮油|乳品|酒水|母婴|保健/.test(label)),
+    false
+  );
+  assert.equal(policy.isHomeSegmentVisible({ key: 'grocery' }), false);
+  assert.equal(policy.isHomeSegmentVisible({ key: 'dining' }), false);
+  assert.equal(policy.isHomeSegmentVisible({ key: 'digital' }), true);
 });
 
 test('a category still shows real products when an older cache lacks leaf taxonomy', () => {
@@ -104,9 +133,9 @@ test('a populated current rail stays selected after public catalog refresh', () 
   const catalog = loadMiniModule(catalogPath);
   const snapshot = catalog.createSnapshot([
     {
-      id: 'snack-product',
-      coverUrl: 'https://cdn.example.test/snack.jpg',
-      taxonomy: { l1: 'food', l2: 'food_snack', l3: 'food_snack_nuts' },
+      id: 'office-product',
+      coverUrl: 'https://cdn.example.test/office.jpg',
+      taxonomy: { l1: 'digital', l2: 'digital_office', l3: 'digital_office_equipment' },
     },
   ]);
   assert.equal(catalog.preferredRailKey(snapshot, 'featured'), 'featured');

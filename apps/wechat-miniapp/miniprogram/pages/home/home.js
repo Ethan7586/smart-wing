@@ -1,6 +1,7 @@
 var demo = require('../../data/demo');
 var api = require('../../utils/api');
 var accountPresentation = require('../../utils/accountPresentation');
+var catalogPolicy = require('../../utils/catalogPolicy');
 var sizeClassUtil = require('../../utils/sizeClass');
 var share = require('../../utils/share');
 
@@ -142,6 +143,7 @@ Page({
   },
 
   applySnapshot: function (home, products) {
+    var visibleProducts = catalogPolicy.filterProducts(products);
     var member = home && !home.memberError ? accountPresentation.memberSummary(home) : null;
     var signedIn = Boolean(member && (member.memberName || member.employeeNo));
     var welfareCents = member && Number.isFinite(member.welfareCents) ? member.welfareCents : null;
@@ -163,11 +165,9 @@ Page({
       entries: demo.entries,
       hero: demo.hero,
       partners: demo.partners,
-      segments: demo.segments.filter(function (item) {
-        return item.reviewEnabled !== false;
-      }),
+      segments: demo.segments.filter(catalogPolicy.isHomeSegmentVisible),
       memberCodeCta: demo.memberCodeCta,
-      recommendations: decorateProducts(products.slice(0, 2)),
+      recommendations: decorateProducts(visibleProducts.slice(0, 2)),
     });
   },
 

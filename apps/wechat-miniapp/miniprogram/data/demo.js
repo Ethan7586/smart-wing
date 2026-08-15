@@ -66,7 +66,7 @@ module.exports = {
   ],
 
   segments: [
-    { key: 'grocery', title: '商超到家', desc: '生鲜百货 极速达送', icon: 'shopping-basket', image: null, reviewEnabled: false },
+    { key: 'grocery', title: '商超到家', desc: '生鲜百货 极速达送', icon: 'shopping-basket', image: null },
     { key: 'life', title: '生活服务', desc: '乐享生活 便捷到家', icon: 'house-plus', image: null },
     { key: 'digital', title: '数码办公', desc: '精选设备 高效办公', icon: 'laptop', image: null },
     { key: 'dining', title: '餐饮福利', desc: '美味折扣 员工专享', icon: 'utensils', image: null },
