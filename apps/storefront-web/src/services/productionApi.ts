@@ -16,7 +16,7 @@ interface ErrorEnvelope {
 }
 
 const API_REQUEST_TIMEOUT_MS = 12_000;
-const PUBLIC_CATALOG_MANIFEST_PATH = '/catalog/public/v1/latest.json';
+const PUBLIC_CATALOG_MANIFEST_PATH = 'https://img.hbbtzn.com/catalog/public/v1/latest.json';
 const PUBLIC_CATALOG_BROWSER_CACHE_KEY = 'smart-wing:public-catalog:v1';
 const PUBLIC_CATALOG_BROWSER_MAX_AGE_MS = 24 * 60 * 60 * 1_000;
 
