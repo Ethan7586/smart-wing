@@ -15,6 +15,77 @@ interface ErrorEnvelope {
   };
 }
 
+const API_REQUEST_TIMEOUT_MS = 12_000;
+const PUBLIC_CATALOG_MANIFEST_PATH = '/catalog/public/v1/latest.json';
+const PUBLIC_CATALOG_BROWSER_CACHE_KEY = 'smart-wing:public-catalog:v1';
+const PUBLIC_CATALOG_BROWSER_MAX_AGE_MS = 24 * 60 * 60 * 1_000;
+
+export type ApiCatalogPage = {
+  items: ApiProduct[];
+  pagination: { nextCursor: number | null };
+};
+
+type BrowserCatalogCache = { storedAt: number; page: ApiCatalogPage };
+function validCatalogPage(value: unknown): value is ApiCatalogPage {
+  if (!value || typeof value !== 'object') return false;
+  const page = value as Partial<ApiCatalogPage>;
+  return Array.isArray(page.items) && Boolean(page.pagination) && (page.pagination?.nextCursor === null || Number.isInteger(page.pagination?.nextCursor));
+}
+function browserCatalogStorage(): Storage | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+/** Public catalogue data is non-sensitive, so the last verified snapshot may
+ * render immediately while the CDN refresh runs in the background. */
+function readPublicCatalogBrowserCache(): ApiCatalogPage | null {
+  const storage = browserCatalogStorage();
+  if (!storage) return null;
+  try {
+    const cached = JSON.parse(storage.getItem(PUBLIC_CATALOG_BROWSER_CACHE_KEY) ?? 'null') as BrowserCatalogCache | null;
+    if (!cached || !Number.isFinite(cached.storedAt) || Date.now() - cached.storedAt > PUBLIC_CATALOG_BROWSER_MAX_AGE_MS || !validCatalogPage(cached.page)) return null;
+    return cached.page;
+  } catch {
+    return null;
+  }
+}
+
+function writePublicCatalogBrowserCache(page: ApiCatalogPage): void {
+  const storage = browserCatalogStorage();
+  if (!storage || !validCatalogPage(page)) return;
+  try {
+    storage.setItem(PUBLIC_CATALOG_BROWSER_CACHE_KEY, JSON.stringify({ storedAt: Date.now(), page } satisfies BrowserCatalogCache));
+  } catch {
+    // Storage is an optional speed layer; quota or privacy-mode failures must
+    // never affect catalogue availability.
+  }
+}
+
+async function fetchPublicCatalogManifest(): Promise<ApiCatalogPage> {
+  let response: Response;
+  try {
+    response = await fetch(PUBLIC_CATALOG_MANIFEST_PATH, {
+      headers: { accept: 'application/json' },
+      credentials: 'same-origin',
+      signal: AbortSignal.timeout(2_000),
+    });
+  } catch {
+    throw new ProductionApiError('目录镜像暂时不可用', 503, 'CATALOG_MIRROR_UNAVAILABLE');
+  }
+  if (!response.ok || !(response.headers.get('content-type') ?? '').includes('application/json')) {
+    throw new ProductionApiError('目录镜像响应异常', response.status, 'CATALOG_MIRROR_INVALID');
+  }
+  const page = (await response.json()) as unknown;
+  if (!validCatalogPage(page) || page.items.length === 0) {
+    throw new ProductionApiError('目录镜像数据异常', 503, 'CATALOG_MIRROR_INVALID');
+  }
+  writePublicCatalogBrowserCache(page);
+  return page;
+}
+
 export class ProductionApiError extends Error {
   constructor(
     message: string,
@@ -29,16 +100,29 @@ export class ProductionApiError extends Error {
 
 async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS);
   headers.set('accept', 'application/json');
   if (init.body) {
     headers.set('content-type', 'application/json');
   }
 
-  const response = await fetch(path, {
-    ...init,
-    headers,
-    credentials: 'same-origin',
-  });
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      ...init,
+      headers,
+      credentials: 'same-origin',
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new ProductionApiError('商品服务响应超时，请重新同步', 504, 'REQUEST_TIMEOUT');
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeout);
+  }
   const isJson = (response.headers.get('content-type') ?? '').includes('application/json');
   if (!isJson) {
     throw new ProductionApiError(response.ok ? '服务响应格式异常' : `服务请求失败（${response.status}）`, response.status, 'NON_JSON_RESPONSE');
@@ -64,7 +148,19 @@ export const productionApi = {
     return apiFetch('/api/health');
   },
 
-  async getSession(): Promise<{ authenticated: true; actor: ApiActor }> {
+  async getReadiness(): Promise<{
+    status: string;
+    checks: {
+      database: string;
+      authentication: string;
+      piiEncryption: string;
+    };
+    database: { provider: string; region: string; tableCount?: number };
+  }> {
+    return apiFetch('/api/ready');
+  },
+
+  async getSession(): Promise<{ authenticated: true; actor: ApiActor; entrances?: { storefront: boolean; admin: boolean } }> {
     return apiFetch('/api/v1/auth/session');
   },
 
@@ -130,6 +226,14 @@ export const productionApi = {
     if (options.cursor !== undefined) query.set('cursor', String(options.cursor));
     if (options.limit !== undefined) query.set('limit', String(options.limit));
     return apiFetch(`/api/v1/catalog/public/products?${query.toString()}`);
+  },
+
+  readCachedPublicCatalog(): ApiCatalogPage | null {
+    return readPublicCatalogBrowserCache();
+  },
+
+  async fetchPublicCatalogMirror(): Promise<ApiCatalogPage> {
+    return fetchPublicCatalogManifest();
   },
 
   async listQualifiedProducts(options: { category?: string; cursor?: number; limit?: number } = {}): Promise<{ items: ApiProduct[]; pagination: { nextCursor: number | null } }> {

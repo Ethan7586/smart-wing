@@ -37,9 +37,21 @@ bash infrastructure/aliyun/deploy.sh
 
 ```bash
 curl -fsS http://127.0.0.1:3000/api/health
+curl -fsS http://127.0.0.1:3000/api/ready
+curl -fsSI https://hbbtzn.com/catalog/public/v1/latest.json
 curl -I https://hbbtzn.com
 curl -I https://smart.hbbtzn.com
 ```
+
+`/api/health` 是不访问远程数据库的快速存活检查；`/api/ready` 是用于发布验收的深度依赖检查。若配置了阿里云 OSS 发布凭据，日常发布脚本会在服务重载后自动刷新公开目录清单；上述目录请求必须返回 `200`，且包含可缓存的 `Cache-Control` 响应头。未配置 OSS 凭据时脚本会明确提示跳过，主站仍可从业务 API 安全回源。
+
+发布后在一台接近目标用户的独立机器运行：
+
+```bash
+npm run probe:storefront-performance -- --samples 10 --strict
+```
+
+该命令的网络与缓存项共 70 分；还必须传入真实 Chrome 性能追踪导出的 `lcpMs`、`inpMs`、`cls`、`errorRate` JSON 文件，才会计入最后 30 分并允许验收为 95 分。它不会用缺失的浏览器数据伪造高分。
 
 ## 启用核心读镜像
 

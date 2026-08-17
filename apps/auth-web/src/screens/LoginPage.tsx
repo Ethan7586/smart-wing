@@ -38,7 +38,9 @@ import { requestOtp, loginWithOtp, loginWithPassword, verifyStepUp, getLockoutSt
 
 export const LoginPage: React.FC = () => {
   const { currentDomain, navigateTo, acceptedTerms, setAcceptedTerms, setActiveSession } = useMallContext();
-  const isStorefrontEmbed = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === 'storefront';
+  const loginParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const isStorefrontEmbed = loginParams?.get('embed') === 'storefront';
+  const isAdminEntry = loginParams?.get('target') === 'admin';
 
   // 当前流程阶段: 1 = 账号认证, 2 = 选择会员身份, 3 = 管理员 Step-Up 二次验证
   const [stage, setStage] = useState<1 | 2 | 3>(1);
@@ -391,7 +393,7 @@ export const LoginPage: React.FC = () => {
     window.location.replace('/');
   };
 
-  const completeAdminTestLogin = () => {
+  const completeAdminLogin = () => {
     // The browser performs a top-level POST on the target host, allowing the
     // admin domain to create its own __Host- cookie before loading the app.
     // Credentials are deliberately submitted in the request body, never URL.
@@ -415,6 +417,18 @@ export const LoginPage: React.FC = () => {
 
   const processPreAuthContext = async (context: PreAuthContext) => {
     const activeMemberships = context.memberships;
+
+    // Password login is storefront-first. The only alternate path is the
+    // dedicated back-office entry, where the server-confirmed entrance list
+    // decides whether the same account may establish an admin session.
+    // Neither path asks the person to select an account type.
+    if (activeTab === 'password' && isAdminEntry) {
+      if (context.entrances?.admin !== true) {
+        throw new Error('该账号没有运营后台权限；可使用同一账号登录商城购物');
+      }
+      completeAdminLogin();
+      return;
+    }
 
     // 如果没有任何可用会员身份
     if (!activeMemberships || activeMemberships.length === 0) {
@@ -446,7 +460,7 @@ export const LoginPage: React.FC = () => {
           setSelectedMembership(singleMem);
           setStage(3);
         } else {
-          completeAdminTestLogin();
+          completeAdminLogin();
         }
         return;
       }
@@ -489,7 +503,7 @@ export const LoginPage: React.FC = () => {
       }
 
       if (mem.target === 'admin') {
-        completeAdminTestLogin();
+        completeAdminLogin();
         return;
       }
 
@@ -541,7 +555,7 @@ export const LoginPage: React.FC = () => {
       const result = await verifyStepUp(preAuthContext.preAuthToken, selectedMembership.id, totpCode);
 
       if (selectedMembership.target === 'admin') {
-        completeAdminTestLogin();
+        completeAdminLogin();
         return;
       }
 

@@ -2,7 +2,7 @@ import { sha256 } from './crypto';
 import { getDemoAccounts, isDemoAuthEnabled, resolveDemoMembership, verifyDemoPassword } from './demoAuth';
 import { apiError, json, methodNotAllowed } from './http';
 import { isTestLoginRateLimitBypassed, readTrustedClientIp } from './loginRateLimitBypass';
-import { resolveMembershipRuntimeByIds, type MembershipRuntime } from './membershipContext';
+import { parseMembershipRuntime, resolveMembershipRuntimeByIds, type MembershipRuntime } from './membershipContext';
 import { localPhoneSubject } from './registrationRoutes';
 import { hashPassword, normalizeChineseMobile, normalizeLocalUsername, validRegistrationPassword, verifyPassword } from './registrationSecurity';
 import { readJsonBody } from './routerSupport';
@@ -36,9 +36,42 @@ interface CatalogRow {
 
 export async function handleHealth(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
+  // Liveness must not synchronously cross regions to the database. Doing so
+  // made load-balancer probes take seconds and amplified an upstream outage.
+  // Use /api/ready for a deliberate deep dependency check instead.
+  const authReady = Boolean(env.SESSION_SIGNING_KEY && env.ADMIN_SESSION_SIGNING_KEY && (env.AUTH_MODE === 'membership' || isDemoAuthEnabled(env)));
+  const piiReady = Boolean(env.PII_ENCRYPTION_KEY);
+  return json({
+    service: 'smart-wing-production-mvp',
+    status: 'ok',
+    probe: 'liveness',
+    checks: {
+      database: isSupabaseConfigured(env) ? 'not_checked' : 'configuration_required',
+      authentication: authReady ? 'mvp_session_ready' : 'awaiting_enterprise_provider',
+      piiEncryption: piiReady ? 'configured' : 'required_for_orders',
+    },
+    database: { provider: 'Supabase PostgreSQL', region: env.SUPABASE_REGION ?? 'unconfigured' },
+    requestId,
+  });
+}
+
+/**
+ * Deep readiness is intentionally separate from the fast liveness endpoint.
+ * It is for deployment gates and diagnostics, not for high-frequency traffic
+ * or browser startup. A database outage therefore remains visible without
+ * turning every ordinary health probe into a remote database round trip.
+ */
+export async function handleReadiness(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
+  if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
   let health = { databaseReady: false, tableCount: 0 };
   if (isSupabaseConfigured(env)) {
-    health = await callRpc<typeof health>(env, 'api_health');
+    try {
+      health = await callRpc<typeof health>(env, 'api_health');
+    } catch {
+      // Readiness must state the dependency failure explicitly rather than
+      // hiding it behind a generic 5xx from the global error handler.
+      health = { databaseReady: false, tableCount: 0 };
+    }
   }
   const authReady = Boolean(env.SESSION_SIGNING_KEY && env.ADMIN_SESSION_SIGNING_KEY && (env.AUTH_MODE === 'membership' || isDemoAuthEnabled(env)));
   const piiReady = Boolean(env.PII_ENCRYPTION_KEY);
@@ -46,12 +79,13 @@ export async function handleHealth(request: Request, env: WorkerEnv, requestId: 
   return json({
     service: 'smart-wing-production-mvp',
     status,
+    probe: 'readiness',
     checks: {
-      database: health.databaseReady ? 'ready' : 'configuration_required',
+      database: health.databaseReady ? 'ready' : 'unavailable_or_configuration_required',
       authentication: authReady ? 'mvp_session_ready' : 'awaiting_enterprise_provider',
       piiEncryption: piiReady ? 'configured' : 'required_for_orders',
     },
-    database: { provider: 'Supabase PostgreSQL', region: env.SUPABASE_REGION ?? 'unconfigured' },
+    database: { provider: 'Supabase PostgreSQL', region: env.SUPABASE_REGION ?? 'unconfigured', tableCount: health.tableCount },
     requestId,
   });
 }
@@ -67,7 +101,7 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
   const username = typeof input.username === 'string' ? input.username : '';
   const password = typeof input.password === 'string' ? input.password : '';
   const clientIp = readTrustedClientIp(request);
-  const ipHash = await sha256(`${clientIp ?? 'unknown'}:${env.SESSION_SIGNING_KEY ?? ''}`);
+  const ipHash = await loginAttemptKey(clientIp, username, env);
   const bypassRateLimit = isTestLoginRateLimitBypassed(clientIp, env);
   if (bypassRateLimit) {
     console.info(
@@ -92,12 +126,15 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
     return apiError(400, 'INVALID_LOGIN_INPUT', '账号或密码缺失', requestId);
   }
   const target = targetForRequest(request);
-  const localLogin = registeredAuthEnabled ? await authenticateLocalMember(username, password, target, env) : { runtime: null, credentialFound: false, mustResetPassword: false, passwordHash: null };
+  const localLogin = registeredAuthEnabled ? await authenticateLocalMember(username, password, target, env) : NO_LOCAL_LOGIN;
   const registeredRuntime = localLogin.runtime;
   const account = registeredRuntime || localLogin.credentialFound ? null : getDemoAccounts(env).find((candidate) => candidate.username.trim().toLowerCase() === username.trim().toLowerCase());
   const demoRuntime = account && (await verifyDemoPassword(password, account.password)) ? await resolveDemoMembership(env, account, target) : null;
   const runtime = registeredRuntime ?? demoRuntime;
   if (!runtime) {
+    // The password was right; this account simply has no identity on this host.
+    // Saying so beats a false "wrong password", and it is not a failed attempt.
+    if (localLogin.targetUnavailable) return apiError(403, 'ENTRANCE_NOT_AVAILABLE', entranceMessage(localLogin.entrances), requestId);
     if (!bypassRateLimit) {
       await callRpc<string | null>(env, 'api_record_login_failure', {
         p_ip_hash: ipHash,
@@ -139,13 +176,15 @@ export async function handleRegisteredCredentialDiscovery(request: Request, env:
   if (!username || !password) return apiError(400, 'INVALID_LOGIN_INPUT', '登录信息不完整', requestId);
 
   const clientIp = readTrustedClientIp(request);
-  const ipHash = await sha256(`${clientIp ?? 'unknown'}:${env.SESSION_SIGNING_KEY ?? ''}`);
+  const ipHash = await loginAttemptKey(clientIp, username, env);
   const bypassRateLimit = isTestLoginRateLimitBypassed(clientIp, env);
   if (!bypassRateLimit) {
     const loginAllowed = await callRpc<boolean>(env, 'api_login_allowed', { p_ip_hash: ipHash });
     if (!loginAllowed) return apiError(429, 'LOGIN_RATE_LIMITED', '登录尝试过多，请15分钟后重试', requestId);
   }
 
+  // No target is pinned here: discovery reports where this account can go, and
+  // the storefront-first ordering makes shopping the default landing.
   const localLogin = await authenticateLocalMember(username, password, undefined, env);
   const demoAccount = localLogin.credentialFound ? null : getDemoAccounts(env).find((candidate) => candidate.username.trim().toLowerCase() === username.trim().toLowerCase());
   const demoTarget = demoAccount?.adminMembershipId ? 'admin' : 'storefront';
@@ -156,7 +195,31 @@ export async function handleRegisteredCredentialDiscovery(request: Request, env:
     return apiError(401, 'INVALID_USERNAME_PASSWORD', '账号或密码不正确', requestId);
   }
   await callRpc<boolean>(env, 'api_clear_login_failures', { p_ip_hash: ipHash });
-  return json({ authenticated: true, requiresPasswordReset: localLogin.mustResetPassword, authorization: publicAuthorization(runtime.authorization), requestId });
+  return json({
+    authenticated: true,
+    requiresPasswordReset: localLogin.mustResetPassword,
+    authorization: publicAuthorization(runtime.authorization),
+    entrances: loginEntrances(localLogin, runtime, demoAccount ? demoTarget : undefined),
+    requestId,
+  });
+}
+
+/**
+ * Login failures are counted per account per address. A shared office egress
+ * address no longer collapses every tester into one bucket, while guessing a
+ * single account's password is still stopped after five attempts.
+ */
+async function loginAttemptKey(clientIp: string | null, username: string, env: WorkerEnv): Promise<string> {
+  return sha256(`${clientIp ?? 'unknown'}:${username.trim().toLowerCase()}:${env.SESSION_SIGNING_KEY ?? ''}`);
+}
+
+function entranceMessage(entrances: Entrance[]): string {
+  return entrances.some((entrance) => entrance.target === 'admin') ? '该账号是运营后台账号，请前往 smart.hbbtzn.com 登录' : '该账号是员工商城账号，请前往 hbbtzn.com 登录';
+}
+
+function loginEntrances(localLogin: LocalLogin, runtime: MembershipRuntime, demoTarget?: 'storefront' | 'admin') {
+  const targets = localLogin.entrances.length > 0 ? localLogin.entrances.map((entrance) => entrance.target) : [demoTarget ?? runtime.authorization.membership.target];
+  return { storefront: targets.includes('storefront'), admin: targets.includes('admin') };
 }
 
 export async function handleInitialPasswordChange(request: Request, env: WorkerEnv, requestId: string): Promise<Response> {
@@ -167,7 +230,7 @@ export async function handleInitialPasswordChange(request: Request, env: WorkerE
   const newPassword = typeof input?.newPassword === 'string' ? input.newPassword : '';
   if (!username || !currentPassword || !validRegistrationPassword(newPassword)) return apiError(422, 'INVALID_PASSWORD_CHANGE', '新密码至少10位，并同时包含字母和数字', requestId);
   const clientIp = readTrustedClientIp(request);
-  const ipHash = await sha256(`${clientIp ?? 'unknown'}:${env.SESSION_SIGNING_KEY ?? ''}`);
+  const ipHash = await loginAttemptKey(clientIp, username, env);
   if (!(await callRpc<boolean>(env, 'api_login_allowed', { p_ip_hash: ipHash }))) return apiError(429, 'LOGIN_RATE_LIMITED', '登录尝试过多，请15分钟后重试', requestId);
   const localLogin = await authenticateLocalMember(username, currentPassword, undefined, env);
   if (!localLogin.runtime || !localLogin.mustResetPassword || !localLogin.passwordHash) {
@@ -186,10 +249,40 @@ export async function handleInitialPasswordChange(request: Request, env: WorkerE
   return json({ changed: true, loginRequired: true, requestId });
 }
 
-type RegisteredCandidate = { memberId?: string; membershipId?: string; target?: 'storefront' | 'admin'; passwordHash?: string; mustResetPassword?: boolean };
-type LocalLogin = { runtime: MembershipRuntime | null; credentialFound: boolean; mustResetPassword: boolean; passwordHash: string | null };
+type Entrance = { target: 'storefront' | 'admin'; membershipId: string };
+type CandidateEntrance = Entrance & { runtime?: unknown };
+type RegisteredCandidate = { memberId?: string; membershipId?: string; target?: 'storefront' | 'admin'; passwordHash?: string; mustResetPassword?: boolean; entrances?: CandidateEntrance[] };
+type LocalLogin = { runtime: MembershipRuntime | null; credentialFound: boolean; mustResetPassword: boolean; passwordHash: string | null; entrances: Entrance[]; targetUnavailable: boolean };
 const DUMMY_PASSWORD_HASH = `pbkdf2-sha256$310000$AAAAAAAAAAAAAAAAAAAAAA==$${'A'.repeat(43)}=`;
+const NO_LOCAL_LOGIN: LocalLogin = { runtime: null, credentialFound: false, mustResetPassword: false, passwordHash: null, entrances: [], targetUnavailable: false };
 
+function readEntrances(candidate: RegisteredCandidate): Entrance[] {
+  const rows = Array.isArray(candidate.entrances) ? candidate.entrances : [];
+  const entrances = rows.filter((entrance): entrance is Entrance => (entrance?.target === 'storefront' || entrance?.target === 'admin') && typeof entrance.membershipId === 'string' && entrance.membershipId.length > 0);
+  // A database that has not yet applied the entrance migration reports only the
+  // single resolved membership. Treating that as the sole entrance keeps login
+  // working when the API rolls out ahead of the migration.
+  if (entrances.length > 0) return entrances;
+  return candidate.target && candidate.membershipId ? [{ target: candidate.target, membershipId: candidate.membershipId }] : [];
+}
+
+/** The credential lookup may carry a server-derived runtime per entrance. Its
+ * shape and exact identity are revalidated locally before it can issue a
+ * session. Older databases do not return this field and safely use the
+ * existing resolver below. */
+function runtimeFromCandidate(candidate: RegisteredCandidate, selected: Entrance): MembershipRuntime | null {
+  const entry = candidate.entrances?.find((entrance) => entrance?.target === selected.target && entrance.membershipId === selected.membershipId);
+  const runtime = parseMembershipRuntime(entry?.runtime);
+  if (!runtime) return null;
+  return runtime.membership.memberId === candidate.memberId && runtime.membership.id === selected.membershipId && runtime.membership.target === selected.target ? runtime : null;
+}
+
+/**
+ * Resolves one credential and every entrance it holds. With no requested
+ * target, storefront is the default. A requested host must have a matching
+ * entrance; a mismatch receives an explicit access message rather than a false
+ * "wrong password" response.
+ */
 export async function authenticateLocalMember(identifier: string, password: string, target: 'storefront' | 'admin' | undefined, env: WorkerEnv): Promise<LocalLogin> {
   const mobile = normalizeChineseMobile(identifier);
   const username = normalizeLocalUsername(identifier);
@@ -197,24 +290,34 @@ export async function authenticateLocalMember(identifier: string, password: stri
   const demoAlias = isDemoAuthEnabled(env) && getDemoAccounts(env).some((candidate) => candidate.username.trim().toLowerCase() === normalizedIdentifier);
   const provider = mobile ? 'local_phone' : demoAlias ? 'test' : username ? 'local_username' : isDemoAuthEnabled(env) ? 'test' : null;
   const subject = mobile ? await localPhoneSubject(mobile, env) : (username ?? identifier.trim().toLowerCase());
-  if (!provider || !subject) return { runtime: null, credentialFound: false, mustResetPassword: false, passwordHash: null };
+  if (!provider || !subject) return NO_LOCAL_LOGIN;
+  // Always look the credential up unfiltered, so a target mismatch stays
+  // distinguishable from a wrong password.
   const candidate = await callRpc<RegisteredCandidate | null>(env, 'api_local_login_candidate', {
     p_provider: provider,
     p_subject: subject,
-    p_target: target ?? null,
+    p_target: null,
   });
   if (!candidate?.memberId || !candidate.membershipId || !candidate.passwordHash) {
     await verifyPassword(password, DUMMY_PASSWORD_HASH);
-    return { runtime: null, credentialFound: false, mustResetPassword: false, passwordHash: null };
+    return NO_LOCAL_LOGIN;
   }
-  if (!(await verifyPassword(password, candidate.passwordHash))) return { runtime: null, credentialFound: true, mustResetPassword: false, passwordHash: null };
-  const resolvedTarget = candidate.target ?? target;
-  if (!resolvedTarget) return { runtime: null, credentialFound: true, mustResetPassword: false, passwordHash: null };
+  const credentialOnly = { runtime: null, credentialFound: true, mustResetPassword: false, passwordHash: null, entrances: [], targetUnavailable: false };
+  if (!(await verifyPassword(password, candidate.passwordHash))) return credentialOnly;
+
+  const entrances = readEntrances(candidate);
+  const preferred = target ? entrances.find((entrance) => entrance.target === target) : undefined;
+  // Falls back to the first entrance, which the RPC orders storefront-first:
+  // shopping is the default landing for every account that has a mall identity.
+  const selected = preferred ?? (target ? undefined : entrances[0]);
+  if (!selected) return { ...credentialOnly, entrances, targetUnavailable: entrances.length > 0 };
   return {
-    runtime: await resolveMembershipRuntimeByIds(env, candidate.memberId, candidate.membershipId, resolvedTarget),
+    runtime: runtimeFromCandidate(candidate, selected) ?? (await resolveMembershipRuntimeByIds(env, candidate.memberId, selected.membershipId, selected.target)),
     credentialFound: true,
     mustResetPassword: candidate.mustResetPassword === true,
     passwordHash: candidate.passwordHash,
+    entrances,
+    targetUnavailable: false,
   };
 }
 

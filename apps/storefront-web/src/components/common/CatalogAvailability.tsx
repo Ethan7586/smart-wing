@@ -10,7 +10,7 @@ type CatalogAvailabilityProps = {
 };
 
 export function CatalogAvailability({ catalogSyncStatus, sessionStatus, productCount, onRetry }: CatalogAvailabilityProps) {
-  if (sessionStatus === 'checking' || catalogSyncStatus === 'syncing') {
+  if (catalogSyncStatus === 'syncing') {
     return <CatalogState icon={<LoaderCircle className="h-10 w-10 animate-spin text-[var(--sw-brand)]" />} title="正在从商品数据库同步目录" message="同步完成前不展示本地缓存或演示商品。" tone="border-blue-200" />;
   }
   if (catalogSyncStatus === 'error') {

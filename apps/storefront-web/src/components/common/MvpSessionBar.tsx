@@ -1,12 +1,31 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { LogIn, LogOut, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, LogIn, LogOut, ShieldCheck } from 'lucide-react';
 import { useMall } from '../../context/MallContext';
+import { productionApi } from '../../services/productionApi';
 
 export const MvpSessionBar: React.FC = () => {
   const { sessionStatus, catalogSyncStatus, logout } = useMall();
   const [showLoginDrawer, setShowLoginDrawer] = useState(false);
   const [loginUrl, setLoginUrl] = useState('/login?embed=storefront');
+  const [hasAdminEntrance, setHasAdminEntrance] = useState(false);
   const loginFrameRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    if (sessionStatus !== 'authenticated') return setHasAdminEntrance(false);
+    let active = true;
+    // The back office uses a separate host-only cookie. Accounts with that
+    // entrance are sent to the shared login page with an explicit destination;
+    // no storefront session or account type is carried across.
+    void productionApi
+      .getSession()
+      .then((session) => {
+        if (active) setHasAdminEntrance(session.entrances?.admin === true);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [sessionStatus]);
 
   useEffect(() => {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
@@ -71,9 +90,16 @@ export const MvpSessionBar: React.FC = () => {
                 : '当前未登录；主商城不会使用演示商品填充页面'}
           </span>
           {sessionStatus === 'authenticated' ? (
-            <button onClick={() => void logout()} className="font-bold flex items-center gap-1 hover:underline">
-              <LogOut className="w-3.5 h-3.5" /> 退出
-            </button>
+            <span className="flex items-center gap-3">
+              {hasAdminEntrance && (
+                <a href="https://hbbtzn.com/login/?target=admin" className="font-bold flex items-center gap-1 hover:underline">
+                  <LayoutDashboard className="w-3.5 h-3.5" /> 进入运营后台
+                </a>
+              )}
+              <button onClick={() => void logout()} className="font-bold flex items-center gap-1 hover:underline">
+                <LogOut className="w-3.5 h-3.5" /> 退出
+              </button>
+            </span>
           ) : (
             <button onClick={() => setShowLoginDrawer(true)} className="bg-[var(--sw-brand-dark)] text-white rounded px-3 py-1.5 font-bold flex items-center gap-1">
               <LogIn className="w-3.5 h-3.5" /> 登录MVP

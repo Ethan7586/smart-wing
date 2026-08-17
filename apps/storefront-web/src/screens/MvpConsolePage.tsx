@@ -19,7 +19,7 @@ export const MvpConsolePage: React.FC = () => {
   const refresh = async () => {
     setLoading(true);
     try {
-      const result = await productionApi.getHealth();
+      const result = await productionApi.getReadiness();
       setHealth({
         status: result.status,
         database: result.checks.database,

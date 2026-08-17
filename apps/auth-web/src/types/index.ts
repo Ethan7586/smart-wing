@@ -31,6 +31,10 @@ export interface PreAuthContext {
   identifier?: string;
   loginMethod: LoginMethod;
   requiresPasswordReset?: boolean;
+  entrances?: {
+    storefront: boolean;
+    admin: boolean;
+  };
   memberships: Membership[];
 }
 

@@ -12,7 +12,7 @@ const API_PREFIX = '/api/v1';
 /** The only API entrypoint: public first, then one authenticated business boundary. */
 export async function routeApi(request: Request, env: WorkerEnv): Promise<Response | null> {
   const pathname = new URL(request.url).pathname;
-  if (pathname !== '/api/health' && !pathname.startsWith(`${API_PREFIX}/`)) return null;
+  if (pathname !== '/api/health' && pathname !== '/api/ready' && !pathname.startsWith(`${API_PREFIX}/`)) return null;
   const requestId = request.headers.get('cf-ray') ?? crypto.randomUUID();
 
   try {

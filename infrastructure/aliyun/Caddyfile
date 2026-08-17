@@ -11,6 +11,16 @@
 hbbtzn.com, www.hbbtzn.com {
   encode gzip
 
+  # The public catalogue is an immutable-data snapshot on Alibaba Cloud OSS/CDN.
+  # Keeping this same-origin lets browsers use their disk cache without a CORS
+  # round trip, while the application API remains the fallback and source of truth.
+  @publicCatalogMirror path /catalog/public/v1/latest.json
+  handle @publicCatalogMirror {
+    reverse_proxy https://img.hbbtzn.com {
+      header_up Host img.hbbtzn.com
+    }
+  }
+
   # 统一登录是独立前端，只挂载在 /login；员工商城根路径仍由 storefront 提供。
   @authWeb path /login /login/*
   handle @authWeb {
@@ -32,7 +42,7 @@ smart.hbbtzn.com {
 
   # 运营后台页面由 admin-web 服务，但身份、会话与交易 API 必须统一经过
   # commerce-api，确保后台域签发 __Host-hbbtzn_admin_session 独立 Cookie。
-  @commerceApi path /api/health /api/v1/*
+  @commerceApi path /api/health /api/ready /api/v1/*
   handle @commerceApi {
     reverse_proxy localhost:3000 {
       header_up X-Real-IP {client_ip}

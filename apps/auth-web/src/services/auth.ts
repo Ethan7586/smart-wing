@@ -391,6 +391,10 @@ export async function loginWithPassword(identifier: string, password: string): P
     identifier: cleanId,
     loginMethod: 'password',
     requiresPasswordReset: payload.requiresPasswordReset === true,
+    entrances: {
+      storefront: payload?.entrances?.storefront === true,
+      admin: payload?.entrances?.admin === true,
+    },
     memberships: [
       fixture ?? {
         id: membershipId,
