@@ -34,9 +34,24 @@ const LazyVoucherOperationsWorkstationV1 = React.lazy(() =>
   import('./components/workstations/VoucherOperationsWorkstationV1').then(({ VoucherOperationsWorkstationV1 }) => ({ default: VoucherOperationsWorkstationV1 }))
 );
 
-export function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
+export function allowedWorkstationsFor(permissions: string[], roles: string[] = []): WorkstationId[] {
   const allowed = new Set<WorkstationId>(['cockpit']);
   const has = (permission: string) => permissions.includes(permission);
+  const roleCodes = new Set(roles);
+  // Membership roles are retained as a visibility fallback because some
+  // operator sessions are still returning an incomplete permission projection.
+  // This exposes only the unified-Admin menu entry; every API/write operation
+  // continues to be authorized by the server.
+  const hasVoucherWorkspaceRole = [
+    'platform_owner',
+    'role-platform-owner-v2',
+    'enterprise_manager',
+    'role-enterprise-manager-v2',
+    'mall_admin',
+    'role-mall-admin',
+    'role-test-seller',
+    'role-test-operations',
+  ].some((role) => roleCodes.has(role));
   if (has('catalog.read') || has('product.publish')) allowed.add('product');
   if (has('order.read') || has('order.ship')) allowed.add('order');
   if (has('tenant.manage') || has('role.grant') || has('audit.read')) allowed.add('enterprise');
@@ -50,7 +65,8 @@ export function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
     has('order.ship') ||
     has('tenant.manage') ||
     has('finance.reconcile') ||
-    permissions.some((permission) => permission.startsWith('voucher.'))
+    permissions.some((permission) => permission.startsWith('voucher.')) ||
+    hasVoucherWorkspaceRole
   )
     allowed.add('voucher');
   if (has('tenant.manage')) allowed.add('supplier');
@@ -133,6 +149,7 @@ export function App() {
   // Access is derived exclusively from the host-only smart.hbbtzn.com session.
   const [currentUser, setCurrentUser] = useState<AdminProfile | null>(null);
   const [sessionPermissions, setSessionPermissions] = useState<string[]>([]);
+  const [sessionRoles, setSessionRoles] = useState<string[]>([]);
   const [isLiveCatalog, setIsLiveCatalog] = useState(false);
   const [liveOperations, setLiveOperations] = useState<LiveOperationsSummary | null>(null);
   const [authChecking, setAuthChecking] = useState(true);
@@ -177,6 +194,7 @@ export function App() {
         if (user) {
           setCurrentUser(user);
           setSessionPermissions(Array.isArray(payload?.authorization?.permissions) ? payload.authorization.permissions.filter((permission: unknown): permission is string => typeof permission === 'string') : []);
+          setSessionRoles(Array.isArray(payload?.authorization?.roles) ? payload.authorization.roles.filter((role: unknown): role is string => typeof role === 'string') : []);
           setProducts(payload.products);
           setOrders(payload.orders);
           setLiveOperations(payload.summary);
@@ -206,7 +224,7 @@ export function App() {
   };
 
   const handleNavigateToWorkstation = (wsId: WorkstationId, filterKey?: string, filterValue?: string) => {
-    if (!allowedWorkstationsFor(sessionPermissions).includes(wsId)) return;
+    if (!allowedWorkstationsFor(sessionPermissions, sessionRoles).includes(wsId)) return;
     setActiveWorkstation(wsId);
     if (filterKey && filterValue) {
       setFilterParams({ key: filterKey, value: filterValue });
@@ -254,7 +272,7 @@ export function App() {
 
   if (!currentUser) return null;
 
-  const allowedWorkstations = allowedWorkstationsFor(sessionPermissions);
+  const allowedWorkstations = allowedWorkstationsFor(sessionPermissions, sessionRoles);
   const visibleWorkstation = allowedWorkstations.includes(activeWorkstation) ? activeWorkstation : 'cockpit';
 
   // Counts for Header badges
