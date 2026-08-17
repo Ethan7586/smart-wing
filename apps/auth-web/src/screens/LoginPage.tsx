@@ -423,11 +423,13 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
-    // 筛选可进行单身份自动跳过的有效身份
+    // 只有普通商城身份可自动进入。只要拥有后台身份，就必须由本人
+    // 显式选择入口，避免管理员在不知情时直接落入某个工作台。
     const validMemberships = activeMemberships.filter((m) => m.status === 'active' || m.status === 'invited');
+    const hasAdminMembership = validMemberships.some((membership) => membership.target === 'admin');
 
-    // 仅有 1 条会员关系时自动跳过第2段
-    if (validMemberships.length === 1) {
+    // 仅有 1 条有效的普通商城身份时自动跳过第2段。
+    if (validMemberships.length === 1 && !hasAdminMembership) {
       const singleMem = validMemberships[0];
       if (singleMem.target === 'storefront' && singleMem.status === 'active') {
         if (activeTab === 'password') {
@@ -441,19 +443,10 @@ export const LoginPage: React.FC = () => {
         });
         navigateTo('storefront_home', { membershipId: singleMem.id });
         return;
-      } else if (singleMem.target === 'admin') {
-        if (singleMem.requiresStepUp) {
-          // 管理身份需 Step-Up，自动进入第3段
-          setSelectedMembership(singleMem);
-          setStage(3);
-        } else {
-          completeAdminLogin(singleMem.id);
-        }
-        return;
       }
     }
 
-    // 多条身份或包含复杂状态，进入第2段选择会员关系
+    // 多条身份、任何后台身份或包含复杂状态，进入第2段选择会员关系。
     setStage(2);
   };
 
