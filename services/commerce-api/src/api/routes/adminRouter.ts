@@ -1,6 +1,7 @@
 import { handleAdminCatalog, handleAdminOverview, handleSetProductStatus } from '../adminRoutes';
 import { handleCreateCustomRole, handleCustomRoleCenter, handleSetCustomRoleStatus, handleUpdateCustomRole } from '../customRoleRoutes';
 import { handleVerifyMemberCodeChallenge } from '../memberCodeRoutes';
+import { handleMallApplicationCenter, handleMallApplicationMutation } from '../mallApplicationRoutes';
 import { handleAdminCreateMember, handleCreateMemberInvite, handleDisableMemberInvite, handleMemberImport, handleMemberOperations, handleUpdateMemberProfile } from '../memberOperationsRoutes';
 import { handleExecuteRefund, handleFinanceReconciliation, handleShipOrder } from '../orderRoutes';
 import { handleMembershipAccess, handleMembershipStatus, handlePermissionCommandCenter } from '../permissionAdminRoutes';
@@ -25,6 +26,8 @@ export async function routeAdminRequest(request: Request, env: WorkerEnv, author
       return handleAdminCatalog(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/overview`:
       return handleAdminOverview(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/mall-applications`:
+      return handleMallApplicationCenter(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/access-control`:
       return handlePermissionCommandCenter(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/roles`:
@@ -63,6 +66,12 @@ export async function routeAdminRequest(request: Request, env: WorkerEnv, author
   if (roleStatus) return handleSetCustomRoleStatus(request, env, authorization, decodeURIComponent(roleStatus[1]), requestId);
   const role = pathname.match(/^\/api\/v1\/admin\/roles\/([^/]+)$/);
   if (role) return handleUpdateCustomRole(request, env, authorization, decodeURIComponent(role[1]), requestId);
+  const mallDraft = pathname.match(/^\/api\/v1\/admin\/mall-applications\/([^/]+)\/draft$/);
+  if (mallDraft) return handleMallApplicationMutation(request, env, authorization, decodeURIComponent(mallDraft[1]), 'save', requestId);
+  const mallPublish = pathname.match(/^\/api\/v1\/admin\/mall-applications\/([^/]+)\/publish$/);
+  if (mallPublish) return handleMallApplicationMutation(request, env, authorization, decodeURIComponent(mallPublish[1]), 'publish', requestId);
+  const mallRestore = pathname.match(/^\/api\/v1\/admin\/mall-applications\/([^/]+)\/restore$/);
+  if (mallRestore) return handleMallApplicationMutation(request, env, authorization, decodeURIComponent(mallRestore[1]), 'restore', requestId);
   const invitation = pathname.match(/^\/api\/v1\/admin\/member-operations\/invitations\/([^/]+)$/);
   if (invitation) return handleDisableMemberInvite(request, env, authorization, decodeURIComponent(invitation[1]), requestId);
   const member = pathname.match(/^\/api\/v1\/admin\/member-operations\/members\/([^/]+)$/);

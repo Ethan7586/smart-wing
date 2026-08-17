@@ -27,6 +27,9 @@ import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStat
 const LazyVoucherOperationsWorkstationV1 = React.lazy(() =>
   import('./components/workstations/VoucherOperationsWorkstationV1').then(({ VoucherOperationsWorkstationV1 }) => ({ default: VoucherOperationsWorkstationV1 }))
 );
+const LazyMallApplicationWorkstation = React.lazy(() =>
+  import('./components/workstations/MallApplicationWorkstation').then(({ MallApplicationWorkstation }) => ({ default: MallApplicationWorkstation }))
+);
 
 export function allowedWorkstationsFor(permissions: string[], roles: string[] = []): WorkstationId[] {
   const allowed = new Set<WorkstationId>(['cockpit']);
@@ -49,6 +52,8 @@ export function allowedWorkstationsFor(permissions: string[], roles: string[] = 
   if (has('catalog.read') || has('product.publish')) allowed.add('product');
   if (has('order.read') || has('order.ship')) allowed.add('order');
   if (has('tenant.manage') || has('role.grant') || has('audit.read')) allowed.add('enterprise');
+  if (permissions.some((permission) => permission.startsWith('mall.')) || ['platform_owner', 'role-platform-owner-v2', 'enterprise_manager', 'role-enterprise-manager-v2', 'mall_admin', 'role-mall-admin'].some((role) => roleCodes.has(role)))
+    allowed.add('mall');
   // The voucher desk is one capability of the unified Admin, not a separate
   // system. Merchants with catalogue/order access can see it; server-side
   // permissions still govern every future write action.
@@ -284,6 +289,7 @@ export function App() {
     product: isEn ? 'Products' : '商品治理台',
     order: isEn ? 'Orders' : '订单履约台',
     enterprise: isEn ? 'Enterprises' : '企业福利台',
+    mall: isEn ? 'Mall Applications' : '商城应用台',
     voucher: isEn ? 'Vouchers' : '卡券运营台',
     supplier: isEn ? 'Suppliers' : '供应商协同台',
     finance: isEn ? 'Finance' : '财务与对账台',
@@ -364,6 +370,14 @@ export function App() {
           )}
 
           {visibleWorkstation === 'enterprise' && <EnterpriseWelfareWorkstation enterprises={enterprises} onOpenGuardrail={handleOpenGuardrail} initialSearchName={filterParams.key === 'search' ? filterParams.value : undefined} />}
+
+          {visibleWorkstation === 'mall' && (
+            <WorkstationLoadBoundary onReturnToCockpit={() => setActiveWorkstation('cockpit')}>
+              <Suspense fallback={<section className="m-6 rounded-2xl border border-slate-200 bg-white p-8 font-bold text-slate-700">正在读取商城应用与版本…</section>}>
+                <LazyMallApplicationWorkstation />
+              </Suspense>
+            </WorkstationLoadBoundary>
+          )}
 
           {visibleWorkstation === 'voucher' && (
             <WorkstationLoadBoundary onReturnToCockpit={() => setActiveWorkstation('cockpit')}>

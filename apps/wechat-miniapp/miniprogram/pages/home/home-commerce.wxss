@@ -38,6 +38,12 @@
   border-radius: var(--sw-radius-large);
   background: var(--sw-brand-gradient);
 }
+.hero-city-blue {
+  background: linear-gradient(135deg, var(--sw-brand-dark), var(--sw-brand-ink));
+}
+.hero-festival-blue {
+  background: linear-gradient(135deg, var(--sw-brand), var(--sw-brand-dark));
+}
 .hero-pattern {
   position: absolute;
   right: -40rpx;

@@ -49,4 +49,12 @@ describe('admin account profile resolution', () => {
     expect(allowedWorkstationsFor(['member.read'])).not.toContain('voucher');
     expect(allowedWorkstationsFor([], ['member'])).not.toContain('voucher');
   });
+
+  it('shows the mall application workstation only for mall-capable admin roles', () => {
+    expect(allowedWorkstationsFor(['mall.read'])).toContain('mall');
+    expect(allowedWorkstationsFor(['mall.decorate'])).toContain('mall');
+    expect(allowedWorkstationsFor([], ['role-enterprise-manager-v2'])).toContain('mall');
+    expect(allowedWorkstationsFor([], ['role-mall-admin'])).toContain('mall');
+    expect(allowedWorkstationsFor(['member.read'], ['member'])).not.toContain('mall');
+  });
 });
