@@ -200,6 +200,65 @@ describe('health endpoint', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it('returns only the verified member\'s active storefront and admin choices before a session is created', async () => {
+    const passwordHash = await hashPassword('SmartWing2026');
+    const runtime = {
+      id: 'membership-storefront-ethan',
+      memberId: 'member-ethan',
+      target: 'storefront',
+      status: 'active',
+      roleIds: ['role-employee'],
+      permissions: ['catalog.read'],
+      deniedPermissions: [],
+      context: { tenantId: 'tenant-smart-wing', enterpriseId: 'enterprise-demo', mallId: 'mall-demo', userId: 'user-ethan' },
+      scopeBindings: [{ kind: 'self', resourceId: 'user-ethan' }],
+      expiresAt: null,
+      authzVersion: 1,
+      actor: { tenantId: 'tenant-smart-wing', enterpriseId: 'enterprise-demo', mallId: 'mall-demo', mallCode: 'SMART_WING_DEMO', userId: 'user-ethan', employeeNo: 'ETHAN' },
+    };
+    const selectable = [
+      { id: 'membership-storefront-ethan', target: 'storefront', status: 'active', enterpriseName: '示范企业', storeName: '智慧翼企业福利商城', roleName: '员工会员', dataScope: '个人福利账户', accountTypeLabel: '福利账户' },
+      { id: 'membership-platform-owner-ethan-v1', target: 'admin', status: 'active', enterpriseName: '智慧翼福利平台', storeName: '智慧翼平台运营后台', roleName: '平台业主', dataScope: '平台级全部授权范围', subjectScope: '平台' },
+    ];
+    const responses = [
+      true,
+      { memberId: 'member-ethan', membershipId: 'membership-storefront-ethan', target: 'storefront', passwordHash },
+      runtime,
+      true,
+      selectable,
+    ];
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify(responses.shift()), { status: 200, headers: { 'content-type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const response = await handleRegisteredCredentialDiscovery(
+      new Request('https://hbbtzn.com/api/v1/auth/credential/discover', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-real-ip': '203.0.113.56' },
+        body: JSON.stringify({ username: 'ethan', password: 'SmartWing2026' }),
+      }),
+      {
+        APP_ENV: 'production',
+        AUTH_MODE: 'membership',
+        SUPABASE_URL: 'https://db.example',
+        SUPABASE_SERVICE_ROLE_KEY: 'service-role',
+        SESSION_SIGNING_KEY: 'session-key-that-is-longer-than-thirty-two-bytes',
+      },
+      'ethan-discovery'
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('set-cookie')).toBeNull();
+    await expect(response.json()).resolves.toMatchObject({
+      authenticated: true,
+      memberships: [
+        { id: 'membership-storefront-ethan', target: 'storefront' },
+        { id: 'membership-platform-owner-ethan-v1', target: 'admin', subjectScope: '平台' },
+      ],
+    });
+    const calls = fetchMock.mock.calls as unknown as Array<[string, { body?: string }]>;
+    expect(calls.some(([url]) => url.includes('/rpc/api_list_login_memberships'))).toBe(true);
+  });
+
   it('never creates a session while a registered member must reset the initial password', async () => {
     const passwordHash = await hashPassword('Temporary2026');
     const responses = [

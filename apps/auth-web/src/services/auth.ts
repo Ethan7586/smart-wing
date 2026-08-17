@@ -14,6 +14,7 @@ interface FailureRecord {
 
 const failureMap: Record<string, FailureRecord> = {};
 const stepUpFailureMap: Record<string, FailureRecord> = {};
+export const MAX_LOGIN_FAILURES = 10;
 
 // 模拟审计日志
 const auditLogs: Array<{ timestamp: string; identifier: string; reason: string }> = [];
@@ -285,7 +286,7 @@ export function getLockoutState(identifier: string): LockoutState {
   }
 
   // 锁定时间已过，重置状态
-  if (record.attempts >= 5 && record.lockedUntil <= now) {
+  if (record.attempts >= MAX_LOGIN_FAILURES && record.lockedUntil <= now) {
     delete failureMap[identifier];
   }
 
@@ -311,10 +312,10 @@ export async function reportLoginFailure(identifier: string, reason: string): Pr
     failureMap[identifier].attempts += 1;
   }
 
-  // 连续失败5次，锁定15分钟 (15 * 60 * 1000 ms)
-  if (failureMap[identifier].attempts >= 5) {
+  // 连续失败10次，锁定15分钟 (15 * 60 * 1000 ms)
+  if (failureMap[identifier].attempts >= MAX_LOGIN_FAILURES) {
     failureMap[identifier].lockedUntil = Date.now() + 15 * 60 * 1000;
-    console.error(`[SECURITY ALERT] Identifier "${identifier}" locked for 15 minutes due to 5 consecutive failures.`);
+    console.error(`[SECURITY ALERT] Identifier "${identifier}" locked for 15 minutes due to ${MAX_LOGIN_FAILURES} consecutive failures.`);
   }
 }
 
@@ -386,24 +387,63 @@ export async function loginWithPassword(identifier: string, password: string): P
   if (typeof membershipId !== 'string' || (target !== 'storefront' && target !== 'admin')) throw new Error('会员身份未正确建立');
   delete failureMap[cleanId];
   const fixture = TEST_ACCOUNT_MEMBERSHIPS[cleanId]?.find((item) => item.id === membershipId);
+  const memberships = parseSelectableMemberships(payload?.memberships);
   return {
     preAuthToken: `PAT_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
     identifier: cleanId,
     loginMethod: 'password',
     requiresPasswordReset: payload.requiresPasswordReset === true,
-    memberships: [
-      fixture ?? {
-        id: membershipId,
-        target,
-        status: 'active',
-        enterpriseName: '已绑定企业',
-        storeName: target === 'admin' ? '智慧翼运营后台' : '智慧翼企业福利商城',
-        roleName: target === 'admin' ? '企业管理会员' : '企业员工会员',
-        dataScope: target === 'admin' ? '已授权业务范围' : '个人福利账户',
-        accountTypeLabel: target === 'storefront' ? '福利账户' : undefined,
-      },
-    ],
+    // 新接口在密码验证后返回该账号的全部可选成员身份；旧服务未升级时
+    // 保持单身份兼容，不能将其误展示为拥有后台权限。
+    memberships:
+      memberships.length > 0
+        ? memberships
+        : [
+            fixture ?? {
+              id: membershipId,
+              target,
+              status: 'active',
+              enterpriseName: '已绑定企业',
+              storeName: target === 'admin' ? '智慧翼运营后台' : '智慧翼企业福利商城',
+              roleName: target === 'admin' ? '企业管理会员' : '企业员工会员',
+              dataScope: target === 'admin' ? '已授权业务范围' : '个人福利账户',
+              accountTypeLabel: target === 'storefront' ? '福利账户' : undefined,
+            },
+          ],
   };
+}
+
+function parseSelectableMemberships(value: unknown): Membership[] {
+  if (!Array.isArray(value)) return [];
+  const statuses = new Set<Membership['status']>(['invited', 'active', 'suspended', 'offboarded', 'expired']);
+  const result: Membership[] = [];
+
+  for (const item of value) {
+    if (!item || typeof item !== 'object') continue;
+    const record = item as Record<string, unknown>;
+    const id = typeof record.id === 'string' ? record.id : '';
+    const target = record.target;
+    const status = record.status;
+    if (!id || (target !== 'storefront' && target !== 'admin') || typeof status !== 'string' || !statuses.has(status as Membership['status'])) continue;
+
+    result.push({
+      id,
+      target,
+      status: status as Membership['status'],
+      enterpriseName: typeof record.enterpriseName === 'string' ? record.enterpriseName : '已绑定主体',
+      storeName: typeof record.storeName === 'string' ? record.storeName : target === 'admin' ? '智慧翼运营后台' : '智慧翼企业福利商城',
+      roleName: typeof record.roleName === 'string' ? record.roleName : target === 'admin' ? '运营成员' : '员工会员',
+      dataScope: typeof record.dataScope === 'string' ? record.dataScope : target === 'admin' ? '已授权业务范围' : '个人福利账户',
+      ...(typeof record.accountTypeLabel === 'string' ? { accountTypeLabel: record.accountTypeLabel } : {}),
+      ...(typeof record.subjectScope === 'string' && ['平台', '租户', '企业', '供应商', '商城'].includes(record.subjectScope) ? { subjectScope: record.subjectScope as Membership['subjectScope'] } : {}),
+      ...(Array.isArray(record.keyPermissions) && record.keyPermissions.every((permission) => typeof permission === 'string') ? { keyPermissions: record.keyPermissions as string[] } : {}),
+      ...(typeof record.authorizedBy === 'string' ? { authorizedBy: record.authorizedBy } : {}),
+      ...(typeof record.expireAt === 'string' ? { expireAt: record.expireAt } : {}),
+      ...(record.requiresStepUp === true ? { requiresStepUp: true } : {}),
+    });
+  }
+
+  return result;
 }
 
 export async function changeInitialPassword(username: string, password: string, newPassword: string): Promise<void> {
