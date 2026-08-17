@@ -100,6 +100,7 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
   if (!input) return apiError(400, 'INVALID_LOGIN_INPUT', '登录信息不完整', requestId);
   const username = typeof input.username === 'string' ? input.username : '';
   const password = typeof input.password === 'string' ? input.password : '';
+  const selectedMembershipId = readSelectedMembershipId(input);
   const clientIp = readTrustedClientIp(request);
   const ipHash = await loginAttemptKey(clientIp, username, env);
   const bypassRateLimit = isTestLoginRateLimitBypassed(clientIp, env);
@@ -126,7 +127,7 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
     return apiError(400, 'INVALID_LOGIN_INPUT', '账号或密码缺失', requestId);
   }
   const target = targetForRequest(request);
-  const localLogin = registeredAuthEnabled ? await authenticateLocalMember(username, password, target, env) : NO_LOCAL_LOGIN;
+  const localLogin = registeredAuthEnabled ? await authenticateLocalMember(username, password, target, env, selectedMembershipId) : NO_LOCAL_LOGIN;
   const registeredRuntime = localLogin.runtime;
   const account = registeredRuntime || localLogin.credentialFound ? null : getDemoAccounts(env).find((candidate) => candidate.username.trim().toLowerCase() === username.trim().toLowerCase());
   const demoRuntime = account && (await verifyDemoPassword(password, account.password)) ? await resolveDemoMembership(env, account, target) : null;
@@ -195,11 +196,14 @@ export async function handleRegisteredCredentialDiscovery(request: Request, env:
     return apiError(401, 'INVALID_USERNAME_PASSWORD', '账号或密码不正确', requestId);
   }
   await callRpc<boolean>(env, 'api_clear_login_failures', { p_ip_hash: ipHash });
+  const memberships = localLogin.runtime ? await listSelectableMemberships(env, localLogin.runtime.membership.memberId) : [fallbackSelectableMembership(runtime)];
+  if (memberships.length === 0) return apiError(403, 'MEMBERSHIP_SELECTION_UNAVAILABLE', '账号暂无可用访问身份，请联系管理员授权', requestId);
   return json({
     authenticated: true,
     requiresPasswordReset: localLogin.mustResetPassword,
     authorization: publicAuthorization(runtime.authorization),
     entrances: loginEntrances(localLogin, runtime, demoAccount ? demoTarget : undefined),
+    memberships,
     requestId,
   });
 }
@@ -207,7 +211,7 @@ export async function handleRegisteredCredentialDiscovery(request: Request, env:
 /**
  * Login failures are counted per account per address. A shared office egress
  * address no longer collapses every tester into one bucket, while guessing a
- * single account's password is still stopped after five attempts.
+ * single account's password is stopped after ten attempts.
  */
 async function loginAttemptKey(clientIp: string | null, username: string, env: WorkerEnv): Promise<string> {
   return sha256(`${clientIp ?? 'unknown'}:${username.trim().toLowerCase()}:${env.SESSION_SIGNING_KEY ?? ''}`);
@@ -253,6 +257,20 @@ type Entrance = { target: 'storefront' | 'admin'; membershipId: string };
 type CandidateEntrance = Entrance & { runtime?: unknown };
 type RegisteredCandidate = { memberId?: string; membershipId?: string; target?: 'storefront' | 'admin'; passwordHash?: string; mustResetPassword?: boolean; entrances?: CandidateEntrance[] };
 type LocalLogin = { runtime: MembershipRuntime | null; credentialFound: boolean; mustResetPassword: boolean; passwordHash: string | null; entrances: Entrance[]; targetUnavailable: boolean };
+type SelectableMembership = {
+  id: string;
+  target: 'storefront' | 'admin';
+  status: 'active';
+  enterpriseName: string;
+  storeName: string;
+  roleName: string;
+  dataScope: string;
+  accountTypeLabel?: string;
+  subjectScope?: '平台' | '租户' | '企业' | '供应商' | '商城';
+  keyPermissions?: string[];
+  expireAt?: string;
+  requiresStepUp?: boolean;
+};
 const DUMMY_PASSWORD_HASH = `pbkdf2-sha256$310000$AAAAAAAAAAAAAAAAAAAAAA==$${'A'.repeat(43)}=`;
 const NO_LOCAL_LOGIN: LocalLogin = { runtime: null, credentialFound: false, mustResetPassword: false, passwordHash: null, entrances: [], targetUnavailable: false };
 
@@ -283,7 +301,7 @@ function runtimeFromCandidate(candidate: RegisteredCandidate, selected: Entrance
  * entrance; a mismatch receives an explicit access message rather than a false
  * "wrong password" response.
  */
-export async function authenticateLocalMember(identifier: string, password: string, target: 'storefront' | 'admin' | undefined, env: WorkerEnv): Promise<LocalLogin> {
+export async function authenticateLocalMember(identifier: string, password: string, target: 'storefront' | 'admin' | undefined, env: WorkerEnv, selectedMembershipId?: string): Promise<LocalLogin> {
   const mobile = normalizeChineseMobile(identifier);
   const username = normalizeLocalUsername(identifier);
   const normalizedIdentifier = identifier.trim().toLowerCase();
@@ -306,10 +324,27 @@ export async function authenticateLocalMember(identifier: string, password: stri
   if (!(await verifyPassword(password, candidate.passwordHash))) return credentialOnly;
 
   const entrances = readEntrances(candidate);
-  const preferred = target ? entrances.find((entrance) => entrance.target === target) : undefined;
+  const selected = selectedMembershipId
+    ? entrances.find((entrance) => entrance.membershipId === selectedMembershipId && (!target || entrance.target === target))
+    : target
+      ? entrances.find((entrance) => entrance.target === target)
+      : entrances[0];
+  if (!selected && selectedMembershipId && target) {
+    // A newly migrated selector may know about an additional membership before
+    // an older candidate RPC has been upgraded to include every entrance. The
+    // credential has already been verified; resolve the selected identity again
+    // against that same member and the destination host before creating a session.
+    return {
+      runtime: await resolveMembershipRuntimeByIds(env, candidate.memberId, selectedMembershipId, target),
+      credentialFound: true,
+      mustResetPassword: candidate.mustResetPassword === true,
+      passwordHash: candidate.passwordHash,
+      entrances,
+      targetUnavailable: false,
+    };
+  }
   // Falls back to the first entrance, which the RPC orders storefront-first:
   // shopping is the default landing for every account that has a mall identity.
-  const selected = preferred ?? (target ? undefined : entrances[0]);
   if (!selected) return { ...credentialOnly, entrances, targetUnavailable: entrances.length > 0 };
   return {
     runtime: runtimeFromCandidate(candidate, selected) ?? (await resolveMembershipRuntimeByIds(env, candidate.memberId, selected.membershipId, selected.target)),
@@ -321,12 +356,57 @@ export async function authenticateLocalMember(identifier: string, password: stri
   };
 }
 
+function readSelectedMembershipId(input: Record<string, unknown>): string | undefined {
+  const value = input.membershipId;
+  return typeof value === 'string' && /^[A-Za-z0-9._:-]{1,200}$/.test(value) ? value : undefined;
+}
+
+async function listSelectableMemberships(env: WorkerEnv, memberId: string): Promise<SelectableMembership[]> {
+  const raw = await callRpc<unknown>(env, 'api_list_login_memberships', { p_member_id: memberId });
+  if (!Array.isArray(raw)) return [];
+  const validScopes = new Set<NonNullable<SelectableMembership['subjectScope']>>(['平台', '租户', '企业', '供应商', '商城']);
+  const memberships: SelectableMembership[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue;
+    const record = item as Record<string, unknown>;
+    if (typeof record.id !== 'string' || (record.target !== 'storefront' && record.target !== 'admin') || record.status !== 'active') continue;
+    memberships.push({
+      id: record.id,
+      target: record.target,
+      status: 'active',
+      enterpriseName: typeof record.enterpriseName === 'string' ? record.enterpriseName : '已绑定主体',
+      storeName: typeof record.storeName === 'string' ? record.storeName : record.target === 'admin' ? '智慧翼运营后台' : '智慧翼企业福利商城',
+      roleName: typeof record.roleName === 'string' ? record.roleName : record.target === 'admin' ? '运营成员' : '员工会员',
+      dataScope: typeof record.dataScope === 'string' ? record.dataScope : record.target === 'admin' ? '已授权业务范围' : '个人福利账户',
+      ...(typeof record.accountTypeLabel === 'string' ? { accountTypeLabel: record.accountTypeLabel } : {}),
+      ...(typeof record.subjectScope === 'string' && validScopes.has(record.subjectScope as NonNullable<SelectableMembership['subjectScope']>) ? { subjectScope: record.subjectScope as NonNullable<SelectableMembership['subjectScope']> } : {}),
+      ...(Array.isArray(record.keyPermissions) && record.keyPermissions.every((permission) => typeof permission === 'string') ? { keyPermissions: record.keyPermissions as string[] } : {}),
+      ...(typeof record.expireAt === 'string' ? { expireAt: record.expireAt } : {}),
+      ...(record.requiresStepUp === true ? { requiresStepUp: true } : {}),
+    });
+  }
+  return memberships;
+}
+
+function fallbackSelectableMembership(runtime: MembershipRuntime): SelectableMembership {
+  return {
+    id: runtime.membership.id,
+    target: runtime.membership.target,
+    status: 'active',
+    enterpriseName: '已绑定主体',
+    storeName: runtime.membership.target === 'admin' ? '智慧翼运营后台' : '智慧翼企业福利商城',
+    roleName: runtime.membership.target === 'admin' ? '运营成员' : '员工会员',
+    dataScope: runtime.membership.target === 'admin' ? '已授权业务范围' : '个人福利账户',
+    ...(runtime.membership.target === 'storefront' ? { accountTypeLabel: '福利账户' } : {}),
+  };
+}
+
 async function readLoginInput(request: Request): Promise<Record<string, unknown> | null> {
   if (request.headers.get('content-type')?.toLowerCase().startsWith('application/x-www-form-urlencoded')) {
     const raw = await request.text();
     if (raw.length > 32 * 1024) return null;
     const form = new URLSearchParams(raw);
-    return { username: form.get('username') ?? '', password: form.get('password') ?? '' };
+    return { username: form.get('username') ?? '', password: form.get('password') ?? '', membershipId: form.get('membershipId') ?? '' };
   }
 
   const body = await readJsonBody(request);

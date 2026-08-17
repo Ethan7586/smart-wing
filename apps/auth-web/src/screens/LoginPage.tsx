@@ -40,7 +40,6 @@ export const LoginPage: React.FC = () => {
   const { currentDomain, navigateTo, acceptedTerms, setAcceptedTerms, setActiveSession } = useMallContext();
   const loginParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const isStorefrontEmbed = loginParams?.get('embed') === 'storefront';
-  const isAdminEntry = loginParams?.get('target') === 'admin';
 
   // 当前流程阶段: 1 = 账号认证, 2 = 选择会员身份, 3 = 管理员 Step-Up 二次验证
   const [stage, setStage] = useState<1 | 2 | 3>(1);
@@ -375,7 +374,7 @@ export const LoginPage: React.FC = () => {
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ username: identifier, password }),
+      body: JSON.stringify({ username: identifier, password, membershipId }),
     });
 
     if (!response.ok) {
@@ -393,7 +392,7 @@ export const LoginPage: React.FC = () => {
     window.location.replace('/');
   };
 
-  const completeAdminLogin = () => {
+  const completeAdminLogin = (membershipId: string) => {
     // The browser performs a top-level POST on the target host, allowing the
     // admin domain to create its own __Host- cookie before loading the app.
     // Credentials are deliberately submitted in the request body, never URL.
@@ -404,7 +403,7 @@ export const LoginPage: React.FC = () => {
     // escape that iframe; otherwise the whole admin app is rendered in-panel.
     form.target = '_top';
     form.style.display = 'none';
-    for (const [name, value] of Object.entries({ username: identifier, password })) {
+    for (const [name, value] of Object.entries({ username: identifier, password, membershipId })) {
       const input = document.createElement('input');
       input.type = 'hidden';
       input.name = name;
@@ -417,18 +416,6 @@ export const LoginPage: React.FC = () => {
 
   const processPreAuthContext = async (context: PreAuthContext) => {
     const activeMemberships = context.memberships;
-
-    // Password login is storefront-first. The only alternate path is the
-    // dedicated back-office entry, where the server-confirmed entrance list
-    // decides whether the same account may establish an admin session.
-    // Neither path asks the person to select an account type.
-    if (activeTab === 'password' && isAdminEntry) {
-      if (context.entrances?.admin !== true) {
-        throw new Error('该账号没有运营后台权限；可使用同一账号登录商城购物');
-      }
-      completeAdminLogin();
-      return;
-    }
 
     // 如果没有任何可用会员身份
     if (!activeMemberships || activeMemberships.length === 0) {
@@ -460,7 +447,7 @@ export const LoginPage: React.FC = () => {
           setSelectedMembership(singleMem);
           setStage(3);
         } else {
-          completeAdminLogin();
+          completeAdminLogin(singleMem.id);
         }
         return;
       }
@@ -503,7 +490,7 @@ export const LoginPage: React.FC = () => {
       }
 
       if (mem.target === 'admin') {
-        completeAdminLogin();
+        completeAdminLogin(mem.id);
         return;
       }
 
@@ -555,7 +542,7 @@ export const LoginPage: React.FC = () => {
       const result = await verifyStepUp(preAuthContext.preAuthToken, selectedMembership.id, totpCode);
 
       if (selectedMembership.target === 'admin') {
-        completeAdminLogin();
+        completeAdminLogin(selectedMembership.id);
         return;
       }
 
@@ -655,7 +642,7 @@ export const LoginPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Store className="w-4 h-4 text-[var(--sw-brand)]" />
-            <h4 className="text-xs font-bold text-slate-700 tracking-wider uppercase">我的福利商城</h4>
+            <h4 className="text-xs font-bold text-slate-700 tracking-wider uppercase">进入福利商城</h4>
           </div>
           <span className="text-[11px] text-slate-400">共 {storefrontItems.length} 个专区</span>
         </div>
@@ -698,8 +685,9 @@ export const LoginPage: React.FC = () => {
                       接受邀请
                     </button>
                   ) : (
-                    <div className="shrink-0 pt-1 text-slate-300 group-hover:text-[var(--sw-brand)] transition-colors">
-                      <ChevronRight className="w-5 h-5" />
+                    <div className="shrink-0 flex items-center gap-1.5 rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-[var(--sw-brand)] transition-colors group-hover:border-blue-200 group-hover:bg-blue-100">
+                      进入商城
+                      <ChevronRight className="w-3.5 h-3.5" />
                     </div>
                   )}
                 </div>
@@ -732,7 +720,7 @@ export const LoginPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[var(--sw-brand-dark)]" />
-            <h4 className="text-xs font-bold text-slate-700 tracking-wider uppercase">我管理的运营主体</h4>
+            <h4 className="text-xs font-bold text-slate-700 tracking-wider uppercase">进入管理后台</h4>
           </div>
           <span className="text-[11px] text-slate-400">共 {adminItems.length} 项管理权限</span>
         </div>
@@ -787,8 +775,9 @@ export const LoginPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="shrink-0 pt-1 text-slate-500 group-hover:text-[var(--sw-brand)] transition-colors">
-                    <ArrowRight className="w-5 h-5" />
+                  <div className="shrink-0 flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-xs font-bold text-blue-200 transition-colors group-hover:border-blue-400 group-hover:bg-slate-700 group-hover:text-white">
+                    进入后台
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </div>
                 </div>
               </div>
@@ -930,7 +919,7 @@ export const LoginPage: React.FC = () => {
                   <img src={`${import.meta.env.BASE_URL}brand/brand-mark.svg`} alt="" className="h-5 w-5 rounded-md" />
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
                     {stage === 1 && '账号认证'}
-                    {stage === 2 && '选择访问身份'}
+                    {stage === 2 && '选择进入方式'}
                     {stage === 3 && '二次验证'}
                   </span>
                 </div>
@@ -942,12 +931,12 @@ export const LoginPage: React.FC = () => {
                 <div className="mb-6">
                   <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                     {stage === 1 && '统一账号认证'}
-                    {stage === 2 && '选择关联会员关系'}
+                    {stage === 2 && '请选择本次进入方式'}
                     {stage === 3 && '管理身份二次验证 (Step-Up)'}
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-500 mt-1">
                     {stage === 1 && '请选择适合您的登录方式与身份核验'}
-                    {stage === 2 && '检测到您有多个关联账号，请选择需要进入的主体：'}
+                    {stage === 2 && '同一账号可拥有商城与后台身份；请选择本次要进入的工作台。'}
                     {stage === 3 && '即将进入高权限运营后台，请进行 TOTP 动态口令二次验签'}
                   </p>
                 </div>
@@ -1088,7 +1077,7 @@ export const LoginPage: React.FC = () => {
                           </div>
 
                           {/* 辅助链接 */}
-                          <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+                          <div className="flex items-center justify-between gap-3 pt-1">
                             <button type="button" onClick={() => setActiveTab('password')} className="hover:text-[var(--sw-brand)] transition-colors">
                               使用密码登录
                             </button>
@@ -1173,7 +1162,7 @@ export const LoginPage: React.FC = () => {
                                 setResetOpen(true);
                                 setFormError('');
                               }}
-                              className="hover:text-[var(--sw-brand)] transition-colors"
+                              className="text-xs text-slate-500 hover:text-[var(--sw-brand)] transition-colors"
                             >
                               忘记密码？
                             </button>
@@ -1183,11 +1172,13 @@ export const LoginPage: React.FC = () => {
                                 setRegistrationOpen(true);
                                 setFormError('');
                               }}
-                              className="font-semibold text-[var(--sw-brand)] hover:underline"
+                              className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 text-sm font-bold text-[var(--sw-brand)] shadow-sm transition-colors hover:border-blue-300 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-[var(--sw-brand)] focus:ring-offset-2"
                             >
+                              <UserCheck className="h-4 w-4" />
                               新用户注册
                             </button>
                           </div>
+                          <p className="-mt-1 text-right text-[11px] leading-4 text-slate-400">持企业邀请码创建员工商城账号</p>
 
                           <button
                             type="submit"
@@ -1377,7 +1368,7 @@ export const LoginPage: React.FC = () => {
                   <div className="space-y-4">
                     <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 text-xs text-slate-600 flex items-start gap-2">
                       <Info className="w-4 h-4 text-[var(--sw-brand)] shrink-0 mt-0.5" />
-                      <p>该账号关联了多个企业的福利计划或管理身份。请选择您本次需要进入的商城专区或运营后台：</p>
+                      <p>这是一个统一账号。进入商城用于购物、订单和卡券；进入后台用于运营管理。后台入口只会显示您已获授权的身份。</p>
                     </div>
 
                     {renderMembershipsList()}
