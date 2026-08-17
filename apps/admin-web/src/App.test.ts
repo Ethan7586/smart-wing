@@ -39,4 +39,11 @@ describe('admin account profile resolution', () => {
     expect(allowedWorkstationsFor(['member.read', 'role.read'])).toContain('membership');
     expect(allowedWorkstationsFor(['member.read'])).not.toContain('membership');
   });
+
+  it('shows the voucher workstation to merchants while retaining the normal access boundary', () => {
+    expect(allowedWorkstationsFor(['catalog.read'])).toContain('voucher');
+    expect(allowedWorkstationsFor(['order.read'])).toContain('voucher');
+    expect(allowedWorkstationsFor(['voucher.read'])).toContain('voucher');
+    expect(allowedWorkstationsFor(['member.read'])).not.toContain('voucher');
+  });
 });

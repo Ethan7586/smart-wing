@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { loadAdminOverview, setLiveProductStatus, shipLiveOrder, type LiveOperationsSummary } from './services/catalog';
+import { WorkstationLoadBoundary } from './components/WorkstationLoadBoundary';
 
 // Workstations are independent work areas. Loading all of them before an
 // operator can see the cockpit made the administration shell unnecessarily
@@ -29,12 +30,29 @@ import { INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIER
 
 import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStatus, FinanceDiscrepancyRow, SystemConfig, GuardrailActionOptions, AdminProfile } from './types';
 
+const LazyVoucherOperationsWorkstationV1 = React.lazy(() =>
+  import('./components/workstations/VoucherOperationsWorkstationV1').then(({ VoucherOperationsWorkstationV1 }) => ({ default: VoucherOperationsWorkstationV1 }))
+);
+
 export function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
   const allowed = new Set<WorkstationId>(['cockpit']);
   const has = (permission: string) => permissions.includes(permission);
   if (has('catalog.read') || has('product.publish')) allowed.add('product');
   if (has('order.read') || has('order.ship')) allowed.add('order');
   if (has('tenant.manage') || has('role.grant') || has('audit.read')) allowed.add('enterprise');
+  // The voucher desk is one capability of the unified Admin, not a separate
+  // system. Merchants with catalogue/order access can see it; server-side
+  // permissions still govern every future write action.
+  if (
+    has('catalog.read') ||
+    has('product.publish') ||
+    has('order.read') ||
+    has('order.ship') ||
+    has('tenant.manage') ||
+    has('finance.reconcile') ||
+    permissions.some((permission) => permission.startsWith('voucher.'))
+  )
+    allowed.add('voucher');
   if (has('tenant.manage')) allowed.add('supplier');
   if (has('finance.reconcile')) allowed.add('finance');
   if (has('member.read') && has('role.read')) allowed.add('membership');
@@ -254,6 +272,7 @@ export function App() {
     product: isEn ? 'Products' : '商品治理台',
     order: isEn ? 'Orders' : '订单履约台',
     enterprise: isEn ? 'Enterprises' : '企业福利台',
+    voucher: isEn ? 'Vouchers' : '卡券运营台',
     supplier: isEn ? 'Suppliers' : '供应商协同台',
     finance: isEn ? 'Finance' : '财务与对账台',
     membership: isEn ? 'Members & Access' : '会员与权限中心',
@@ -334,6 +353,26 @@ export function App() {
             )}
 
             {visibleWorkstation === 'enterprise' && <EnterpriseWelfareWorkstation enterprises={enterprises} onOpenGuardrail={handleOpenGuardrail} initialSearchName={filterParams.key === 'search' ? filterParams.value : undefined} />}
+
+            {visibleWorkstation === 'voucher' && (
+              <WorkstationLoadBoundary onReturnToCockpit={() => setActiveWorkstation('cockpit')}>
+                <Suspense
+                  fallback={
+                    <section className="m-6 max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                      <h2 className="text-base font-bold text-slate-900">正在加载卡券运营台…</h2>
+                      <p className="mt-2 text-sm leading-6 text-slate-600">正在准备已授权的卡券工作台。</p>
+                    </section>
+                  }
+                >
+                  <LazyVoucherOperationsWorkstationV1
+                    liveDataEnabled
+                    sessionPermissions={sessionPermissions}
+                    writeEnabled={false}
+                    onOpenGuardrail={handleOpenGuardrail}
+                  />
+                </Suspense>
+              </WorkstationLoadBoundary>
+            )}
 
             {visibleWorkstation === 'supplier' && <SupplierGovernanceWorkstation suppliers={suppliers} onUpdateSuppliers={setSuppliers} onOpenGuardrail={handleOpenGuardrail} />}
 
