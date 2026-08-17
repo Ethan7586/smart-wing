@@ -21,13 +21,21 @@ hbbtzn.com, www.hbbtzn.com {
     }
   }
 
-  # 统一登录是独立前端，只挂载在 /login；员工商城根路径仍由 storefront 提供。
+  # The login shell has no member data; serve its built files directly instead
+  # of placing every asset behind Vite's preview server. Credential submission
+  # remains under /api/v1/* and still reaches commerce-api below.
   @authWeb path /login /login/*
+  @authWebAssets path /login/assets/*
+  @authWebBrand path /login/brand/*
+  @authWebDocument path /login /login/
+  header @authWebAssets Cache-Control "public, max-age=31536000, immutable"
+  header @authWebBrand Cache-Control "public, max-age=86400"
+  header @authWebDocument Cache-Control "public, max-age=300, stale-while-revalidate=600"
   handle @authWeb {
     uri strip_prefix /login
-    reverse_proxy localhost:3010 {
-      header_up X-Real-IP {client_ip}
-    }
+    root * /opt/smart-wing/apps/auth-web/dist
+    try_files {path} /index.html
+    file_server
   }
 
   handle {
@@ -57,9 +65,18 @@ smart.hbbtzn.com {
     }
   }
 
+  # The operations UI is a static client shell. Account projection, product
+  # data, orders, and every write continue to use the protected API handlers
+  # above, so direct file serving cannot expose one operator's data to another.
+  @adminAssets path /assets/*
+  @adminBrand path /brand/*
+  @adminDocument path /
+  header @adminAssets Cache-Control "public, max-age=31536000, immutable"
+  header @adminBrand Cache-Control "public, max-age=86400"
+  header @adminDocument Cache-Control "public, max-age=300, stale-while-revalidate=600"
   handle {
-    reverse_proxy localhost:3001 {
-      header_up X-Real-IP {client_ip}
-    }
+    root * /opt/smart-wing/apps/admin-web/dist
+    try_files {path} /index.html
+    file_server
   }
 }

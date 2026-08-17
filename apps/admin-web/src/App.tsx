@@ -1,22 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
-import { AccountSecurityModal } from './components/AccountSecurityModal';
-import { GuardrailModal } from './components/GuardrailModal';
-import { CaseCenterDrawer } from './components/CaseCenterDrawer';
-import { CommandPaletteModal } from './components/CommandPaletteModal';
 import { loadAdminOverview, setLiveProductStatus, shipLiveOrder, type LiveOperationsSummary } from './services/catalog';
 
-// Workstations
-import { CockpitWorkstation } from './components/workstations/CockpitWorkstation';
-import { ProductGovernanceWorkstation } from './components/workstations/ProductGovernanceWorkstation';
-import { OrderFulfillmentWorkstation } from './components/workstations/OrderFulfillmentWorkstation';
-import { EnterpriseWelfareWorkstation } from './components/workstations/EnterpriseWelfareWorkstation';
-import { SupplierGovernanceWorkstation } from './components/workstations/SupplierGovernanceWorkstation';
-import { FinancialReconciliationWorkstation } from './components/workstations/FinancialReconciliationWorkstation';
-import { SystemControlWorkstation } from './components/workstations/SystemControlWorkstation';
-import { MembershipPermissionWorkstation } from './components/workstations/MembershipPermissionWorkstation';
-import { QualificationCenterWorkstation } from './components/workstations/QualificationCenterWorkstation';
+// Workstations are independent work areas. Loading all of them before an
+// operator can see the cockpit made the administration shell unnecessarily
+// large. Keep the first route focused, and fetch another workstation only
+// after the operator asks for it.
+const CockpitWorkstation = React.lazy(() => import('./components/workstations/CockpitWorkstation').then(({ CockpitWorkstation }) => ({ default: CockpitWorkstation })));
+const ProductGovernanceWorkstation = React.lazy(() => import('./components/workstations/ProductGovernanceWorkstation').then(({ ProductGovernanceWorkstation }) => ({ default: ProductGovernanceWorkstation })));
+const OrderFulfillmentWorkstation = React.lazy(() => import('./components/workstations/OrderFulfillmentWorkstation').then(({ OrderFulfillmentWorkstation }) => ({ default: OrderFulfillmentWorkstation })));
+const EnterpriseWelfareWorkstation = React.lazy(() => import('./components/workstations/EnterpriseWelfareWorkstation').then(({ EnterpriseWelfareWorkstation }) => ({ default: EnterpriseWelfareWorkstation })));
+const SupplierGovernanceWorkstation = React.lazy(() => import('./components/workstations/SupplierGovernanceWorkstation').then(({ SupplierGovernanceWorkstation }) => ({ default: SupplierGovernanceWorkstation })));
+const FinancialReconciliationWorkstation = React.lazy(() => import('./components/workstations/FinancialReconciliationWorkstation').then(({ FinancialReconciliationWorkstation }) => ({ default: FinancialReconciliationWorkstation })));
+const SystemControlWorkstation = React.lazy(() => import('./components/workstations/SystemControlWorkstation').then(({ SystemControlWorkstation }) => ({ default: SystemControlWorkstation })));
+const MembershipPermissionWorkstation = React.lazy(() => import('./components/workstations/MembershipPermissionWorkstation').then(({ MembershipPermissionWorkstation }) => ({ default: MembershipPermissionWorkstation })));
+const QualificationCenterWorkstation = React.lazy(() => import('./components/workstations/QualificationCenterWorkstation').then(({ QualificationCenterWorkstation }) => ({ default: QualificationCenterWorkstation })));
+
+const AccountSecurityModal = React.lazy(() => import('./components/AccountSecurityModal').then(({ AccountSecurityModal }) => ({ default: AccountSecurityModal })));
+const GuardrailModal = React.lazy(() => import('./components/GuardrailModal').then(({ GuardrailModal }) => ({ default: GuardrailModal })));
+const CaseCenterDrawer = React.lazy(() => import('./components/CaseCenterDrawer').then(({ CaseCenterDrawer }) => ({ default: CaseCenterDrawer })));
+const CommandPaletteModal = React.lazy(() => import('./components/CommandPaletteModal').then(({ CommandPaletteModal }) => ({ default: CommandPaletteModal })));
+
+const WorkstationLoading = () => <div className="min-h-[320px] flex items-center justify-center text-sm text-slate-400">正在加载工作台…</div>;
 
 // Mock Datasets
 import { INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIERS, INITIAL_CASES, INITIAL_FINANCE_DISCREPANCIES, INITIAL_SYSTEM_CONFIG } from './data/mockData';
@@ -302,58 +308,60 @@ export function App() {
 
         {/* 3. Main Workstation Area */}
         <main className="flex-1 overflow-y-auto bg-[#f8fafc]">
-          {visibleWorkstation === 'cockpit' && <CockpitWorkstation orders={orders} products={products} enterprises={enterprises} liveOperations={liveOperations} onNavigateToWorkstation={handleNavigateToWorkstation} language={language} />}
+          <React.Suspense fallback={<WorkstationLoading />}>
+            {visibleWorkstation === 'cockpit' && <CockpitWorkstation orders={orders} products={products} enterprises={enterprises} liveOperations={liveOperations} onNavigateToWorkstation={handleNavigateToWorkstation} language={language} />}
 
-          {visibleWorkstation === 'product' && (
-            <ProductGovernanceWorkstation
-              products={products}
-              onUpdateProducts={setProducts}
-              onOpenGuardrail={handleOpenGuardrail}
-              initialFilterStatus={filterParams.key === 'status' ? filterParams.value : undefined}
-              isLiveCatalog={isLiveCatalog}
-              onSetProductStatus={setLiveProductStatus}
-            />
-          )}
+            {visibleWorkstation === 'product' && (
+              <ProductGovernanceWorkstation
+                products={products}
+                onUpdateProducts={setProducts}
+                onOpenGuardrail={handleOpenGuardrail}
+                initialFilterStatus={filterParams.key === 'status' ? filterParams.value : undefined}
+                isLiveCatalog={isLiveCatalog}
+                onSetProductStatus={setLiveProductStatus}
+              />
+            )}
 
-          {visibleWorkstation === 'order' && (
-            <OrderFulfillmentWorkstation
-              orders={orders}
-              onUpdateOrders={setOrders}
-              onOpenGuardrail={handleOpenGuardrail}
-              initialProblemType={filterParams.key === 'problemType' ? filterParams.value : undefined}
-              isLiveOrders={isLiveCatalog}
-              onShipOrder={shipLiveOrder}
-            />
-          )}
+            {visibleWorkstation === 'order' && (
+              <OrderFulfillmentWorkstation
+                orders={orders}
+                onUpdateOrders={setOrders}
+                onOpenGuardrail={handleOpenGuardrail}
+                initialProblemType={filterParams.key === 'problemType' ? filterParams.value : undefined}
+                isLiveOrders={isLiveCatalog}
+                onShipOrder={shipLiveOrder}
+              />
+            )}
 
-          {visibleWorkstation === 'enterprise' && <EnterpriseWelfareWorkstation enterprises={enterprises} onOpenGuardrail={handleOpenGuardrail} initialSearchName={filterParams.key === 'search' ? filterParams.value : undefined} />}
+            {visibleWorkstation === 'enterprise' && <EnterpriseWelfareWorkstation enterprises={enterprises} onOpenGuardrail={handleOpenGuardrail} initialSearchName={filterParams.key === 'search' ? filterParams.value : undefined} />}
 
-          {visibleWorkstation === 'supplier' && <SupplierGovernanceWorkstation suppliers={suppliers} onUpdateSuppliers={setSuppliers} onOpenGuardrail={handleOpenGuardrail} />}
+            {visibleWorkstation === 'supplier' && <SupplierGovernanceWorkstation suppliers={suppliers} onUpdateSuppliers={setSuppliers} onOpenGuardrail={handleOpenGuardrail} />}
 
-          {visibleWorkstation === 'finance' && (
-            <FinancialReconciliationWorkstation discrepancies={discrepancies} onUpdateDiscrepancies={setDiscrepancies} onOpenGuardrail={handleOpenGuardrail} initialFilterDiscrepancyOnly={filterParams.key === 'discrepancy'} />
-          )}
+            {visibleWorkstation === 'finance' && (
+              <FinancialReconciliationWorkstation discrepancies={discrepancies} onUpdateDiscrepancies={setDiscrepancies} onOpenGuardrail={handleOpenGuardrail} initialFilterDiscrepancyOnly={filterParams.key === 'discrepancy'} />
+            )}
 
-          {allowedWorkstations.includes('membership') && (
-            <MembershipPermissionWorkstation
-              active={visibleWorkstation === 'membership'}
-              canManageAccess={sessionPermissions.includes('role.grant') && sessionPermissions.includes('scope.grant')}
-              canManageStatus={sessionPermissions.includes('member.disable')}
-              canOffboard={sessionPermissions.includes('member.offboard')}
-              canInvite={sessionPermissions.includes('member.invite')}
-              canUpdate={sessionPermissions.includes('member.update')}
-              canImport={sessionPermissions.includes('member.import')}
-              canCreateRole={sessionPermissions.includes('role.create')}
-              canUpdateRole={sessionPermissions.includes('role.update')}
-              canDisableRole={sessionPermissions.includes('role.delete')}
-            />
-          )}
+            {visibleWorkstation === 'membership' && allowedWorkstations.includes('membership') && (
+              <MembershipPermissionWorkstation
+                active
+                canManageAccess={sessionPermissions.includes('role.grant') && sessionPermissions.includes('scope.grant')}
+                canManageStatus={sessionPermissions.includes('member.disable')}
+                canOffboard={sessionPermissions.includes('member.offboard')}
+                canInvite={sessionPermissions.includes('member.invite')}
+                canUpdate={sessionPermissions.includes('member.update')}
+                canImport={sessionPermissions.includes('member.import')}
+                canCreateRole={sessionPermissions.includes('role.create')}
+                canUpdateRole={sessionPermissions.includes('role.update')}
+                canDisableRole={sessionPermissions.includes('role.delete')}
+              />
+            )}
 
-          {visibleWorkstation === 'qualification' && <QualificationCenterWorkstation />}
+            {visibleWorkstation === 'qualification' && <QualificationCenterWorkstation />}
 
-          {visibleWorkstation === 'system' && <SystemControlWorkstation config={systemConfig} onUpdateConfig={setSystemConfig} onOpenGuardrail={handleOpenGuardrail} />}
+            {visibleWorkstation === 'system' && <SystemControlWorkstation config={systemConfig} onUpdateConfig={setSystemConfig} onOpenGuardrail={handleOpenGuardrail} />}
+          </React.Suspense>
         </main>
-        <AccountSecurityModal open={isSecurityCenterOpen} onClose={() => setIsSecurityCenterOpen(false)} onSignedOut={handleLogout} />
+        <React.Suspense fallback={null}>{isSecurityCenterOpen && <AccountSecurityModal open onClose={() => setIsSecurityCenterOpen(false)} onSignedOut={handleLogout} />}</React.Suspense>
 
         {/* System Footer Bar */}
         <footer className="h-9 bg-white border-t border-slate-200/80 px-6 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
@@ -371,20 +379,24 @@ export function App() {
       </div>
 
       {/* 4. Global Modals & Drawers */}
-      <GuardrailModal options={guardrailOptions} onClose={() => setGuardrailOptions(null)} />
+      <React.Suspense fallback={null}>
+        {guardrailOptions && <GuardrailModal options={guardrailOptions} onClose={() => setGuardrailOptions(null)} />}
 
-      <CaseCenterDrawer
-        isOpen={isCaseCenterOpen}
-        onClose={() => setIsCaseCenterOpen(false)}
-        cases={cases}
-        onUpdateCaseStatus={handleUpdateCaseStatus}
-        onNavigateToWorkstation={(wsId, objId) => {
-          handleNavigateToWorkstation(wsId, 'objectId', objId);
-          setIsCaseCenterOpen(false);
-        }}
-      />
+        {isCaseCenterOpen && (
+          <CaseCenterDrawer
+            isOpen
+            onClose={() => setIsCaseCenterOpen(false)}
+            cases={cases}
+            onUpdateCaseStatus={handleUpdateCaseStatus}
+            onNavigateToWorkstation={(wsId, objId) => {
+              handleNavigateToWorkstation(wsId, 'objectId', objId);
+              setIsCaseCenterOpen(false);
+            }}
+          />
+        )}
 
-      <CommandPaletteModal isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} onNavigateWithFilter={handleNavigateToWorkstation} />
+        {isCommandPaletteOpen && <CommandPaletteModal isOpen onClose={() => setIsCommandPaletteOpen(false)} onNavigateWithFilter={handleNavigateToWorkstation} />}
+      </React.Suspense>
     </div>
   );
 }

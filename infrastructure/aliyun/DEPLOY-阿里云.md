@@ -5,8 +5,8 @@
 | 域名               | PM2 进程                | 端口 | 代码                                            |
 | ------------------ | ----------------------- | ---- | ----------------------------------------------- |
 | `hbbtzn.com`       | `smart-wing-storefront` | 3000 | `apps/storefront-web` + `services/commerce-api` |
-| `hbbtzn.com/login` | `smart-wing-auth-web`   | 3010 | `apps/auth-web`（统一登录）                     |
-| `smart.hbbtzn.com` | `smart-wing-admin-api`  | 3001 | `apps/admin-web` + `services/commerce-api`      |
+| `hbbtzn.com/login` | Caddy 静态文件          | —    | `apps/auth-web/dist`（统一登录；接口仍由 3000 提供） |
+| `smart.hbbtzn.com` | Caddy 静态文件 + API    | 3000/3001 | `apps/admin-web/dist`；业务接口 3000、AI 接口 3001 |
 
 可选的北京同地域读镜像为第四个 PM2 进程 `smart-wing-core-read-cache`，仅监听 `127.0.0.1:3002`，不经过 Caddy。环境变量完整时，日常发布脚本会自动启动或重载它；未配置 Tair 时不会启动，也不会影响主站回源数据库。
 
