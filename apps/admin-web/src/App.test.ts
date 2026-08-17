@@ -11,8 +11,24 @@ describe('admin account profile resolution', () => {
     expect(resolveAdminAccount(employeeNo, [roleId])).toMatchObject({ username: employeeNo, role: roleLabel });
   });
 
-  it('keeps the existing named test administrators', () => {
-    expect(resolveAdminAccount('SW_TEST_FUBAO', ['role-mall-admin'])).toMatchObject({ username: '福宝' });
+  it('keeps an authenticated platform owner identity instead of substituting a legacy demo owner', () => {
+    expect(resolveAdminAccount('ethan', ['platform_owner'])).toMatchObject({
+      username: 'ethan',
+      displayName: 'ethan',
+      role: '平台 Owner',
+    });
+    expect(resolveAdminAccount('ethan', ['platform_owner'])).not.toMatchObject({
+      username: 'onewr',
+      displayName: '李厚亿',
+    });
+  });
+
+  it('keeps an authenticated mall administrator identity instead of substituting a legacy demo profile', () => {
+    expect(resolveAdminAccount('mall-admin-001', ['role-mall-admin'])).toMatchObject({
+      username: 'mall-admin-001',
+      displayName: 'mall-admin-001',
+      role: '商城管理员',
+    });
   });
 
   it('rejects an unknown profile', () => {
