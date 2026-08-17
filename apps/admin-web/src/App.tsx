@@ -19,7 +19,7 @@ import { MembershipPermissionWorkstation } from './components/workstations/Membe
 import { QualificationCenterWorkstation } from './components/workstations/QualificationCenterWorkstation';
 
 // Mock Datasets
-import { ADMIN_PROFILES, INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIERS, INITIAL_CASES, INITIAL_FINANCE_DISCREPANCIES, INITIAL_SYSTEM_CONFIG } from './data/mockData';
+import { INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIERS, INITIAL_CASES, INITIAL_FINANCE_DISCREPANCIES, INITIAL_SYSTEM_CONFIG } from './data/mockData';
 
 import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStatus, FinanceDiscrepancyRow, SystemConfig, GuardrailActionOptions, AdminProfile } from './types';
 
@@ -51,24 +51,50 @@ export function allowedWorkstationsFor(permissions: string[]): WorkstationId[] {
 export function resolveAdminAccount(employeeNo: unknown, roles: unknown): AdminProfile | null {
   if (!Array.isArray(roles)) return null;
   const roleCodes = new Set(roles.filter((role): role is string => typeof role === 'string'));
-  const username =
-    roleCodes.has('role-platform-owner-v2') || roleCodes.has('platform_owner')
-      ? 'onewr'
-      : roleCodes.has('role-enterprise-manager-v2') || roleCodes.has('enterprise_manager')
-        ? '经理1'
-        : roleCodes.has('role-mall-admin') || roleCodes.has('mall_admin')
-          ? '福宝'
-          : null;
-  if (username) return ADMIN_PROFILES.find((account) => account.username === username) ?? null;
-
   if (typeof employeeNo !== 'string') return null;
+  const normalizedEmployeeNo = employeeNo.trim();
+  if (!normalizedEmployeeNo) return null;
+
+  // The authenticated membership is the only source of the current person's
+  // identity. Role codes decide capabilities, never which legacy test profile
+  // should be displayed. In particular, a platform owner must not become the
+  // old `onewr` / 李厚亿 demo profile merely because they share the Owner role.
+  const formalRole = [
+    {
+      matches: roleCodes.has('role-platform-owner-v2') || roleCodes.has('platform_owner'),
+      role: '平台 Owner',
+      permissionTags: ['全量管理', '用户管理', '商品管理', '订单履约', '支付对账', '系统配置'],
+    },
+    {
+      matches: roleCodes.has('role-enterprise-manager-v2') || roleCodes.has('enterprise_manager'),
+      role: '企业福利经理',
+      permissionTags: ['企业管理', '成员管理', '订单履约', '财务查看'],
+    },
+    {
+      matches: roleCodes.has('role-mall-admin') || roleCodes.has('mall_admin'),
+      role: '商城管理员',
+      permissionTags: ['商品管理', '订单履约', '仓储发货'],
+    },
+  ].find((candidate) => candidate.matches);
+
+  if (formalRole) {
+    return {
+      username: normalizedEmployeeNo,
+      displayName: normalizedEmployeeNo,
+      role: formalRole.role,
+      permissionTags: formalRole.permissionTags,
+    };
+  }
+
   const profile = [
     { pattern: /^seller00[1-5]$/, role: '测试商家', permissionTags: ['商品发布', '订单履约', '仓储发货'] },
     { pattern: /^ops00[1-5]$/, role: '测试运营', permissionTags: ['商品运营', '订单履约', '审计查看'] },
     { pattern: /^cs00[1-5]$/, role: '测试客服', permissionTags: ['订单查看', '售后处理', '成员查看'] },
     { pattern: /^admin00[1-5]$/, role: '测试企业管理员', permissionTags: ['成员管理', '支付对账', '审计查看'] },
-  ].find((candidate) => candidate.pattern.test(employeeNo));
-  return profile ? { username: employeeNo, displayName: employeeNo, role: profile.role, permissionTags: profile.permissionTags } : null;
+  ].find((candidate) => candidate.pattern.test(normalizedEmployeeNo));
+  return profile
+    ? { username: normalizedEmployeeNo, displayName: normalizedEmployeeNo, role: profile.role, permissionTags: profile.permissionTags }
+    : null;
 }
 
 export function App() {
