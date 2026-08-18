@@ -1,4 +1,5 @@
 import { handleAdminCatalog, handleAdminOverview, handleSetProductStatus } from '../adminRoutes';
+import { handleAdminAfterSaleExport, handleAdminAfterSalePage, handleAdminOrderExport, handleAdminOrderPage } from '../adminOrderRoutes';
 import { handleCreateCustomRole, handleCustomRoleCenter, handleSetCustomRoleStatus, handleUpdateCustomRole } from '../customRoleRoutes';
 import { handleVerifyMemberCodeChallenge } from '../memberCodeRoutes';
 import { handleMallApplicationCenter, handleMallApplicationMutation } from '../mallApplicationRoutes';
@@ -26,6 +27,14 @@ export async function routeAdminRequest(request: Request, env: WorkerEnv, author
       return handleAdminCatalog(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/overview`:
       return handleAdminOverview(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/orders/export`:
+      return handleAdminOrderExport(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/after-sales/export`:
+      return handleAdminAfterSaleExport(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/orders`:
+      return handleAdminOrderPage(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/after-sales`:
+      return handleAdminAfterSalePage(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/mall-applications`:
       return handleMallApplicationCenter(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/access-control`:
