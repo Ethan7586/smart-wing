@@ -700,6 +700,7 @@ export const INITIAL_ORDERS: Order[] = [
   // Anomaly Order 1: Stock Conflict
   {
     id: 'ORD-20260808-001',
+    orderNo: 'ORD-20260808-001',
     parentOrderId: 'P-ORD-90112',
     enterpriseId: 'ENT-1003',
     enterpriseName: '中铁建设集团有限公司',
@@ -740,6 +741,7 @@ export const INITIAL_ORDERS: Order[] = [
   // Anomaly Order 2: SLA Timeout
   {
     id: 'ORD-20260808-002',
+    orderNo: 'ORD-20260808-002',
     enterpriseId: 'ENT-1001',
     enterpriseName: '国家电网华北分公司',
     employeeId: 'EMP-SG-1092',
@@ -776,6 +778,7 @@ export const INITIAL_ORDERS: Order[] = [
   // Anomaly Order 3: Refund Dispute
   {
     id: 'ORD-20260808-003',
+    orderNo: 'ORD-20260808-003',
     enterpriseId: 'ENT-1002',
     enterpriseName: '中国移动通信集团总部',
     employeeId: 'EMP-CM-3301',
@@ -811,6 +814,7 @@ export const INITIAL_ORDERS: Order[] = [
   // Normal Completed Orders
   {
     id: 'ORD-20260807-088',
+    orderNo: 'ORD-20260807-088',
     enterpriseId: 'ENT-1001',
     enterpriseName: '国家电网华北分公司',
     employeeId: 'EMP-SG-5012',

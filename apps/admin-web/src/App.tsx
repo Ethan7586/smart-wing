@@ -10,7 +10,7 @@ import { loadAdminOverview, setLiveProductStatus, shipLiveOrder, type LiveOperat
 // Workstations
 import { CockpitWorkstation } from './components/workstations/CockpitWorkstation';
 import { ProductGovernanceWorkstation } from './components/workstations/ProductGovernanceWorkstation';
-import { OrderFulfillmentWorkstation } from './components/workstations/OrderFulfillmentWorkstation';
+import { OrderManagementWorkstation } from './components/workstations/OrderManagementWorkstation';
 import { EnterpriseWelfareWorkstation } from './components/workstations/EnterpriseWelfareWorkstation';
 import { SupplierGovernanceWorkstation } from './components/workstations/SupplierGovernanceWorkstation';
 import { FinancialReconciliationWorkstation } from './components/workstations/FinancialReconciliationWorkstation';
@@ -24,12 +24,8 @@ import { INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIER
 
 import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStatus, FinanceDiscrepancyRow, SystemConfig, GuardrailActionOptions, AdminProfile } from './types';
 
-const LazyVoucherOperationsWorkstationV1 = React.lazy(() =>
-  import('./components/workstations/VoucherOperationsWorkstationV1').then(({ VoucherOperationsWorkstationV1 }) => ({ default: VoucherOperationsWorkstationV1 }))
-);
-const LazyMallApplicationWorkstation = React.lazy(() =>
-  import('./components/workstations/MallApplicationWorkstation').then(({ MallApplicationWorkstation }) => ({ default: MallApplicationWorkstation }))
-);
+const LazyVoucherOperationsWorkstationV1 = React.lazy(() => import('./components/workstations/VoucherOperationsWorkstationV1').then(({ VoucherOperationsWorkstationV1 }) => ({ default: VoucherOperationsWorkstationV1 })));
+const LazyMallApplicationWorkstation = React.lazy(() => import('./components/workstations/MallApplicationWorkstation').then(({ MallApplicationWorkstation }) => ({ default: MallApplicationWorkstation })));
 
 export function allowedWorkstationsFor(permissions: string[], roles: string[] = []): WorkstationId[] {
   const allowed = new Set<WorkstationId>(['cockpit']);
@@ -39,16 +35,9 @@ export function allowedWorkstationsFor(permissions: string[], roles: string[] = 
   // operator sessions are still returning an incomplete permission projection.
   // This exposes only the unified-Admin menu entry; every API/write operation
   // continues to be authorized by the server.
-  const hasVoucherWorkspaceRole = [
-    'platform_owner',
-    'role-platform-owner-v2',
-    'enterprise_manager',
-    'role-enterprise-manager-v2',
-    'mall_admin',
-    'role-mall-admin',
-    'role-test-seller',
-    'role-test-operations',
-  ].some((role) => roleCodes.has(role));
+  const hasVoucherWorkspaceRole = ['platform_owner', 'role-platform-owner-v2', 'enterprise_manager', 'role-enterprise-manager-v2', 'mall_admin', 'role-mall-admin', 'role-test-seller', 'role-test-operations'].some((role) =>
+    roleCodes.has(role)
+  );
   if (has('catalog.read') || has('product.publish')) allowed.add('product');
   if (has('order.read') || has('order.ship')) allowed.add('order');
   if (has('tenant.manage') || has('role.grant') || has('audit.read')) allowed.add('enterprise');
@@ -131,9 +120,7 @@ export function resolveAdminAccount(employeeNo: unknown, roles: unknown): AdminP
     { pattern: /^cs00[1-5]$/, role: '测试客服', permissionTags: ['订单查看', '售后处理', '成员查看'] },
     { pattern: /^admin00[1-5]$/, role: '测试企业管理员', permissionTags: ['成员管理', '支付对账', '审计查看'] },
   ].find((candidate) => candidate.pattern.test(normalizedEmployeeNo));
-  return profile
-    ? { username: normalizedEmployeeNo, displayName: normalizedEmployeeNo, role: profile.role, permissionTags: profile.permissionTags }
-    : null;
+  return profile ? { username: normalizedEmployeeNo, displayName: normalizedEmployeeNo, role: profile.role, permissionTags: profile.permissionTags } : null;
 }
 
 export function App() {
@@ -287,7 +274,7 @@ export function App() {
   const activeWorkstationName = {
     cockpit: isEn ? 'Cockpit' : '经营驾驶舱',
     product: isEn ? 'Products' : '商品治理台',
-    order: isEn ? 'Orders' : '订单履约台',
+    order: isEn ? 'Order Management' : '订单管理系统',
     enterprise: isEn ? 'Enterprises' : '企业福利台',
     mall: isEn ? 'Mall Applications' : '商城应用台',
     voucher: isEn ? 'Vouchers' : '卡券运营台',
@@ -359,13 +346,14 @@ export function App() {
           )}
 
           {visibleWorkstation === 'order' && (
-            <OrderFulfillmentWorkstation
+            <OrderManagementWorkstation
               orders={orders}
               onUpdateOrders={setOrders}
               onOpenGuardrail={handleOpenGuardrail}
               initialProblemType={filterParams.key === 'problemType' ? filterParams.value : undefined}
               isLiveOrders={isLiveCatalog}
               onShipOrder={shipLiveOrder}
+              sessionPermissions={sessionPermissions}
             />
           )}
 
@@ -389,12 +377,7 @@ export function App() {
                   </section>
                 }
               >
-                <LazyVoucherOperationsWorkstationV1
-                  liveDataEnabled
-                  sessionPermissions={sessionPermissions}
-                  writeEnabled={false}
-                  onOpenGuardrail={handleOpenGuardrail}
-                />
+                <LazyVoucherOperationsWorkstationV1 liveDataEnabled sessionPermissions={sessionPermissions} writeEnabled={false} onOpenGuardrail={handleOpenGuardrail} />
               </Suspense>
             </WorkstationLoadBoundary>
           )}

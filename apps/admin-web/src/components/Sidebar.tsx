@@ -54,7 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'order',
-      name: isEn ? 'Orders' : '订单履约台',
+      name: isEn ? 'Order Management' : '订单管理系统',
       badgeCount: pendingOrdersCount || pendingCounts.order || 0,
       badgeColor: 'red',
       icon: 'Truck',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AlertTriangle, RotateCw, Clock, User, ShieldCheck, Building2, X, CreditCard, DollarSign, Ban, RefreshCw } from 'lucide-react';
 import { Order } from '../../types';
 
@@ -7,14 +7,19 @@ interface OrderFulfillmentProps {
   onUpdateOrders: (updatedOrders: Order[]) => void;
   onOpenGuardrail: (title: string, actionType: string, targetName: string, entityId: string, amount: number, onConfirm: (reason: string, evidence: string) => void) => void;
   initialProblemType?: string;
+  initialOrderId?: string;
   isLiveOrders?: boolean;
   onShipOrder?: (orderId: string) => Promise<void>;
 }
 
-export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ orders, onUpdateOrders, onOpenGuardrail, initialProblemType, isLiveOrders = false, onShipOrder }) => {
+export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ orders, onUpdateOrders, onOpenGuardrail, initialProblemType, initialOrderId, isLiveOrders = false, onShipOrder }) => {
   const [activeTab, setActiveTab] = useState<'PENDING' | 'ALL' | 'ARCHIVED'>('PENDING');
   const [problemFilter, setProblemFilter] = useState<string>(initialProblemType || 'ALL');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(orders.find((o) => o.isProblematic)?.id || orders[0]?.id || null);
+
+  useEffect(() => {
+    if (initialOrderId && orders.some((order) => order.id === initialOrderId)) setSelectedOrderId(initialOrderId);
+  }, [initialOrderId, orders]);
 
   const selectedOrder = orders.find((o) => o.id === selectedOrderId);
 
@@ -33,7 +38,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
 
   // Action 1: Refund Guardrail Modal
   const handleTriggerRefund = (ord: Order) => {
-    onOpenGuardrail(`退款确认处理: 订单号 ${ord.id}`, '订单原路退款', `${ord.enterpriseName} - ${ord.employeeName}`, ord.id, ord.totalAmount, (reason, evidence) => {
+    onOpenGuardrail(`退款确认处理: 订单号 ${ord.orderNo}`, '订单原路退款', `${ord.enterpriseName} - ${ord.employeeName}`, ord.id, ord.totalAmount, (reason, evidence) => {
       const updated = orders.map((o) => {
         if (o.id === ord.id) {
           return {
@@ -69,7 +74,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
 
   // Action 3: Force Close Order
   const handleForceClose = (ord: Order) => {
-    onOpenGuardrail(`强制关单: 订单号 ${ord.id}`, '高风险强制关单', ord.enterpriseName, ord.id, ord.totalAmount, (reason) => {
+    onOpenGuardrail(`强制关单: 订单号 ${ord.orderNo}`, '高风险强制关单', ord.enterpriseName, ord.id, ord.totalAmount, (reason) => {
       const updated = orders.map((o) => {
         if (o.id === ord.id) {
           return {
@@ -122,7 +127,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
   };
 
   const handleShip = (ord: Order) => {
-    onOpenGuardrail(`确认订单发货: ${ord.id}`, '订单发货', ord.enterpriseName, ord.id, ord.totalAmount, async () => {
+    onOpenGuardrail(`确认订单发货: ${ord.orderNo}`, '订单发货', ord.enterpriseName, ord.id, ord.totalAmount, async () => {
       if (!onShipOrder) return;
       try {
         await onShipOrder(ord.id);
@@ -230,7 +235,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
                   className={`p-3.5 rounded-xl border text-xs transition-all cursor-pointer space-y-2 ${isSelected ? 'bg-white border-[var(--sw-brand)] shadow-md ring-2 ring-blue-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-slate-900">{ord.id}</span>
+                    <span className="font-mono font-bold text-slate-900">{ord.orderNo}</span>
                     <span
                       className={`px-2 py-0.2 rounded text-[10px] font-bold ${
                         ord.status === '异常挂起'
@@ -270,7 +275,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
             <div className="flex items-start justify-between border-b border-slate-100 pb-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-mono font-bold text-slate-900">{selectedOrder.id}</span>
+                  <span className="text-sm font-mono font-bold text-slate-900">{selectedOrder.orderNo}</span>
                   <span className="text-xs px-2 py-0.5 rounded bg-blue-50 text-[var(--sw-brand)] font-semibold border border-blue-200">{selectedOrder.enterpriseName}</span>
                 </div>
                 <p className="text-xs text-slate-500">

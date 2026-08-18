@@ -130,6 +130,7 @@ function toAdminOrder(raw: ApiOrder): Order {
   const createdAt = dateText(raw.createdAt);
   return {
     id: orderId,
+    orderNo: text(raw.orderNo, orderId),
     enterpriseId: 'production-enterprise',
     enterpriseName: '授权企业范围',
     employeeId: 'protected-member',

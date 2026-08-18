@@ -110,6 +110,8 @@ export interface RetryLog {
 
 export interface Order {
   id: string;
+  /** Human-readable business identifier. Keep the database id for API mutations. */
+  orderNo: string;
   parentOrderId?: string;
   enterpriseId: string;
   enterpriseName: string;
