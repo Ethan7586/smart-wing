@@ -52,6 +52,15 @@ smart.hbbtzn.com {
     }
   }
 
+  # 验收版只接管新增商城应用接口；其余正式 API 仍由 3000 端口提供。
+  # 这样可以在不重启正式商城的前提下完成端到端验收。
+  @mallApplicationTestApi path /api/v1/admin/mall-applications /api/v1/admin/mall-applications/*
+  handle @mallApplicationTestApi {
+    reverse_proxy localhost:3012 {
+      header_up X-Real-IP {client_ip}
+    }
+  }
+
   # 运营后台页面由 admin-web 服务，但身份、会话与交易 API 必须统一经过
   # commerce-api，确保后台域签发 __Host-hbbtzn_admin_session 独立 Cookie。
   @commerceApi path /api/health /api/ready /api/v1/*
