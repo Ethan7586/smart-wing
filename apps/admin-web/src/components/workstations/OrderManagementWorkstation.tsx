@@ -31,6 +31,7 @@ export function OrderManagementWorkstation({ orders, onUpdateOrders, onOpenGuard
   const [focusedOrderId, setFocusedOrderId] = useState<string | undefined>();
   const canShip = sessionPermissions.includes('order.ship');
   const canRefund = sessionPermissions.includes('order.refund');
+  const metrics = orderMetrics(orders);
   const requestShip = (order: OrderListItem, refresh: () => void) => {
     onOpenGuardrail(`确认订单发货：${order.orderNo}`, '订单发货', order.supplierNames.join('、') || '订单供应商', order.id, order.paidCents / 100, () => {
       if (!onShipOrder) return;
@@ -58,14 +59,22 @@ export function OrderManagementWorkstation({ orders, onUpdateOrders, onOpenGuard
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-base font-bold text-slate-900">订单管理系统 (Order Management System)</h2>
               <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[#1769ff]">当前授权订单范围</span>
-              {isLiveOrders && <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">生产订单实时读取</span>}
+              <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${isLiveOrders ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-amber-200 bg-amber-50 text-amber-700'}`}>
+                {isLiveOrders ? '生产订单实时读取' : '演示订单数据 · 尚未连接生产库'}
+              </span>
             </div>
-            <p className="mt-2 text-xs text-slate-500">查单、售后、异常处理与全生命周期履约统一在同一工作台完成</p>
+            <p className="mt-2 text-xs text-slate-500">查单、售后、异常处理与全生命周期履约统一在同一工作台完成；统计仅反映当前已载入的授权范围。</p>
           </div>
-          <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
-            异常待处理 <span className="ml-1 font-semibold text-rose-600">{orders.filter((order) => order.isProblematic).length}</span> 单
-          </div>
+          <button type="button" onClick={() => setActiveTab('exceptions')} className="rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700 transition-colors hover:bg-rose-100">
+            风险待处理 <span className="ml-1 font-semibold">{metrics.risk}</span> 单 <span className="ml-1">查看队列 →</span>
+          </button>
         </div>
+        <section className="grid gap-3 py-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="当前订单运营概览">
+          <MetricCard label="当前范围订单" value={metrics.total} note="已载入订单" tone="blue" onClick={() => setActiveTab('orders')} />
+          <MetricCard label="待履约" value={metrics.pendingFulfillment} note="已支付或待发货" tone="violet" onClick={() => setActiveTab('fulfillment')} />
+          <MetricCard label="售后待办" value={metrics.afterSales} note="退款申请处理中" tone="amber" onClick={() => setActiveTab('afterSales')} />
+          <MetricCard label="风险待处理" value={metrics.risk} note="库存、SLA 与退款风险" tone="rose" onClick={() => setActiveTab('exceptions')} />
+        </section>
         <div className="flex overflow-x-auto">
           <div className="flex min-w-max items-center gap-1 pt-3">
             {TABS.map((tab) => (
@@ -76,6 +85,11 @@ export function OrderManagementWorkstation({ orders, onUpdateOrders, onOpenGuard
                 className={`rounded-t-lg px-4 py-2.5 text-xs font-semibold transition-colors ${activeTab === tab.id ? 'bg-[#1769ff] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
               >
                 {tab.label}
+                {tab.id === 'orders' && <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] ${activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>{metrics.total}</span>}
+                {tab.id === 'afterSales' && metrics.afterSales > 0 && (
+                  <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] ${activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-amber-50 text-amber-700'}`}>{metrics.afterSales}</span>
+                )}
+                {tab.id === 'exceptions' && metrics.risk > 0 && <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] ${activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-rose-50 text-rose-700'}`}>{metrics.risk}</span>}
               </button>
             ))}
           </div>
@@ -106,6 +120,33 @@ export function OrderManagementWorkstation({ orders, onUpdateOrders, onOpenGuard
       )}
     </div>
   );
+}
+
+function MetricCard({ label, value, note, tone, onClick }: { label: string; value: number; note: string; tone: 'blue' | 'violet' | 'amber' | 'rose'; onClick: () => void }) {
+  const tones = {
+    blue: 'border-blue-100 bg-blue-50/50 text-[#1769ff]',
+    violet: 'border-violet-100 bg-violet-50/50 text-violet-700',
+    amber: 'border-amber-100 bg-amber-50/50 text-amber-700',
+    rose: 'border-rose-100 bg-rose-50/50 text-rose-700',
+  };
+  return (
+    <button type="button" onClick={onClick} className={`rounded-xl border px-4 py-3 text-left transition-transform hover:-translate-y-0.5 hover:shadow-sm ${tones[tone]}`}>
+      <span className="block text-xs font-medium text-slate-500">{label}</span>
+      <span className="mt-1 block text-2xl font-bold tabular-nums">{value}</span>
+      <span className="mt-1 block text-[11px] text-slate-500">{note}</span>
+    </button>
+  );
+}
+
+function orderMetrics(orders: Order[]) {
+  const afterSales = orders.filter((order) => order.status === '退款申请中').length;
+  const risk = orders.filter((order) => order.isProblematic || order.status === '退款申请中').length;
+  return {
+    total: orders.length,
+    pendingFulfillment: orders.filter((order) => ['已支付', '待发货'].includes(order.status)).length,
+    afterSales,
+    risk,
+  };
 }
 
 function ExceptionSummary({ orders, onOpen }: { orders: Order[]; onOpen: (orderId: string) => void }) {

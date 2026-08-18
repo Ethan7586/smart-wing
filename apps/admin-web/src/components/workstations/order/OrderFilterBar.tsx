@@ -38,9 +38,12 @@ export function OrderFilterBar({ filters, statuses, placeholder, onChange, onSea
             ))}
           </select>
         </label>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" aria-label="下单日期范围">
+          <span className="shrink-0 text-xs font-medium text-slate-500">下单日期</span>
           <input
             type="date"
+            lang="zh-CN"
+            aria-label="下单开始日期"
             value={filters.createdFrom}
             onChange={(event) => set('createdFrom', event.target.value)}
             className="h-9 min-w-0 flex-1 rounded-lg border border-slate-200 px-2 text-xs text-slate-600 outline-none focus:border-[#1769ff]"
@@ -48,6 +51,8 @@ export function OrderFilterBar({ filters, statuses, placeholder, onChange, onSea
           <span className="text-slate-300">至</span>
           <input
             type="date"
+            lang="zh-CN"
+            aria-label="下单结束日期"
             value={filters.createdTo}
             onChange={(event) => set('createdTo', event.target.value)}
             className="h-9 min-w-0 flex-1 rounded-lg border border-slate-200 px-2 text-xs text-slate-600 outline-none focus:border-[#1769ff]"
