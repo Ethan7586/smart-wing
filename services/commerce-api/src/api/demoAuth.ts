@@ -62,6 +62,14 @@ const DEFAULT_DEMO_ACCOUNTS: readonly DemoAccount[] = [
     memberId: 'member-test-owner',
     adminMembershipId: 'membership-test-owner-admin',
   },
+  {
+    username: 'ethan',
+    password: '123456',
+    employeeNo: 'SW_TEST_OWNER',
+    mallCode: 'SMART_WING_DEMO',
+    memberId: 'member-test-owner',
+    adminMembershipId: 'membership-test-owner-admin',
+  },
   ...(['02', '03', '04', '05'] as const).map((suffix) => ({
     username: `员工测试${suffix}`,
     password: '123456',

@@ -26,10 +26,11 @@ export async function handleAdminOverview(request: Request, env: WorkerEnv, auth
   }
   const broadScope = authorization.membership.scopeBindings.some((binding) => binding.kind !== 'self');
   const scopedOrderParams = { ...authorizationScope(authorization), p_user_id: broadScope ? null : authorization.userId };
-  const [products, orders, afterSaleCount] = await Promise.all([
+  const [products, orders, afterSaleCount, sales] = await Promise.all([
     callRpc<Array<Record<string, unknown>>>(env, 'api_admin_catalog', { p_tenant_id: authorization.tenantId, p_mall_id: authorization.mallId, p_limit: 100 }),
     callRpc<Array<Record<string, unknown>>>(env, 'api_order_views_scoped', scopedOrderParams),
     callRpc<number>(env, 'api_after_sale_count_scoped', scopedOrderParams),
+    callRpc<Record<string, unknown>>(env, 'api_admin_sales_overview_scoped', scopedOrderParams),
   ]);
   return json({
     authenticated: true,
@@ -48,6 +49,7 @@ export async function handleAdminOverview(request: Request, env: WorkerEnv, auth
       availableStock: products.reduce((total, product) => total + (typeof product.availableStock === 'number' ? product.availableStock : 0), 0),
       orderCount: orders.length,
       afterSaleCount,
+      sales,
     },
     requestId,
   });
