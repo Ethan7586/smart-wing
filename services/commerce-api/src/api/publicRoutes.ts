@@ -147,7 +147,11 @@ export async function handleLogin(request: Request, env: WorkerEnv, requestId: s
     return apiError(403, 'PASSWORD_RESET_REQUIRED', '首次登录必须先修改临时密码', requestId);
   }
   await callRpc<boolean>(env, 'api_clear_login_failures', { p_ip_hash: ipHash });
-  const cookie = await createTrackedSessionCookie(request, env, runtime.authorization.employeeNo, runtime.authorization.mallCode, {
+  // `ethan` is an explicit test-only Owner alias. It retains the same resolved
+  // membership and permissions, while the shell can identify the demo account
+  // by the name the presenter used to sign in.
+  const sessionEmployeeNo = account?.username.toLowerCase() === 'ethan' ? 'Ethan' : runtime.authorization.employeeNo;
+  const cookie = await createTrackedSessionCookie(request, env, sessionEmployeeNo, runtime.authorization.mallCode, {
     target,
     memberId: runtime.membership.memberId,
     membershipId: runtime.membership.id,

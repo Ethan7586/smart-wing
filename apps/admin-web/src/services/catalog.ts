@@ -76,11 +76,49 @@ export async function setLiveProductStatus(productId: string, status: 'active' |
   if (!response.ok) throw new Error(`PRODUCT_STATUS_REQUEST_FAILED_${response.status}`);
 }
 
+export interface SalesTrendPoint {
+  date: string;
+  salesCents: number;
+  orderCount: number;
+}
+
+export interface SalesCategory {
+  name: string;
+  salesCents: number;
+  share: number;
+}
+
+export interface SalesProduct {
+  productId: string;
+  name: string;
+  salesCents: number;
+  quantity: number;
+  orderCount: number;
+}
+
+export interface SalesOverview {
+  asOf: string;
+  cumulativeSalesCents: number;
+  paidOrderCount: number;
+  averageOrderValueCents: number;
+  periodSalesCents: number;
+  periodPaidOrderCount: number;
+  refundedCents: number;
+  activeProductCount: number;
+  soldProductCount: number;
+  unsoldActiveProductCount: number;
+  trend: SalesTrendPoint[];
+  categories: SalesCategory[];
+  topProducts: SalesProduct[];
+}
+
 export interface LiveOperationsSummary {
   catalogCount: number;
   availableStock: number;
   orderCount: number;
   afterSaleCount: number;
+  /** Omitted, rather than fabricated as zero, when the session cannot read orders. */
+  sales: SalesOverview | null;
 }
 
 type ApiOrderItem = { productId?: unknown; productTitle?: unknown; productImage?: unknown; priceCents?: unknown; quantity?: unknown; specs?: unknown };
@@ -179,6 +217,54 @@ export interface AdminOverview {
   summary: LiveOperationsSummary;
 }
 
+function array(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function salesText(value: unknown, fallback = ''): string {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function toSalesOverview(value: unknown): SalesOverview | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
+  const source = value as Record<string, unknown>;
+  const trend = array(source.trend).flatMap((item): SalesTrendPoint[] => {
+    if (typeof item !== 'object' || item === null) return [];
+    const point = item as Record<string, unknown>;
+    const date = salesText(point.date);
+    return date ? [{ date, salesCents: number(point.salesCents), orderCount: number(point.orderCount) }] : [];
+  });
+  const categories = array(source.categories).flatMap((item): SalesCategory[] => {
+    if (typeof item !== 'object' || item === null) return [];
+    const category = item as Record<string, unknown>;
+    const name = salesText(category.name);
+    return name ? [{ name, salesCents: number(category.salesCents), share: number(category.share) }] : [];
+  });
+  const topProducts = array(source.topProducts).flatMap((item): SalesProduct[] => {
+    if (typeof item !== 'object' || item === null) return [];
+    const product = item as Record<string, unknown>;
+    const productId = salesText(product.productId);
+    const name = salesText(product.name);
+    return productId && name ? [{ productId, name, salesCents: number(product.salesCents), quantity: number(product.quantity), orderCount: number(product.orderCount) }] : [];
+  });
+
+  return {
+    asOf: salesText(source.asOf),
+    cumulativeSalesCents: number(source.cumulativeSalesCents),
+    paidOrderCount: number(source.paidOrderCount),
+    averageOrderValueCents: number(source.averageOrderValueCents),
+    periodSalesCents: number(source.periodSalesCents),
+    periodPaidOrderCount: number(source.periodPaidOrderCount),
+    refundedCents: number(source.refundedCents),
+    activeProductCount: number(source.activeProductCount),
+    soldProductCount: number(source.soldProductCount),
+    unsoldActiveProductCount: number(source.unsoldActiveProductCount),
+    trend,
+    categories,
+    topProducts,
+  };
+}
+
 /** One protected request gives the admin app its session projection and first-paint facts. */
 export async function loadAdminOverview(): Promise<AdminOverview> {
   const response = await fetch('/api/v1/admin/overview', { credentials: 'same-origin' });
@@ -199,6 +285,7 @@ export async function loadAdminOverview(): Promise<AdminOverview> {
       ),
       orderCount: number(payload.summary?.orderCount, orders.length),
       afterSaleCount: number(payload.summary?.afterSaleCount),
+      sales: toSalesOverview(payload.summary?.sales),
     },
   };
 }
