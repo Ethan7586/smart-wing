@@ -1,4 +1,5 @@
 import { createMemoryResource } from './memoryResource';
+import { hasArrayProperties, isJsonRecord, requestAdminJson } from './adminJson';
 
 export type PermissionRisk = 'low' | 'elevated' | 'high' | 'critical';
 export type ScopeKind = 'platform' | 'tenant' | 'distributor' | 'enterprise' | 'mall' | 'supplier' | 'brand' | 'store' | 'department' | 'self';
@@ -58,14 +59,17 @@ export interface AccessUpdate {
   reason: string;
 }
 
-async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, { credentials: 'same-origin', ...init });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload?.error?.message ?? `权限服务请求失败 (${response.status})`);
-  return payload as T;
+function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
+  return requestAdminJson<T>(url, { label: '权限服务', ...init });
 }
 
-const accessControlResource = createMemoryResource(() => requestJson<AccessControlData>('/api/v1/admin/access-control'));
+function isAccessControlData(payload: unknown): payload is AccessControlData {
+  return hasArrayProperties(payload, ['members', 'roles', 'permissions']) && isJsonRecord(payload.scopeOptions) && typeof payload.requestId === 'string';
+}
+
+const accessControlResource = createMemoryResource(() =>
+  requestAdminJson<AccessControlData>('/api/v1/admin/access-control', { label: '权限服务', validate: isAccessControlData })
+);
 
 export function cachedAccessControl(): AccessControlData | null {
   return accessControlResource.peek();

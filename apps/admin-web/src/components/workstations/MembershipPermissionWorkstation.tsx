@@ -38,7 +38,7 @@ export function MembershipPermissionWorkstation({ active: workstationActive, can
     try {
       const next = await loadAccessControl({ force });
       setData(next);
-      setSelectedId((current) => (next.members.some((member) => member.membershipId === current) ? current : (next.members[0]?.membershipId ?? '')));
+      setSelectedId((current) => ((next.members ?? []).some((member) => member.membershipId === current) ? current : (next.members?.[0]?.membershipId ?? '')));
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '会员权限读取失败');
     } finally {
@@ -52,8 +52,8 @@ export function MembershipPermissionWorkstation({ active: workstationActive, can
   useEffect(() => {
     if (workstationActive) void refresh();
   }, [workstationActive]);
-  const members = useMemo(() => data?.members.filter((member) => !query.trim() || memberSearchText(member).includes(query.trim().toLowerCase())) ?? [], [data, query]);
-  const selected = data?.members.find((member) => member.membershipId === selectedId) ?? null;
+  const members = useMemo(() => data?.members?.filter((member) => !query.trim() || memberSearchText(member).includes(query.trim().toLowerCase())) ?? [], [data, query]);
+  const selected = data?.members?.find((member) => member.membershipId === selectedId) ?? null;
   const runProtected = (action: () => Promise<void>) => {
     if (verifiedUntil > Date.now()) {
       void action();
@@ -106,7 +106,7 @@ export function MembershipPermissionWorkstation({ active: workstationActive, can
     });
   };
   if (!workstationActive) return null;
-  const activeMembers = data?.members.filter((member) => member.status === 'active').length ?? null;
+  const activeMembers = data?.members?.filter((member) => member.status === 'active').length ?? null;
   return (
     <>
       <div className="p-6 space-y-5 max-w-[1800px] mx-auto">
@@ -122,9 +122,9 @@ export function MembershipPermissionWorkstation({ active: workstationActive, can
           </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Metric icon={UsersRound} label="会员身份" value={data?.members.length ?? null} />
+          <Metric icon={UsersRound} label="会员身份" value={data?.members?.length ?? null} />
           <Metric icon={UserRoundCheck} label="当前有效" value={activeMembers} />
-          <Metric icon={ShieldCheck} label="角色模板" value={data?.roles.length ?? null} />
+          <Metric icon={ShieldCheck} label="角色模板" value={data?.roles?.length ?? null} />
         </div>
         <div className="flex gap-2 border-b border-slate-200">
           <button onClick={() => setSection('operations')} className={`px-4 py-2 text-xs border-b-2 ${section === 'operations' ? 'border-blue-500 text-blue-700 font-bold' : 'border-transparent text-slate-500'}`}>
@@ -218,7 +218,7 @@ function MemberHeader({
   onStatus: (member: AccessMember, status: 'active' | 'suspended' | 'offboarded') => void;
 }) {
   const permissions = effectivePermissionCodes(member, data.roles);
-  const highRisk = data.permissions.filter((permission) => permissions.has(permission.code) && ['high', 'critical'].includes(permission.risk));
+  const highRisk = (data.permissions ?? []).filter((permission) => permissions.has(permission.code) && ['high', 'critical'].includes(permission.risk));
   return (
     <div className="p-5 border-b border-slate-200 bg-slate-50/70">
       <div className="flex items-start justify-between gap-4">

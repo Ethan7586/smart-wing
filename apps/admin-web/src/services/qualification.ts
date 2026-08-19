@@ -1,3 +1,5 @@
+import { hasArrayProperties, hasRecordProperties, isJsonRecord, requestAdminJson } from './adminJson';
+
 export type QualificationStatus = 'draft' | 'active' | 'disabled';
 export type QualificationConfigKind = 'catalog_pool' | 'supplier_agreement' | 'brand' | 'store' | 'city_zone' | 'entitlement_policy' | 'purchase_limit';
 export type QualificationSelector = { kind: string; id: string };
@@ -124,7 +126,7 @@ export interface QualificationCenterData {
 }
 
 export async function loadQualificationCenter(): Promise<QualificationCenterData> {
-  return requestJson('/api/v1/admin/qualification-center');
+  return requestAdminJson('/api/v1/admin/qualification-center', { label: '资格服务', validate: isQualificationCenterData });
 }
 
 export async function saveQualificationConfig(input: { kind: QualificationConfigKind; entityId: string | null; expectedVersion: number; payload: Record<string, unknown>; reason: string }): Promise<Record<string, unknown>> {
@@ -139,13 +141,16 @@ export async function previewQualificationConfig(input: { kind: QualificationCon
   return requestJson('/api/v1/admin/qualification-center/preview', jsonRequest(input));
 }
 export async function loadQualificationGovernance(): Promise<QualificationGovernanceData> {
-  return requestJson('/api/v1/admin/qualification-center/governance');
+  return requestAdminJson('/api/v1/admin/qualification-center/governance', { label: '资格服务', validate: isQualificationGovernanceData });
 }
 export async function reviewQualificationChange(input: { changeRequestId: string; decision: 'approve' | 'reject'; reason: string }): Promise<Record<string, unknown>> {
   return requestJson('/api/v1/admin/qualification-center/review', jsonRequest(input));
 }
 export async function loadQualificationHistory(kind: QualificationConfigKind, entityId: string): Promise<QualificationHistoryItem[]> {
-  const payload = await requestJson<{ history: QualificationHistoryItem[] }>(`/api/v1/admin/qualification-center/history?kind=${encodeURIComponent(kind)}&entityId=${encodeURIComponent(entityId)}`);
+  const payload = await requestAdminJson<{ history: QualificationHistoryItem[] }>(`/api/v1/admin/qualification-center/history?kind=${encodeURIComponent(kind)}&entityId=${encodeURIComponent(entityId)}`, {
+    label: '资格服务',
+    validate: (value): value is { history: QualificationHistoryItem[] } => hasArrayProperties(value, ['history']),
+  });
   return payload.history;
 }
 export async function rollbackQualificationConfig(input: { kind: QualificationConfigKind; entityId: string; auditId: string; expectedVersion: number; reason: string }): Promise<Record<string, unknown>> {
@@ -173,9 +178,19 @@ function jsonRequest(input: unknown): RequestInit {
   return { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) };
 }
 
-async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, { credentials: 'same-origin', ...init });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload?.error?.message ?? `资格服务请求失败 (${response.status})`);
-  return payload as T;
+function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
+  return requestAdminJson<T>(url, { label: '资格服务', ...init });
+}
+
+function isQualificationCenterData(payload: unknown): payload is QualificationCenterData {
+  if (!hasArrayProperties(payload, ['catalogPools', 'cityZones', 'policies', 'limitTemplates']) || !hasRecordProperties(payload, ['commercialResources', 'selectors', 'commercialSummary', 'capabilities'])) {
+    return false;
+  }
+  const resources = payload.commercialResources;
+  const selectors = payload.selectors;
+  return hasArrayProperties(resources, ['agreements', 'brands', 'stores']) && hasArrayProperties(selectors, ['enterprises', 'suppliers', 'products', 'skus', 'departments', 'users', 'memberships']);
+}
+
+function isQualificationGovernanceData(payload: unknown): payload is QualificationGovernanceData {
+  return hasArrayProperties(payload, ['changeRequests', 'employees']) && isJsonRecord(payload) && isJsonRecord(payload.capabilities) && typeof payload.currentMembershipId === 'string';
 }

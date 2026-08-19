@@ -1,4 +1,5 @@
 import { createMemoryResource } from './memoryResource';
+import { hasArrayProperties, requestAdminJson } from './adminJson';
 
 export interface MemberProfile {
   membershipId: string;
@@ -66,15 +67,18 @@ export interface NewMember {
   departmentId?: string;
 }
 
-async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, { credentials: 'same-origin', ...init });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok && response.status !== 207) throw new Error(payload?.error?.message ?? `会员运营请求失败 (${response.status})`);
-  return payload as T;
+function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
+  return requestAdminJson<T>(url, { label: '会员运营', ...init });
 }
 const jsonBody = (value: unknown): RequestInit => ({ method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(value) });
 
-const memberOperationsResource = createMemoryResource(() => requestJson<MemberOperationsData>('/api/v1/admin/member-operations'));
+function isMemberOperationsData(payload: unknown): payload is MemberOperationsData {
+  return hasArrayProperties(payload, ['profiles', 'invitations', 'imports', 'history', 'departments']) && typeof payload.requestId === 'string';
+}
+
+const memberOperationsResource = createMemoryResource(() =>
+  requestAdminJson<MemberOperationsData>('/api/v1/admin/member-operations', { label: '会员运营', validate: isMemberOperationsData })
+);
 
 export function cachedMemberOperations(): MemberOperationsData | null {
   return memberOperationsResource.peek();

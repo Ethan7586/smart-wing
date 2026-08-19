@@ -14,7 +14,7 @@ export function MallApplicationWorkstation() {
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const selected = useMemo(() => center?.malls.find((mall) => mall.id === selectedId) ?? center?.malls[0] ?? null, [center, selectedId]);
+  const selected = useMemo(() => center?.malls?.find((mall) => mall.id === selectedId) ?? center?.malls?.[0] ?? null, [center, selectedId]);
 
   const refresh = async (preferredId?: string) => {
     const payload = await loadMallApplications();

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { KeyRound, Laptop, Loader2, Phone, ShieldCheck, Smartphone, X } from 'lucide-react';
+import { requestAdminJson } from '../services/adminJson';
 
 type DeviceSession = { id: string; target: 'storefront' | 'admin'; deviceLabel: string; lastSeenAt: string; current: boolean };
 type SecurityCenter = { hasLocalCredential: boolean; phoneMasked: string | null; passwordChangedAt: string | null; sessions: DeviceSession[] };
@@ -207,10 +208,7 @@ const Action: React.FC<{ disabled: boolean; onClick: () => void; children: React
   </button>
 );
 async function api<T = unknown>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, { credentials: 'same-origin', headers: { 'content-type': 'application/json' }, ...init });
-  const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.error?.message ?? '安全服务暂时不可用');
-  return payload as T;
+  return requestAdminJson<T>(path, { label: '账号安全服务', headers: { 'content-type': 'application/json' }, ...init });
 }
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : '安全服务暂时不可用';

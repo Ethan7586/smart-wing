@@ -1,3 +1,5 @@
+import { hasArrayProperties, hasRecordProperties, requestAdminJson } from './adminJson';
+
 export type MallApplicationConfig = {
   schemaVersion: 1;
   mallDisplayName: string;
@@ -32,7 +34,7 @@ export type MallApplicationCenter = {
 export type MallMutationResult = { mallId: string; rowVersion: number; versionId?: string; versionNo?: number; status: string };
 
 export async function loadMallApplications(): Promise<MallApplicationCenter> {
-  return requestJson('/api/v1/admin/mall-applications');
+  return requestAdminJson('/api/v1/admin/mall-applications', { label: '商城应用服务', validate: isMallApplicationCenter });
 }
 
 export async function createMallApplication(input: { code: string; publicSlug: string; name: string; config: MallApplicationConfig; reason: string }): Promise<MallMutationResult> {
@@ -59,9 +61,10 @@ async function write(url: string, method: string, input: unknown): Promise<MallM
   });
 }
 
-async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, { credentials: 'same-origin', ...init });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload?.error?.message ?? `商城应用服务请求失败 (${response.status})`);
-  return payload as T;
+function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
+  return requestAdminJson<T>(url, { label: '商城应用服务', ...init });
+}
+
+function isMallApplicationCenter(payload: unknown): payload is MallApplicationCenter {
+  return hasArrayProperties(payload, ['malls', 'frozenRules']) && hasRecordProperties(payload, ['capabilities']);
 }
