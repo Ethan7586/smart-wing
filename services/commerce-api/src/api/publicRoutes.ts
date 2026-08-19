@@ -383,7 +383,9 @@ async function listSelectableMemberships(env: WorkerEnv, memberId: string): Prom
       roleName: typeof record.roleName === 'string' ? record.roleName : record.target === 'admin' ? '运营成员' : '员工会员',
       dataScope: typeof record.dataScope === 'string' ? record.dataScope : record.target === 'admin' ? '已授权业务范围' : '个人福利账户',
       ...(typeof record.accountTypeLabel === 'string' ? { accountTypeLabel: record.accountTypeLabel } : {}),
-      ...(typeof record.subjectScope === 'string' && validScopes.has(record.subjectScope as NonNullable<SelectableMembership['subjectScope']>) ? { subjectScope: record.subjectScope as NonNullable<SelectableMembership['subjectScope']> } : {}),
+      ...(typeof record.subjectScope === 'string' && validScopes.has(record.subjectScope as NonNullable<SelectableMembership['subjectScope']>)
+        ? { subjectScope: record.subjectScope as NonNullable<SelectableMembership['subjectScope']> }
+        : {}),
       ...(Array.isArray(record.keyPermissions) && record.keyPermissions.every((permission) => typeof permission === 'string') ? { keyPermissions: record.keyPermissions as string[] } : {}),
       ...(typeof record.expireAt === 'string' ? { expireAt: record.expireAt } : {}),
       ...(record.requiresStepUp === true ? { requiresStepUp: true } : {}),

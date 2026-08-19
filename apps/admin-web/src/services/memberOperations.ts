@@ -76,9 +76,7 @@ function isMemberOperationsData(payload: unknown): payload is MemberOperationsDa
   return hasArrayProperties(payload, ['profiles', 'invitations', 'imports', 'history', 'departments']) && typeof payload.requestId === 'string';
 }
 
-const memberOperationsResource = createMemoryResource(() =>
-  requestAdminJson<MemberOperationsData>('/api/v1/admin/member-operations', { label: '会员运营', validate: isMemberOperationsData })
-);
+const memberOperationsResource = createMemoryResource(() => requestAdminJson<MemberOperationsData>('/api/v1/admin/member-operations', { label: '会员运营', validate: isMemberOperationsData }));
 
 export function cachedMemberOperations(): MemberOperationsData | null {
   return memberOperationsResource.peek();

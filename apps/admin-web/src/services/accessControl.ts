@@ -67,9 +67,7 @@ function isAccessControlData(payload: unknown): payload is AccessControlData {
   return hasArrayProperties(payload, ['members', 'roles', 'permissions']) && isJsonRecord(payload.scopeOptions) && typeof payload.requestId === 'string';
 }
 
-const accessControlResource = createMemoryResource(() =>
-  requestAdminJson<AccessControlData>('/api/v1/admin/access-control', { label: '权限服务', validate: isAccessControlData })
-);
+const accessControlResource = createMemoryResource(() => requestAdminJson<AccessControlData>('/api/v1/admin/access-control', { label: '权限服务', validate: isAccessControlData }));
 
 export function cachedAccessControl(): AccessControlData | null {
   return accessControlResource.peek();
