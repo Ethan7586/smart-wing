@@ -720,6 +720,7 @@ export const INITIAL_ORDERS: Order[] = [
     problemType: 'STOCK_CONFLICT',
     problemSummary: '供应商超卖：极客智造ERP库存同步超时（504响应），导致系统在零库存下锁定10件预占。',
     slaDeadline: '2026-08-08 16:30:00',
+    createdAtIso: '2026-08-08T11:20:00+08:00',
     createdAt: '2026-08-08 11:20:00',
     shippingAddress: '北京市海淀区复兴路40号中铁建设大厦10层',
     timeline: [
@@ -759,6 +760,7 @@ export const INITIAL_ORDERS: Order[] = [
     problemType: 'SLA_TIMEOUT',
     problemSummary: '发货超时：支付完成超过48小时，京东五星供货商未上传物流单号。',
     slaDeadline: '2026-08-08 15:00:00',
+    createdAtIso: '2026-08-06T14:00:00+08:00',
     createdAt: '2026-08-06 14:00:00',
     shippingAddress: '北京市西城区三里河路1号国家电网调度大楼',
     timeline: [
@@ -795,6 +797,7 @@ export const INITIAL_ORDERS: Order[] = [
     problemType: 'REFUND_DISPUTE',
     problemSummary: '退款资金分摊争议：涉及企业预算退回与员工个人微信零钱原路退回，金额 ¥3,899。',
     slaDeadline: '2026-08-08 17:00:00',
+    createdAtIso: '2026-08-07T09:15:00+08:00',
     createdAt: '2026-08-07 09:15:00',
     shippingAddress: '北京市西城区金融大街28号中国移动创新大厦',
     timeline: [
@@ -828,6 +831,7 @@ export const INITIAL_ORDERS: Order[] = [
     status: '已签收',
     isProblematic: false,
     slaDeadline: '2026-08-10 00:00:00',
+    createdAtIso: '2026-08-07T10:00:00+08:00',
     createdAt: '2026-08-07 10:00:00',
     shippingAddress: '北京市昌平区回龙观东大街国家电网科技园',
     timeline: [

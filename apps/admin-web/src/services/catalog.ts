@@ -154,9 +154,16 @@ function orderStatus(status: unknown): OrderStatus {
   }
 }
 
+function isoDateTime(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return undefined;
+  return /^\d{4}-\d{2}-\d{2}T/.test(value) ? value : date.toISOString();
+}
+
 function dateText(value: unknown): string {
-  const date = typeof value === 'string' ? new Date(value) : null;
-  return date && Number.isFinite(date.getTime()) ? date.toLocaleString('zh-CN', { hour12: false }) : '暂无时间记录';
+  const iso = isoDateTime(value);
+  return iso ? new Date(iso).toLocaleString('zh-CN', { hour12: false }) : '暂无时间记录';
 }
 
 function toAdminOrder(raw: ApiOrder): Order {
@@ -165,6 +172,7 @@ function toAdminOrder(raw: ApiOrder): Order {
   const status = orderStatus(raw.status);
   const amount = number(raw.payableCents) / 100;
   const orderId = text(raw.id, text(raw.orderNo, crypto.randomUUID()));
+  const createdAtIso = isoDateTime(raw.createdAt);
   const createdAt = dateText(raw.createdAt);
   return {
     id: orderId,
@@ -187,6 +195,7 @@ function toAdminOrder(raw: ApiOrder): Order {
     problemType: status === '退款申请中' ? 'REFUND_DISPUTE' : undefined,
     problemSummary: status === '退款申请中' ? '售后退款申请待处理' : undefined,
     slaDeadline: '由供应商履约系统计算',
+    createdAtIso,
     createdAt,
     shippingAddress: '收货信息已脱敏',
     timeline: [

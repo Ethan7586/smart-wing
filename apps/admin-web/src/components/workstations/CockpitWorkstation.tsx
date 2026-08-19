@@ -335,19 +335,26 @@ function StageMetric({ icon: Icon, label, value, active = false }: { icon: React
   return <div className={`rounded-lg border p-3 ${active ? 'border-blue-100 bg-blue-50/60' : 'border-slate-100 bg-white'}`}><Icon className={`h-4 w-4 ${active ? 'text-[#1769ff]' : 'text-slate-400'}`} /><p className="mt-5 text-2xl font-semibold tracking-tight text-slate-900">{formatNumber(value)}</p><p className="mt-1 text-xs text-slate-500">{label}</p></div>;
 }
 
+function orderDateKey(order: Order): string {
+  return order.createdAtIso?.match(/^(\d{4}-\d{2}-\d{2})T/)?.[1] ?? '';
+}
+
+export function buildOrderVolumeSeries(orders: Order[]) {
+  const dateKeys = orders.map(orderDateKey).filter(Boolean).sort();
+  const latest = dateKeys.at(-1) || new Date().toISOString().slice(0, 10);
+  const [year, month, day] = latest.split('-').map(Number);
+  const latestDate = new Date(Date.UTC(year, month - 1, day));
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(latestDate);
+    date.setUTCDate(latestDate.getUTCDate() - (6 - index));
+    const key = date.toISOString().slice(0, 10);
+    return { key, label: `${date.getUTCMonth() + 1}/${date.getUTCDate()}`, value: orders.filter((order) => orderDateKey(order) === key).length };
+  });
+}
+
 function OrderVolumeChart({ orders, isEn }: { orders: Order[]; isEn: boolean }) {
-  const series = useMemo(() => {
-    const dateKeys = orders.map((order) => order.createdAt.slice(0, 10)).filter(Boolean).sort();
-    const latest = dateKeys.at(-1) || new Date().toISOString().slice(0, 10);
-    const [year, month, day] = latest.split('-').map(Number);
-    const latestDate = new Date(Date.UTC(year, month - 1, day));
-    return Array.from({ length: 7 }, (_, index) => {
-      const date = new Date(latestDate);
-      date.setUTCDate(latestDate.getUTCDate() - (6 - index));
-      const key = date.toISOString().slice(0, 10);
-      return { key, label: `${date.getUTCMonth() + 1}/${date.getUTCDate()}`, value: orders.filter((order) => order.createdAt.startsWith(key)).length };
-    });
-  }, [orders]);
+  const series = useMemo(() => buildOrderVolumeSeries(orders), [orders]);
   const maxValue = Math.max(...series.map((item) => item.value), 1);
   const total = series.reduce((sum, item) => sum + item.value, 0);
   const peak = series.reduce((highest, item) => item.value > highest.value ? item : highest, series[0]);
@@ -455,10 +462,7 @@ function shortDate(value: string): string {
  * Production always consumes the server-side aggregate supplied in LiveOperationsSummary. */
 function deriveDemoSalesOverview(orders: Order[], products: Product[]): SalesOverview {
   const paidOrders = orders.filter((order) => !['待付款', '库存预占', '已退款'].includes(order.status));
-  const orderDay = (order: Order) => {
-    const match = order.createdAt.match(/\d{4}-\d{2}-\d{2}/);
-    return match?.[0] ?? '';
-  };
+  const orderDay = orderDateKey;
   const latestDay = paidOrders.map(orderDay).filter(Boolean).sort().at(-1) || new Date().toISOString().slice(0, 10);
   const [latestYear, latestMonth, latestDate] = latestDay.split('-').map(Number);
   const reference = new Date(Date.UTC(latestYear, latestMonth - 1, latestDate));
