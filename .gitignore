@@ -15,3 +15,9 @@ coverage/
 
 output/
 tmp/
+
+# Archived deliveries and parallel worktrees are artifacts, not canonical source.
+# They must not participate in search, build, format, test or release (P0A05).
+pre-contract-code-merge-20260820/
+smart-wing-branch-work/
+gitpointer.broken.txt
