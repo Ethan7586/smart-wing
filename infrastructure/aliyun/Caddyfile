@@ -85,9 +85,19 @@ smart.hbbtzn.com {
   @adminAssets path /assets/*
   @adminBrand path /brand/*
   @adminDocument path /
+  # A scoped one-time recovery URL clears stale browser caches and an older
+  # service worker without revoking the host-only admin session cookie.
+  @adminRecovery {
+    path /
+    query recovery=reset-5385d19
+  }
   header @adminAssets Cache-Control "public, max-age=31536000, immutable"
   header @adminBrand Cache-Control "public, max-age=86400"
   header @adminDocument Cache-Control "public, max-age=300, stale-while-revalidate=600"
+  header @adminRecovery {
+    Cache-Control "no-store"
+    Clear-Site-Data "\"cache\", \"storage\""
+  }
   # Serve immutable bundles directly.  The SPA fallback is only for the
   # document route, never for a missing hashed asset.
   handle @adminAssets {
