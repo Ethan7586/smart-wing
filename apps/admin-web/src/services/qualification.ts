@@ -1,4 +1,5 @@
-import { hasArrayProperties, hasRecordProperties, isJsonRecord, requestAdminJson } from './adminJson';
+import { hasArrayProperties, requestAdminJson } from './adminJson';
+import { isQualificationCenterData, isQualificationGovernanceData } from './qualificationValidators';
 
 export type QualificationStatus = 'draft' | 'active' | 'disabled';
 export type QualificationConfigKind = 'catalog_pool' | 'supplier_agreement' | 'brand' | 'store' | 'city_zone' | 'entitlement_policy' | 'purchase_limit';
@@ -180,17 +181,4 @@ function jsonRequest(input: unknown): RequestInit {
 
 function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
   return requestAdminJson<T>(url, { label: '资格服务', ...init });
-}
-
-function isQualificationCenterData(payload: unknown): payload is QualificationCenterData {
-  if (!hasArrayProperties(payload, ['catalogPools', 'cityZones', 'policies', 'limitTemplates']) || !hasRecordProperties(payload, ['commercialResources', 'selectors', 'commercialSummary', 'capabilities'])) {
-    return false;
-  }
-  const resources = payload.commercialResources;
-  const selectors = payload.selectors;
-  return hasArrayProperties(resources, ['agreements', 'brands', 'stores']) && hasArrayProperties(selectors, ['enterprises', 'suppliers', 'products', 'skus', 'departments', 'users', 'memberships']);
-}
-
-function isQualificationGovernanceData(payload: unknown): payload is QualificationGovernanceData {
-  return hasArrayProperties(payload, ['changeRequests', 'employees']) && isJsonRecord(payload) && isJsonRecord(payload.capabilities) && typeof payload.currentMembershipId === 'string';
 }

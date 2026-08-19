@@ -34,7 +34,23 @@ const LazyMallApplicationWorkstation = React.lazy(() => import('./components/wor
  */
 const localPreviewEnv = (import.meta as unknown as { env?: { DEV?: boolean; VITE_ORDER_DEMO?: string } }).env;
 const LOCAL_ORDER_DEMO_ENABLED = localPreviewEnv?.DEV === true && localPreviewEnv.VITE_ORDER_DEMO === 'true';
-const LOCAL_ORDER_DEMO_PERMISSIONS = ['order.read', 'order.ship', 'order.refund'];
+/**
+ * Local visual acceptance intentionally exposes every workstation, but is
+ * gated by both Vite development mode and the explicit demo flag above.
+ * The demo never reaches the commerce API and cannot submit writes.
+ */
+const LOCAL_ORDER_DEMO_PERMISSIONS = [
+  'catalog.read',
+  'order.read',
+  'order.ship',
+  'order.refund',
+  'tenant.manage',
+  'finance.reconcile',
+  'member.read',
+  'role.read',
+  'mall.read',
+  'commercial_resource.read',
+];
 
 export function allowedWorkstationsFor(permissions: string[], roles: string[] = []): WorkstationId[] {
   const allowed = new Set<WorkstationId>(['cockpit']);

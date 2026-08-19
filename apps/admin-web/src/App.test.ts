@@ -57,4 +57,10 @@ describe('admin account profile resolution', () => {
     expect(allowedWorkstationsFor([], ['role-mall-admin'])).toContain('mall');
     expect(allowedWorkstationsFor(['member.read'], ['member'])).not.toContain('mall');
   });
+
+  it('can expose every workstation to a deliberately local, read-only visual-acceptance session', () => {
+    expect(
+      allowedWorkstationsFor(['catalog.read', 'order.read', 'tenant.manage', 'finance.reconcile', 'member.read', 'role.read', 'mall.read', 'commercial_resource.read'])
+    ).toEqual(['cockpit', 'product', 'order', 'enterprise', 'mall', 'voucher', 'supplier', 'finance', 'membership', 'qualification', 'system']);
+  });
 });

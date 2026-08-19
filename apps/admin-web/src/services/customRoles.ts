@@ -1,5 +1,5 @@
 import type { AccessPermission } from './accessControl';
-import { hasArrayProperties, requestAdminJson } from './adminJson';
+import { isJsonRecord, requestAdminJson } from './adminJson';
 
 export interface CustomRole {
   id: string;
@@ -49,5 +49,37 @@ export function setCustomRoleStatus(roleId: string, status: 'active' | 'disabled
 }
 
 function isCustomRoleCenterData(payload: unknown): payload is CustomRoleCenterData {
-  return hasArrayProperties(payload, ['roles', 'permissions']) && typeof payload.requestId === 'string';
+  return isJsonRecord(payload) && Array.isArray(payload.roles) && payload.roles.every(isCustomRole) && Array.isArray(payload.permissions) && payload.permissions.every(isGrantablePermission) && typeof payload.requestId === 'string';
+}
+
+function isCustomRole(value: unknown): value is CustomRole {
+  return (
+    hasStringFields(value, ['id', 'code', 'name', 'description', 'createdAt', 'updatedAt']) &&
+    isOneOf(value.status, ['active', 'disabled']) &&
+    typeof value.isSystem === 'boolean' &&
+    typeof value.isOwner === 'boolean' &&
+    typeof value.isEditable === 'boolean' &&
+    isNonNegativeInteger(value.assignmentCount) &&
+    isStringList(value.permissions)
+  );
+}
+
+function isGrantablePermission(value: unknown): value is GrantablePermission {
+  return hasStringFields(value, ['code', 'name', 'category']) && isOneOf(value.risk, ['low', 'elevated', 'high', 'critical']) && typeof value.mvp === 'boolean' && typeof value.grantable === 'boolean';
+}
+
+function hasStringFields(value: unknown, fields: string[]): value is Record<string, string> {
+  return isJsonRecord(value) && fields.every((field) => typeof value[field] === 'string');
+}
+
+function isStringList(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string');
+}
+
+function isNonNegativeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+}
+
+function isOneOf<T extends string>(value: unknown, values: readonly T[]): value is T {
+  return typeof value === 'string' && values.includes(value as T);
 }
