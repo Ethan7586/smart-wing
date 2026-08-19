@@ -1,4 +1,5 @@
 import type { Order } from '../types';
+import { isJsonRecord, requestAdminJson } from './adminJson';
 
 export const ORDER_STATUS_OPTIONS = [
   ['pending_payment', '待付款'],
@@ -22,6 +23,7 @@ export const AFTER_SALE_STATUS_OPTIONS = [
 
 export type OrderFilters = { keyword: string; status: string; createdFrom: string; createdTo: string; sort: string; limit: number; offset: number };
 export type Page<T> = { items: T[]; total: number; limit: number; offset: number };
+type ValidatedPage<T> = { items: T[]; total: number; limit?: number; offset?: number };
 export type OrderListItem = {
   id: string;
   orderNo: string;
@@ -153,10 +155,10 @@ export function legacyAfterSalePage(orders: Order[], filters: OrderFilters): Pag
 }
 
 async function getPage<T>(path: string, filters: OrderFilters): Promise<Page<T>> {
-  const response = await fetch(`${path}?${buildOrderQuery(filters)}`, { credentials: 'same-origin' });
-  if (!response.ok) throw new Error(`ORDER_PAGE_REQUEST_FAILED_${response.status}`);
-  const payload = (await response.json()) as Partial<Page<T>>;
-  if (!Array.isArray(payload.items) || !Number.isFinite(payload.total)) throw new Error('ORDER_PAGE_RESPONSE_INVALID');
+  const payload = await requestAdminJson<ValidatedPage<T>>(`${path}?${buildOrderQuery(filters)}`, {
+    label: '订单查询服务',
+    validate: (value): value is ValidatedPage<T> => isJsonRecord(value) && Array.isArray(value.items) && Number.isFinite(value.total),
+  });
   return { items: payload.items, total: Number(payload.total), limit: Number(payload.limit) || filters.limit, offset: Number(payload.offset) || 0 };
 }
 
@@ -169,5 +171,8 @@ function toIsoEnd(value: string): string {
 }
 
 function legacyOrderStatus(status: Order['status']): string {
-  return ({ 待付款: 'pending_payment', 库存预占: 'processing', 已支付: 'paid', 待发货: 'processing', 已发货: 'shipped', 已签收: 'completed', 退款申请中: 'refund_pending', 已退款: 'refunded', 异常挂起: 'cancelled' } as const)[status];
+  // “异常挂起” is a risk classification, not evidence that money has been
+  // cancelled. The legacy stock-conflict fixture has already been paid and is
+  // awaiting its refund, so expose that actionable financial state instead.
+  return ({ 待付款: 'pending_payment', 库存预占: 'processing', 已支付: 'paid', 待发货: 'processing', 已发货: 'shipped', 已签收: 'completed', 退款申请中: 'refund_pending', 已退款: 'refunded', 异常挂起: 'refund_pending' } as const)[status];
 }

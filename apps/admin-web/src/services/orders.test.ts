@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildOrderQuery, DEFAULT_ORDER_FILTERS, formatCents } from './orders';
+import { buildOrderQuery, DEFAULT_ORDER_FILTERS, formatCents, legacyOrderPage } from './orders';
+import { INITIAL_ORDERS } from '../data/mockData';
 import { pageWindow } from '../components/workstations/order/Pagination';
 
 describe('order management presentation helpers', () => {
@@ -20,5 +21,10 @@ describe('order management presentation helpers', () => {
   it('calculates pagination boundaries without an off-by-one error', () => {
     expect(pageWindow(101, 20, 100)).toEqual({ page: 6, pageCount: 6, first: 101, last: 101 });
     expect(pageWindow(0, 20, 0)).toEqual({ page: 1, pageCount: 1, first: 0, last: 0 });
+  });
+
+  it('does not present a paid stock-conflict order as a cancelled refund', () => {
+    const page = legacyOrderPage(INITIAL_ORDERS, { ...DEFAULT_ORDER_FILTERS, limit: 20 });
+    expect(page.items.find((order) => order.orderNo === 'ORD-20260808-001')).toMatchObject({ status: 'refund_pending', paidCents: 199000 });
   });
 });

@@ -1,4 +1,5 @@
 import type { Order, OrderStatus, Product, ProductStatus } from '../types';
+import { isJsonRecord, requestAdminJson } from './adminJson';
 
 type CatalogItem = {
   id?: unknown;
@@ -58,10 +59,10 @@ function toAdminProduct(item: CatalogItem): Product {
 
 /** Reads the full administration catalogue through the authorised commerce API. */
 export async function loadLiveCatalog(): Promise<Product[]> {
-  const response = await fetch('/api/v1/admin/products', { credentials: 'same-origin' });
-  if (!response.ok) throw new Error(`CATALOG_REQUEST_FAILED_${response.status}`);
-  const payload = (await response.json()) as { items?: unknown };
-  if (!Array.isArray(payload.items)) throw new Error('CATALOG_RESPONSE_INVALID');
+  const payload = await requestAdminJson<{ items: unknown[] }>('/api/v1/admin/products', {
+    label: '商品目录服务',
+    validate: (value): value is { items: unknown[] } => isJsonRecord(value) && Array.isArray(value.items),
+  });
   return payload.items.filter((item): item is CatalogItem => typeof item === 'object' && item !== null).map(toAdminProduct);
 }
 
@@ -227,6 +228,23 @@ export interface AdminOverview {
   summary: LiveOperationsSummary;
 }
 
+type AdminOverviewPayload = {
+  authenticated: unknown;
+  authorization?: AdminOverview['authorization'];
+  products?: unknown;
+  orders?: unknown;
+  summary?: Partial<LiveOperationsSummary>;
+};
+
+function isAdminOverviewPayload(value: unknown): value is AdminOverviewPayload {
+  if (!isJsonRecord(value) || typeof value.authenticated !== 'boolean') return false;
+  // A rejected session is deliberately a small payload. A successful session
+  // must carry all first-paint collections, otherwise a partial rollout would
+  // silently masquerade as an empty business.
+  if (value.authenticated === false) return true;
+  return isJsonRecord(value.authorization) && Array.isArray(value.products) && Array.isArray(value.orders) && isJsonRecord(value.summary);
+}
+
 function array(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
@@ -277,9 +295,10 @@ function toSalesOverview(value: unknown): SalesOverview | null {
 
 /** One protected request gives the admin app its session projection and first-paint facts. */
 export async function loadAdminOverview(): Promise<AdminOverview> {
-  const response = await fetch('/api/v1/admin/overview', { credentials: 'same-origin' });
-  if (!response.ok) throw new Error(`ADMIN_OVERVIEW_REQUEST_FAILED_${response.status}`);
-  const payload = (await response.json()) as { authenticated?: unknown; authorization?: AdminOverview['authorization']; products?: unknown; orders?: unknown; summary?: Partial<LiveOperationsSummary> };
+  const payload = await requestAdminJson<AdminOverviewPayload>('/api/v1/admin/overview', {
+    label: '运营概览服务',
+    validate: isAdminOverviewPayload,
+  });
   const products = Array.isArray(payload.products) ? payload.products.filter((item): item is CatalogItem => typeof item === 'object' && item !== null).map(toAdminProduct) : [];
   const orders = Array.isArray(payload.orders) ? payload.orders.filter((item): item is ApiOrder => typeof item === 'object' && item !== null).map(toAdminOrder) : [];
   return {
