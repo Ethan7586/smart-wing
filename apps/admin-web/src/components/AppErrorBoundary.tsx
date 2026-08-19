@@ -98,7 +98,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
               {reporting ? (
                 <span className="text-slate-500">记录中…</span>
               ) : faultCode ? (
-                <code className="rounded-md border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 font-mono text-base font-semibold tracking-wider text-amber-200">{faultCode}</code>
+                <code className="rounded-lg border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 font-mono text-base font-semibold tracking-wider text-amber-200">{faultCode}</code>
               ) : (
                 <span className="text-slate-500">本次未能上报，请截图下方技术细节</span>
               )}
@@ -107,13 +107,13 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
           </div>
 
           <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
-            <p className="text-sm font-semibold text-rose-300">
+            <p className="text-sm font-semibold text-red-300">
               {error.name}: {error.message}
             </p>
             {detail && (
               <details className="mt-3">
                 <summary className="cursor-pointer text-xs text-slate-400 hover:text-slate-200">展开技术细节（报障时请一并提供）</summary>
-                <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-slate-950 p-3 font-mono text-[11px] leading-5 text-slate-400">{detail}</pre>
+                <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-slate-950 p-3 font-mono text-xs leading-5 text-slate-400">{detail}</pre>
               </details>
             )}
           </div>
@@ -122,7 +122,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
             <button
               type="button"
               onClick={this.handleReload}
-              className="rounded-lg bg-[#1F5EFF] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#174ED1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1F5EFF]"
+              className="rounded-lg bg-[var(--sw-brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--sw-brand-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sw-brand)]"
             >
               刷新页面
             </button>

@@ -50,7 +50,7 @@ export function AdminSessionError({ failure, loginUrl }: AdminSessionErrorProps)
         <div className="flex flex-wrap gap-3">
           <a
             href={loginUrl}
-            className="rounded-lg bg-[#1F5EFF] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#174ED1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1F5EFF]"
+            className="rounded-lg bg-[var(--sw-brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--sw-brand-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sw-brand)]"
           >
             返回登录
           </a>
