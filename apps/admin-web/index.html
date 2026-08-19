@@ -18,9 +18,25 @@
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <title>运营管理后台｜智慧翼企业福利商城</title>
+    <style>
+      html, body, #root { min-width: 320px; min-height: 100%; }
+      body { margin: 0; background: #f5f7fa; color: #172033; font-family: Inter, "PingFang SC", "Microsoft YaHei", Arial, sans-serif; }
+      #app-loading { display: grid; min-height: 100vh; place-items: center; padding: 24px; box-sizing: border-box; }
+      #app-loading > div { max-width: 360px; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; padding: 28px; box-shadow: 0 1px 4px rgba(7, 24, 47, .04); }
+      #app-loading strong { display: block; font-size: 16px; }
+      #app-loading p { margin: 10px 0 0; color: #64748b; font-size: 14px; line-height: 1.6; }
+      #app-loading a { color: #1f5eff; font-weight: 600; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="app-loading" role="status">
+        <div>
+          <strong>正在加载运营后台</strong>
+          <p>如持续停留在此页面，请刷新浏览器后重试，或前往 <a href="https://hbbtzn.com/login/?target=admin">统一登录页</a>。</p>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
