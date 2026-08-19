@@ -32,10 +32,10 @@ export const CockpitWorkstation: React.FC<CockpitWorkstationProps> = ({ orders, 
   const situation = useMemo(() => {
     const count = (statuses: Order['status'][]) => orders.filter((order) => statuses.includes(order.status)).length;
     const problemOrders = orders.filter((order) => order.isProblematic);
-    const toShip = count(['已支付', '待发货']);
-    const inTransit = count(['已发货']);
-    const completed = count(['已签收']);
-    const afterSales = count(['退款申请中', '已退款']);
+    const toShip = count(['paid', 'processing', 'pending_shipment']);
+    const inTransit = count(['shipped', 'pending_receipt']);
+    const completed = count(['completed']);
+    const afterSales = count(['refund_pending', 'refunded']);
     const pendingClassification = products.filter((product) => product.status === '待分类审核').length;
     const enterpriseWarnings = enterprises.filter((enterprise) => enterprise.status === '已预警').length;
     const totalBudget = enterprises.reduce((sum, enterprise) => sum + enterprise.welfarePlans.reduce((planSum, plan) => planSum + plan.budgetPool, 0), 0);
@@ -176,10 +176,10 @@ export const CockpitWorkstation: React.FC<CockpitWorkstationProps> = ({ orders, 
               </button>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <StageMetric icon={BadgeDollarSign} label={isEn ? 'Pending payment' : '待付款'} value={orders.filter((order) => ['待付款', '库存预占'].includes(order.status)).length} />
+              <StageMetric icon={BadgeDollarSign} label={isEn ? 'Pending payment' : '待付款'} value={orders.filter((order) => order.status === 'pending_payment').length} />
               <StageMetric icon={Package} label={isEn ? 'To ship' : '待发货'} value={situation.toShip} active />
               <StageMetric icon={Truck} label={isEn ? 'In transit' : '运输中'} value={situation.inTransit} />
-              <StageMetric icon={CheckCircle2} label={isEn ? 'Completed' : '已签收'} value={situation.completed} />
+              <StageMetric icon={CheckCircle2} label={isEn ? 'Completed' : '已完成'} value={situation.completed} />
             </div>
             <OrderVolumeChart orders={orders} isEn={isEn} />
           </div>
@@ -603,11 +603,10 @@ function OrderVolumeChart({ orders, isEn }: { orders: Order[]; isEn: boolean }) 
 function OrderStatusDonut({ orders, isEn }: { orders: Order[]; isEn: boolean }) {
   const slices = useMemo(() => {
     const groups = [
-      { label: isEn ? 'To ship' : '待发货', statuses: ['待付款', '库存预占', '已支付', '待发货'] as Order['status'][], color: '#1769ff' },
-      { label: isEn ? 'In transit' : '运输中', statuses: ['已发货'] as Order['status'][], color: '#5bb9f4' },
-      { label: isEn ? 'Completed' : '已签收', statuses: ['已签收'] as Order['status'][], color: '#28a879' },
-      { label: isEn ? 'After-sales' : '售后', statuses: ['退款申请中', '已退款'] as Order['status'][], color: '#f2a54a' },
-      { label: isEn ? 'Exceptions' : '异常', statuses: ['异常挂起'] as Order['status'][], color: '#e85b76' },
+      { label: isEn ? 'To ship' : '待发货', statuses: ['pending_payment', 'paid', 'processing', 'pending_shipment'] as Order['status'][], color: '#1769ff' },
+      { label: isEn ? 'In transit' : '运输中', statuses: ['shipped', 'pending_receipt'] as Order['status'][], color: '#5bb9f4' },
+      { label: isEn ? 'Completed' : '已完成', statuses: ['completed'] as Order['status'][], color: '#28a879' },
+      { label: isEn ? 'After-sales' : '售后', statuses: ['refund_pending', 'refunded'] as Order['status'][], color: '#f2a54a' },
     ];
     return groups.map((group) => ({ ...group, value: orders.filter((order) => group.statuses.includes(order.status)).length })).filter((group) => group.value > 0);
   }, [isEn, orders]);
@@ -621,7 +620,7 @@ function OrderStatusDonut({ orders, isEn }: { orders: Order[]; isEn: boolean }) 
       return `${slice.color} ${start}% ${end}%`;
     })
     .join(', ');
-  const openCount = orders.filter((order) => !['已签收', '已退款'].includes(order.status)).length;
+  const openCount = orders.filter((order) => !['completed', 'refunded', 'cancelled'].includes(order.status)).length;
 
   return (
     <figure className="mt-5 flex flex-col items-center gap-5 sm:flex-row sm:justify-center" aria-label={isEn ? 'Order status distribution' : '订单状态分布'}>
@@ -745,7 +744,7 @@ function shortDate(value: string): string {
 /** Test-login mode intentionally uses fixture orders only to demonstrate the layout.
  * Production always consumes the server-side aggregate supplied in LiveOperationsSummary. */
 export function deriveDemoSalesOverview(orders: Order[], products: Product[]): SalesOverview {
-  const paidOrders = orders.filter((order) => !['待付款', '库存预占', '已退款'].includes(order.status));
+  const paidOrders = orders.filter((order) => !['pending_payment', 'refunded', 'cancelled'].includes(order.status));
   const orderDay = orderDateKey;
   const latestDay = paidOrders.map(orderDay).filter(Boolean).sort().at(-1) || new Date().toISOString().slice(0, 10);
   const [latestYear, latestMonth, latestDate] = latestDay.split('-').map(Number);
@@ -788,7 +787,7 @@ export function deriveDemoSalesOverview(orders: Order[], products: Product[]): S
     averageOrderValueCents: paidOrders.length > 0 ? Math.round(cumulativeSalesCents / paidOrders.length) : 0,
     periodSalesCents: cumulativeSalesCents,
     periodPaidOrderCount: paidOrders.length,
-    refundedCents: orders.filter((order) => order.status === '已退款').reduce((sum, order) => sum + order.totalCents, 0),
+    refundedCents: orders.filter((order) => order.status === 'refunded').reduce((sum, order) => sum + order.totalCents, 0),
     activeProductCount: activeProducts.length,
     soldProductCount: soldActiveProductCount,
     unsoldActiveProductCount: Math.max(activeProducts.length - soldActiveProductCount, 0),

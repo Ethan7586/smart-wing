@@ -38,7 +38,7 @@ describe('admin order management routes', () => {
   it('writes a UTF-8 BOM before a successful CSV export', async () => {
     vi.mocked(callRpc)
       .mockResolvedValueOnce([
-        { orderNo: 'SW1', firstProductName: '福利礼包', itemCount: 1, payableCents: 100, paidCents: 100, welfarePaidCents: 100, mealPaidCents: 0, supplierNames: ['供应商'], status: 'paid', createdAt: '2026-08-18T00:00:00Z' },
+        { orderNo: 'SW1', firstProductName: '福利礼包', lineCount: 1, itemCount: 1, payableCents: 100, paidCents: 100, welfarePaidCents: 100, mealPaidCents: 0, supplierNames: ['供应商'], status: 'paid', createdAt: '2026-08-18T00:00:00Z' },
       ])
       .mockResolvedValueOnce(undefined);
     const response = await handleAdminOrderExport(new Request('https://smart.example/api/v1/admin/orders/export'), {}, context(), 'csv-ok');
@@ -56,9 +56,12 @@ describe('admin order management routes', () => {
   });
 
   it('escapes spreadsheet formulas and formats cent values in CSV', () => {
-    const output = toCsv('orders', [{ orderNo: '=unsafe', firstProductName: '礼品', itemCount: 1, payableCents: 1234, paidCents: 0, welfarePaidCents: 0, mealPaidCents: 0, supplierNames: [], status: 'paid', createdAt: '2026-08-18' }]);
+    const output = toCsv('orders', [
+      { orderNo: '=unsafe', firstProductName: '礼品', lineCount: 2, itemCount: 5, payableCents: 1234, paidCents: 0, welfarePaidCents: 0, mealPaidCents: 0, supplierNames: [], status: 'paid', createdAt: '2026-08-18' },
+    ]);
     expect(output).toContain("'=unsafe");
     expect(output).toContain('12.34');
+    expect(output).toContain('商品种类（种）');
   });
 
   it('prevents an order export from being cached or content-sniffed', async () => {

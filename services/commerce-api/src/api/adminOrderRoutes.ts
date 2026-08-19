@@ -99,6 +99,7 @@ export function toCsv(kind: ExportKind, rows: Array<Record<string, unknown>>): s
       ? [
           ['订单号', 'orderNo'],
           ['商品', 'firstProductName'],
+          ['商品种类（种）', 'lineCount'],
           ['数量', 'itemCount'],
           ['应付金额（元）', 'payableCents'],
           ['实付金额（元）', 'paidCents'],

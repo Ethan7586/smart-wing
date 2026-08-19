@@ -1,4 +1,6 @@
-export const ORDER_STATUSES = ['pending_payment', 'paid', 'processing', 'shipped', 'completed', 'cancelled', 'refund_pending', 'refunded'] as const;
+import { ADMIN_ORDER_STATUS_VALUES } from '@smart-wing/api-contract';
+
+export const ORDER_STATUSES = ADMIN_ORDER_STATUS_VALUES;
 export const AFTER_SALE_STATUSES = ['submitted', 'reviewing', 'approved', 'rejected', 'returning', 'completed', 'closed'] as const;
 const SORTS = ['created_at_desc', 'created_at_asc', 'payable_desc', 'payable_asc'] as const;
 

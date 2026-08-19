@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AlertTriangle, RotateCw, Clock, User, ShieldCheck, Building2, X, CreditCard, DollarSign, Ban, RefreshCw } from 'lucide-react';
 import { Order } from '../../types';
+import { orderStatusLabel } from '@smart-wing/api-contract';
 
 interface OrderFulfillmentProps {
   orders: Order[];
@@ -25,8 +26,8 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
 
   // Filtering
   const filteredOrders = orders.filter((o) => {
-    if (activeTab === 'PENDING' && !o.isProblematic && o.status !== '退款申请中') return false;
-    if (activeTab === 'ARCHIVED' && o.status !== '已签收' && o.status !== '已退款') return false;
+    if (activeTab === 'PENDING' && !o.isProblematic && o.status !== 'refund_pending') return false;
+    if (activeTab === 'ARCHIVED' && o.status !== 'completed' && o.status !== 'refunded') return false;
 
     if (problemFilter !== 'ALL') {
       if (problemFilter === 'STOCK_CONFLICT' && o.problemType !== 'STOCK_CONFLICT') return false;
@@ -43,7 +44,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
         if (o.id === ord.id) {
           return {
             ...o,
-            status: '已退款' as const,
+            status: 'refunded' as const,
             isProblematic: false,
             timeline: [
               ...o.timeline,
@@ -79,7 +80,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
         if (o.id === ord.id) {
           return {
             ...o,
-            status: '已退款' as const,
+            status: 'refunded' as const,
             isProblematic: false,
             timeline: [
               ...o.timeline,
@@ -136,7 +137,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
             order.id === ord.id
               ? {
                   ...order,
-                  status: '已发货' as const,
+                  status: 'shipped' as const,
                   timeline: [
                     ...order.timeline,
                     { id: `ship:${Date.now()}`, nodeName: '发货', timestamp: new Date().toLocaleString('zh-CN'), status: 'success', operator: '当前管理身份', remark: '已通过服务端完成发货状态变更并写入审计记录。' },
@@ -238,14 +239,14 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
                     <span className="font-mono font-bold text-slate-900">{ord.orderNo}</span>
                     <span
                       className={`px-2 py-0.2 rounded text-[10px] font-bold ${
-                        ord.status === '异常挂起'
+                        ord.isProblematic
                           ? 'bg-rose-100 text-rose-700 border border-rose-200'
-                          : ord.status === '退款申请中'
+                          : ord.status === 'refund_pending'
                             ? 'bg-purple-100 text-purple-700 border border-purple-200'
                             : 'bg-blue-100 text-blue-700 border border-blue-200'
                       }`}
                     >
-                      {ord.status}
+                      {orderStatusLabel(ord.status)}
                     </span>
                   </div>
 
@@ -285,7 +286,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
 
               {/* Guardrail Interaction Buttons (Refund, Compensation, Force Close) */}
               <div className="flex items-center gap-2">
-                {isLiveOrders && selectedOrder.status === '待发货' && (
+                {isLiveOrders && ['paid', 'processing', 'pending_shipment'].includes(selectedOrder.status) && (
                   <button onClick={() => handleShip(selectedOrder)} className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer">
                     确认发货
                   </button>

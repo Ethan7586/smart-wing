@@ -1,4 +1,5 @@
-import type { Order, OrderStatus } from '../types';
+import { orderStatusLabel, type OrderStatus } from '@smart-wing/api-contract';
+import type { Order } from '../types';
 
 type ApiOrderItem = {
   productId?: unknown;
@@ -36,20 +37,27 @@ function cents(value: unknown): number {
 function orderStatus(status: unknown): OrderStatus {
   switch (status) {
     case 'pending_payment':
-      return '待付款';
+      return 'pending_payment';
     case 'paid':
+      return 'paid';
     case 'processing':
-      return '待发货';
+      return 'processing';
+    case 'pending_shipment':
+      return 'pending_shipment';
     case 'shipped':
-      return '已发货';
+      return 'shipped';
+    case 'pending_receipt':
+      return 'pending_receipt';
     case 'completed':
-      return '已签收';
+      return 'completed';
+    case 'cancelled':
+      return 'cancelled';
     case 'refund_pending':
-      return '退款申请中';
+      return 'refund_pending';
     case 'refunded':
-      return '已退款';
+      return 'refunded';
     default:
-      return '异常挂起';
+      return 'processing';
   }
 }
 
@@ -104,16 +112,16 @@ export function toAdminOrder(raw: ApiOrder): Order {
     corporateBudgetPaid: welfarePaidCents / 100,
     employeeSelfPaid: mealPaidCents / 100,
     status,
-    isProblematic: status === '退款申请中' || status === '异常挂起',
-    problemType: status === '退款申请中' ? 'REFUND_DISPUTE' : undefined,
-    problemSummary: status === '退款申请中' ? '售后退款申请待处理' : undefined,
+    isProblematic: status === 'refund_pending',
+    problemType: status === 'refund_pending' ? 'REFUND_DISPUTE' : undefined,
+    problemSummary: status === 'refund_pending' ? '售后退款申请待处理' : undefined,
     slaDeadline: '由供应商履约系统计算',
     createdAtIso,
     createdAt,
     shippingAddress: '收货信息已脱敏',
     timeline: [
       { id: `${orderId}:created`, nodeName: '创建订单', timestamp: createdAt, status: 'success', operator: '系统', remark: '订单已在生产数据库创建。' },
-      { id: `${orderId}:status`, nodeName: '当前状态', timestamp: dateText(raw.updatedAt), status: status === '异常挂起' ? 'warning' : 'success', operator: '系统', remark: `当前状态：${status}` },
+      { id: `${orderId}:status`, nodeName: '当前状态', timestamp: dateText(raw.updatedAt), status: status === 'refund_pending' ? 'warning' : 'success', operator: '系统', remark: `当前状态：${orderStatusLabel(status)}` },
     ],
     retryLogs: [],
     benefitsCard: { welfarePlanName: '企业福利账户', quotaUsed: welfarePaidCents / 100, remainingQuota: 0 },

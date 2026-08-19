@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Order } from '../../types';
+import { orderStatusLabel } from '@smart-wing/api-contract';
 import { executeAfterSaleRefund, type AfterSaleListItem, type OrderListItem } from '../../services/orders';
 import { OrderFulfillmentWorkstation } from './OrderFulfillmentWorkstation';
 import { AfterSaleListPanel } from './order/AfterSaleListPanel';
@@ -37,7 +38,7 @@ export function OrderManagementWorkstation({ orders, onUpdateOrders, onOpenGuard
       if (!onShipOrder) return;
       void onShipOrder(order.id)
         .then(() => {
-          onUpdateOrders(orders.map((item) => (item.id === order.id ? { ...item, status: '已发货' } : item)));
+          onUpdateOrders(orders.map((item) => (item.id === order.id ? { ...item, status: 'shipped' } : item)));
           refresh();
         })
         .catch(() => window.alert('订单发货未成功，请刷新后重试。'));
@@ -139,18 +140,18 @@ function MetricCard({ label, value, note, tone, onClick }: { label: string; valu
 }
 
 function orderMetrics(orders: Order[]) {
-  const afterSales = orders.filter((order) => order.status === '退款申请中').length;
-  const risk = orders.filter((order) => order.isProblematic || order.status === '退款申请中').length;
+  const afterSales = orders.filter((order) => order.status === 'refund_pending').length;
+  const risk = orders.filter((order) => order.isProblematic || order.status === 'refund_pending').length;
   return {
     total: orders.length,
-    pendingFulfillment: orders.filter((order) => ['已支付', '待发货'].includes(order.status)).length,
+    pendingFulfillment: orders.filter((order) => ['paid', 'processing', 'pending_shipment'].includes(order.status)).length,
     afterSales,
     risk,
   };
 }
 
 function ExceptionSummary({ orders, onOpen }: { orders: Order[]; onOpen: (orderId: string) => void }) {
-  const exceptions = orders.filter((order) => order.isProblematic || order.status === '退款申请中');
+  const exceptions = orders.filter((order) => order.isProblematic || order.status === 'refund_pending');
   return (
     <section className="overflow-hidden rounded-[14px] border border-slate-200/90 bg-white shadow-xs">
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 px-5 py-4">
@@ -174,7 +175,7 @@ function ExceptionSummary({ orders, onOpen }: { orders: Order[]; onOpen: (orderI
                 </span>
               </span>
               <span className="self-center">
-                <span className="rounded-md bg-rose-50 px-2 py-1 text-rose-700">{order.problemType ?? order.status}</span>
+                <span className="rounded-md bg-rose-50 px-2 py-1 text-rose-700">{order.problemType ?? orderStatusLabel(order.status)}</span>
               </span>
               <button type="button" onClick={() => onOpen(order.id)} className="self-center font-semibold text-[#1769ff] hover:underline">
                 去处置

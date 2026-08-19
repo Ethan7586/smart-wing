@@ -1,16 +1,8 @@
 import type { Order } from '../types';
+import { ADMIN_ORDER_STATUS_OPTIONS, isOrderStatus, type AdminOrderStatus } from '@smart-wing/api-contract';
 import { isJsonRecord, requestAdminJson } from './adminJson';
 
-export const ORDER_STATUS_OPTIONS = [
-  ['pending_payment', '待付款'],
-  ['paid', '已支付'],
-  ['processing', '待发货'],
-  ['shipped', '已发货'],
-  ['completed', '已签收'],
-  ['cancelled', '已取消'],
-  ['refund_pending', '退款申请中'],
-  ['refunded', '已退款'],
-] as const;
+export const ORDER_STATUS_OPTIONS = ADMIN_ORDER_STATUS_OPTIONS;
 export const AFTER_SALE_STATUS_OPTIONS = [
   ['submitted', '已提交'],
   ['reviewing', '审核中'],
@@ -27,11 +19,14 @@ type ValidatedPage<T> = { items: T[]; total: number; limit?: number; offset?: nu
 export type OrderListItem = {
   id: string;
   orderNo: string;
-  status: string;
+  status: AdminOrderStatus;
   payableCents: number;
   paidCents: number;
   welfarePaidCents: number;
   mealPaidCents: number;
+  /** Distinct product lines. This is not the total number of units. */
+  lineCount: number;
+  /** Total units across all product lines. */
   itemCount: number;
   firstProductName: string;
   supplierNames: string[];
@@ -72,11 +67,11 @@ export function buildOrderQuery(filters: OrderFilters): string {
 }
 
 export async function loadOrderPage(filters: OrderFilters): Promise<Page<OrderListItem>> {
-  return getPage<OrderListItem>('/api/v1/admin/orders', filters);
+  return getPage('/api/v1/admin/orders', filters, isOrderListItem);
 }
 
 export async function loadAfterSalePage(filters: OrderFilters): Promise<Page<AfterSaleListItem>> {
-  return getPage<AfterSaleListItem>('/api/v1/admin/after-sales', filters);
+  return getPage('/api/v1/admin/after-sales', filters, isAfterSaleListItem);
 }
 
 export async function exportOrderPage(kind: 'orders' | 'after-sales', filters: OrderFilters): Promise<void> {
@@ -122,11 +117,12 @@ export function legacyOrderPage(orders: Order[], filters: OrderFilters): Page<Or
     .map((order) => ({
       id: order.id,
       orderNo: order.orderNo,
-      status: legacyOrderStatus(order.status),
+      status: order.status,
       payableCents: order.totalCents,
       paidCents: order.totalCents,
       welfarePaidCents: order.corporateBudgetPaidCents,
       mealPaidCents: order.employeeSelfPaidCents,
+      lineCount: 1,
       itemCount: order.quantity,
       firstProductName: order.productTitle,
       supplierNames: [order.supplierName],
@@ -137,14 +133,14 @@ export function legacyOrderPage(orders: Order[], filters: OrderFilters): Page<Or
 }
 
 export function legacyAfterSalePage(orders: Order[], filters: OrderFilters): Page<AfterSaleListItem> {
-  const sources = orders.filter((order) => order.status === '退款申请中' || order.status === '已退款');
+  const sources = orders.filter((order) => order.status === 'refund_pending' || order.status === 'refunded');
   const items = sources.slice(filters.offset, filters.offset + filters.limit).map((order) => ({
     id: `after-sale:${order.id}`,
     afterSaleNo: `AS-${order.orderNo}`,
     orderId: order.id,
     orderNo: order.orderNo,
     type: 'refund_only',
-    status: order.status === '已退款' ? 'completed' : 'reviewing',
+    status: order.status === 'refunded' ? 'completed' : 'reviewing',
     reason: order.problemSummary ?? '售后申请处理中',
     requestedAmountCents: order.totalCents,
     firstProductName: order.productTitle,
@@ -154,25 +150,77 @@ export function legacyAfterSalePage(orders: Order[], filters: OrderFilters): Pag
   return { items, total: sources.length, limit: filters.limit, offset: filters.offset };
 }
 
-async function getPage<T>(path: string, filters: OrderFilters): Promise<Page<T>> {
+async function getPage<T>(path: string, filters: OrderFilters, isItem: (value: unknown) => value is T): Promise<Page<T>> {
   const payload = await requestAdminJson<ValidatedPage<T>>(`${path}?${buildOrderQuery(filters)}`, {
     label: '订单查询服务',
-    validate: (value): value is ValidatedPage<T> => isJsonRecord(value) && Array.isArray(value.items) && Number.isFinite(value.total),
+    validate: (value): value is ValidatedPage<T> => isValidPage(value, isItem),
   });
-  return { items: payload.items, total: Number(payload.total), limit: Number(payload.limit) || filters.limit, offset: Number(payload.offset) || 0 };
+  return { items: payload.items, total: payload.total, limit: payload.limit ?? filters.limit, offset: payload.offset ?? 0 };
 }
 
 function toIsoStart(value: string): string {
-  return value ? new Date(`${value}T00:00:00`).toISOString() : '';
+  return toIsoBoundary(value, 'T00:00:00');
 }
 
 function toIsoEnd(value: string): string {
-  return value ? new Date(`${value}T23:59:59.999`).toISOString() : '';
+  return toIsoBoundary(value, 'T23:59:59.999');
 }
 
-function legacyOrderStatus(status: Order['status']): string {
-  // “异常挂起” is a risk classification, not evidence that money has been
-  // cancelled. The legacy stock-conflict fixture has already been paid and is
-  // awaiting its refund, so expose that actionable financial state instead.
-  return ({ 待付款: 'pending_payment', 库存预占: 'processing', 已支付: 'paid', 待发货: 'processing', 已发货: 'shipped', 已签收: 'completed', 退款申请中: 'refund_pending', 已退款: 'refunded', 异常挂起: 'refund_pending' } as const)[status];
+function toIsoBoundary(value: string, suffix: string): string {
+  if (!value) return '';
+  const date = new Date(`${value}${suffix}`);
+  // Do not let a malformed value crash rendering. Keep it intact so the API
+  // can reject it as an invalid query instead of silently widening the scope.
+  return Number.isFinite(date.getTime()) ? date.toISOString() : value;
+}
+
+function isValidPage<T>(value: unknown, isItem: (item: unknown) => item is T): value is ValidatedPage<T> {
+  return (
+    isJsonRecord(value) &&
+    Array.isArray(value.items) &&
+    value.items.every(isItem) &&
+    isNonNegativeInteger(value.total) &&
+    (value.limit === undefined || isPositiveInteger(value.limit)) &&
+    (value.offset === undefined || isNonNegativeInteger(value.offset))
+  );
+}
+
+function isOrderListItem(value: unknown): value is OrderListItem {
+  return (
+    isJsonRecord(value) &&
+    isText(value.id) &&
+    isText(value.orderNo) &&
+    isOrderStatus(value.status) &&
+    ORDER_STATUS_OPTIONS.some(([status]) => status === value.status) &&
+    isNonNegativeInteger(value.payableCents) &&
+    isNonNegativeInteger(value.paidCents) &&
+    isNonNegativeInteger(value.welfarePaidCents) &&
+    isNonNegativeInteger(value.mealPaidCents) &&
+    // A legacy order can have had all of its lines archived.  Keep the page
+    // readable in that case instead of rejecting every result because one
+    // record reports zero product kinds.
+    isNonNegativeInteger(value.lineCount) &&
+    isPositiveInteger(value.itemCount) &&
+    isText(value.firstProductName) &&
+    Array.isArray(value.supplierNames) &&
+    value.supplierNames.every(isText) &&
+    isText(value.createdAt) &&
+    isText(value.updatedAt)
+  );
+}
+
+function isAfterSaleListItem(value: unknown): value is AfterSaleListItem {
+  return isJsonRecord(value) && ['id', 'afterSaleNo', 'orderId', 'orderNo', 'type', 'status', 'reason', 'firstProductName', 'createdAt', 'updatedAt'].every((key) => isText(value[key])) && isNonNegativeInteger(value.requestedAmountCents);
+}
+
+function isText(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+function isNonNegativeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+}
+
+function isPositiveInteger(value: unknown): value is number {
+  return isNonNegativeInteger(value) && value > 0;
 }

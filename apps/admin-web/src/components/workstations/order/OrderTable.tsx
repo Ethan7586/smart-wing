@@ -42,7 +42,7 @@ export function OrderTable({ orders, canShip, onSelect, onShip }: OrderTableProp
               </td>
               <td className="max-w-52 px-4 py-3">
                 <span className="block truncate font-medium text-slate-700">{order.firstProductName}</span>
-                {order.itemCount > 1 && <span className="mt-1 block text-[11px] text-slate-400">等 {order.itemCount} 件</span>}
+                {order.lineCount > 1 && <span className="mt-1 block text-[11px] text-slate-400">含 {order.lineCount} 种商品</span>}
               </td>
               <td className="px-4 py-3 tabular-nums text-slate-600">{order.itemCount}</td>
               <td className="px-4 py-3 text-right font-mono font-medium tabular-nums text-slate-700">{formatCents(order.payableCents)}</td>

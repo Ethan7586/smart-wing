@@ -88,7 +88,10 @@ export interface Product {
 }
 
 // Order Fulfillment Types
-export type OrderStatus = '待付款' | '库存预占' | '已支付' | '待发货' | '已发货' | '已签收' | '退款申请中' | '已退款' | '异常挂起';
+import type { OrderStatus as CanonicalOrderStatus } from '@smart-wing/api-contract';
+
+/** Machine-readable lifecycle state shared with every client and the API. */
+export type OrderStatus = CanonicalOrderStatus;
 
 export interface TimelineEvent {
   id: string;

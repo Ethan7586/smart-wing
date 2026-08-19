@@ -36,6 +36,7 @@ function OrderDetail({ item }: { item: OrderListItem }) {
       <DetailGrid
         rows={[
           ['商品', item.firstProductName],
+          ['商品种类', `${item.lineCount} 种`],
           ['数量', `${item.itemCount} 件`],
           ['订单状态', statusLabel(item.status, ORDER_STATUS_OPTIONS)],
           ['下单时间', formatDate(item.createdAt)],
