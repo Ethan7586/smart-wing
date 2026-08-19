@@ -18,6 +18,7 @@ import { SystemControlWorkstation } from './components/workstations/SystemContro
 import { MembershipPermissionWorkstation } from './components/workstations/MembershipPermissionWorkstation';
 import { QualificationCenterWorkstation } from './components/workstations/QualificationCenterWorkstation';
 import { WorkstationLoadBoundary } from './components/WorkstationLoadBoundary';
+import { AdminSessionError } from './components/AdminSessionError';
 
 // Mock Datasets
 import { INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIERS, INITIAL_CASES, INITIAL_FINANCE_DISCREPANCIES, INITIAL_SYSTEM_CONFIG } from './data/mockData';
@@ -26,6 +27,14 @@ import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStat
 
 const LazyVoucherOperationsWorkstationV1 = React.lazy(() => import('./components/workstations/VoucherOperationsWorkstationV1').then(({ VoucherOperationsWorkstationV1 }) => ({ default: VoucherOperationsWorkstationV1 })));
 const LazyMallApplicationWorkstation = React.lazy(() => import('./components/workstations/MallApplicationWorkstation').then(({ MallApplicationWorkstation }) => ({ default: MallApplicationWorkstation })));
+
+/**
+ * A deliberate local-only review mode for visual acceptance.  It is disabled
+ * in every production build and never issues a request to the commerce API.
+ */
+const localPreviewEnv = (import.meta as unknown as { env?: { DEV?: boolean; VITE_ORDER_DEMO?: string } }).env;
+const LOCAL_ORDER_DEMO_ENABLED = localPreviewEnv?.DEV === true && localPreviewEnv.VITE_ORDER_DEMO === 'true';
+const LOCAL_ORDER_DEMO_PERMISSIONS = ['order.read', 'order.ship', 'order.refund'];
 
 export function allowedWorkstationsFor(permissions: string[], roles: string[] = []): WorkstationId[] {
   const allowed = new Set<WorkstationId>(['cockpit']);
@@ -123,9 +132,23 @@ export function resolveAdminAccount(employeeNo: unknown, roles: unknown): AdminP
   return profile ? { username: normalizedEmployeeNo, displayName: normalizedEmployeeNo, role: profile.role, permissionTags: profile.permissionTags } : null;
 }
 
+export const ADMIN_LOGIN_URL = 'https://hbbtzn.com/login/?target=admin';
+const LOGIN_BOUNCE_KEY = 'sw_admin_login_bounce';
+
+export type AuthFailure = { kind: 'unauthenticated' } | { kind: 'wrong_entrance'; target: string } | { kind: 'profile_unresolved'; employeeNo: string; roles: string[] } | { kind: 'request_failed'; detail: string };
+
+/** Turns a rejected overview payload into a reason the operator can act on. */
+export function classifyAuthFailure(payload: { authenticated?: unknown; authorization?: { target?: unknown; employeeNo?: unknown; roles?: unknown } } | null | undefined): AuthFailure {
+  if (payload?.authenticated !== true) return { kind: 'unauthenticated' };
+  const target = typeof payload.authorization?.target === 'string' ? payload.authorization.target : '未知';
+  if (target !== 'admin') return { kind: 'wrong_entrance', target };
+  const roles = Array.isArray(payload.authorization?.roles) ? payload.authorization.roles.filter((role): role is string => typeof role === 'string') : [];
+  return { kind: 'profile_unresolved', employeeNo: typeof payload.authorization?.employeeNo === 'string' ? payload.authorization.employeeNo : '未知', roles };
+}
+
 export function App() {
   // Navigation & UI States
-  const [activeWorkstation, setActiveWorkstation] = useState<WorkstationId>('cockpit');
+  const [activeWorkstation, setActiveWorkstation] = useState<WorkstationId>(LOCAL_ORDER_DEMO_ENABLED ? 'order' : 'cockpit');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
   const [isCaseCenterOpen, setIsCaseCenterOpen] = useState<boolean>(false);
@@ -139,6 +162,7 @@ export function App() {
   const [isLiveCatalog, setIsLiveCatalog] = useState(false);
   const [liveOperations, setLiveOperations] = useState<LiveOperationsSummary | null>(null);
   const [authChecking, setAuthChecking] = useState(true);
+  const [authFailure, setAuthFailure] = useState<AuthFailure | null>(null);
   const [isSecurityCenterOpen, setIsSecurityCenterOpen] = useState(false);
 
   // Application Domain State (In-Memory Mock Single Source of Truth)
@@ -172,6 +196,16 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    if (LOCAL_ORDER_DEMO_ENABLED) {
+      setCurrentUser(resolveAdminAccount('ORDER-DEMO-LOCAL', ['platform_owner']));
+      setSessionPermissions(LOCAL_ORDER_DEMO_PERMISSIONS);
+      setSessionRoles(['platform_owner']);
+      setIsLiveCatalog(false);
+      setAuthFailure(null);
+      setAuthChecking(false);
+      return;
+    }
+
     let active = true;
     void loadAdminOverview()
       .then((payload) => {
@@ -186,13 +220,30 @@ export function App() {
           setLiveOperations(payload.summary);
           setIsLiveCatalog(true);
           setAuthChecking(false);
+          sessionStorage.removeItem(LOGIN_BOUNCE_KEY);
           return;
         }
-        window.location.replace('https://hbbtzn.com/login/?target=admin');
+        finishAuthCheck(classifyAuthFailure(payload));
       })
-      .catch(() => {
-        if (active) window.location.replace('https://hbbtzn.com/login/?target=admin');
+      .catch((cause: unknown) => {
+        if (!active) return;
+        finishAuthCheck({ kind: 'request_failed', detail: cause instanceof Error ? cause.message : String(cause) });
       });
+
+    // Every terminating path must clear authChecking. Leaving it set renders the
+    // dark session screen forever, which is indistinguishable from a blank page.
+    function finishAuthCheck(failure: AuthFailure): void {
+      setAuthFailure(failure);
+      setAuthChecking(false);
+      // Only an anonymous visitor is bounced automatically, and only once per
+      // tab, so an admin session the console rejects cannot ping-pong with the
+      // login page instead of showing why it was rejected.
+      if (failure.kind !== 'unauthenticated') return;
+      if (sessionStorage.getItem(LOGIN_BOUNCE_KEY) === '1') return;
+      sessionStorage.setItem(LOGIN_BOUNCE_KEY, '1');
+      window.location.replace(ADMIN_LOGIN_URL);
+    }
+
     return () => {
       active = false;
     };
@@ -243,6 +294,7 @@ export function App() {
   };
 
   const handleLogout = async () => {
+    if (LOCAL_ORDER_DEMO_ENABLED) return;
     await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => undefined);
     setCurrentUser(null);
     window.location.replace('https://hbbtzn.com/login/?target=admin');
@@ -256,7 +308,9 @@ export function App() {
     );
   }
 
-  if (!currentUser) return null;
+  if (authFailure) return <AdminSessionError failure={authFailure} loginUrl={ADMIN_LOGIN_URL} />;
+
+  if (!currentUser) return <AdminSessionError failure={{ kind: 'unauthenticated' }} loginUrl={ADMIN_LOGIN_URL} />;
 
   const allowedWorkstations = allowedWorkstationsFor(sessionPermissions, sessionRoles);
   const visibleWorkstation = allowedWorkstations.includes(activeWorkstation) ? activeWorkstation : 'cockpit';
@@ -332,6 +386,12 @@ export function App() {
 
         {/* 3. Main Workstation Area */}
         <main className="flex-1 overflow-y-auto bg-[#f8fafc]">
+          {LOCAL_ORDER_DEMO_ENABLED && (
+            <div className="mx-6 mt-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+              <span className="font-bold">本地演示预览</span>
+              <span>当前展示的是演示订单，不连接线上服务，所有写操作均不会提交。</span>
+            </div>
+          )}
           {visibleWorkstation === 'cockpit' && <CockpitWorkstation orders={orders} products={products} enterprises={enterprises} liveOperations={liveOperations} onNavigateToWorkstation={handleNavigateToWorkstation} language={language} />}
 
           {visibleWorkstation === 'product' && (
