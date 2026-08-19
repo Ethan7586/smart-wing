@@ -24,14 +24,28 @@ hbbtzn.com, www.hbbtzn.com {
   # The login shell has no member data; serve its built files directly instead
   # of placing every asset behind Vite's preview server. Credential submission
   # remains under /api/v1/* and still reaches commerce-api below.
-  @authWeb path /login /login/*
   @authWebAssets path /login/assets/*
   @authWebBrand path /login/brand/*
   @authWebDocument path /login /login/
   header @authWebAssets Cache-Control "public, max-age=31536000, immutable"
   header @authWebBrand Cache-Control "public, max-age=86400"
   header @authWebDocument Cache-Control "public, max-age=300, stale-while-revalidate=600"
-  handle @authWeb {
+  # Hashed files must never fall through to index.html.  Otherwise a stale
+  # document references a missing bundle, receives HTML with a 200 response,
+  # and the browser renders a blank page instead of reporting a missing asset.
+  handle @authWebAssets {
+    uri strip_prefix /login
+    root * /opt/smart-wing/apps/auth-web/dist
+    file_server
+  }
+
+  handle @authWebBrand {
+    uri strip_prefix /login
+    root * /opt/smart-wing/apps/auth-web/dist
+    file_server
+  }
+
+  handle @authWebDocument {
     uri strip_prefix /login
     root * /opt/smart-wing/apps/auth-web/dist
     try_files {path} /index.html
@@ -74,6 +88,18 @@ smart.hbbtzn.com {
   header @adminAssets Cache-Control "public, max-age=31536000, immutable"
   header @adminBrand Cache-Control "public, max-age=86400"
   header @adminDocument Cache-Control "public, max-age=300, stale-while-revalidate=600"
+  # Serve immutable bundles directly.  The SPA fallback is only for the
+  # document route, never for a missing hashed asset.
+  handle @adminAssets {
+    root * /opt/smart-wing/apps/admin-web/dist
+    file_server
+  }
+
+  handle @adminBrand {
+    root * /opt/smart-wing/apps/admin-web/dist
+    file_server
+  }
+
   handle {
     root * /opt/smart-wing/apps/admin-web/dist
     try_files {path} /index.html
