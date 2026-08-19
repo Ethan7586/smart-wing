@@ -1,73 +1,113 @@
 import { describe, expect, it, vi } from 'vitest';
 import { PERMISSIONS, type Membership } from '@smart-wing/api-contract';
-import { handleStepUp } from './stepUpRoutes';
+import { handleStartAdminStepUp, handleVerifyAdminStepUp } from './stepUpRoutes';
 import type { AuthorizationContext, WorkerEnv } from './types';
 
-const env: WorkerEnv = { APP_ENV: 'test', AUTH_MODE: 'test', SUPABASE_URL: 'https://supabase.example', SUPABASE_SERVICE_ROLE_KEY: 'key', ADMIN_SESSION_SIGNING_KEY: 'admin-session-key-that-is-longer-than-thirty-two-bytes' };
-const membership: Membership = {
-  id: 'membership-test-admin-001',
-  memberId: 'member-test-admin-001',
-  target: 'admin',
-  status: 'active',
-  roleIds: ['role-test-admin'],
-  permissions: [PERMISSIONS.roleGrant],
-  context: { tenantId: 'tenant-smart-wing', enterpriseId: 'enterprise-demo', mallId: 'mall-demo', userId: 'user-test-admin-001' },
-  scopeBindings: [{ kind: 'enterprise', resourceId: 'enterprise-demo' }],
-  expiresAt: null,
-  authzVersion: 2,
-};
-const authorization: AuthorizationContext = {
-  tenantId: 'tenant-smart-wing',
-  enterpriseId: 'enterprise-demo',
-  mallId: 'mall-demo',
-  mallCode: 'SMART_WING_DEMO',
-  userId: 'user-test-admin-001',
-  employeeNo: 'admin001',
-  roles: membership.roleIds,
-  permissions: membership.permissions,
-  membership,
-  stepUpAt: null,
+const { callRpcMock, readSessionMock, decryptJsonMock, verifyTotpMock } = vi.hoisted(() => ({
+  callRpcMock: vi.fn(),
+  readSessionMock: vi.fn(),
+  decryptJsonMock: vi.fn(),
+  verifyTotpMock: vi.fn(),
+}));
+
+vi.mock('./supabase', () => ({ callRpc: callRpcMock }));
+vi.mock('./crypto', () => ({ decryptJson: decryptJsonMock }));
+vi.mock('./totp', () => ({ verifyTotp: verifyTotpMock }));
+vi.mock('./session', async (importOriginal) => ({ ...await importOriginal<typeof import('./session')>(), readSession: readSessionMock }));
+
+const env: WorkerEnv = {
+  ADMIN_SESSION_SIGNING_KEY: 'test-admin-step-up-signing-key-longer-than-32-bytes',
+  PII_ENCRYPTION_KEY: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
 };
 
-describe('step-up route', () => {
-  it('rejects the wrong current password without writing audit', async () => {
-    const fetchRpc = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response('true', { status: 200, headers: { 'content-type': 'application/json' } }));
-    try {
-      const response = await handleStepUp(
-        new Request('https://smart.hbbtzn.com/api/v1/auth/step-up', { method: 'POST', headers: { 'x-real-ip': '203.0.113.12' }, body: JSON.stringify({ password: 'wrong' }) }),
-        env,
-        authorization,
-        'step-wrong'
-      );
-      expect(response.status).toBe(401);
-      expect(fetchRpc).toHaveBeenCalledTimes(3);
-      expect(String(fetchRpc.mock.calls[2]?.[0])).toContain('api_record_login_failure');
-    } finally {
-      fetchRpc.mockRestore();
-    }
+function authorization(): AuthorizationContext {
+  const membership: Membership = {
+    id: 'membership-admin-a',
+    memberId: 'member-admin-a',
+    target: 'admin',
+    status: 'active',
+    roleIds: ['role-voucher-store-operator-v1'],
+    permissions: [PERMISSIONS.voucherRedeem],
+    context: { tenantId: 'tenant-a', enterpriseId: 'enterprise-a', mallId: 'mall-a', userId: 'user-a' },
+    scopeBindings: [{ kind: 'mall', resourceId: 'mall-a' }],
+    expiresAt: null,
+    authzVersion: 3,
+  };
+  return {
+    tenantId: 'tenant-a', enterpriseId: 'enterprise-a', mallId: 'mall-a', mallCode: 'MALL_A', userId: 'user-a', employeeNo: 'U001',
+    roles: membership.roleIds, permissions: membership.permissions, membership, stepUpAt: null,
+  };
+}
+
+function activeSession() {
+  return {
+    sessionId: 'session-1234567890', employeeNo: 'U001', mallCode: 'MALL_A', target: 'admin' as const,
+    memberId: 'member-admin-a', membershipId: 'membership-admin-a', authzVersion: 3, expiresAt: Math.floor(Date.now() / 1_000) + 3600,
+  };
+}
+
+describe('admin step-up routes', () => {
+  it('creates a session-bound challenge but never returns an encrypted MFA secret', async () => {
+    callRpcMock.mockReset();
+    readSessionMock.mockResolvedValue(activeSession());
+    callRpcMock.mockResolvedValueOnce({ challengeId: 'challenge-1234567890', expiresAt: '2026-08-17T08:05:00.000Z', secretCiphertext: 'ciphertext-must-not-leak' });
+    const response = await handleStartAdminStepUp(
+      new Request('https://smart.example/api/v1/auth/step-up', {
+        method: 'POST',
+        headers: { 'idempotency-key': 'step-up-start-request' },
+      }),
+      env,
+      authorization(),
+      'step-up-start'
+    );
+    expect(response.status).toBe(201);
+    await expect(response.json()).resolves.toEqual({ challengeId: 'challenge-1234567890', method: 'totp', expiresAt: '2026-08-17T08:05:00.000Z', requestId: 'step-up-start' });
+    expect(callRpcMock).toHaveBeenCalledWith(env, 'api_admin_step_up_start', expect.objectContaining({ p_session_id: 'session-1234567890', p_membership_id: 'membership-admin-a', p_user_id: 'user-a' }));
   });
 
-  it('issues a fresh host-only admin session after a valid password', async () => {
-    const fetchRpc = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response('true', { status: 200, headers: { 'content-type': 'application/json' } }));
-    try {
-      const response = await handleStepUp(new Request('https://smart.hbbtzn.com/api/v1/auth/step-up', { method: 'POST', body: JSON.stringify({ password: '123456' }) }), env, authorization, 'step-ok');
-      expect(response.status).toBe(200);
-      expect(response.headers.get('set-cookie')).toContain('__Host-hbbtzn_admin_session=');
-      expect(fetchRpc).toHaveBeenCalledTimes(5);
-      await expect(response.json()).resolves.toMatchObject({ verified: true });
-    } finally {
-      fetchRpc.mockRestore();
-    }
+  it('refuses verification before loading a factor when the code shape is invalid', async () => {
+    callRpcMock.mockReset();
+    readSessionMock.mockResolvedValue(activeSession());
+    const response = await handleVerifyAdminStepUp(
+      new Request('https://smart.example/api/v1/auth/step-up/challenge-1234567890/verify', {
+        method: 'POST',
+        headers: { 'idempotency-key': 'step-up-verify-short-code' },
+        body: JSON.stringify({ code: '12345' }),
+      }),
+      env,
+      authorization(),
+      'challenge-1234567890',
+      'step-up-invalid-code'
+    );
+    expect(response.status).toBe(422);
+    expect(callRpcMock).not.toHaveBeenCalled();
   });
 
-  it('stops before password verification when the shared limiter is blocked', async () => {
-    const fetchRpc = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('false', { status: 200, headers: { 'content-type': 'application/json' } }));
-    try {
-      const response = await handleStepUp(new Request('https://smart.hbbtzn.com/api/v1/auth/step-up', { method: 'POST', body: JSON.stringify({ password: '123456' }) }), env, authorization, 'step-limited');
-      expect(response.status).toBe(429);
-      expect(fetchRpc).toHaveBeenCalledTimes(1);
-    } finally {
-      fetchRpc.mockRestore();
-    }
+  it('rotates the host-only admin cookie only after the server verifies the factor and records completion', async () => {
+    callRpcMock.mockReset();
+    decryptJsonMock.mockReset();
+    verifyTotpMock.mockReset();
+    readSessionMock.mockResolvedValue(activeSession());
+    callRpcMock
+      .mockResolvedValueOnce({ secretCiphertext: 'encrypted-factor' })
+      .mockResolvedValueOnce({ verifiedAt: '2026-08-17T08:00:00.000Z' });
+    decryptJsonMock.mockResolvedValue({ totpSecret: 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ' });
+    verifyTotpMock.mockResolvedValue(true);
+    const response = await handleVerifyAdminStepUp(
+      new Request('https://smart.example/api/v1/auth/step-up/challenge-1234567890/verify', {
+        method: 'POST',
+        headers: { 'idempotency-key': 'step-up-verify-success' },
+        body: JSON.stringify({ code: '287082' }),
+      }),
+      env,
+      authorization(),
+      'challenge-1234567890',
+      'step-up-success'
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get('set-cookie')).toContain('__Host-hbbtzn_admin_session=');
+    await expect(response.json()).resolves.toMatchObject({ authenticated: true, stepUpAt: '2026-08-17T08:00:00.000Z' });
+    expect(callRpcMock).toHaveBeenNthCalledWith(1, env, 'api_admin_step_up_verification_material', expect.objectContaining({ p_challenge_id: 'challenge-1234567890' }));
+    expect(callRpcMock).toHaveBeenNthCalledWith(2, env, 'api_admin_step_up_complete', expect.objectContaining({ p_challenge_id: 'challenge-1234567890' }));
   });
 });

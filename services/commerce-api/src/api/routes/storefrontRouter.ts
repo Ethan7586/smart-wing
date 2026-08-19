@@ -7,7 +7,7 @@ import { handleMemberCodeChallenge, handleRevokeMemberCodeChallenge } from '../m
 import { handleAfterSales, handleCreateAfterSale, handleCreateOrder, handleInternalPayment, handleOrders } from '../orderRoutes';
 import { handleProducts } from '../publicRoutes';
 import { handleChangePassword, handleChangePhone, handleRevokeOtherSessions, handleRevokeSession, handleSecurityCenter } from '../securityCenterRoutes';
-import { handleStepUp } from '../stepUpRoutes';
+import { handleStartAdminStepUp, handleVerifyAdminStepUp } from '../stepUpRoutes';
 import { callRpc } from '../supabase';
 import type { AuthorizationContext, WorkerEnv } from '../types';
 import { handleOrderByNumber, handleWechatPaymentStatus, handleWechatPrepay } from '../wechatPaymentRoutes';
@@ -30,7 +30,7 @@ export async function routeStorefrontRequest(request: Request, env: WorkerEnv, a
     case `${API_PREFIX}/auth/session`:
       return handleSession(env, authorization, requestId);
     case `${API_PREFIX}/auth/step-up`:
-      return handleStepUp(request, env, authorization, requestId);
+      return handleStartAdminStepUp(request, env, authorization, requestId);
     case `${API_PREFIX}/auth/security-center`:
       return handleSecurityCenter(request, env, authorization, requestId);
     case `${API_PREFIX}/auth/password/change`:
@@ -53,6 +53,8 @@ export async function routeStorefrontRequest(request: Request, env: WorkerEnv, a
       return request.method === 'POST' ? handleCreateOrder(request, env, authorization, requestId) : handleOrders(request, env, authorization, requestId);
   }
 
+  const stepUpVerification = pathname.match(/^\/api\/v1\/auth\/step-up\/([^/]+)\/verify$/);
+  if (stepUpVerification) return handleVerifyAdminStepUp(request, env, authorization, decodeURIComponent(stepUpVerification[1]), requestId);
   const session = pathname.match(/^\/api\/v1\/auth\/sessions\/([0-9a-f-]{36})$/i);
   if (session) return handleRevokeSession(request, env, authorization, session[1], requestId);
   const address = pathname.match(/^\/api\/v1\/addresses\/([^/]+)$/);

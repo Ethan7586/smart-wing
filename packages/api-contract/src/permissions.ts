@@ -87,6 +87,15 @@ export const PERMISSIONS = {
   integrationRead: 'integration.read',
   integrationManageSecrets: 'integration.secrets.manage',
   tenantManage: 'tenant.manage',
+  voucherProgramManage: 'voucher.program.manage',
+  voucherCardPoolManage: 'voucher.card_pool.manage',
+  voucherReserveCreate: 'voucher.reserve.create',
+  voucherReserveApprove: 'voucher.reserve.approve',
+  voucherStatusManage: 'voucher.status.manage',
+  voucherRedeem: 'voucher.redeem',
+  voucherRedemptionReverse: 'voucher.redemption.reverse',
+  voucherReconcile: 'voucher.reconcile',
+  voucherAuditRead: 'voucher.audit.read',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -189,4 +198,13 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
   p(PERMISSIONS.integrationRead, '查看接口配置', '接口', 'high'),
   p(PERMISSIONS.integrationManageSecrets, '管理接口密钥', '接口', 'critical'),
   p(PERMISSIONS.tenantManage, '管理平台租户', '平台', 'critical'),
+  p(PERMISSIONS.voucherProgramManage, '管理卡券规则', '卡券', 'high'),
+  p(PERMISSIONS.voucherCardPoolManage, '管理卡号库', '卡券', 'critical'),
+  p(PERMISSIONS.voucherReserveCreate, '发起备券申请', '卡券', 'high'),
+  p(PERMISSIONS.voucherReserveApprove, '审批备券申请', '卡券', 'critical'),
+  p(PERMISSIONS.voucherStatusManage, '变更卡券状态', '卡券', 'critical'),
+  p(PERMISSIONS.voucherRedeem, '核销卡券', '卡券', 'high'),
+  p(PERMISSIONS.voucherRedemptionReverse, '冲正核销', '卡券', 'critical'),
+  p(PERMISSIONS.voucherReconcile, '卡券对账', '卡券', 'critical'),
+  p(PERMISSIONS.voucherAuditRead, '查看卡券审计', '卡券', 'high'),
 ];

@@ -1,4 +1,23 @@
-import { handleAdminCatalog, handleAdminOverview, handleSetProductStatus } from '../adminRoutes';
+import { handleAdminCatalog, handleAdminCatalogImport, handleAdminOverview, handleSetProductStatus } from '../adminRoutes';
+import {
+  handleAdminVoucherAudit,
+  handleAdminVoucherBatches,
+  handleAdminVoucherDetail,
+  handleAdminVoucherOverview,
+  handleAdminVoucherPrograms,
+  handleAdminVoucherRedemptions,
+  handleAdminVoucherReserves,
+  handleAdminVoucherVoidHolds,
+  handleAdminVouchers,
+  handleChangeAdminVoucherStatus,
+  handleCreateAdminVoucherReserve,
+  handleDecideAdminVoucherReserve,
+  handleIssueAdminVoucherBatch,
+  handleRedeemAdminVoucher,
+  handleReconcileAdminVoucherVoidHold,
+  handleReverseAdminVoucherRedemption,
+} from '../voucherRoutes';
+import { handleWhyouyeIntegrationStatus, handleWhyouyeJdVopPoolEnroll, handleWhyouyeProductPoolEnroll } from '../whyouyeProductPool';
 import { handleAdminAfterSaleExport, handleAdminAfterSalePage, handleAdminOrderExport, handleAdminOrderPage } from '../adminOrderRoutes';
 import { handleCreateCustomRole, handleCustomRoleCenter, handleSetCustomRoleStatus, handleUpdateCustomRole } from '../customRoleRoutes';
 import { handleVerifyMemberCodeChallenge } from '../memberCodeRoutes';
@@ -26,6 +45,30 @@ export async function routeAdminRequest(request: Request, env: WorkerEnv, author
   switch (pathname) {
     case `${API_PREFIX}/admin/products`:
       return handleAdminCatalog(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/products/import`:
+      return handleAdminCatalogImport(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/integrations/whyouye/pool-enroll`:
+      return handleWhyouyeProductPoolEnroll(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/integrations/whyouye/status`:
+      return handleWhyouyeIntegrationStatus(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/integrations/whyouye/jd-vop-pool-enroll`:
+      return handleWhyouyeJdVopPoolEnroll(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/vouchers`:
+      return handleAdminVouchers(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/vouchers/overview`:
+      return handleAdminVoucherOverview(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/voucher-audit`:
+      return handleAdminVoucherAudit(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/voucher-void-holds`:
+      return handleAdminVoucherVoidHolds(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/voucher-programs`:
+      return handleAdminVoucherPrograms(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/voucher-batches`:
+      return handleAdminVoucherBatches(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/voucher-reserves`:
+      return request.method === 'POST' ? handleCreateAdminVoucherReserve(request, env, authorization, requestId) : handleAdminVoucherReserves(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/voucher-redemptions`:
+      return request.method === 'POST' ? handleRedeemAdminVoucher(request, env, authorization, requestId) : handleAdminVoucherRedemptions(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/overview`:
       return handleAdminOverview(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/orders/export`:
@@ -100,5 +143,17 @@ export async function routeAdminRequest(request: Request, env: WorkerEnv, author
   if (refund) return handleExecuteRefund(request, env, authorization, decodeURIComponent(refund[1]), requestId);
   const ship = pathname.match(/^\/api\/v1\/orders\/([^/]+)\/ship$/);
   if (ship) return handleShipOrder(request, env, authorization, decodeURIComponent(ship[1]), requestId);
+  const voucherReserveDecision = pathname.match(/^\/api\/v1\/admin\/voucher-reserves\/([^/]+)\/decision$/);
+  if (voucherReserveDecision) return handleDecideAdminVoucherReserve(request, env, authorization, decodeURIComponent(voucherReserveDecision[1]), requestId);
+  const voucherReserveIssue = pathname.match(/^\/api\/v1\/admin\/voucher-reserves\/([^/]+)\/issue$/);
+  if (voucherReserveIssue) return handleIssueAdminVoucherBatch(request, env, authorization, decodeURIComponent(voucherReserveIssue[1]), requestId);
+  const voucherRedemptionReversal = pathname.match(/^\/api\/v1\/admin\/voucher-redemptions\/([^/]+)\/reversal$/);
+  if (voucherRedemptionReversal) return handleReverseAdminVoucherRedemption(request, env, authorization, decodeURIComponent(voucherRedemptionReversal[1]), requestId);
+  const voucherVoidHoldReconciliation = pathname.match(/^\/api\/v1\/admin\/voucher-void-holds\/([^/]+)\/reconcile$/);
+  if (voucherVoidHoldReconciliation) return handleReconcileAdminVoucherVoidHold(request, env, authorization, decodeURIComponent(voucherVoidHoldReconciliation[1]), requestId);
+  const voucherStatus = pathname.match(/^\/api\/v1\/admin\/vouchers\/([^/]+)\/status$/);
+  if (voucherStatus) return handleChangeAdminVoucherStatus(request, env, authorization, decodeURIComponent(voucherStatus[1]), requestId);
+  const voucherDetail = pathname.match(/^\/api\/v1\/admin\/vouchers\/([^/]+)$/);
+  if (voucherDetail) return handleAdminVoucherDetail(request, env, authorization, decodeURIComponent(voucherDetail[1]), requestId);
   return null;
 }
