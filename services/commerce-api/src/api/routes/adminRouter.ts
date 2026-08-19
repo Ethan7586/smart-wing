@@ -17,6 +17,7 @@ import {
   handleQualificationSimulation,
 } from '../qualificationGovernanceRoutes';
 import type { AuthorizationContext, WorkerEnv } from '../types';
+import { handleRecordClientError } from '../clientErrorRoutes';
 
 const API_PREFIX = '/api/v1';
 
@@ -31,6 +32,8 @@ export async function routeAdminRequest(request: Request, env: WorkerEnv, author
       return handleAdminOrderExport(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/after-sales/export`:
       return handleAdminAfterSaleExport(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/client-errors`:
+      return handleRecordClientError(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/orders`:
       return handleAdminOrderPage(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/after-sales`:

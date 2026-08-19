@@ -1,4 +1,5 @@
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
+import { reportClientError } from '../services/errorReporting';
 
 interface AppErrorBoundaryProps {
   children: ReactNode;
@@ -7,6 +8,8 @@ interface AppErrorBoundaryProps {
 interface AppErrorBoundaryState {
   error: Error | null;
   componentStack: string;
+  faultCode: string | null;
+  reporting: boolean;
 }
 
 const LOGIN_URL = 'https://hbbtzn.com/login/?target=admin';
@@ -17,16 +20,18 @@ const LOGIN_URL = 'https://hbbtzn.com/login/?target=admin';
  * whether the session, the network or the render failed.
  */
 export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
-  state: AppErrorBoundaryState = { error: null, componentStack: '' };
+  state: AppErrorBoundaryState = { error: null, componentStack: '', faultCode: null, reporting: true };
 
   static getDerivedStateFromError(error: Error): Partial<AppErrorBoundaryState> {
     return { error };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    this.setState({ componentStack: info.componentStack ?? '' });
+    const componentStack = info.componentStack ?? '';
+    this.setState({ componentStack });
     // Keep the raw error in the console so a support session can read the stack.
-    console.error('[admin-web] 渲染失败', error, info.componentStack);
+    console.error('[admin-web] 渲染失败', error, componentStack);
+    void reportClientError(error, componentStack).then((faultCode) => this.setState({ faultCode, reporting: false }));
   }
 
   private handleReload = (): void => {
@@ -38,7 +43,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
   };
 
   render(): ReactNode {
-    const { error, componentStack } = this.state;
+    const { error, componentStack, faultCode, reporting } = this.state;
     if (!error) return this.props.children;
 
     const detail = [error.stack ?? `${error.name}: ${error.message}`, componentStack].filter(Boolean).join('\n\n');
@@ -49,7 +54,18 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.18em] text-amber-300">Admin Console Error</p>
             <h1 className="mt-3 text-2xl font-bold text-white">运营后台加载失败</h1>
-            <p className="mt-3 text-sm leading-6 text-slate-300">页面在渲染过程中出错，已停止加载以避免显示不完整的经营数据。你的登录状态没有失效，可以先刷新重试。</p>
+            <p className="mt-3 text-sm leading-6 text-slate-300">这个页面暂时打不开，你的登录状态没有失效，先刷新试试。系统会尝试记录这次故障；若显示故障编号，请在报障时提供它。</p>
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+              <span className="text-slate-400">故障编号</span>
+              {reporting ? (
+                <span className="text-slate-500">记录中…</span>
+              ) : faultCode ? (
+                <code className="rounded-md border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 font-mono text-base font-semibold tracking-wider text-amber-200">{faultCode}</code>
+              ) : (
+                <span className="text-slate-500">本次未能上报，请截图下方技术细节</span>
+              )}
+            </div>
+            {faultCode && <p className="mt-2 text-xs text-slate-500">报障时报这个编号即可，不需要截图。</p>}
           </div>
 
           <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
