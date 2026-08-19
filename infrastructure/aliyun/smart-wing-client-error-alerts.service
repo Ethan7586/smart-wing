@@ -1,0 +1,15 @@
+[Unit]
+Description=Smart Wing client error alert sender
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/smart-wing
+EnvironmentFile=/opt/smart-wing/.env.client-error-alerts
+ExecStart=/usr/bin/node /opt/smart-wing/scripts/send-client-error-alerts.mjs
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
