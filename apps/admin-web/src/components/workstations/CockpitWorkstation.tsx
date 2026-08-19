@@ -744,7 +744,7 @@ function shortDate(value: string): string {
 
 /** Test-login mode intentionally uses fixture orders only to demonstrate the layout.
  * Production always consumes the server-side aggregate supplied in LiveOperationsSummary. */
-function deriveDemoSalesOverview(orders: Order[], products: Product[]): SalesOverview {
+export function deriveDemoSalesOverview(orders: Order[], products: Product[]): SalesOverview {
   const paidOrders = orders.filter((order) => !['待付款', '库存预占', '已退款'].includes(order.status));
   const orderDay = orderDateKey;
   const latestDay = paidOrders.map(orderDay).filter(Boolean).sort().at(-1) || new Date().toISOString().slice(0, 10);
@@ -755,7 +755,7 @@ function deriveDemoSalesOverview(orders: Order[], products: Product[]): SalesOve
     date.setUTCDate(reference.getUTCDate() - (6 - index));
     const key = date.toISOString().slice(0, 10);
     const matching = paidOrders.filter((order) => orderDay(order) === key);
-    return { date: key, salesCents: Math.round(matching.reduce((sum, order) => sum + order.totalAmount, 0) * 100), orderCount: matching.length };
+    return { date: key, salesCents: matching.reduce((sum, order) => sum + order.totalCents, 0), orderCount: matching.length };
   });
   const productCatalogue = new Map(products.map((product) => [product.id, product]));
   const productSales = new Map<string, { productId: string; name: string; salesCents: number; quantity: number; orderCount: number }>();
@@ -764,7 +764,7 @@ function deriveDemoSalesOverview(orders: Order[], products: Product[]): SalesOve
     const product = productCatalogue.get(order.productId);
     const key = order.productId || order.productTitle;
     const existing = productSales.get(key) ?? { productId: key, name: order.productTitle || '未命名商品', salesCents: 0, quantity: 0, orderCount: 0 };
-    const salesCents = Math.round(order.totalAmount * 100);
+    const salesCents = order.totalCents;
     existing.salesCents += salesCents;
     existing.quantity += order.quantity;
     existing.orderCount += 1;
@@ -779,7 +779,7 @@ function deriveDemoSalesOverview(orders: Order[], products: Product[]): SalesOve
   const topProducts = [...productSales.values()].sort((a, b) => b.salesCents - a.salesCents || b.quantity - a.quantity || a.name.localeCompare(b.name)).slice(0, 5);
   const activeProducts = products.filter((product) => product.status === '已发布');
   const soldActiveProductCount = activeProducts.filter((product) => productSales.has(product.id)).length;
-  const cumulativeSalesCents = Math.round(paidOrders.reduce((sum, order) => sum + order.totalAmount, 0) * 100);
+  const cumulativeSalesCents = paidOrders.reduce((sum, order) => sum + order.totalCents, 0);
 
   return {
     asOf: latestDay,
@@ -788,7 +788,7 @@ function deriveDemoSalesOverview(orders: Order[], products: Product[]): SalesOve
     averageOrderValueCents: paidOrders.length > 0 ? Math.round(cumulativeSalesCents / paidOrders.length) : 0,
     periodSalesCents: cumulativeSalesCents,
     periodPaidOrderCount: paidOrders.length,
-    refundedCents: Math.round(orders.filter((order) => order.status === '已退款').reduce((sum, order) => sum + order.totalAmount, 0) * 100),
+    refundedCents: orders.filter((order) => order.status === '已退款').reduce((sum, order) => sum + order.totalCents, 0),
     activeProductCount: activeProducts.length,
     soldProductCount: soldActiveProductCount,
     unsoldActiveProductCount: Math.max(activeProducts.length - soldActiveProductCount, 0),

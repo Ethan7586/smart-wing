@@ -23,6 +23,10 @@ function number(value: unknown, fallback = 0): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
+function cents(value: unknown): number {
+  return typeof value === 'number' && Number.isSafeInteger(value) ? value : 0;
+}
+
 function toAdminProduct(item: CatalogItem): Product {
   const id = text(item.id, text(item.skuId, crypto.randomUUID()));
   const stock = number(item.availableStock);
@@ -171,7 +175,10 @@ function toAdminOrder(raw: ApiOrder): Order {
   const items = Array.isArray(raw.items) ? raw.items : [];
   const first = items[0] as ApiOrderItem | undefined;
   const status = orderStatus(raw.status);
-  const amount = number(raw.payableCents) / 100;
+  const payableCents = cents(raw.payableCents);
+  const welfarePaidCents = cents(raw.welfarePaidCents);
+  const mealPaidCents = cents(raw.mealPaidCents);
+  const unitPriceCents = cents(first?.priceCents);
   const orderId = text(raw.id, text(raw.orderNo, crypto.randomUUID()));
   const createdAtIso = isoDateTime(raw.createdAt);
   const createdAt = dateText(raw.createdAt);
@@ -188,10 +195,14 @@ function toAdminOrder(raw: ApiOrder): Order {
     productImage: text(first?.productImage),
     specName: '订单快照',
     quantity: number(first?.quantity, 1),
-    unitPrice: number(first?.priceCents) / 100,
-    totalAmount: amount,
-    corporateBudgetPaid: number(raw.welfarePaidCents) / 100,
-    employeeSelfPaid: number(raw.mealPaidCents) / 100,
+    unitPriceCents,
+    totalCents: payableCents,
+    corporateBudgetPaidCents: welfarePaidCents,
+    employeeSelfPaidCents: mealPaidCents,
+    unitPrice: unitPriceCents / 100,
+    totalAmount: payableCents / 100,
+    corporateBudgetPaid: welfarePaidCents / 100,
+    employeeSelfPaid: mealPaidCents / 100,
     status,
     isProblematic: status === '退款申请中' || status === '异常挂起',
     problemType: status === '退款申请中' ? 'REFUND_DISPUTE' : undefined,
@@ -205,7 +216,7 @@ function toAdminOrder(raw: ApiOrder): Order {
       { id: `${orderId}:status`, nodeName: '当前状态', timestamp: dateText(raw.updatedAt), status: status === '异常挂起' ? 'warning' : 'success', operator: '系统', remark: `当前状态：${status}` },
     ],
     retryLogs: [],
-    benefitsCard: { welfarePlanName: '企业福利账户', quotaUsed: number(raw.welfarePaidCents) / 100, remainingQuota: 0 },
+    benefitsCard: { welfarePlanName: '企业福利账户', quotaUsed: welfarePaidCents / 100, remainingQuota: 0 },
     supplierId: 'not-exposed',
     supplierName: '供应商信息按订单权限展示',
   };

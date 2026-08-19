@@ -25,6 +25,12 @@ describe('order management presentation helpers', () => {
 
   it('does not present a paid stock-conflict order as a cancelled refund', () => {
     const page = legacyOrderPage(INITIAL_ORDERS, { ...DEFAULT_ORDER_FILTERS, limit: 20 });
-    expect(page.items.find((order) => order.orderNo === 'ORD-20260808-001')).toMatchObject({ status: 'refund_pending', paidCents: 199000 });
+    expect(page.items.find((order) => order.orderNo === 'ORD-20260808-001')).toMatchObject({
+      status: 'refund_pending',
+      payableCents: 199000,
+      paidCents: 199000,
+      welfarePaidCents: 199000,
+      mealPaidCents: 0,
+    });
   });
 });

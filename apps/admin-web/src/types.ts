@@ -123,6 +123,12 @@ export interface Order {
   productImage: string;
   specName: string;
   quantity: number;
+  /** Canonical money values. Keep calculations and API payloads in integer cents. */
+  unitPriceCents: number;
+  totalCents: number;
+  corporateBudgetPaidCents: number;
+  employeeSelfPaidCents: number;
+  /** Legacy display conveniences. Do not use these floating-point values for calculations. */
   unitPrice: number;
   totalAmount: number;
   corporateBudgetPaid: number;

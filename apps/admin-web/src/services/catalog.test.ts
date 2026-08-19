@@ -13,7 +13,17 @@ describe('live order time mapping', () => {
             authenticated: true,
             authorization: { target: 'admin', employeeNo: 'REG-TEST', roles: [] },
             products: [],
-            orders: [{ id: 'order-1', createdAt: '2026-08-08T11:20:00.000Z', updatedAt: '2026-08-08T12:20:00.000Z', items: [] }],
+            orders: [
+              {
+                id: 'order-1',
+                createdAt: '2026-08-08T11:20:00.000Z',
+                updatedAt: '2026-08-08T12:20:00.000Z',
+                payableCents: 12345,
+                welfarePaidCents: 12000,
+                mealPaidCents: 345,
+                items: [{ priceCents: 12345 }],
+              },
+            ],
             summary: {},
           }),
           { status: 200 }
@@ -23,7 +33,12 @@ describe('live order time mapping', () => {
 
     const overview = await loadAdminOverview();
 
-    expect(overview.orders[0]).toMatchObject({ createdAtIso: '2026-08-08T11:20:00.000Z' });
+    expect(overview.orders[0]).toMatchObject({
+      createdAtIso: '2026-08-08T11:20:00.000Z',
+      totalCents: 12345,
+      corporateBudgetPaidCents: 12000,
+      employeeSelfPaidCents: 345,
+    });
     expect(overview.orders[0].createdAt).toMatch(/^2026\/8\/8/);
   });
 

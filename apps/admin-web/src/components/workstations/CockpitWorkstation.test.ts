@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { INITIAL_ORDERS } from '../../data/mockData';
-import { buildOrderVolumeSeries } from './CockpitWorkstation';
+import { buildOrderVolumeSeries, deriveDemoSalesOverview } from './CockpitWorkstation';
 
 describe('order volume series', () => {
   it('uses the machine timestamp instead of parsing the Chinese display text', () => {
@@ -15,5 +15,11 @@ describe('order volume series', () => {
     const series = buildOrderVolumeSeries(orders);
 
     expect(series.at(-1)).toMatchObject({ key: '2026-08-08', value: 1 });
+  });
+
+  it('uses canonical cents instead of recalculating from display amounts', () => {
+    const overview = deriveDemoSalesOverview([{ ...INITIAL_ORDERS[0], totalAmount: 0.01, totalCents: 199000 }], []);
+
+    expect(overview).toMatchObject({ cumulativeSalesCents: 199000, periodSalesCents: 199000 });
   });
 });
