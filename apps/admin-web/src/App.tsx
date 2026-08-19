@@ -25,6 +25,15 @@ const CommandPaletteModal = React.lazy(() => import('./components/CommandPalette
 
 const WorkstationLoading = () => <div className="min-h-[320px] flex items-center justify-center text-sm text-slate-400">正在加载工作台…</div>;
 
+function setBootstrapMessage(title: string, detail: string) {
+  document.getElementById('app-loading-title')?.replaceChildren(title);
+  document.getElementById('app-loading-detail')?.replaceChildren(detail);
+}
+
+function dismissBootstrapMessage() {
+  document.getElementById('app-loading')?.remove();
+}
+
 // Mock Datasets
 import { INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIERS, INITIAL_CASES, INITIAL_FINANCE_DISCREPANCIES, INITIAL_SYSTEM_CONFIG } from './data/mockData';
 
@@ -186,6 +195,10 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    if (!authChecking && currentUser) dismissBootstrapMessage();
+  }, [authChecking, currentUser]);
+
+  useEffect(() => {
     let active = true;
     void loadAdminOverview()
       .then((payload) => {
@@ -202,10 +215,14 @@ export function App() {
           setAuthChecking(false);
           return;
         }
+        setBootstrapMessage('正在前往统一登录页', '当前后台会话尚未建立，正在跳转到安全登录页。');
         window.location.replace('https://hbbtzn.com/login/?target=admin');
       })
       .catch(() => {
-        if (active) window.location.replace('https://hbbtzn.com/login/?target=admin');
+        if (active) {
+          setBootstrapMessage('正在前往统一登录页', '当前后台会话尚未建立，正在跳转到安全登录页。');
+          window.location.replace('https://hbbtzn.com/login/?target=admin');
+        }
       });
     return () => {
       active = false;

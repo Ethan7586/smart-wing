@@ -21,7 +21,7 @@
     <style>
       html, body, #root { min-width: 320px; min-height: 100%; }
       body { margin: 0; background: #f5f7fa; color: #172033; font-family: Inter, "PingFang SC", "Microsoft YaHei", Arial, sans-serif; }
-      #app-loading { display: grid; min-height: 100vh; place-items: center; padding: 24px; box-sizing: border-box; }
+      #app-loading { position: fixed; inset: 0; z-index: 9999; display: grid; min-height: 100vh; place-items: center; padding: 24px; box-sizing: border-box; }
       #app-loading > div { max-width: 360px; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; padding: 28px; box-shadow: 0 1px 4px rgba(7, 24, 47, .04); }
       #app-loading strong { display: block; font-size: 16px; }
       #app-loading p { margin: 10px 0 0; color: #64748b; font-size: 14px; line-height: 1.6; }
@@ -29,14 +29,13 @@
     </style>
   </head>
   <body>
-    <div id="root">
-      <div id="app-loading" role="status">
-        <div>
-          <strong>正在加载运营后台</strong>
-          <p>如持续停留在此页面，请刷新浏览器后重试，或前往 <a href="https://hbbtzn.com/login/?target=admin">统一登录页</a>。</p>
-        </div>
+    <div id="app-loading" role="status">
+      <div>
+        <strong id="app-loading-title">正在验证运营后台身份</strong>
+        <p id="app-loading-detail">正在连接安全会话。如持续停留在此页面，请前往 <a href="https://hbbtzn.com/login/?target=admin">统一登录页</a>。</p>
       </div>
     </div>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
