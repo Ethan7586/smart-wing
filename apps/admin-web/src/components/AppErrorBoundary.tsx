@@ -21,16 +21,54 @@ const LOGIN_URL = 'https://hbbtzn.com/login/?target=admin';
  */
 export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
   state: AppErrorBoundaryState = { error: null, componentStack: '', faultCode: null, reporting: true };
+  private failureCaptured = false;
 
   static getDerivedStateFromError(error: Error): Partial<AppErrorBoundaryState> {
     return { error };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    const componentStack = info.componentStack ?? '';
-    this.setState({ componentStack });
+    this.captureFailure(error, info.componentStack ?? '', '渲染');
+  }
+
+  componentDidMount(): void {
+    window.addEventListener('error', this.handleWindowError);
+    window.addEventListener('unhandledrejection', this.handleUnhandledRejection);
+  }
+
+  componentWillUnmount(): void {
+    window.removeEventListener('error', this.handleWindowError);
+    window.removeEventListener('unhandledrejection', this.handleUnhandledRejection);
+  }
+
+  private handleWindowError = (event: ErrorEvent): void => {
+    // Resource-loading errors do not carry an Error object. They should remain
+    // visible in DevTools, but must not replace a usable admin page.
+    if (event.error == null) return;
+    this.reportBackgroundFailure(toError(event.error, '运行时异常'), '运行时');
+  };
+
+  private handleUnhandledRejection = (event: PromiseRejectionEvent): void => {
+    if (event.reason == null) return;
+    this.reportBackgroundFailure(toError(event.reason, '异步操作异常'), '异步');
+  };
+
+  /**
+   * An unhandled background failure is serious enough to report, but it is not
+   * proof that the current view is unusable. Keeping the rendered page visible
+   * prevents a notification or polling failure from becoming a full-page outage.
+   */
+  private reportBackgroundFailure(error: Error, source: '运行时' | '异步'): void {
+    console.error(`[admin-web] ${source}失败`, error);
+    void reportClientError(error, '');
+  }
+
+  private captureFailure(error: Error, componentStack: string, source: '渲染' | '运行时' | '异步'): void {
+    if (this.failureCaptured) return;
+    this.failureCaptured = true;
+    this.setState({ error, componentStack, faultCode: null, reporting: true });
     // Keep the raw error in the console so a support session can read the stack.
-    console.error('[admin-web] 渲染失败', error, componentStack);
+    console.error(`[admin-web] ${source}失败`, error, componentStack);
     void reportClientError(error, componentStack).then((faultCode) => this.setState({ faultCode, reporting: false }));
   }
 
@@ -100,4 +138,13 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
       </div>
     );
   }
+}
+
+/** Converts a value rejected by a Promise or thrown by third-party code into
+ * the Error shape used by the fault ledger, without attempting to parse a
+ * display string back into a business value. */
+export function toError(value: unknown, fallback: string): Error {
+  if (value instanceof Error) return value;
+  if (typeof value === 'string' && value.trim()) return new Error(value);
+  return new Error(fallback);
 }

@@ -45,6 +45,14 @@ describe('client crash reporting', () => {
     expect(spy).toHaveBeenCalledTimes(2);
   });
 
+  it('limits distinct reports in one tab during a crash storm', async () => {
+    const spy = stubFetch(async (): Promise<Response> => new Response(JSON.stringify({ faultCode: 'SW-000003' }), { status: 201 }));
+    for (let index = 0; index < 6; index += 1) {
+      await reportClientError(new Error(`distinct-${index}`), '');
+    }
+    expect(spy).toHaveBeenCalledTimes(5);
+  });
+
   it('never throws when the reporting endpoint itself fails', async () => {
     stubFetch(() => Promise.reject(new Error('network down')));
     await expect(reportClientError(new TypeError('bad'), '')).resolves.toBeNull();

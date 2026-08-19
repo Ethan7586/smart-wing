@@ -1,15 +1,24 @@
 let lastReportedKey = '';
+let reportTimes: number[] = [];
+
+const REPORT_WINDOW_MS = 60_000;
+const MAX_REPORTS_PER_WINDOW = 5;
 
 /** Keeps a render loop from posting the same crash on every retry. */
 function shouldReport(message: string, route: string): boolean {
   const key = `${route}|${message}`;
   if (key === lastReportedKey) return false;
+  const now = Date.now();
+  reportTimes = reportTimes.filter((reportedAt) => now - reportedAt < REPORT_WINDOW_MS);
+  if (reportTimes.length >= MAX_REPORTS_PER_WINDOW) return false;
   lastReportedKey = key;
+  reportTimes.push(now);
   return true;
 }
 
 export function resetErrorReportingForTests(): void {
   lastReportedKey = '';
+  reportTimes = [];
 }
 
 /**
