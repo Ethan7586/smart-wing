@@ -132,6 +132,8 @@ export interface Order {
   problemType?: 'STOCK_CONFLICT' | 'SLA_TIMEOUT' | 'REFUND_DISPUTE' | 'PRICE_MISMATCH';
   problemSummary?: string;
   slaDeadline: string;
+  /** Machine-readable timestamp. Never derive this value from the display-only createdAt text. */
+  createdAtIso?: string;
   createdAt: string;
   shippingAddress: string;
   timeline: TimelineEvent[];
