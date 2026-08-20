@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { DemoDataBanner } from '../DemoDataBanner';
+import { refuseUnimplementedWrite } from '../../services/writeAvailability';
 import { FileText, DollarSign, AlertTriangle, CheckCircle2, Download, ArrowRight, ShieldCheck } from 'lucide-react';
 import { FinanceDiscrepancyRow } from '../../types';
 
@@ -25,24 +27,12 @@ export const FinancialReconciliationWorkstation: React.FC<FinancialReconciliatio
 
   // Handle Diff Reconcile Guardrail
   const handleReconcileRow = (row: FinanceDiscrepancyRow) => {
-    onOpenGuardrail(`财务平账与调账单生成: 订单号 ${row.orderId}`, '财务对账差异平账', row.entityName, row.id, Math.abs(row.diffAmount), (reason, evidence) => {
-      const updated = discrepancies.map((d) => {
-        if (d.id === row.id) {
-          return {
-            ...d,
-            status: 'RESOLVED' as const,
-            note: `平账成功！调账凭证已存。操作原因: ${reason}. 凭证: ${evidence}`,
-          };
-        }
-        return d;
-      });
-      onUpdateDiscrepancies(updated);
-      alert(`调账凭证已自动生成，差额 ¥${Math.abs(row.diffAmount)} 抹平！`);
-    });
+    refuseUnimplementedWrite('财务差异平账与调账凭证生成');
   };
 
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+      <DemoDataBanner scope="财务三方勾稽与对账" />
       {/* Header Banner */}
       <div className="bg-slate-900 text-white p-5 rounded-[14px] shadow-lg flex items-center justify-between border border-slate-800">
         <div>
@@ -55,7 +45,7 @@ export const FinancialReconciliationWorkstation: React.FC<FinancialReconciliatio
         </div>
 
         <button
-          onClick={() => alert('正在导出本期三方勾稽平衡表 Excel...')}
+          onClick={() => refuseUnimplementedWrite('三方勾稽平衡表导出')}
           className="px-4 py-2.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100 font-semibold text-xs shadow-md flex items-center gap-2 transition-all cursor-pointer"
         >
           <Download className="w-4 h-4 text-purple-600" />

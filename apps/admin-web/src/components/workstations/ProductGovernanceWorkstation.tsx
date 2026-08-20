@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { refuseDemoDataWrite, refuseUnimplementedWrite } from '../../services/writeAvailability';
 import { Sparkles, CheckCircle2, AlertCircle, X, History, RotateCcw, Check, Zap } from 'lucide-react';
 import { Product, ProductStatus } from '../../types';
 
@@ -91,89 +92,12 @@ export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({
 
   // Batch Accept AI Classification & Advance to "待发布审核"
   const handleBatchAcceptAiCategory = () => {
-    if (selectedProductIds.length === 0) return;
-
-    onOpenGuardrail(`批量采纳 AI 品类建议并推进`, '分类治理与状态推进', `已选 ${selectedProductIds.length} 项商品`, 'BATCH-CLASSIFY', 0, (reason, evidence) => {
-      const updated = products.map((p) => {
-        if (selectedProductIds.includes(p.id)) {
-          const sug = p.aiSuggestion || {
-            categoryL1: '办公用品',
-            categoryL2: '办公设备',
-            categoryL3: '通用设备',
-            confidence: 85,
-          };
-          return {
-            ...p,
-            categoryL1: sug.categoryL1,
-            categoryL2: sug.categoryL2,
-            categoryL3: sug.categoryL3,
-            status: '待发布审核' as ProductStatus,
-            checklist: { ...p.checklist, category: true },
-            missingFields: p.missingFields.filter((f) => !f.startsWith('taxonomy')),
-            versions: [
-              ...p.versions,
-              {
-                version: `v1.${p.versions.length + 1}.0`,
-                updatedAt: new Date().toLocaleString('zh-CN'),
-                operator: '张立 (COO)',
-                reason: `批量采纳AI类目 [${sug.categoryL1} > ${sug.categoryL2} > ${sug.categoryL3}]. 业务原因: ${reason}`,
-                fieldChanges: [
-                  { field: 'categoryL1', fieldName: '一级类目', oldValue: '未定义', newValue: sug.categoryL1 },
-                  { field: 'categoryL2', fieldName: '二级类目', oldValue: '未定义', newValue: sug.categoryL2 },
-                  { field: 'categoryL3', fieldName: '三级类目', oldValue: '未定义', newValue: sug.categoryL3 },
-                  { field: 'status', fieldName: '商品状态', oldValue: p.status, newValue: '待发布审核' },
-                ],
-              },
-            ],
-          };
-        }
-        return p;
-      });
-      onUpdateProducts(updated);
-      setSelectedProductIds([]);
-      alert(`已成功将 ${selectedProductIds.length} 个商品推进行至【待发布审核】阶段！`);
-    });
+    refuseUnimplementedWrite('批量采纳 AI 分类建议');
   };
 
   // Single Product Accept Classification
   const handleAcceptSingleClassification = (prd: Product) => {
-    const sug = prd.aiSuggestion || {
-      categoryL1: '办公用品',
-      categoryL2: '办公家具',
-      categoryL3: '人体工学椅',
-    };
-
-    onOpenGuardrail(`采纳分类建议并升级状态: ${prd.title.slice(0, 15)}...`, '品类分类确认', prd.spuCode, prd.id, 0, (reason) => {
-      const updated = products.map((p) => {
-        if (p.id === prd.id) {
-          return {
-            ...p,
-            categoryL1: sug.categoryL1,
-            categoryL2: sug.categoryL2,
-            categoryL3: sug.categoryL3,
-            status: '待发布审核' as ProductStatus,
-            checklist: { ...p.checklist, category: true },
-            missingFields: p.missingFields.filter((f) => !f.startsWith('taxonomy')),
-            versions: [
-              ...p.versions,
-              {
-                version: `v1.${p.versions.length + 1}.0`,
-                updatedAt: new Date().toLocaleString('zh-CN'),
-                operator: '张立 (COO)',
-                reason: `采纳AI类目推荐: ${sug.categoryL1} > ${sug.categoryL2} > ${sug.categoryL3}. ${reason}`,
-                fieldChanges: [
-                  { field: 'categoryL1', fieldName: '一级类目', oldValue: '缺失', newValue: sug.categoryL1 },
-                  { field: 'status', fieldName: '商品状态', oldValue: p.status, newValue: '待发布审核' },
-                ],
-              },
-            ],
-          };
-        }
-        return p;
-      });
-      onUpdateProducts(updated);
-      alert('已完成分类打标，商品自动升级至【待发布审核】状态！');
-    });
+    refuseUnimplementedWrite('单品分类打标');
   };
 
   // Publish Product
@@ -186,13 +110,15 @@ export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({
     }
 
     onOpenGuardrail(`正式发布商品全网上线: ${prd.title.slice(0, 15)}...`, '商品正式发布上线', prd.title, prd.id, prd.mallPrice, async (reason) => {
-      if (isLiveCatalog && onSetProductStatus) {
-        try {
-          await onSetProductStatus(prd.id, 'active');
-        } catch {
-          window.alert('商品发布未成功，请刷新后重试。');
-          return;
-        }
+      if (!isLiveCatalog || !onSetProductStatus) {
+        refuseDemoDataWrite('商品正式发布');
+        return;
+      }
+      try {
+        await onSetProductStatus(prd.id, 'active');
+      } catch {
+        window.alert('商品发布未成功，请刷新后重试。');
+        return;
       }
       const updated = products.map((p) => {
         if (p.id === prd.id) {
@@ -214,42 +140,13 @@ export const ProductGovernanceWorkstation: React.FC<ProductGovernanceProps> = ({
         return p;
       });
       onUpdateProducts(updated);
-      alert(isLiveCatalog ? '商品已通过服务端发布并写入审计记录。' : '商品发布成功！已对指定企业可见。');
+      window.alert('商品已通过服务端发布并写入审计记录。');
     });
   };
 
   // Rollback Version
   const handleRollbackVersion = (prd: Product) => {
-    if (prd.versions.length <= 1) {
-      alert('无上一个历史版本可供回滚！');
-      return;
-    }
-
-    onOpenGuardrail(`回滚商品版本至上一版本`, '版本一键回滚', prd.title, prd.id, 0, (reason) => {
-      const prevVer = prd.versions[prd.versions.length - 2];
-      const updated = products.map((p) => {
-        if (p.id === prd.id) {
-          return {
-            ...p,
-            status: '待分类审核' as ProductStatus,
-            checklist: { ...p.checklist, category: false },
-            versions: [
-              ...p.versions,
-              {
-                version: `v1.0.0-RESTORED`,
-                updatedAt: new Date().toLocaleString('zh-CN'),
-                operator: '张立 (COO)',
-                reason: `一键回滚至版本 ${prevVer.version}。原因: ${reason}`,
-                fieldChanges: [{ field: 'status', fieldName: '商品状态', oldValue: p.status, newValue: '待分类审核' }],
-              },
-            ],
-          };
-        }
-        return p;
-      });
-      onUpdateProducts(updated);
-      alert(`已成功回滚商品至 ${prevVer.version} 状态！`);
-    });
+    refuseUnimplementedWrite('商品版本回滚');
   };
 
   return (

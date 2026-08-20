@@ -19,7 +19,7 @@ export default defineConfig(() => {
        */
       proxy: {
         '/api': {
-          target: process.env.COMMERCE_API_ORIGIN ?? 'http://127.0.0.1:3000',
+          target: process.env.COMMERCE_API_ORIGIN ?? 'http://localhost:3000',
           changeOrigin: false,
         },
       },

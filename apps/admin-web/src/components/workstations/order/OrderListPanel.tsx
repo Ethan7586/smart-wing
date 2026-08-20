@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { refuseDemoDataWrite } from '../../../services/writeAvailability';
 import type { Order } from '../../../types';
 import { DEFAULT_ORDER_FILTERS, ORDER_STATUS_OPTIONS, exportOrderPage, legacyOrderPage, loadOrderPage, type OrderFilters, type OrderListItem, type Page } from '../../../services/orders';
 import { OrderDetailDrawer } from './OrderDetailDrawer';
@@ -46,7 +47,7 @@ export function OrderListPanel({ isLiveData, legacyOrders, canShip, onRequestShi
     setFilters(DEFAULT_ORDER_FILTERS);
   };
   const exportRows = async () => {
-    if (!isLiveData) return window.alert('演示数据不支持导出；生产环境会按当前授权范围导出。');
+    if (!isLiveData) return refuseDemoDataWrite('订单导出');
     try {
       await exportOrderPage('orders', filters);
     } catch {

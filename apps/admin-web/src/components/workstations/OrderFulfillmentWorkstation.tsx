@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { refuseUnimplementedWrite } from '../../services/writeAvailability';
 import { AlertTriangle, RotateCw, Clock, User, ShieldCheck, Building2, X, CreditCard, DollarSign, Ban, RefreshCw } from 'lucide-react';
 import { Order } from '../../types';
 import { orderStatusLabel } from '@smart-wing/api-contract';
@@ -39,92 +40,22 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
 
   // Action 1: Refund Guardrail Modal
   const handleTriggerRefund = (ord: Order) => {
-    onOpenGuardrail(`退款确认处理: 订单号 ${ord.orderNo}`, '订单原路退款', `${ord.enterpriseName} - ${ord.employeeName}`, ord.id, ord.totalAmount, (reason, evidence) => {
-      const updated = orders.map((o) => {
-        if (o.id === ord.id) {
-          return {
-            ...o,
-            status: 'refunded' as const,
-            isProblematic: false,
-            timeline: [
-              ...o.timeline,
-              {
-                id: `TL-RF-${Date.now()}`,
-                nodeName: '退款',
-                timestamp: new Date().toLocaleString('zh-CN'),
-                status: 'success' as const,
-                operator: '张立 (COO)',
-                remark: `退款成功！资金解冻并返还企业与员工。原因: ${reason}. 凭证: ${evidence}`,
-              },
-            ],
-          };
-        }
-        return o;
-      });
-      onUpdateOrders(updated);
-      alert(`退款执行成功！¥${ord.totalAmount} 已原路解冻划拨。`);
-    });
+    refuseUnimplementedWrite('订单退款');
   };
 
   // Action 2: Compensation
   const handleTriggerCompensation = (ord: Order) => {
-    onOpenGuardrail(`为超时订单开具赔付补发优惠券`, 'SLA发货超时赔付', ord.employeeName, ord.id, 50, (reason) => {
-      alert(`已成功为员工 ${ord.employeeName} 补发 50 元关怀优惠券，写入补偿单！`);
-    });
+    refuseUnimplementedWrite('超时赔付补发优惠券');
   };
 
   // Action 3: Force Close Order
   const handleForceClose = (ord: Order) => {
-    onOpenGuardrail(`强制关单: 订单号 ${ord.orderNo}`, '高风险强制关单', ord.enterpriseName, ord.id, ord.totalAmount, (reason) => {
-      const updated = orders.map((o) => {
-        if (o.id === ord.id) {
-          return {
-            ...o,
-            status: 'refunded' as const,
-            isProblematic: false,
-            timeline: [
-              ...o.timeline,
-              {
-                id: `TL-[#FC]-${Date.now()}`,
-                nodeName: '强制关单',
-                timestamp: new Date().toLocaleString('zh-CN'),
-                status: 'error' as const,
-                operator: '张立 (COO)',
-                remark: `超卖异常拦截，强制关单。理由: ${reason}`,
-              },
-            ],
-          };
-        }
-        return o;
-      });
-      onUpdateOrders(updated);
-      alert('已强制关闭该订单！');
-    });
+    refuseUnimplementedWrite('强制关闭订单');
   };
 
   // Action 4: Manual Takeover Supplier Notification Retry
   const handleManualTakeoverSupplier = (ord: Order) => {
-    const updated = orders.map((o) => {
-      if (o.id === ord.id) {
-        return {
-          ...o,
-          retryLogs: [
-            ...o.retryLogs,
-            {
-              attempt: o.retryLogs.length + 1,
-              timestamp: new Date().toLocaleString('zh-CN'),
-              targetService: `${ord.supplierName} ERP`,
-              status: 'SUCCESS' as const,
-              httpCode: 200,
-              message: '人工接管重试：已手动通过专线补发锁库和派单Token',
-            },
-          ],
-        };
-      }
-      return o;
-    });
-    onUpdateOrders(updated);
-    alert('人工接管重试成功！接口Token已重新灌入。');
+    refuseUnimplementedWrite('供应商派单人工接管重试');
   };
 
   const handleShip = (ord: Order) => {

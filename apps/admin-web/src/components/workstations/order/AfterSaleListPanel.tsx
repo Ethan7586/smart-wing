@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { refuseDemoDataWrite } from '../../../services/writeAvailability';
 import type { Order } from '../../../types';
 import {
   AFTER_SALE_STATUS_OPTIONS,
@@ -55,7 +56,7 @@ export function AfterSaleListPanel({ isLiveData, legacyOrders, canRefund, onRequ
     setFilters(next);
   };
   const exportRows = async () => {
-    if (!isLiveData) return window.alert('演示数据不支持导出；生产环境会按当前授权范围导出。');
+    if (!isLiveData) return refuseDemoDataWrite('售后订单导出');
     try {
       await exportOrderPage('after-sales', filters);
     } catch {

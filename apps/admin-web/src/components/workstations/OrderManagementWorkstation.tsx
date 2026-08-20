@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { refuseDemoDataWrite } from '../../services/writeAvailability';
 import type { Order } from '../../types';
 import { orderStatusLabel } from '@smart-wing/api-contract';
 import { executeAfterSaleRefund, type AfterSaleListItem, type OrderListItem } from '../../services/orders';
@@ -46,7 +47,7 @@ export function OrderManagementWorkstation({ orders, onUpdateOrders, onOpenGuard
   };
   const requestRefund = (afterSale: AfterSaleListItem, refresh: () => void) => {
     onOpenGuardrail(`确认原路退款：${afterSale.afterSaleNo}`, '售后退款', afterSale.orderNo, afterSale.id, afterSale.requestedAmountCents / 100, () => {
-      if (!isLiveOrders) return window.alert('演示数据不支持真实退款。');
+      if (!isLiveOrders) return refuseDemoDataWrite('退款');
       void executeAfterSaleRefund(afterSale.id, afterSale.requestedAmountCents)
         .then(refresh)
         .catch(() => window.alert('退款未成功。请确认已完成二次认证且该售后可退款。'));
