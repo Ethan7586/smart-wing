@@ -12,6 +12,17 @@ export default defineConfig(() => {
       },
     },
     server: {
+      /**
+       * In production Caddy reverse-proxies smart.hbbtzn.com/api/* to the commerce
+       * runtime. The dev server must do the same or every authenticated request
+       * would hit the Vite server itself and fail.
+       */
+      proxy: {
+        '/api': {
+          target: process.env.COMMERCE_API_ORIGIN ?? 'http://127.0.0.1:3000',
+          changeOrigin: false,
+        },
+      },
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',

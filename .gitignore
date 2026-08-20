@@ -23,3 +23,11 @@ docs/requirements/private/
 pre-contract-code-merge-20260820/
 smart-wing-branch-work/
 gitpointer.broken.txt
+
+# Local worker runtime secrets. Never commit.
+.dev.vars
+**/.dev.vars
+
+# Requirement workbook carries vendor credentials in the interface sheet.
+# It stays on disk for reading, never in version control.
+docs/福利商城功能清单.xlsx
