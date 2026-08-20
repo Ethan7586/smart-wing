@@ -1,3 +1,4 @@
+import { isRecord, readOptionalString, readRequiredString } from './inputPrimitives';
 import { PERMISSIONS } from '@smart-wing/api-contract';
 import { authorize } from './auth';
 import { sha256 } from './crypto';
@@ -51,25 +52,6 @@ export function livePayload<T>(data: T, requestId: string) {
   return { dataSource: 'live' as const, data, requestId };
 }
 
-export function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-export function requiredString(value: Record<string, unknown>, key: string, maximum: number): string | null {
-  const candidate = value[key];
-  if (typeof candidate !== 'string') return null;
-  const normalized = candidate.trim();
-  return normalized.length > 0 && normalized.length <= maximum ? normalized : null;
-}
-
-export function optionalString(value: Record<string, unknown>, key: string, maximum: number): string | null | undefined {
-  const candidate = value[key];
-  if (candidate === undefined || candidate === null) return null;
-  if (typeof candidate !== 'string') return undefined;
-  const normalized = candidate.trim();
-  return normalized.length <= maximum ? normalized || null : undefined;
-}
-
 export function idempotencyKey(request: Request, requestId: string): string | Response {
   const key = request.headers.get('idempotency-key');
   return key && key.length <= 120 ? key : apiError(400, 'IDEMPOTENCY_KEY_REQUIRED', '卡券写操作必须提供 Idempotency-Key', requestId);
@@ -117,22 +99,22 @@ export interface VoidHoldReconciliationInput {
 
 export function parseReserveInput(value: unknown): ReserveInput | null {
   if (!isRecord(value) || !Number.isSafeInteger(value.quantity)) return null;
-  const voucherProgramId = requiredString(value, 'voucherProgramId', 120);
-  const reason = requiredString(value, 'reason', 500);
+  const voucherProgramId = readRequiredString(value, 'voucherProgramId', 120);
+  const reason = readRequiredString(value, 'reason', 500);
   const quantity = value.quantity as number;
   return voucherProgramId && reason && quantity >= 1 && quantity <= 1_000_000 ? { voucherProgramId, quantity, reason } : null;
 }
 
 export function parseApprovalInput(value: unknown): ApprovalInput | null {
   if (!isRecord(value) || (value.decision !== 'approved' && value.decision !== 'rejected')) return null;
-  const reason = requiredString(value, 'reason', 500);
-  const evidence = optionalString(value, 'evidence', 2000);
+  const reason = readRequiredString(value, 'reason', 500);
+  const evidence = readOptionalString(value, 'evidence', 2000);
   return reason && evidence !== undefined ? { decision: value.decision, reason, evidence } : null;
 }
 
 export function parseIssueInput(value: unknown): IssueInput | null {
   if (!isRecord(value)) return null;
-  const cardPoolId = optionalString(value, 'cardPoolId', 120);
+  const cardPoolId = readOptionalString(value, 'cardPoolId', 120);
   return cardPoolId === undefined ? null : { cardPoolId };
 }
 
@@ -140,8 +122,8 @@ export function parseStatusInput(value: unknown): StatusInput | null {
   if (!isRecord(value) || !['activate', 'disable', 'extend', 'void'].includes(String(value.operation)) || !Number.isSafeInteger(value.expectedVersion)) return null;
   const operation = value.operation as StatusInput['operation'];
   const extensionDays = operation === 'extend' ? value.extensionDays : 0;
-  const reason = requiredString(value, 'reason', 500);
-  const evidence = optionalString(value, 'evidence', 2000);
+  const reason = readRequiredString(value, 'reason', 500);
+  const evidence = readOptionalString(value, 'evidence', 2000);
   if (!Number.isSafeInteger(extensionDays) || !reason || evidence === undefined || (operation === 'extend' && ((extensionDays as number) < 1 || (extensionDays as number) > 3650))) return null;
   const expectedVersion = value.expectedVersion as number;
   return expectedVersion > 0 ? { operation, extensionDays: extensionDays as number, expectedVersion, reason, evidence } : null;
@@ -149,21 +131,21 @@ export function parseStatusInput(value: unknown): StatusInput | null {
 
 export function parseRedemptionInput(value: unknown): RedemptionInput | null {
   if (!isRecord(value) || !Number.isSafeInteger(value.amountCents)) return null;
-  const voucherCode = requiredString(value, 'voucherCode', 100)?.toUpperCase();
-  const merchantReference = requiredString(value, 'merchantReference', 160);
+  const voucherCode = readRequiredString(value, 'voucherCode', 100)?.toUpperCase();
+  const merchantReference = readRequiredString(value, 'merchantReference', 160);
   const amountCents = value.amountCents as number;
   return voucherCode && merchantReference && amountCents > 0 && amountCents <= 100_000_000 ? { voucherCode, amountCents, merchantReference } : null;
 }
 
 export function parseReversalInput(value: unknown): ReversalInput | null {
   if (!isRecord(value)) return null;
-  const reason = requiredString(value, 'reason', 500);
+  const reason = readRequiredString(value, 'reason', 500);
   return reason ? { reason } : null;
 }
 
 export function parseVoidHoldReconciliationInput(value: unknown): VoidHoldReconciliationInput | null {
   if (!isRecord(value)) return null;
-  const reconciliationReference = requiredString(value, 'reconciliationReference', 160);
-  const reconciliationNote = requiredString(value, 'reconciliationNote', 500);
+  const reconciliationReference = readRequiredString(value, 'reconciliationReference', 160);
+  const reconciliationNote = readRequiredString(value, 'reconciliationNote', 500);
   return reconciliationReference && reconciliationNote ? { reconciliationReference, reconciliationNote } : null;
 }

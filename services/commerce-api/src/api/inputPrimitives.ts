@@ -1,4 +1,18 @@
-/** Shared request-body primitives for the commerce API input parsers. */
+/**
+ * The single set of request-body primitives for the commerce API parsers.
+ *
+ * Two conventions run through all of them:
+ *
+ *  - `null` means the caller did not supply the field.
+ *  - `undefined` means the caller supplied something the contract rejects, and
+ *    the route must answer 422 rather than guess.
+ */
+
+/**
+ * An array is not a record. Accepting one lets `[]` satisfy a body check and
+ * then read every field as `undefined`, which several parsers would go on to
+ * treat as a merely incomplete object.
+ */
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -12,6 +26,12 @@ export function readRequiredString(record: Record<string, unknown>, key: string,
   return normalized.length > 0 && normalized.length <= maxLength ? normalized : null;
 }
 
+/**
+ * Optional means the key may be omitted, not that it may be blank. An empty or
+ * whitespace-only string is a caller that sent the key and filled in nothing;
+ * on money-adjacent writes that ambiguity is answered with 422 rather than
+ * silently recorded as "not provided".
+ */
 export function readOptionalString(record: Record<string, unknown>, key: string, maxLength: number): string | null | undefined {
   const value = record[key];
   if (value === undefined || value === null) return null;
