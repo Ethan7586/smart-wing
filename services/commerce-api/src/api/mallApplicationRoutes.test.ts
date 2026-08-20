@@ -21,6 +21,7 @@ function context(permissions: Permission[] = [PERMISSIONS.mallRead], target: Mem
   };
   return {
     tenantId: 'tenant-a',
+    distributorId: null,
     enterpriseId: 'enterprise-a',
     mallId: 'mall-a',
     mallCode: 'MALL_A',

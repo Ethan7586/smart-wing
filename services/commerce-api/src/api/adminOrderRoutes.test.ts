@@ -19,7 +19,19 @@ function context(permissions = [PERMISSIONS.orderRead]): AuthorizationContext {
     expiresAt: null,
     authzVersion: 1,
   };
-  return { tenantId: 'tenant-a', enterpriseId: 'enterprise-a', mallId: 'mall-a', mallCode: 'MALL_A', userId: 'user-a', employeeNo: 'U001', roles: ['role-a'], permissions, membership, stepUpAt: new Date().toISOString() };
+  return {
+    tenantId: 'tenant-a',
+    distributorId: null,
+    enterpriseId: 'enterprise-a',
+    mallId: 'mall-a',
+    mallCode: 'MALL_A',
+    userId: 'user-a',
+    employeeNo: 'U001',
+    roles: ['role-a'],
+    permissions,
+    membership,
+    stepUpAt: new Date().toISOString(),
+  };
 }
 
 describe('admin order management routes', () => {

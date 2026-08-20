@@ -18,6 +18,7 @@ function context(overrides: Partial<AuthorizationContext> = {}): AuthorizationCo
   };
   return {
     tenantId: 'tenant-a',
+    distributorId: null,
     enterpriseId: 'enterprise-a',
     mallId: 'mall-a',
     mallCode: 'MALL_A',

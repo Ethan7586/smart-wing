@@ -79,6 +79,8 @@ export interface WorkerEnv {
  */
 export interface AuthorizationContext {
   tenantId: string;
+  /** Server-resolved from the membership's distributor binding; never from the request. */
+  distributorId: string | null;
   enterpriseId: string;
   mallId: string;
   mallCode: string;

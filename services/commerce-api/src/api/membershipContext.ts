@@ -177,6 +177,7 @@ function parseAuthorizationContext(value: unknown, membership: Membership | null
   if (tenantId !== membership.context.tenantId || enterpriseId !== membership.context.enterpriseId || mallId !== membership.context.mallId || userId !== membership.context.userId) return null;
   return {
     tenantId,
+    distributorId: membership.context.distributorId ?? null,
     enterpriseId,
     mallId,
     mallCode,

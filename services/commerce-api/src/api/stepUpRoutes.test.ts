@@ -35,6 +35,7 @@ function authorization(): AuthorizationContext {
   };
   return {
     tenantId: 'tenant-a',
+    distributorId: null,
     enterpriseId: 'enterprise-a',
     mallId: 'mall-a',
     mallCode: 'MALL_A',

@@ -16,7 +16,7 @@ function context(permissions: Membership['permissions'], target: Membership['tar
     expiresAt: null,
     authzVersion: 1,
   };
-  return { tenantId: 'tenant-a', enterpriseId: 'enterprise-a', mallId: 'mall-a', mallCode: 'MALL_A', userId: 'user-a', employeeNo: 'U001', roles: membership.roleIds, permissions, membership, stepUpAt };
+  return { tenantId: 'tenant-a', distributorId: null, enterpriseId: 'enterprise-a', mallId: 'mall-a', mallCode: 'MALL_A', userId: 'user-a', employeeNo: 'U001', roles: membership.roleIds, permissions, membership, stepUpAt };
 }
 const env = { SUPABASE_URL: 'https://supabase.example', SUPABASE_SERVICE_ROLE_KEY: 'service-role' };
 const jsonRequest = (url: string, method: string, body: object) => new Request(url, { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });

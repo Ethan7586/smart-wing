@@ -9,6 +9,7 @@ const environment = {
 
 const authorization = {
   tenantId: 'tenant-one',
+  distributorId: null,
   enterpriseId: 'enterprise-one',
   mallId: 'mall-one',
   mallCode: 'MALL',

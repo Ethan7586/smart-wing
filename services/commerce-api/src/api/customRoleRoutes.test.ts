@@ -16,7 +16,7 @@ function context(permissions: Membership['permissions'], stepUpAt: string | null
     expiresAt: null,
     authzVersion: 3,
   };
-  return { tenantId: 'tenant-a', enterpriseId: 'enterprise-a', mallId: 'mall-a', mallCode: 'MALL_A', userId: 'user-owner', employeeNo: 'OWNER', roles: membership.roleIds, permissions, membership, stepUpAt };
+  return { tenantId: 'tenant-a', distributorId: null, enterpriseId: 'enterprise-a', mallId: 'mall-a', mallCode: 'MALL_A', userId: 'user-owner', employeeNo: 'OWNER', roles: membership.roleIds, permissions, membership, stepUpAt };
 }
 const env = { SUPABASE_URL: 'https://supabase.example', SUPABASE_SERVICE_ROLE_KEY: 'key' };
 

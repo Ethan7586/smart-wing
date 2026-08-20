@@ -59,9 +59,9 @@ export function invalidBody(tooLarge: boolean, requestId: string): Response {
   return apiError(tooLarge ? 413 : 400, tooLarge ? 'REQUEST_TOO_LARGE' : 'INVALID_JSON', tooLarge ? '请求内容超过允许大小' : '请求内容不是有效 JSON', requestId);
 }
 
-export function requireIdempotencyKey(request: Request, requestId: string, message: string): string | Response {
+export function requireIdempotencyKey(request: Request, requestId: string, message: string, minimumLength = 1): string | Response {
   const key = request.headers.get('idempotency-key');
-  return key && key.length <= 120 ? key : apiError(400, 'IDEMPOTENCY_KEY_REQUIRED', message, requestId);
+  return key && key.length >= minimumLength && key.length <= 120 ? key : apiError(400, 'IDEMPOTENCY_KEY_REQUIRED', message, requestId);
 }
 
 export async function readJsonBody(request: Request, maximumBytes = 32 * 1024): Promise<{ ok: true; value: unknown } | { ok: false; tooLarge: boolean }> {

@@ -17,6 +17,7 @@ export function context(overrides: Partial<AuthorizationContext> = {}): Authoriz
   };
   return {
     tenantId: 'tenant-a',
+    distributorId: null,
     enterpriseId: 'enterprise-a',
     mallId: 'mall-a',
     mallCode: 'MALL_A',

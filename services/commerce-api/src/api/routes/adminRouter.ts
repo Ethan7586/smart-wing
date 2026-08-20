@@ -1,3 +1,4 @@
+import { handleDistributorCenter, handlePlatformDistributorAttachment, handlePlatformDistributors } from '../distributorRoutes';
 import { handleAdminCatalog, handleAdminCatalogImport, handleAdminOverview, handleSetProductStatus } from '../adminRoutes';
 import {
   handleAdminVoucherAudit,
@@ -73,6 +74,12 @@ export async function routeAdminRequest(request: Request, env: WorkerEnv, author
       return request.method === 'POST' ? handleRedeemAdminVoucher(request, env, authorization, requestId) : handleAdminVoucherRedemptions(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/overview`:
       return handleAdminOverview(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/distributors`:
+      return handlePlatformDistributors(request, env, authorization, requestId);
+    case `${API_PREFIX}/distributor/overview`:
+      return handleDistributorCenter(request, env, authorization, 'overview', requestId);
+    case `${API_PREFIX}/distributor/tenants`:
+      return handleDistributorCenter(request, env, authorization, 'tenants', requestId);
     case `${API_PREFIX}/admin/orders/export`:
       return handleAdminOrderExport(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/after-sales/export`:
@@ -122,6 +129,10 @@ export async function routeAdminRequest(request: Request, env: WorkerEnv, author
   const roleStatus = pathname.match(/^\/api\/v1\/admin\/roles\/([^/]+)\/status$/);
   if (roleStatus) return handleSetCustomRoleStatus(request, env, authorization, decodeURIComponent(roleStatus[1]), requestId);
   const role = pathname.match(/^\/api\/v1\/admin\/roles\/([^/]+)$/);
+  const distributorAttachment = pathname.match(/^\/api\/v1\/admin\/distributors\/([^/]+)\/tenants$/);
+  if (distributorAttachment) return handlePlatformDistributorAttachment(request, env, authorization, decodeURIComponent(distributorAttachment[1]), requestId);
+  const distributorTenant = pathname.match(/^\/api\/v1\/distributor\/tenants\/([^/]+)$/);
+  if (distributorTenant) return handleDistributorCenter(request, env, authorization, 'tenant', requestId, decodeURIComponent(distributorTenant[1]));
   if (role) return handleUpdateCustomRole(request, env, authorization, decodeURIComponent(role[1]), requestId);
   const mallDraft = pathname.match(/^\/api\/v1\/admin\/mall-applications\/([^/]+)\/draft$/);
   if (mallDraft) return handleMallApplicationMutation(request, env, authorization, decodeURIComponent(mallDraft[1]), 'save', requestId);
