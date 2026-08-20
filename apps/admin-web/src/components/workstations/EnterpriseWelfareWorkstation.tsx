@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { DemoDataBanner } from '../DemoDataBanner';
+import { refuseUnimplementedWrite } from '../../services/writeAvailability';
 import { Building2, Users, Download, AlertTriangle, RefreshCw, Search, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
 import { Enterprise } from '../../types';
 
@@ -36,18 +38,17 @@ export const EnterpriseWelfareWorkstation: React.FC<EnterpriseWelfareProps> = ({
 
   // Adjust Dept Budget Guardrail
   const handleAdjustDeptBudget = (deptName: string, currentBudget: number) => {
-    onOpenGuardrail(`调整部门福利预算包: ${deptName}`, '部门预算额度调增', selectedEnterprise.name, selectedEnterprise.id, 100000, (reason) => {
-      alert(`已成功为【${deptName}】追补 100,000 元福利预算，解除阻断！`);
-    });
+    refuseUnimplementedWrite('部门福利预算调增');
   };
 
   // Sync HR System Org Tree
   const handleTriggerHrSync = () => {
-    alert(`已向【${selectedEnterprise.name}】HR 系统 (泛微/钉钉/飞书企微) 发起组织架构与离发薪同步，成功校准 100% 员工资格！`);
+    refuseUnimplementedWrite('HR 系统组织架构同步');
   };
 
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+      <DemoDataBanner scope="企业与部门福利预算" />
       {/* Top Value Banner */}
       <div className="bg-gradient-to-r from-slate-900 via-[var(--sw-sidebar-top)] to-[var(--sw-brand)] text-white p-5 rounded-[14px] shadow-lg flex items-center justify-between">
         <div>

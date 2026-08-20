@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { ApiProduct } from '../services/productionApi';
 import { createCatalogPublisher } from './catalogSync';
+import { loadCatalogProgressively } from './useProductionSync';
 
 function product(id: string, purchasable: boolean): ApiProduct {
   return {
@@ -26,6 +27,20 @@ function product(id: string, purchasable: boolean): ApiProduct {
 }
 
 describe('catalog publication precedence', () => {
+  it('publishes the first visible page before the remaining directory is fetched', async () => {
+    const loadPage = vi.fn(async ({ cursor, limit }: { cursor?: number; limit?: number }) => {
+      if (cursor === 0) return { items: [product('first', false)], pagination: { nextCursor: 24 } };
+      return { items: [product('later', false)], pagination: { nextCursor: null } };
+    });
+    const publish = vi.fn();
+
+    await loadCatalogProgressively(loadPage, publish);
+
+    expect(loadPage).toHaveBeenNthCalledWith(1, { cursor: 0, limit: 24 });
+    expect(loadPage).toHaveBeenNthCalledWith(2, { cursor: 24, limit: 100 });
+    expect(publish.mock.calls.map(([items]) => items.map((item: ApiProduct) => item.id))).toEqual([['first'], ['first', 'later']]);
+  });
+
   it('upgrades a public snapshot when qualified products arrive later', () => {
     const publish = vi.fn();
     const coordinator = createCatalogPublisher(() => true, publish);

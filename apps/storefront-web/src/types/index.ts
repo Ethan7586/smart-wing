@@ -135,7 +135,9 @@ export type OrderStatus =
   | 'pending_shipment' // 待发货
   | 'pending_receipt' // 待收货
   | 'completed' // 已完成
-  | 'after_sale'; // 售后中
+  | 'after_sale' // 售后中
+  | 'cancelled' // 已取消
+  | 'refunded'; // 已退款
 
 export interface OrderItem {
   productId: string;

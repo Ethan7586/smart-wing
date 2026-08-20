@@ -40,6 +40,12 @@ export interface WorkerEnv {
   /** Required ISO timestamp after which the test-client bypass fails closed. */
   TEST_LOGIN_RATE_LIMIT_BYPASS_UNTIL?: string;
   PII_ENCRYPTION_KEY?: string;
+  /** Credentials for the whyouye product-pool API; inject only from the secret store. */
+  WHYOUYE_API_TOKEN?: string;
+  WHYOUYE_ORG_ID?: string;
+  WHYOUYE_SITE_ID?: string;
+  /** Required by the whyouye JD VOP pool endpoint. */
+  WHYOUYE_ACCOUNT_CODE?: string;
   SESSION_SIGNING_KEY?: string;
   /** Stable pepper for phone lookup and one-time verification hashes. */
   IDENTITY_LOOKUP_KEY?: string;
@@ -73,6 +79,8 @@ export interface WorkerEnv {
  */
 export interface AuthorizationContext {
   tenantId: string;
+  /** Server-resolved from the membership's distributor binding; never from the request. */
+  distributorId: string | null;
   enterpriseId: string;
   mallId: string;
   mallCode: string;

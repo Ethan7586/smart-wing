@@ -2,6 +2,7 @@ var demo = require('../../data/demo');
 var api = require('../../utils/api');
 var accountPresentation = require('../../utils/accountPresentation');
 var catalogPolicy = require('../../utils/catalogPolicy');
+var mallExperience = require('../../utils/mallExperience');
 var sizeClassUtil = require('../../utils/sizeClass');
 var share = require('../../utils/share');
 
@@ -47,6 +48,8 @@ Page({
     isDemo: false,
 
     scope: {},
+    mallAnnouncement: '',
+    mallThemePreset: 'smart-blue',
     quotaLabel: '',
     quotaAmount: '',
     quotaPendingText: '',
@@ -144,6 +147,7 @@ Page({
 
   applySnapshot: function (home, products) {
     var visibleProducts = catalogPolicy.filterProducts(products);
+    var experience = mallExperience.resolve(home && home.experience, demo);
     var member = home && !home.memberError ? accountPresentation.memberSummary(home) : null;
     var signedIn = Boolean(member && (member.memberName || member.employeeNo));
     var welfareCents = member && Number.isFinite(member.welfareCents) ? member.welfareCents : null;
@@ -153,21 +157,24 @@ Page({
       loadError: null,
       isDemo: false,
       scope: {
+        brandTitle: experience.mallDisplayName,
         enterpriseName: (member && (member.enterpriseName || member.mallName)) || '公开福利商城',
         departmentName: (member && member.departmentName) || '登录后识别企业福利',
       },
+      mallAnnouncement: experience.announcement,
+      mallThemePreset: experience.themePreset,
       quotaLabel: signedIn ? '福利卡余额' : '会员福利资产',
       quotaAmount: welfareCents === null ? '' : formatCents(welfareCents),
       quotaPendingText: signedIn ? '资产待同步' : '登录后查看',
       identityNotice: memberError ? '会员福利暂不可用，公开商品仍可浏览' : signedIn && !member.phoneVerified ? '手机未认证 · 支付与核验功能受限' : signedIn ? '会员身份与福利资产已连接' : '登录后识别福利资产与可购资格',
       identityNoticeTone: signedIn && member && !member.phoneVerified ? 'danger' : 'info',
       cartCount: 0,
-      entries: demo.entries,
-      hero: demo.hero,
-      partners: demo.partners,
-      segments: demo.segments.filter(catalogPolicy.isHomeSegmentVisible),
-      memberCodeCta: demo.memberCodeCta,
-      recommendations: decorateProducts(visibleProducts.slice(0, 2)),
+      entries: experience.entries,
+      hero: experience.hero,
+      partners: experience.partners,
+      segments: experience.segments.filter(catalogPolicy.isHomeSegmentVisible),
+      memberCodeCta: experience.memberCodeCta,
+      recommendations: decorateProducts(visibleProducts.slice(0, experience.recommendationLimit)),
     });
   },
 
@@ -198,10 +205,10 @@ Page({
   },
 
   onShareAppMessage: function () {
-    return share.appMessage({ title: '智慧翼福利商城', path: '/pages/home/home' });
+    return share.appMessage({ title: this.data.scope.brandTitle || '智慧翼福利商城', path: '/pages/home/home' });
   },
 
   onShareTimeline: function () {
-    return share.timeline({ title: '智慧翼福利商城' });
+    return share.timeline({ title: this.data.scope.brandTitle || '智慧翼福利商城' });
   },
 });

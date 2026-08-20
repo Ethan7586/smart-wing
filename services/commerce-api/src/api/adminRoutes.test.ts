@@ -18,6 +18,7 @@ function context(overrides: Partial<AuthorizationContext> = {}): AuthorizationCo
   };
   return {
     tenantId: 'tenant-a',
+    distributorId: null,
     enterpriseId: 'enterprise-a',
     mallId: 'mall-a',
     mallCode: 'MALL_A',
@@ -58,13 +59,14 @@ describe('admin routes: authorization guardrails', () => {
       new Response('[]', { status: 200, headers: { 'content-type': 'application/json' } }),
       new Response('[]', { status: 200, headers: { 'content-type': 'application/json' } }),
       new Response('0', { status: 200, headers: { 'content-type': 'application/json' } }),
+      new Response('{"cumulativeSalesCents":0,"trend":[],"categories":[],"topProducts":[]}', { status: 200, headers: { 'content-type': 'application/json' } }),
     ];
     const fetchRpc = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => responses.shift()!);
     try {
       const authorization = context({ employeeNo: 'seller001', roles: ['role-test-seller'] });
       const response = await handleAdminOverview(new Request('https://smart.example/api/v1/admin/overview'), { SUPABASE_URL: 'https://supabase.example', SUPABASE_SERVICE_ROLE_KEY: 'service-role-key' }, authorization, 'overview-profile');
       expect(response.status).toBe(200);
-      await expect(response.json()).resolves.toMatchObject({ authorization: { employeeNo: 'seller001', roles: ['role-test-seller'] } });
+      await expect(response.json()).resolves.toMatchObject({ authorization: { employeeNo: 'seller001', roles: ['role-test-seller'] }, summary: { sales: { cumulativeSalesCents: 0 } } });
     } finally {
       fetchRpc.mockRestore();
     }

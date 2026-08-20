@@ -21,6 +21,8 @@ export const OrdersPage: React.FC = () => {
     pending_receipt: '已发货 / 待收货',
     completed: '已完成',
     after_sale: '售后维权处理中',
+    cancelled: '订单已取消',
+    refunded: '退款已完成',
   };
   const statusEta: Record<OrderStatus, string> = {
     pending_payment: '待付款超时将自动释放库存',
@@ -28,6 +30,8 @@ export const OrdersPage: React.FC = () => {
     pending_receipt: '预计 24-72 小时送达',
     completed: '已完成签收',
     after_sale: '工单处理中，通常 4-8 小时',
+    cancelled: '库存与额度已释放',
+    refunded: '退款已原路退回',
   };
 
   const filteredOrders = useMemo(() => {

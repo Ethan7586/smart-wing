@@ -1,27 +1,34 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { refuseUnimplementedWrite } from '../../services/writeAvailability';
 import { AlertTriangle, RotateCw, Clock, User, ShieldCheck, Building2, X, CreditCard, DollarSign, Ban, RefreshCw } from 'lucide-react';
 import { Order } from '../../types';
+import { orderStatusLabel } from '@smart-wing/api-contract';
 
 interface OrderFulfillmentProps {
   orders: Order[];
   onUpdateOrders: (updatedOrders: Order[]) => void;
   onOpenGuardrail: (title: string, actionType: string, targetName: string, entityId: string, amount: number, onConfirm: (reason: string, evidence: string) => void) => void;
   initialProblemType?: string;
+  initialOrderId?: string;
   isLiveOrders?: boolean;
   onShipOrder?: (orderId: string) => Promise<void>;
 }
 
-export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ orders, onUpdateOrders, onOpenGuardrail, initialProblemType, isLiveOrders = false, onShipOrder }) => {
+export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ orders, onUpdateOrders, onOpenGuardrail, initialProblemType, initialOrderId, isLiveOrders = false, onShipOrder }) => {
   const [activeTab, setActiveTab] = useState<'PENDING' | 'ALL' | 'ARCHIVED'>('PENDING');
   const [problemFilter, setProblemFilter] = useState<string>(initialProblemType || 'ALL');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(orders.find((o) => o.isProblematic)?.id || orders[0]?.id || null);
+
+  useEffect(() => {
+    if (initialOrderId && orders.some((order) => order.id === initialOrderId)) setSelectedOrderId(initialOrderId);
+  }, [initialOrderId, orders]);
 
   const selectedOrder = orders.find((o) => o.id === selectedOrderId);
 
   // Filtering
   const filteredOrders = orders.filter((o) => {
-    if (activeTab === 'PENDING' && !o.isProblematic && o.status !== '退款申请中') return false;
-    if (activeTab === 'ARCHIVED' && o.status !== '已签收' && o.status !== '已退款') return false;
+    if (activeTab === 'PENDING' && !o.isProblematic && o.status !== 'refund_pending') return false;
+    if (activeTab === 'ARCHIVED' && o.status !== 'completed' && o.status !== 'refunded') return false;
 
     if (problemFilter !== 'ALL') {
       if (problemFilter === 'STOCK_CONFLICT' && o.problemType !== 'STOCK_CONFLICT') return false;
@@ -33,96 +40,26 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
 
   // Action 1: Refund Guardrail Modal
   const handleTriggerRefund = (ord: Order) => {
-    onOpenGuardrail(`退款确认处理: 订单号 ${ord.id}`, '订单原路退款', `${ord.enterpriseName} - ${ord.employeeName}`, ord.id, ord.totalAmount, (reason, evidence) => {
-      const updated = orders.map((o) => {
-        if (o.id === ord.id) {
-          return {
-            ...o,
-            status: '已退款' as const,
-            isProblematic: false,
-            timeline: [
-              ...o.timeline,
-              {
-                id: `TL-RF-${Date.now()}`,
-                nodeName: '退款',
-                timestamp: new Date().toLocaleString('zh-CN'),
-                status: 'success' as const,
-                operator: '张立 (COO)',
-                remark: `退款成功！资金解冻并返还企业与员工。原因: ${reason}. 凭证: ${evidence}`,
-              },
-            ],
-          };
-        }
-        return o;
-      });
-      onUpdateOrders(updated);
-      alert(`退款执行成功！¥${ord.totalAmount} 已原路解冻划拨。`);
-    });
+    refuseUnimplementedWrite('订单退款');
   };
 
   // Action 2: Compensation
   const handleTriggerCompensation = (ord: Order) => {
-    onOpenGuardrail(`为超时订单开具赔付补发优惠券`, 'SLA发货超时赔付', ord.employeeName, ord.id, 50, (reason) => {
-      alert(`已成功为员工 ${ord.employeeName} 补发 50 元关怀优惠券，写入补偿单！`);
-    });
+    refuseUnimplementedWrite('超时赔付补发优惠券');
   };
 
   // Action 3: Force Close Order
   const handleForceClose = (ord: Order) => {
-    onOpenGuardrail(`强制关单: 订单号 ${ord.id}`, '高风险强制关单', ord.enterpriseName, ord.id, ord.totalAmount, (reason) => {
-      const updated = orders.map((o) => {
-        if (o.id === ord.id) {
-          return {
-            ...o,
-            status: '已退款' as const,
-            isProblematic: false,
-            timeline: [
-              ...o.timeline,
-              {
-                id: `TL-[#FC]-${Date.now()}`,
-                nodeName: '强制关单',
-                timestamp: new Date().toLocaleString('zh-CN'),
-                status: 'error' as const,
-                operator: '张立 (COO)',
-                remark: `超卖异常拦截，强制关单。理由: ${reason}`,
-              },
-            ],
-          };
-        }
-        return o;
-      });
-      onUpdateOrders(updated);
-      alert('已强制关闭该订单！');
-    });
+    refuseUnimplementedWrite('强制关闭订单');
   };
 
   // Action 4: Manual Takeover Supplier Notification Retry
   const handleManualTakeoverSupplier = (ord: Order) => {
-    const updated = orders.map((o) => {
-      if (o.id === ord.id) {
-        return {
-          ...o,
-          retryLogs: [
-            ...o.retryLogs,
-            {
-              attempt: o.retryLogs.length + 1,
-              timestamp: new Date().toLocaleString('zh-CN'),
-              targetService: `${ord.supplierName} ERP`,
-              status: 'SUCCESS' as const,
-              httpCode: 200,
-              message: '人工接管重试：已手动通过专线补发锁库和派单Token',
-            },
-          ],
-        };
-      }
-      return o;
-    });
-    onUpdateOrders(updated);
-    alert('人工接管重试成功！接口Token已重新灌入。');
+    refuseUnimplementedWrite('供应商派单人工接管重试');
   };
 
   const handleShip = (ord: Order) => {
-    onOpenGuardrail(`确认订单发货: ${ord.id}`, '订单发货', ord.enterpriseName, ord.id, ord.totalAmount, async () => {
+    onOpenGuardrail(`确认订单发货: ${ord.orderNo}`, '订单发货', ord.enterpriseName, ord.id, ord.totalAmount, async () => {
       if (!onShipOrder) return;
       try {
         await onShipOrder(ord.id);
@@ -131,7 +68,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
             order.id === ord.id
               ? {
                   ...order,
-                  status: '已发货' as const,
+                  status: 'shipped' as const,
                   timeline: [
                     ...order.timeline,
                     { id: `ship:${Date.now()}`, nodeName: '发货', timestamp: new Date().toLocaleString('zh-CN'), status: 'success', operator: '当前管理身份', remark: '已通过服务端完成发货状态变更并写入审计记录。' },
@@ -230,17 +167,13 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
                   className={`p-3.5 rounded-xl border text-xs transition-all cursor-pointer space-y-2 ${isSelected ? 'bg-white border-[var(--sw-brand)] shadow-md ring-2 ring-blue-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-slate-900">{ord.id}</span>
+                    <span className="font-mono font-bold text-slate-900">{ord.orderNo}</span>
                     <span
                       className={`px-2 py-0.2 rounded text-[10px] font-bold ${
-                        ord.status === '异常挂起'
-                          ? 'bg-rose-100 text-rose-700 border border-rose-200'
-                          : ord.status === '退款申请中'
-                            ? 'bg-purple-100 text-purple-700 border border-purple-200'
-                            : 'bg-blue-100 text-blue-700 border border-blue-200'
+                        ord.isProblematic ? 'bg-rose-100 text-rose-700 border border-rose-200' : ord.status === 'refund_pending' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-blue-100 text-blue-700 border border-blue-200'
                       }`}
                     >
-                      {ord.status}
+                      {orderStatusLabel(ord.status)}
                     </span>
                   </div>
 
@@ -270,7 +203,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
             <div className="flex items-start justify-between border-b border-slate-100 pb-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-mono font-bold text-slate-900">{selectedOrder.id}</span>
+                  <span className="text-sm font-mono font-bold text-slate-900">{selectedOrder.orderNo}</span>
                   <span className="text-xs px-2 py-0.5 rounded bg-blue-50 text-[var(--sw-brand)] font-semibold border border-blue-200">{selectedOrder.enterpriseName}</span>
                 </div>
                 <p className="text-xs text-slate-500">
@@ -280,7 +213,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
 
               {/* Guardrail Interaction Buttons (Refund, Compensation, Force Close) */}
               <div className="flex items-center gap-2">
-                {isLiveOrders && selectedOrder.status === '待发货' && (
+                {isLiveOrders && ['paid', 'processing', 'pending_shipment'].includes(selectedOrder.status) && (
                   <button onClick={() => handleShip(selectedOrder)} className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer">
                     确认发货
                   </button>

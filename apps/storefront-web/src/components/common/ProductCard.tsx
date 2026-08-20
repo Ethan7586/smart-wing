@@ -13,12 +13,14 @@ import { getInventoryStatus } from '../../utils/inventory';
 interface ProductCardProps {
   product: Product;
   compact?: boolean;
+  /** Only the small, above-the-fold set may compete for image bandwidth. */
+  imagePriority?: boolean;
   showCompare?: boolean;
   inCompare?: boolean;
   onToggleCompare?: () => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, compact = false, showCompare = false, inCompare = false, onToggleCompare }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, compact = false, imagePriority = false, showCompare = false, inCompare = false, onToggleCompare }) => {
   const { navigateTo, addToCart, favorites, toggleFavorite, setQuickViewProduct } = useMall();
 
   const isFav = favorites.includes(product.id);
@@ -60,7 +62,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, compact = fal
   return (
     <div className="bg-white border border-gray-200 rounded-md overflow-hidden hover:border-blue-400 hover:shadow-lg transition-all duration-200 flex flex-col justify-between group relative">
       <div className="relative aspect-square overflow-hidden bg-gray-50 cursor-pointer" onClick={() => navigateTo('detail', { productId: product.id })}>
-        <img src={product.images[0]} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+        <img
+          src={product.images[0]}
+          alt={product.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          loading={imagePriority ? 'eager' : 'lazy'}
+          fetchPriority={imagePriority ? 'high' : 'low'}
+          decoding="async"
+        />
 
         <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shadow-xs ${getSupplierBadgeStyle()}`}>{product.supplierName}</span>

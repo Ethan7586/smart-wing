@@ -34,6 +34,16 @@ function scopeBindings(value: unknown): ScopeBinding[] | null {
 }
 
 /**
+ * A distributor identity is projected only from server-resolved scope bindings,
+ * never from the session's context payload, and only when exactly one distinct
+ * distributor is granted. Zero or ambiguous grants fail closed.
+ */
+function projectedDistributorId(bindings: ScopeBinding[]): string | null {
+  const ids = [...new Set(bindings.filter((binding) => binding.kind === 'distributor').map((binding) => binding.resourceId))];
+  return ids.length === 1 ? ids[0] : null;
+}
+
+/**
  * Resolves the one membership referenced by the host-only signed cookie. This
  * is intentionally called on every request; permissions are never stored in a
  * cookie and a revoked membership is rejected immediately.
@@ -57,11 +67,10 @@ export async function resolveMembershipRuntime(request: Request, env: WorkerEnv)
     p_membership_id: session.membershipId,
     p_target: session.target,
   });
-  const membership = parseMembership(raw);
-  const authorization = parseAuthorizationContext(raw, membership, session.stepUpAt);
-  if (!membership || !authorization) return null;
-  if (membership.authzVersion !== session.authzVersion || membership.memberId !== session.memberId || membership.id !== session.membershipId || membership.target !== session.target) return null;
-  return { membership, authorization };
+  const runtime = parseMembershipRuntime(raw, session.stepUpAt);
+  if (!runtime) return null;
+  if (runtime.membership.authzVersion !== session.authzVersion || runtime.membership.memberId !== session.memberId || runtime.membership.id !== session.membershipId || runtime.membership.target !== session.target) return null;
+  return runtime;
 }
 
 /** Used by the development-only test fixture before its signed cookie exists. */
@@ -71,12 +80,29 @@ export async function resolveMembershipRuntimeByIds(env: WorkerEnv, memberId: st
     p_membership_id: membershipId,
     p_target: target,
   });
-  const membership = parseMembership(raw);
-  const authorization = parseAuthorizationContext(raw, membership, stepUpAt);
-  if (!membership || !authorization || (expectedAuthzVersion !== undefined && membership.authzVersion !== expectedAuthzVersion) || membership.memberId !== memberId || membership.id !== membershipId || membership.target !== target) {
+  const runtime = parseMembershipRuntime(raw, stepUpAt);
+  if (
+    !runtime ||
+    (expectedAuthzVersion !== undefined && runtime.membership.authzVersion !== expectedAuthzVersion) ||
+    runtime.membership.memberId !== memberId ||
+    runtime.membership.id !== membershipId ||
+    runtime.membership.target !== target
+  ) {
     return null;
   }
-  return { membership, authorization };
+  return runtime;
+}
+
+/**
+ * Validates the complete server-derived membership projection. Login can use
+ * the projection bundled with a verified credential, avoiding a second
+ * cross-region RPC; the same structural checks still apply before a session
+ * is created.
+ */
+export function parseMembershipRuntime(value: unknown, stepUpAt?: number): MembershipRuntime | null {
+  const membership = parseMembership(value);
+  const authorization = parseAuthorizationContext(value, membership, stepUpAt);
+  return membership && authorization ? { membership, authorization } : null;
 }
 
 /** Converts a row loaded by commerce-api into trusted authorization facts. */
@@ -161,6 +187,7 @@ function parseAuthorizationContext(value: unknown, membership: Membership | null
   if (tenantId !== membership.context.tenantId || enterpriseId !== membership.context.enterpriseId || mallId !== membership.context.mallId || userId !== membership.context.userId) return null;
   return {
     tenantId,
+    distributorId: projectedDistributorId(membership.scopeBindings),
     enterpriseId,
     mallId,
     mallCode,

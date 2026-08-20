@@ -1,4 +1,4 @@
-import { handleHealth, handleInitialPasswordChange, handleLogin, handleLogout, handleRegisteredCredentialDiscovery } from '../publicRoutes';
+import { handleHealth, handleInitialPasswordChange, handleLogin, handleLogout, handleReadiness, handleRegisteredCredentialDiscovery } from '../publicRoutes';
 import { handlePublicCatalog } from '../publicCatalogRoutes';
 import { handlePublicCatalogImage, isPublicCatalogImagePath } from '../publicCatalogImages';
 import { handleRegistration, handleRegistrationOtp, handleUsernameRegistration } from '../registrationRoutes';
@@ -15,6 +15,8 @@ export async function routePublicRequest(request: Request, env: WorkerEnv, reque
   switch (pathname) {
     case '/api/health':
       return handleHealth(request, env, requestId);
+    case '/api/ready':
+      return handleReadiness(request, env, requestId);
     case `${API_PREFIX}/catalog/public/products`:
       return handlePublicCatalog(request, env, requestId);
     case `${API_PREFIX}/auth/login`:

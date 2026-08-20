@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { DemoDataBanner } from '../DemoDataBanner';
+import { refuseUnimplementedWrite } from '../../services/writeAvailability';
 import { Settings, ShieldCheck, History, Sliders, Cpu, Save } from 'lucide-react';
 import { SystemConfig } from '../../types';
 
@@ -12,31 +14,12 @@ export const SystemControlWorkstation: React.FC<SystemControlProps> = ({ config,
   const [formData, setFormData] = useState<SystemConfig>(config);
 
   const handleSaveSystemConfig = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    onOpenGuardrail(`更新 Smart Wing 全局业务引擎参数`, '系统核心参数配置变更', '全局操作系统配置', 'SYS-CFG-001', 0, (reason, evidence) => {
-      const newLog = {
-        id: `LOG-SYS-${Date.now()}`,
-        operator: '张立 (COO)',
-        timestamp: new Date().toLocaleString('zh-CN'),
-        parameterName: '退款SLA / 缺货罚金率 / 预算预警线 / Gemini Copilot',
-        beforeValue: `SLA:${config.refundSlaHours}h, 罚金:${config.stockoutPenaltyRate * 100}%, 预警:${config.budgetWarningThreshold * 100}%`,
-        afterValue: `SLA:${formData.refundSlaHours}h, 罚金:${formData.stockoutPenaltyRate * 100}%, 预警:${formData.budgetWarningThreshold * 100}%`,
-        reason,
-      };
-
-      const updated = {
-        ...formData,
-        auditLogs: [newLog, ...formData.auditLogs],
-      };
-
-      onUpdateConfig(updated);
-      alert('系统参数已实时更新生效并记入全局审计日志！');
-    });
+    refuseUnimplementedWrite('系统参数变更');
   };
 
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+      <DemoDataBanner scope="系统参数与全局审计" />
       {/* Top Banner */}
       <div className="bg-slate-900 text-white p-5 rounded-[14px] shadow-lg flex items-center justify-between border border-slate-800">
         <div>

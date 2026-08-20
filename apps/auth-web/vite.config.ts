@@ -15,6 +15,17 @@ export default defineConfig(({ command }) => {
     },
     server: {
       port: 3002,
+      /**
+       * In production Caddy reverse-proxies hbbtzn.com/api/* to the commerce
+       * runtime. The dev server must do the same or every credential request
+       * would hit the Vite server itself and fail.
+       */
+      proxy: {
+        '/api': {
+          target: process.env.COMMERCE_API_ORIGIN ?? 'http://localhost:3000',
+          changeOrigin: false,
+        },
+      },
       // Keep the development server stable when a CI-like environment disables HMR.
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {},

@@ -47,9 +47,9 @@ export function MemberOperationsPanel({ active, canInvite, canUpdate, canImport,
   }, [active]);
   const stats = useMemo(
     () => ({
-      active: data?.profiles.filter((member) => member.status === 'active').length ?? 0,
-      unbound: data?.profiles.filter((member) => !member.phoneBound).length ?? 0,
-      invites: data?.invitations.filter((invite) => invite.status === 'active').length ?? 0,
+      active: data?.profiles?.filter((member) => member.status === 'active').length ?? 0,
+      unbound: data?.profiles?.filter((member) => !member.phoneBound).length ?? 0,
+      invites: data?.invitations?.filter((invite) => invite.status === 'active').length ?? 0,
     }),
     [data]
   );

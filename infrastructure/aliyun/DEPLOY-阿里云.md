@@ -37,9 +37,21 @@ bash infrastructure/aliyun/deploy.sh
 
 ```bash
 curl -fsS http://127.0.0.1:3000/api/health
+curl -fsS http://127.0.0.1:3000/api/ready
+curl -fsSI https://hbbtzn.com/catalog/public/v1/latest.json
 curl -I https://hbbtzn.com
 curl -I https://smart.hbbtzn.com
 ```
+
+`/api/health` 是不访问远程数据库的快速存活检查；`/api/ready` 是用于发布验收的深度依赖检查。若配置了阿里云 OSS 发布凭据，日常发布脚本会在服务重载后自动刷新公开目录清单；上述目录请求必须返回 `200`，且包含可缓存的 `Cache-Control` 响应头。未配置 OSS 凭据时脚本会明确提示跳过，主站仍可从业务 API 安全回源。
+
+发布后在一台接近目标用户的独立机器运行：
+
+```bash
+npm run probe:storefront-performance -- --samples 10 --strict
+```
+
+该命令的网络与缓存项共 70 分；还必须传入真实 Chrome 性能追踪导出的 `lcpMs`、`inpMs`、`cls`、`errorRate` JSON 文件，才会计入最后 30 分并允许验收为 95 分。它不会用缺失的浏览器数据伪造高分。
 
 ## 启用核心读镜像
 
@@ -91,6 +103,26 @@ systemctl list-timers smart-wing-postgres-backup.timer
 只有日志返回 `"backup":"verified"` 才算一次成功：备份文件已完成、`pg_restore --list` 可读、SHA-256 清单已生成、OSS 对象长度已回读核对。每月将最新备份恢复到隔离的临时 PostgreSQL 并执行核心表数量与抽样校验；禁止直接在生产主库试恢复。
 
 备份任务与商城发布解耦。缺少 `.env.backup` 时日常发布仍正常，但不能声称数据库已具备异云恢复能力。
+
+## 启用前端故障告警（可选）
+
+故障编号与诊断记录在数据库迁移 `20260819120000_client_error_reports.sql` 已于验收环境验证后才可启用。邮件任务不会随日常发布自动安装或启动；未完成下面步骤时，错误页只会尝试记录故障，不能声称技术人员已收到通知。
+
+```bash
+cd /opt/smart-wing
+cp infrastructure/aliyun/client-error-alerts.env.example /opt/smart-wing/.env.client-error-alerts
+chmod 600 /opt/smart-wing/.env.client-error-alerts
+# 编辑该文件，填写 Supabase service_role 与专用 SMTP 凭据
+cp infrastructure/aliyun/smart-wing-client-error-alerts.service /etc/systemd/system/
+cp infrastructure/aliyun/smart-wing-client-error-alerts.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl start smart-wing-client-error-alerts.service
+journalctl -u smart-wing-client-error-alerts.service --no-pager -n 100
+systemctl enable --now smart-wing-client-error-alerts.timer
+systemctl list-timers smart-wing-client-error-alerts.timer
+```
+
+通知邮件仅包含故障编号、页面、次数与影响账号数；堆栈与账号身份只保存在受服务端权限保护的诊断记录中。
 
 `.env.production` 不进 Git，也不复制到 `apps/`。Cookie 必须保持 host-only，不设置 `.hbbtzn.com` 的共享 Domain。生产必须分别配置 `SESSION_SIGNING_KEY` 与 `ADMIN_SESSION_SIGNING_KEY`（两者不得相同），否则后台域不会签发或接受会话。
 

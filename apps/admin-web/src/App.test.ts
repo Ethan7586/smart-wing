@@ -11,8 +11,24 @@ describe('admin account profile resolution', () => {
     expect(resolveAdminAccount(employeeNo, [roleId])).toMatchObject({ username: employeeNo, role: roleLabel });
   });
 
-  it('keeps the existing named test administrators', () => {
-    expect(resolveAdminAccount('SW_TEST_FUBAO', ['role-mall-admin'])).toMatchObject({ username: '福宝' });
+  it('keeps an authenticated platform owner identity instead of substituting a legacy demo owner', () => {
+    expect(resolveAdminAccount('ethan', ['platform_owner'])).toMatchObject({
+      username: 'ethan',
+      displayName: 'ethan',
+      role: '平台 Owner',
+    });
+    expect(resolveAdminAccount('ethan', ['platform_owner'])).not.toMatchObject({
+      username: 'onewr',
+      displayName: '李厚亿',
+    });
+  });
+
+  it('keeps an authenticated mall administrator identity instead of substituting a legacy demo profile', () => {
+    expect(resolveAdminAccount('mall-admin-001', ['role-mall-admin'])).toMatchObject({
+      username: 'mall-admin-001',
+      displayName: 'mall-admin-001',
+      role: '商城管理员',
+    });
   });
 
   it('rejects an unknown profile', () => {
@@ -22,5 +38,39 @@ describe('admin account profile resolution', () => {
   it('shows the membership command center only with both read permissions', () => {
     expect(allowedWorkstationsFor(['member.read', 'role.read'])).toContain('membership');
     expect(allowedWorkstationsFor(['member.read'])).not.toContain('membership');
+  });
+
+  it('shows the voucher workstation to merchants and operator roles while retaining the normal access boundary', () => {
+    expect(allowedWorkstationsFor(['catalog.read'])).toContain('voucher');
+    expect(allowedWorkstationsFor(['order.read'])).toContain('voucher');
+    expect(allowedWorkstationsFor(['voucher.read'])).toContain('voucher');
+    expect(allowedWorkstationsFor([], ['platform_owner'])).toContain('voucher');
+    expect(allowedWorkstationsFor([], ['role-mall-admin'])).toContain('voucher');
+    expect(allowedWorkstationsFor(['member.read'])).not.toContain('voucher');
+    expect(allowedWorkstationsFor([], ['member'])).not.toContain('voucher');
+  });
+
+  it('shows the mall application workstation only for mall-capable admin roles', () => {
+    expect(allowedWorkstationsFor(['mall.read'])).toContain('mall');
+    expect(allowedWorkstationsFor(['mall.decorate'])).toContain('mall');
+    expect(allowedWorkstationsFor([], ['role-enterprise-manager-v2'])).toContain('mall');
+    expect(allowedWorkstationsFor([], ['role-mall-admin'])).toContain('mall');
+    expect(allowedWorkstationsFor(['member.read'], ['member'])).not.toContain('mall');
+  });
+
+  it('can expose every workstation to a deliberately local, read-only visual-acceptance session', () => {
+    expect(allowedWorkstationsFor(['catalog.read', 'order.read', 'tenant.manage', 'finance.reconcile', 'member.read', 'role.read', 'mall.read', 'commercial_resource.read'])).toEqual([
+      'cockpit',
+      'product',
+      'order',
+      'enterprise',
+      'mall',
+      'voucher',
+      'supplier',
+      'finance',
+      'membership',
+      'qualification',
+      'system',
+    ]);
   });
 });

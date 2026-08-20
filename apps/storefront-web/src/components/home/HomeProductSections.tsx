@@ -87,7 +87,7 @@ export const HomeProductSections: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             {enterpriseExclusives.slice(0, 2).map((p) => (
-              <ProductCard key={p.id} product={p} compact />
+              <ProductCard key={p.id} product={p} compact imagePriority />
             ))}
           </div>
         </div>
@@ -109,7 +109,7 @@ export const HomeProductSections: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             {(recommended.length ? recommended : catalogFallback).slice(0, 2).map((p) => (
-              <ProductCard key={p.id} product={p} compact />
+              <ProductCard key={p.id} product={p} compact imagePriority />
             ))}
           </div>
         </div>

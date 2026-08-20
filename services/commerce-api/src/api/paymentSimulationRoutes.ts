@@ -3,7 +3,7 @@ import { sha256 } from './crypto';
 import { apiError, json, methodNotAllowed } from './http';
 import { authorizationEvidence, authorizationScope, invalidBody, loadResourceScope, readJsonBody } from './routerSupport';
 import { callRpc } from './supabase';
-import { parseSimulationBenefitInput, parseSimulationMixedPaymentInput, parseSimulationRechargeInput } from './validation';
+import { parseSimulationBenefitInput, parseSimulationMixedPaymentInput, parseSimulationRechargeInput } from './simulationInput';
 import { PERMISSIONS } from '@smart-wing/api-contract';
 import type { AuthorizationContext, WorkerEnv } from './types';
 

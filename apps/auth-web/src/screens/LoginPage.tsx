@@ -38,7 +38,8 @@ import { requestOtp, loginWithOtp, loginWithPassword, verifyStepUp, getLockoutSt
 
 export const LoginPage: React.FC = () => {
   const { currentDomain, navigateTo, acceptedTerms, setAcceptedTerms, setActiveSession } = useMallContext();
-  const isStorefrontEmbed = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === 'storefront';
+  const loginParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const isStorefrontEmbed = loginParams?.get('embed') === 'storefront';
 
   // 当前流程阶段: 1 = 账号认证, 2 = 选择会员身份, 3 = 管理员 Step-Up 二次验证
   const [stage, setStage] = useState<1 | 2 | 3>(1);
@@ -373,7 +374,7 @@ export const LoginPage: React.FC = () => {
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ username: identifier, password }),
+      body: JSON.stringify({ username: identifier, password, membershipId }),
     });
 
     if (!response.ok) {
@@ -391,7 +392,7 @@ export const LoginPage: React.FC = () => {
     window.location.replace('/');
   };
 
-  const completeAdminTestLogin = () => {
+  const completeAdminLogin = (membershipId: string) => {
     // The browser performs a top-level POST on the target host, allowing the
     // admin domain to create its own __Host- cookie before loading the app.
     // Credentials are deliberately submitted in the request body, never URL.
@@ -402,7 +403,7 @@ export const LoginPage: React.FC = () => {
     // escape that iframe; otherwise the whole admin app is rendered in-panel.
     form.target = '_top';
     form.style.display = 'none';
-    for (const [name, value] of Object.entries({ username: identifier, password })) {
+    for (const [name, value] of Object.entries({ username: identifier, password, membershipId })) {
       const input = document.createElement('input');
       input.type = 'hidden';
       input.name = name;
@@ -422,11 +423,13 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
-    // 筛选可进行单身份自动跳过的有效身份
+    // 只有普通商城身份可自动进入。只要拥有后台身份，就必须由本人
+    // 显式选择入口，避免管理员在不知情时直接落入某个工作台。
     const validMemberships = activeMemberships.filter((m) => m.status === 'active' || m.status === 'invited');
+    const hasAdminMembership = validMemberships.some((membership) => membership.target === 'admin');
 
-    // 仅有 1 条会员关系时自动跳过第2段
-    if (validMemberships.length === 1) {
+    // 仅有 1 条有效的普通商城身份时自动跳过第2段。
+    if (validMemberships.length === 1 && !hasAdminMembership) {
       const singleMem = validMemberships[0];
       if (singleMem.target === 'storefront' && singleMem.status === 'active') {
         if (activeTab === 'password') {
@@ -440,19 +443,10 @@ export const LoginPage: React.FC = () => {
         });
         navigateTo('storefront_home', { membershipId: singleMem.id });
         return;
-      } else if (singleMem.target === 'admin') {
-        if (singleMem.requiresStepUp) {
-          // 管理身份需 Step-Up，自动进入第3段
-          setSelectedMembership(singleMem);
-          setStage(3);
-        } else {
-          completeAdminTestLogin();
-        }
-        return;
       }
     }
 
-    // 多条身份或包含复杂状态，进入第2段选择会员关系
+    // 多条身份、任何后台身份或包含复杂状态，进入第2段选择会员关系。
     setStage(2);
   };
 
@@ -489,7 +483,7 @@ export const LoginPage: React.FC = () => {
       }
 
       if (mem.target === 'admin') {
-        completeAdminTestLogin();
+        completeAdminLogin(mem.id);
         return;
       }
 
@@ -541,7 +535,7 @@ export const LoginPage: React.FC = () => {
       const result = await verifyStepUp(preAuthContext.preAuthToken, selectedMembership.id, totpCode);
 
       if (selectedMembership.target === 'admin') {
-        completeAdminTestLogin();
+        completeAdminLogin(selectedMembership.id);
         return;
       }
 
@@ -637,15 +631,20 @@ export const LoginPage: React.FC = () => {
     const isSmartDomain = currentDomain === 'smart.hbbtzn.com';
 
     const renderStorefrontSection = () => (
-      <div className="space-y-3 mb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Store className="w-4 h-4 text-[var(--sw-brand)]" />
-            <h4 className="text-xs font-bold text-slate-700 tracking-wider uppercase">我的福利商城</h4>
+      <section className="mb-6 space-y-3" aria-label="福利商城身份">
+        <div className="flex items-center justify-between gap-3 px-0.5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-sm">
+              <Store className="h-4 w-4 text-[var(--sw-brand)]" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-500">Personal welfare</p>
+              <h4 className="mt-0.5 text-sm font-bold text-slate-800">福利商城</h4>
+            </div>
           </div>
-          <span className="text-[11px] text-slate-400">共 {storefrontItems.length} 个专区</span>
+          <span className="rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-[var(--sw-brand)]">消费与福利</span>
         </div>
-        <div className="grid grid-cols-1 gap-2.5">
+        <div className="grid grid-cols-1 gap-3">
           {storefrontItems.map((mem) => {
             const isInvalid = mem.status === 'suspended' || mem.status === 'offboarded' || mem.status === 'expired';
             return (
@@ -657,73 +656,88 @@ export const LoginPage: React.FC = () => {
                 tabIndex={mem.status === 'active' ? 0 : -1}
                 aria-disabled={mem.status !== 'active'}
                 aria-label={`进入 ${mem.storeName}，${mem.enterpriseName}，${mem.roleName}`}
-                className={`group relative p-3.5 rounded-xl border transition-all duration-200 cursor-pointer ${
-                  isInvalid ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed' : 'bg-white border-slate-200 hover:border-[var(--sw-brand)] hover:shadow-md hover:bg-blue-50/20'
+                className={`group relative overflow-hidden rounded-2xl border p-4 transition-all duration-300 ${
+                  isInvalid
+                    ? 'cursor-not-allowed border-slate-200 bg-slate-50 opacity-60'
+                    : 'cursor-pointer border-blue-100 bg-gradient-to-br from-white via-white to-blue-50/80 shadow-[0_8px_24px_-20px_rgba(37,99,235,0.75)] hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-[0_16px_28px_-18px_rgba(37,99,235,0.5)]'
                 }`}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-sm text-slate-800 truncate">{mem.storeName}</span>
+                <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-blue-400 via-[var(--sw-brand)] to-cyan-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <div className="relative flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20">
+                    <Store className="h-4.5 w-4.5" />
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="truncate text-sm font-bold text-slate-900">{mem.storeName}</span>
                       {mem.accountTypeLabel && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-blue-50 text-[var(--sw-brand)] rounded-md border border-blue-100">
-                          <CreditCard className="w-2.5 h-2.5" />
+                        <span className="inline-flex items-center gap-1 rounded-md border border-blue-100 bg-white/80 px-2 py-0.5 text-[10px] font-semibold text-[var(--sw-brand)]">
+                          <CreditCard className="h-2.5 w-2.5" />
                           {mem.accountTypeLabel}
                         </span>
                       )}
-                      {mem.status === 'invited' && <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium bg-amber-50 text-amber-700 rounded-md border border-amber-200">邀请待接受</span>}
+                      {mem.status === 'invited' && <span className="inline-flex items-center rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">邀请待接受</span>}
                     </div>
-                    <div className="text-xs text-slate-500 truncate flex items-center gap-1">
-                      <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
-                      {mem.enterpriseName} · {mem.roleName}
+                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                      <Building2 className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                      <span className="truncate">
+                        {mem.enterpriseName} · {mem.roleName}
+                      </span>
                     </div>
                   </div>
 
                   {mem.status === 'invited' ? (
-                    <button onClick={(e) => handleAcceptInvite(e, mem)} className="shrink-0 px-3 py-1 text-xs font-medium bg-[var(--sw-brand)] text-white rounded-lg hover:bg-[var(--sw-brand-dark)] transition-colors">
+                    <button onClick={(e) => handleAcceptInvite(e, mem)} className="shrink-0 rounded-xl bg-[var(--sw-brand)] px-3 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[var(--sw-brand-dark)]">
                       接受邀请
                     </button>
                   ) : (
-                    <div className="shrink-0 pt-1 text-slate-300 group-hover:text-[var(--sw-brand)] transition-colors">
-                      <ChevronRight className="w-5 h-5" />
+                    <div className="flex shrink-0 items-center gap-1 rounded-xl border border-blue-100 bg-white/90 px-3 py-2 text-xs font-bold text-[var(--sw-brand)] shadow-sm transition-all group-hover:border-blue-200 group-hover:bg-[var(--sw-brand)] group-hover:text-white">
+                      进入商城
+                      <ChevronRight className="h-3.5 w-3.5" />
                     </div>
                   )}
                 </div>
 
                 {/* 特殊状态提示 */}
                 {mem.status === 'suspended' && (
-                  <p className="mt-2 text-[11px] text-rose-500 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> 该身份已被停用，请联系企业 HR
+                  <p className="relative mt-3 flex items-center gap-1 text-[11px] text-rose-500">
+                    <AlertCircle className="h-3 w-3" /> 该身份已被停用，请联系企业 HR
                   </p>
                 )}
                 {mem.status === 'offboarded' && (
-                  <p className="mt-2 text-[11px] text-slate-500 flex items-center gap-1">
-                    <UserX className="w-3 h-3" /> 状态显示为离职，访问权已回收
+                  <p className="relative mt-3 flex items-center gap-1 text-[11px] text-slate-500">
+                    <UserX className="h-3 w-3" /> 状态显示为离职，访问权已回收
                   </p>
                 )}
                 {mem.status === 'expired' && (
-                  <p className="mt-2 text-[11px] text-amber-600 flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> 福利周期已到期
+                  <p className="relative mt-3 flex items-center gap-1 text-[11px] text-amber-600">
+                    <Clock className="h-3 w-3" /> 福利周期已到期
                   </p>
                 )}
               </div>
             );
           })}
         </div>
-      </div>
+      </section>
     );
 
     const renderAdminSection = () => (
-      <div className="space-y-3 mb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-[var(--sw-brand-dark)]" />
-            <h4 className="text-xs font-bold text-slate-700 tracking-wider uppercase">我管理的运营主体</h4>
+      <section className="mb-6 space-y-3" aria-label="管理后台身份">
+        <div className="flex items-center justify-between gap-3 px-0.5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700 bg-slate-900 shadow-sm">
+              <ShieldCheck className="h-4 w-4 text-blue-300" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">Operations workspace</p>
+              <h4 className="mt-0.5 text-sm font-bold text-slate-800">管理后台</h4>
+            </div>
           </div>
-          <span className="text-[11px] text-slate-400">共 {adminItems.length} 项管理权限</span>
+          <span className="rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600">已获管理授权</span>
         </div>
-        <div className="grid grid-cols-1 gap-2.5">
+        <div className="grid grid-cols-1 gap-3">
           {adminItems.map((mem) => {
+            const isInvalid = mem.status !== 'active';
             return (
               <div
                 key={mem.id}
@@ -733,59 +747,67 @@ export const LoginPage: React.FC = () => {
                 tabIndex={mem.status === 'active' ? 0 : -1}
                 aria-disabled={mem.status !== 'active'}
                 aria-label={`进入运营后台：${mem.enterpriseName}，${mem.roleName}`}
-                className="group p-3.5 rounded-xl border border-slate-200 bg-slate-900 text-white hover:border-[var(--sw-brand)] hover:ring-2 hover:ring-[var(--sw-brand)]/30 transition-all cursor-pointer shadow-sm relative overflow-hidden"
+                className={`group relative overflow-hidden rounded-2xl border p-4 text-white transition-all duration-300 ${
+                  isInvalid
+                    ? 'cursor-not-allowed border-slate-700 bg-slate-800 opacity-60'
+                    : 'cursor-pointer border-slate-700 bg-gradient-to-br from-[#101b35] via-[#142449] to-[#1f4da2] shadow-[0_14px_28px_-18px_rgba(15,23,42,0.9)] hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-[0_20px_34px_-18px_rgba(30,64,175,0.85)]'
+                }`}
               >
-                {/* 顶部微渐变条 */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--sw-brand)] to-[var(--sw-brand-dark)]" />
+                <div className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-blue-400/15 blur-2xl transition-transform duration-500 group-hover:scale-125" />
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-200/80 to-transparent" />
 
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-sm text-slate-100">{mem.enterpriseName}</span>
-                      {mem.subjectScope && <span className="px-2 py-0.5 text-[10px] font-medium bg-slate-800 text-blue-300 rounded border border-slate-700">{mem.subjectScope}级</span>}
+                <div className="relative flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-300/30 bg-white/10 text-blue-100 shadow-inner">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-bold text-white">{mem.enterpriseName}</span>
+                      {mem.subjectScope && <span className="rounded-md border border-blue-200/20 bg-blue-300/10 px-2 py-0.5 text-[10px] font-semibold text-blue-100">{mem.subjectScope}级</span>}
                       {mem.requiresStepUp && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold bg-amber-500/20 text-amber-300 rounded border border-amber-500/40">
-                          <ShieldAlert className="w-2.5 h-2.5" />
+                        <span className="inline-flex items-center gap-1 rounded-md border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-[10px] font-semibold text-amber-200">
+                          <ShieldAlert className="h-2.5 w-2.5" />
                           需二次验证
                         </span>
                       )}
                     </div>
 
-                    <p className="text-xs text-slate-300 font-medium">
+                    <p className="text-xs font-medium text-blue-100">
                       {mem.roleName} · {mem.storeName}
                     </p>
-                    <p className="text-[11px] text-slate-400">数据范围: {mem.dataScope}</p>
+                    <p className="text-[11px] text-slate-300">授权范围：{mem.dataScope}</p>
 
-                    {/* 关键权限徽章 */}
                     {mem.keyPermissions && mem.keyPermissions.length > 0 && (
-                      <div className="flex flex-wrap gap-1 pt-1.5">
-                        {mem.keyPermissions.map((perm) => (
-                          <span key={perm} className="px-1.5 py-0.5 text-[10px] font-mono bg-slate-800 text-slate-300 rounded border border-slate-700">
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {mem.keyPermissions.slice(0, 3).map((perm) => (
+                          <span key={perm} className="rounded-md border border-white/10 bg-slate-950/20 px-1.5 py-0.5 text-[10px] font-medium text-blue-100">
                             {perm}
                           </span>
                         ))}
+                        {mem.keyPermissions.length > 3 && <span className="px-1.5 py-0.5 text-[10px] text-blue-200">+{mem.keyPermissions.length - 3}</span>}
                       </div>
                     )}
 
-                    <div className="text-[10px] text-slate-400 pt-1 flex items-center gap-3">
-                      {mem.authorizedBy && <span>授权人: {mem.authorizedBy}</span>}
-                      {mem.expireAt && <span>有效期至: {mem.expireAt}</span>}
+                    <div className="flex items-center gap-3 pt-1 text-[10px] text-slate-300">
+                      {mem.authorizedBy && <span>授权人：{mem.authorizedBy}</span>}
+                      {mem.expireAt && <span>有效期至：{mem.expireAt}</span>}
                     </div>
                   </div>
 
-                  <div className="shrink-0 pt-1 text-slate-500 group-hover:text-[var(--sw-brand)] transition-colors">
-                    <ArrowRight className="w-5 h-5" />
+                  <div className="flex shrink-0 items-center gap-1 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-sm transition-all group-hover:border-white/40 group-hover:bg-white group-hover:text-[var(--sw-brand-dark)]">
+                    进入后台
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </div>
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
+      </section>
     );
 
     return (
-      <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1 custom-scrollbar">
+      <div className="max-h-[480px] space-y-1 overflow-y-auto pr-1 custom-scrollbar">
         {isSmartDomain ? (
           <>
             {adminItems.length > 0 && renderAdminSection()}
@@ -802,7 +824,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className={`${isStorefrontEmbed ? 'min-h-screen bg-transparent' : 'min-h-screen bg-slate-50 flex flex-col justify-between'} selection:bg-blue-100 selection:text-[var(--sw-brand)]`}>
+    <div className={`${isStorefrontEmbed ? 'min-h-screen bg-transparent' : 'min-h-screen bg-slate-50 flex flex-col justify-between'} overflow-x-hidden selection:bg-blue-100 selection:text-[var(--sw-brand)]`}>
       {/* 顶部体验演示与调试工具条 */}
       {!isStorefrontEmbed && (
         <div className="bg-slate-900 text-slate-300 text-xs px-4 py-2 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
@@ -836,8 +858,10 @@ export const LoginPage: React.FC = () => {
       )}
 
       {/* 主布局：认证卡片叠压在蓝色品牌底板上（桌面端覆盖约 80%） */}
-      <div className={isStorefrontEmbed ? 'flex min-h-screen items-center justify-center bg-transparent p-0' : 'flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-12'}>
-        <div className={`relative w-full max-w-[520px] rounded-3xl bg-gradient-to-br from-[var(--sw-brand)] to-[var(--sw-brand-dark)] shadow-xl ${isStorefrontEmbed ? 'overflow-visible p-3' : 'overflow-hidden'}`}>
+      <div className={isStorefrontEmbed ? 'flex min-h-screen items-center justify-center overflow-x-hidden bg-transparent p-0' : 'flex-1 flex items-center justify-center overflow-x-hidden p-4 sm:p-6 lg:p-12'}>
+        <div
+          className={`relative w-full ${stage === 2 ? 'max-w-[680px]' : 'max-w-[520px]'} rounded-3xl bg-gradient-to-br from-[var(--sw-brand)] to-[var(--sw-brand-dark)] shadow-xl ${isStorefrontEmbed ? 'overflow-visible p-3' : 'overflow-hidden'}`}
+        >
           {isStorefrontEmbed && (
             <button
               type="button"
@@ -880,33 +904,35 @@ export const LoginPage: React.FC = () => {
           </div>
 
           {/* 认证卡：桌面端由右向左叠压蓝色底板的 80% 区域 */}
-          <div className={isStorefrontEmbed ? 'relative z-10 w-full p-0' : `relative z-10 p-4 sm:p-6 lg:absolute lg:inset-y-6 lg:right-6 lg:flex lg:items-center lg:p-0 ${stage === 2 ? 'lg:w-[560px]' : 'lg:w-[460px]'}`}>
-            <div className="w-full overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-2xl transition-all duration-300">
-              {/* 卡片顶部：三段式进度指示器 (Bold Typography 风格) */}
-              <div className="bg-slate-50/80 px-6 sm:px-8 py-4 border-b border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+          <div className={isStorefrontEmbed ? 'relative z-10 w-full p-0' : `relative z-10 p-4 sm:p-6 lg:absolute lg:inset-y-6 lg:right-6 lg:flex lg:items-center lg:p-0 ${stage === 2 ? 'lg:w-[620px]' : 'lg:w-[460px]'}`}>
+            <div className="w-full overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-2xl shadow-slate-900/15 transition-all duration-300">
+              {/* 卡片顶部：身份流程 */}
+              <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-white via-slate-50 to-blue-50/70 px-6 py-4 sm:px-8">
+                <div className="flex items-center gap-2.5">
                   {stage > 1 && (
-                    <button onClick={handleGoBack} className="p-1.5 mr-1 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-200/60 transition-colors" aria-label="返回上一阶段">
+                    <button onClick={handleGoBack} className="mr-0.5 rounded-xl p-1.5 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-800" aria-label="返回上一阶段">
                       <ArrowLeft className="w-4 h-4" />
                     </button>
                   )}
                   {/* 步骤 1 */}
-                  <div className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${stage >= 1 ? 'bg-[var(--sw-brand)] text-white shadow-sm' : 'border-2 border-slate-200 text-slate-400'}`}>1</div>
-                  <div className={`w-6 sm:w-8 h-[2px] ${stage >= 2 ? 'bg-[var(--sw-brand)]' : 'bg-slate-200'}`} />
+                  <div className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ${stage > 1 ? 'bg-blue-100 text-[var(--sw-brand)]' : 'bg-[var(--sw-brand)] text-white shadow-md shadow-blue-500/25'}`}>
+                    {stage > 1 ? <CheckCircle2 className="h-3.5 w-3.5" /> : '1'}
+                  </div>
+                  <div className={`h-[2px] w-5 sm:w-7 ${stage >= 2 ? 'bg-[var(--sw-brand)]' : 'bg-slate-200'}`} />
 
                   {/* 步骤 2 */}
                   <div
-                    className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${
-                      stage > 2 ? 'bg-[var(--sw-brand)] text-white shadow-sm' : stage === 2 ? 'border-2 border-[var(--sw-brand)] text-[var(--sw-brand)] bg-white font-black' : 'border-2 border-slate-200 text-slate-400'
+                    className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ${
+                      stage > 2 ? 'bg-blue-100 text-[var(--sw-brand)]' : stage === 2 ? 'bg-[var(--sw-brand)] text-white shadow-md shadow-blue-500/25' : 'border-2 border-slate-200 bg-white text-slate-400'
                     }`}
                   >
-                    2
+                    {stage > 2 ? <CheckCircle2 className="h-3.5 w-3.5" /> : '2'}
                   </div>
-                  <div className={`w-6 sm:w-8 h-[2px] ${stage >= 3 ? 'bg-[var(--sw-brand)]' : 'bg-slate-200'}`} />
+                  <div className={`h-[2px] w-5 sm:w-7 ${stage >= 3 ? 'bg-[var(--sw-brand)]' : 'bg-slate-200'}`} />
 
                   {/* 步骤 3 */}
                   <div
-                    className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${stage === 3 ? 'border-2 border-[var(--sw-brand)] text-[var(--sw-brand)] bg-white font-black' : 'border-2 border-slate-200 text-slate-400'}`}
+                    className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ${stage === 3 ? 'bg-[var(--sw-brand)] text-white shadow-md shadow-blue-500/25' : 'border-2 border-slate-200 bg-white text-slate-400'}`}
                   >
                     3
                   </div>
@@ -914,9 +940,9 @@ export const LoginPage: React.FC = () => {
 
                 <div className="flex items-center gap-2">
                   <img src={`${import.meta.env.BASE_URL}brand/brand-mark.svg`} alt="" className="h-5 w-5 rounded-md" />
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
                     {stage === 1 && '账号认证'}
-                    {stage === 2 && '选择访问身份'}
+                    {stage === 2 && '选择进入方式'}
                     {stage === 3 && '二次验证'}
                   </span>
                 </div>
@@ -926,14 +952,14 @@ export const LoginPage: React.FC = () => {
               <div className="p-6 sm:p-8">
                 {/* 阶段标题 */}
                 <div className="mb-6">
-                  <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                  <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
                     {stage === 1 && '统一账号认证'}
-                    {stage === 2 && '选择关联会员关系'}
+                    {stage === 2 && '选择你的工作台'}
                     {stage === 3 && '管理身份二次验证 (Step-Up)'}
                   </h2>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                  <p className="mt-1 text-xs text-slate-500 sm:text-sm">
                     {stage === 1 && '请选择适合您的登录方式与身份核验'}
-                    {stage === 2 && '检测到您有多个关联账号，请选择需要进入的主体：'}
+                    {stage === 2 && '同一账号，可在福利消费与运营管理之间自由切换。'}
                     {stage === 3 && '即将进入高权限运营后台，请进行 TOTP 动态口令二次验签'}
                   </p>
                 </div>
@@ -1074,7 +1100,7 @@ export const LoginPage: React.FC = () => {
                           </div>
 
                           {/* 辅助链接 */}
-                          <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+                          <div className="flex items-center justify-between gap-3 pt-1">
                             <button type="button" onClick={() => setActiveTab('password')} className="hover:text-[var(--sw-brand)] transition-colors">
                               使用密码登录
                             </button>
@@ -1159,7 +1185,7 @@ export const LoginPage: React.FC = () => {
                                 setResetOpen(true);
                                 setFormError('');
                               }}
-                              className="hover:text-[var(--sw-brand)] transition-colors"
+                              className="text-xs text-slate-500 hover:text-[var(--sw-brand)] transition-colors"
                             >
                               忘记密码？
                             </button>
@@ -1169,11 +1195,13 @@ export const LoginPage: React.FC = () => {
                                 setRegistrationOpen(true);
                                 setFormError('');
                               }}
-                              className="font-semibold text-[var(--sw-brand)] hover:underline"
+                              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-950 bg-slate-950 px-4 text-sm font-bold text-white shadow-lg shadow-slate-900/20 transition-all hover:-translate-y-0.5 hover:border-slate-800 hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-900/25 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
                             >
+                              <UserCheck className="h-4 w-4" />
                               新用户注册
                             </button>
                           </div>
+                          <p className="-mt-1 text-right text-[11px] leading-4 text-slate-400">持企业邀请码创建员工商城账号</p>
 
                           <button
                             type="submit"
@@ -1360,10 +1388,15 @@ export const LoginPage: React.FC = () => {
 
                 {/* 第二段：选择会员关系段 */}
                 {stage === 2 && (
-                  <div className="space-y-4">
-                    <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 text-xs text-slate-600 flex items-start gap-2">
-                      <Info className="w-4 h-4 text-[var(--sw-brand)] shrink-0 mt-0.5" />
-                      <p>该账号关联了多个企业的福利计划或管理身份。请选择您本次需要进入的商城专区或运营后台：</p>
+                  <div className="space-y-5">
+                    <div className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 via-white to-cyan-50 px-4 py-3.5 text-xs text-slate-600">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-[var(--sw-brand)] shadow-sm ring-1 ring-blue-100">
+                        <Info className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 pt-0.5">
+                        <p className="font-bold text-slate-800">一次登录，按需进入</p>
+                        <p className="mt-0.5 leading-relaxed text-slate-500">商城用于福利消费与订单；后台用于运营管理，仅展示你已经获得授权的工作台。</p>
+                      </div>
                     </div>
 
                     {renderMembershipsList()}

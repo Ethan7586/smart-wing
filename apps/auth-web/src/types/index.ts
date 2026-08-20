@@ -18,7 +18,7 @@ export interface Membership {
   roleName: string;
   dataScope: string;
   accountTypeLabel?: '福利账户' | '餐卡' | string;
-  subjectScope?: '租户' | '企业' | '供应商' | '商城';
+  subjectScope?: '平台' | '租户' | '企业' | '供应商' | '商城';
   keyPermissions?: string[];
   authorizedBy?: string;
   expireAt?: string;
@@ -31,6 +31,10 @@ export interface PreAuthContext {
   identifier?: string;
   loginMethod: LoginMethod;
   requiresPasswordReset?: boolean;
+  entrances?: {
+    storefront: boolean;
+    admin: boolean;
+  };
   memberships: Membership[];
 }
 

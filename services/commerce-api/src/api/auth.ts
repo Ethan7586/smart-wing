@@ -29,6 +29,9 @@ export function can(context: AuthorizationContext, permission: Permission, resou
 export function contextResourceScope(context: AuthorizationContext): ResourceScope {
   return {
     tenantId: context.tenantId,
+    // Present only when the membership carries a distributor binding, so the
+    // distributor anchor in packages/authz can match without a second lookup.
+    ...(context.distributorId ? { distributorId: context.distributorId } : {}),
     enterpriseId: context.enterpriseId,
     mallId: context.mallId,
     ownerUserId: context.userId,

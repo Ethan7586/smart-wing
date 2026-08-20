@@ -7,7 +7,8 @@ import { handleMemberCodeChallenge, handleRevokeMemberCodeChallenge } from '../m
 import { handleAfterSales, handleCreateAfterSale, handleCreateOrder, handleInternalPayment, handleOrders } from '../orderRoutes';
 import { handleProducts } from '../publicRoutes';
 import { handleChangePassword, handleChangePhone, handleRevokeOtherSessions, handleRevokeSession, handleSecurityCenter } from '../securityCenterRoutes';
-import { handleStepUp } from '../stepUpRoutes';
+import { handleStartAdminStepUp, handleVerifyAdminStepUp } from '../stepUpRoutes';
+import { callRpc } from '../supabase';
 import type { AuthorizationContext, WorkerEnv } from '../types';
 import { handleOrderByNumber, handleWechatPaymentStatus, handleWechatPrepay } from '../wechatPaymentRoutes';
 
@@ -27,9 +28,9 @@ export async function routeStorefrontRequest(request: Request, env: WorkerEnv, a
     case `${API_PREFIX}/member-code/challenge/revoke`:
       return handleRevokeMemberCodeChallenge(request, env, authorization, requestId);
     case `${API_PREFIX}/auth/session`:
-      return json({ authenticated: true, authorization: publicAuthorization(authorization), requestId });
+      return handleSession(env, authorization, requestId);
     case `${API_PREFIX}/auth/step-up`:
-      return handleStepUp(request, env, authorization, requestId);
+      return handleStartAdminStepUp(request, env, authorization, requestId);
     case `${API_PREFIX}/auth/security-center`:
       return handleSecurityCenter(request, env, authorization, requestId);
     case `${API_PREFIX}/auth/password/change`:
@@ -52,6 +53,8 @@ export async function routeStorefrontRequest(request: Request, env: WorkerEnv, a
       return request.method === 'POST' ? handleCreateOrder(request, env, authorization, requestId) : handleOrders(request, env, authorization, requestId);
   }
 
+  const stepUpVerification = pathname.match(/^\/api\/v1\/auth\/step-up\/([^/]+)\/verify$/);
+  if (stepUpVerification) return handleVerifyAdminStepUp(request, env, authorization, decodeURIComponent(stepUpVerification[1]), requestId);
   const session = pathname.match(/^\/api\/v1\/auth\/sessions\/([0-9a-f-]{36})$/i);
   if (session) return handleRevokeSession(request, env, authorization, session[1], requestId);
   const address = pathname.match(/^\/api\/v1\/addresses\/([^/]+)$/);
@@ -67,6 +70,22 @@ export async function routeStorefrontRequest(request: Request, env: WorkerEnv, a
   const internalPayment = pathname.match(/^\/api\/v1\/orders\/([^/]+)\/payments\/internal$/);
   if (internalPayment) return handleInternalPayment(request, env, authorization, decodeURIComponent(internalPayment[1]), requestId);
   return null;
+}
+
+/**
+ * Reports the entrances this member holds alongside the current session. The
+ * entrance list is advisory, so a lookup failure degrades to the session's own
+ * membership rather than breaking the session check.
+ */
+async function handleSession(env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
+  const rows = await callRpc<Array<{ target?: string }>>(env, 'api_member_entrances', { p_member_id: authorization.membership.memberId }).catch(() => null);
+  const targets = Array.isArray(rows) ? rows.map((row) => row?.target) : [authorization.membership.target];
+  return json({
+    authenticated: true,
+    authorization: publicAuthorization(authorization),
+    entrances: { storefront: targets.includes('storefront'), admin: targets.includes('admin') },
+    requestId,
+  });
 }
 
 function publicAuthorization(context: AuthorizationContext) {

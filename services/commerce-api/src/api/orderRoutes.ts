@@ -6,7 +6,7 @@ import { requirePhoneVerified } from './identityAssurance';
 import { authorizationEvidence, authorizationScope, invalidBody, loadResourceScope, readJsonBody } from './routerSupport';
 import { callRpc } from './supabase';
 import type { AuthorizationContext, WorkerEnv } from './types';
-import { parseCreateAfterSaleInput, parseCreateOrderInput, parseExecuteRefundInput, parseInternalPaymentInput } from './validation';
+import { parseCreateAfterSaleInput, parseCreateOrderInput, parseExecuteRefundInput, parseInternalPaymentInput } from './orderInput';
 
 export async function handleAfterSales(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET', 'POST'], requestId);

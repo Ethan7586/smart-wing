@@ -25,7 +25,15 @@ interface ProductionSyncSetters {
 
 type CatalogPageLoader = typeof productionApi.listProducts;
 
-async function loadCompleteCatalog(loadPage: CatalogPageLoader): Promise<ApiProduct[]> {
+const INITIAL_CATALOG_PAGE_SIZE = 24;
+const BACKGROUND_CATALOG_PAGE_SIZE = 100;
+
+/**
+ * Publish the first visible catalogue page as soon as it arrives, then append
+ * subsequent pages in the background. Waiting for the entire product database
+ * before rendering made a slow page look like a broken mall.
+ */
+export async function loadCatalogProgressively(loadPage: CatalogPageLoader, publish: (items: ApiProduct[]) => void): Promise<ApiProduct[]> {
   const items = new Map<string, ApiProduct>();
   let cursor: number | null = 0;
   let pageCount = 0;
@@ -33,14 +41,27 @@ async function loadCompleteCatalog(loadPage: CatalogPageLoader): Promise<ApiProd
   while (cursor !== null && pageCount < 60) {
     const page = await loadPage({
       cursor,
-      limit: 100,
+      limit: pageCount === 0 ? INITIAL_CATALOG_PAGE_SIZE : BACKGROUND_CATALOG_PAGE_SIZE,
     });
     page.items.forEach((item) => items.set(item.id, item));
+    publish([...items.values()]);
     if (page.pagination.nextCursor === cursor) break;
     cursor = page.pagination.nextCursor;
     pageCount += 1;
   }
   return [...items.values()];
+}
+
+async function loadPublicCatalogFast(publish: (items: ApiProduct[]) => void): Promise<ApiProduct[]> {
+  const cached = productionApi.readCachedPublicCatalog();
+  if (cached?.items.length) publish(cached.items);
+  try {
+    const mirror = await productionApi.fetchPublicCatalogMirror();
+    publish(mirror.items);
+    return mirror.items;
+  } catch {
+    return loadCatalogProgressively(productionApi.listProducts, publish);
+  }
 }
 
 export function useProductionSync(setters: ProductionSyncSetters, enabled = true) {
@@ -68,8 +89,9 @@ export function useProductionSync(setters: ProductionSyncSetters, enabled = true
     setters.setProducts([]);
     setters.setCatalogSyncStatus('syncing');
     try {
-      const items = await loadCompleteCatalog(productionApi.listProducts);
-      if (syncVersion === syncVersionRef.current) publishCatalog(items);
+      await loadPublicCatalogFast((items) => {
+        if (syncVersion === syncVersionRef.current) publishCatalog(items);
+      });
     } catch (error) {
       if (syncVersion === syncVersionRef.current) setters.setCatalogSyncStatus('error');
       throw error;
@@ -84,8 +106,10 @@ export function useProductionSync(setters: ProductionSyncSetters, enabled = true
     setters.setProducts([]);
     setters.setCatalogSyncStatus('syncing');
     const publisher = createCatalogPublisher(() => syncVersion === syncVersionRef.current, publishCatalog);
-    const publicCatalogRequest = loadCompleteCatalog(productionApi.listProducts);
-    void publicCatalogRequest.then(publisher.commitPublic).catch(() => undefined);
+    const publicCatalogRequest = loadPublicCatalogFast(publisher.commitPublic);
+    void publicCatalogRequest.catch(() => {
+      if (syncVersion === syncVersionRef.current && !publisher.hasPublicFallback()) setters.setCatalogSyncStatus('error');
+    });
     let snapshot: Awaited<ReturnType<typeof productionApi.getHomeSnapshot>>;
     try {
       snapshot = await productionApi.getHomeSnapshot();
@@ -94,7 +118,7 @@ export function useProductionSync(setters: ProductionSyncSetters, enabled = true
       closeMemberData();
       setters.setSessionStatus('guest');
       try {
-        publisher.commitPublic(await publicCatalogRequest);
+        await publicCatalogRequest;
       } catch {
         if (syncVersion === syncVersionRef.current) setters.setCatalogSyncStatus('error');
       }
@@ -142,15 +166,13 @@ export function useProductionSync(setters: ProductionSyncSetters, enabled = true
     // interactive. The qualified catalog is heavier and can finish in the
     // background without hiding account actions such as logout.
     setters.setSessionStatus('authenticated');
-    void loadCompleteCatalog(productionApi.listQualifiedProducts)
-      .then(publisher.commitQualified)
-      .catch(async () => {
-        try {
-          await publicCatalogRequest;
-        } catch {
-          if (syncVersion === syncVersionRef.current && !publisher.hasPublicFallback()) setters.setCatalogSyncStatus('error');
-        }
-      });
+    void loadCatalogProgressively(productionApi.listQualifiedProducts, publisher.commitQualified).catch(async () => {
+      try {
+        await publicCatalogRequest;
+      } catch {
+        if (syncVersion === syncVersionRef.current && !publisher.hasPublicFallback()) setters.setCatalogSyncStatus('error');
+      }
+    });
   };
 
   const cancelProductionSync = () => {

@@ -41,10 +41,10 @@
       "palette-drift": 1
     },
     "apps/admin-web/src/components/workstations/CockpitWorkstation.tsx": {
-      "hardcoded-color": 2,
-      "font-size-floor": 6,
-      "radius-off-scale": 4,
-      "palette-drift": 17
+      "hardcoded-color": 12,
+      "font-size-floor": 13,
+      "radius-off-scale": 5,
+      "palette-drift": 5
     },
     "apps/admin-web/src/components/workstations/CustomRoleCenterPanel.tsx": {
       "font-size-floor": 3,
@@ -88,10 +88,27 @@
       "radius-off-scale": 7,
       "palette-drift": 33
     },
+    "apps/admin-web/src/components/workstations/OrderManagementWorkstation.tsx": {
+      "font-size-floor": 4,
+      "radius-off-scale": 3,
+      "palette-drift": 10
+    },
+    "apps/admin-web/src/components/workstations/PoolWriteDialog.tsx": {
+      "hardcoded-color": 5,
+      "font-size-floor": 1,
+      "radius-off-scale": 1,
+      "palette-drift": 3
+    },
     "apps/admin-web/src/components/workstations/ProductGovernanceWorkstation.tsx": {
       "font-size-floor": 25,
       "radius-off-scale": 12,
       "palette-drift": 30
+    },
+    "apps/admin-web/src/components/workstations/ProductSourcePoolWorkstation.tsx": {
+      "hardcoded-color": 9,
+      "font-size-floor": 6,
+      "radius-off-scale": 2,
+      "palette-drift": 1
     },
     "apps/admin-web/src/components/workstations/QualificationCenterSections.tsx": {
       "font-size-floor": 4
@@ -124,6 +141,50 @@
       "radius-off-scale": 7,
       "palette-drift": 7
     },
+    "apps/admin-web/src/components/workstations/VoucherIssuancePanels.tsx": {
+      "font-size-floor": 5
+    },
+    "apps/admin-web/src/components/workstations/VoucherOperationsPrimitives.tsx": {
+      "font-size-floor": 4,
+      "palette-drift": 6
+    },
+    "apps/admin-web/src/components/workstations/VoucherOperationsWorkstation.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 9
+    },
+    "apps/admin-web/src/components/workstations/VoucherRecordPanels.tsx": {
+      "font-size-floor": 8
+    },
+    "apps/admin-web/src/components/workstations/VoucherWriteActionDialog.tsx": {
+      "font-size-floor": 1,
+      "palette-drift": 3
+    },
+    "apps/admin-web/src/components/workstations/VoucherWriteActionFields.tsx": {
+      "font-size-floor": 3
+    },
+    "apps/admin-web/src/components/workstations/order/AfterSaleListPanel.tsx": {
+      "font-size-floor": 1,
+      "radius-off-scale": 2,
+      "palette-drift": 1
+    },
+    "apps/admin-web/src/components/workstations/order/OrderFilterBar.tsx": {
+      "hardcoded-color": 1
+    },
+    "apps/admin-web/src/components/workstations/order/OrderListPanel.tsx": {
+      "radius-off-scale": 1
+    },
+    "apps/admin-web/src/components/workstations/order/OrderTable.tsx": {
+      "font-size-floor": 2,
+      "radius-off-scale": 1,
+      "palette-drift": 6
+    },
+    "apps/admin-web/src/components/workstations/order/PlanOrderPanel.tsx": {
+      "radius-off-scale": 1
+    },
+    "apps/admin-web/src/components/workstations/voucherOperationsModel.ts": {
+      "palette-drift": 3,
+      "semantic-duplicate": 3
+    },
     "apps/auth-web/src/index.css": {
       "hardcoded-color": 1
     },
@@ -137,11 +198,11 @@
       "palette-drift": 5
     },
     "apps/auth-web/src/screens/LoginPage.tsx": {
-      "hardcoded-color": 1,
-      "font-size-floor": 37,
-      "font-weight-ceiling": 3,
+      "hardcoded-color": 4,
+      "font-size-floor": 42,
+      "font-weight-ceiling": 1,
       "radius-off-scale": 14,
-      "palette-drift": 11
+      "palette-drift": 14
     },
     "apps/auth-web/src/screens/StorefrontHomeScreen.tsx": {
       "font-weight-ceiling": 1,

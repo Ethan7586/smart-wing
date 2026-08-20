@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { DemoDataBanner } from './DemoDataBanner';
 import { X, AlertCircle, ArrowRight, CheckCircle2, User, Clock, PlusCircle } from 'lucide-react';
 import { CaseItem, CaseStatus, WorkstationId } from '../types';
 
@@ -40,6 +41,9 @@ export const CaseCenterDrawer: React.FC<CaseCenterDrawerProps> = ({ isOpen, onCl
     <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end">
       <div className="bg-white w-full max-w-4xl h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-200 border-l border-slate-200">
         {/* Header */}
+        <div className="p-4">
+          <DemoDataBanner scope="工单与客服案例" />
+        </div>
         <div className="p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">CS</div>

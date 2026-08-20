@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { DemoDataBanner } from '../DemoDataBanner';
+import { refuseUnimplementedWrite } from '../../services/writeAvailability';
 import { Truck, ShieldAlert, Clock, AlertCircle, FileCheck, CheckCircle2, DollarSign, ArrowRight, Zap } from 'lucide-react';
 import { Supplier } from '../../types';
 
@@ -18,34 +20,12 @@ export const SupplierGovernanceWorkstation: React.FC<SupplierGovernanceProps> = 
 
   // Guardrail: Freeze Supplier or Deduct Guarantee Deposit
   const handleDeductDeposit = (sup: Supplier) => {
-    onOpenGuardrail(`扣减供应商履约保证金: ${sup.name}`, '履约违约保证金扣减', sup.name, sup.id, 10000, (reason, evidence) => {
-      const updated = suppliers.map((s) => {
-        if (s.id === sup.id) {
-          return {
-            ...s,
-            depositBalance: Math.max(0, s.depositBalance - 10000),
-            settlementStatus: 'SETTLED' as const,
-            auditLogs: [
-              ...s.auditLogs,
-              {
-                id: `LOG-${Date.now()}`,
-                operator: '张立 (COO)',
-                action: '扣减履约违约金 ¥10,000',
-                timestamp: new Date().toLocaleString('zh-CN'),
-                reason: `因SLA发货严重违规超时及超卖，扣减保证金。理由: ${reason}. 凭证: ${evidence}`,
-              },
-            ],
-          };
-        }
-        return s;
-      });
-      onUpdateSuppliers(updated);
-      alert(`已成功向 ${sup.name} 扣除 ¥10,000 履约保证金！日志已记录。`);
-    });
+    refuseUnimplementedWrite('履约保证金扣减');
   };
 
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+      <DemoDataBanner scope="供应商治理与履约保证金" />
       {/* Top Banner */}
       <div className="bg-slate-900 text-white p-5 rounded-[14px] shadow-lg flex items-center justify-between border border-slate-800">
         <div>
