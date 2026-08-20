@@ -1,26 +1,8 @@
 {
   "version": 1,
-  "roots": [
-    "apps/storefront-web/src",
-    "apps/admin-web/src",
-    "apps/auth-web/src"
-  ],
-  "extensions": [
-    ".css",
-    ".js",
-    ".jsx",
-    ".scss",
-    ".ts",
-    ".tsx"
-  ],
-  "rules": [
-    "hardcoded-color",
-    "font-size-floor",
-    "font-weight-ceiling",
-    "radius-off-scale",
-    "palette-drift",
-    "semantic-duplicate"
-  ],
+  "roots": ["apps/storefront-web/src", "apps/admin-web/src", "apps/auth-web/src"],
+  "extensions": [".css", ".js", ".jsx", ".scss", ".ts", ".tsx"],
+  "rules": ["hardcoded-color", "font-size-floor", "font-weight-ceiling", "radius-off-scale", "palette-drift", "semantic-duplicate"],
   "files": {
     "apps/admin-web/src/App.tsx": {
       "hardcoded-color": 3,
@@ -111,16 +93,22 @@
       "radius-off-scale": 3,
       "palette-drift": 10
     },
+    "apps/admin-web/src/components/workstations/PoolWriteDialog.tsx": {
+      "hardcoded-color": 5,
+      "font-size-floor": 1,
+      "radius-off-scale": 1,
+      "palette-drift": 3
+    },
     "apps/admin-web/src/components/workstations/ProductGovernanceWorkstation.tsx": {
       "font-size-floor": 25,
       "radius-off-scale": 12,
       "palette-drift": 30
     },
     "apps/admin-web/src/components/workstations/ProductSourcePoolWorkstation.tsx": {
-      "hardcoded-color": 14,
-      "font-size-floor": 7,
-      "radius-off-scale": 3,
-      "palette-drift": 4
+      "hardcoded-color": 9,
+      "font-size-floor": 6,
+      "radius-off-scale": 2,
+      "palette-drift": 1
     },
     "apps/admin-web/src/components/workstations/QualificationCenterSections.tsx": {
       "font-size-floor": 4
@@ -153,15 +141,26 @@
       "radius-off-scale": 7,
       "palette-drift": 7
     },
-    "apps/admin-web/src/components/workstations/VoucherOperationsWorkstationV1.tsx": {
-      "hardcoded-color": 6,
-      "font-size-floor": 73,
-      "palette-drift": 23,
-      "semantic-duplicate": 8
+    "apps/admin-web/src/components/workstations/VoucherIssuancePanels.tsx": {
+      "font-size-floor": 5
+    },
+    "apps/admin-web/src/components/workstations/VoucherOperationsPrimitives.tsx": {
+      "font-size-floor": 4,
+      "palette-drift": 6
+    },
+    "apps/admin-web/src/components/workstations/VoucherOperationsWorkstation.tsx": {
+      "hardcoded-color": 2,
+      "font-size-floor": 9
+    },
+    "apps/admin-web/src/components/workstations/VoucherRecordPanels.tsx": {
+      "font-size-floor": 8
     },
     "apps/admin-web/src/components/workstations/VoucherWriteActionDialog.tsx": {
-      "font-size-floor": 4,
+      "font-size-floor": 1,
       "palette-drift": 3
+    },
+    "apps/admin-web/src/components/workstations/VoucherWriteActionFields.tsx": {
+      "font-size-floor": 3
     },
     "apps/admin-web/src/components/workstations/order/AfterSaleListPanel.tsx": {
       "font-size-floor": 1,
@@ -181,6 +180,10 @@
     },
     "apps/admin-web/src/components/workstations/order/PlanOrderPanel.tsx": {
       "radius-off-scale": 1
+    },
+    "apps/admin-web/src/components/workstations/voucherOperationsModel.ts": {
+      "palette-drift": 3,
+      "semantic-duplicate": 3
     },
     "apps/auth-web/src/index.css": {
       "hardcoded-color": 1

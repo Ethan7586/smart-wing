@@ -302,7 +302,11 @@ function PriorityRow({ item }: { item: PriorityItem }) {
         <p className="mt-1 text-xs leading-5 text-slate-600">{item.description}</p>
         <p className="mt-1 text-[11px] text-slate-400">{item.meta}</p>
       </div>
-      <button type="button" onClick={item.action} className="shrink-0 self-center rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[var(--sw-brand)]">
+      <button
+        type="button"
+        onClick={item.action}
+        className="shrink-0 self-center rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[var(--sw-brand)]"
+      >
         {item.actionLabel}
       </button>
     </div>
@@ -581,7 +585,11 @@ function OrderVolumeChart({ orders, isEn }: { orders: Order[]; isEn: boolean }) 
         {series.map((item) => (
           <div key={item.key} className="flex h-full min-w-0 flex-1 flex-col justify-end">
             <div className="mb-2 text-center text-xs font-medium text-slate-700">{item.value || ''}</div>
-            <div className="mx-auto w-full max-w-10 rounded-t bg-[var(--sw-brand)] transition-[height]" style={{ height: `${item.value ? Math.max(8, Math.round((item.value / maxValue) * 100)) : 2}%` }} aria-label={`${item.label}: ${item.value}`} />
+            <div
+              className="mx-auto w-full max-w-10 rounded-t bg-[var(--sw-brand)] transition-[height]"
+              style={{ height: `${item.value ? Math.max(8, Math.round((item.value / maxValue) * 100)) : 2}%` }}
+              aria-label={`${item.label}: ${item.value}`}
+            />
           </div>
         ))}
       </div>

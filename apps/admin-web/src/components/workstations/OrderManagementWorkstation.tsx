@@ -159,7 +159,12 @@ function ExceptionSummary({ orders, onOpen }: { orders: Order[]; onOpen: (orderI
           <h3 className="text-sm font-bold text-slate-800">异常订单队列</h3>
           <p className="mt-1 text-xs text-slate-500">异常处置会在订单履约台保留全生命周期时间线、资金分摊与重试记录。</p>
         </div>
-        <button type="button" onClick={() => onOpen(exceptions[0]?.id ?? '')} disabled={!exceptions.length} className="rounded-lg bg-[var(--sw-brand)] px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
+        <button
+          type="button"
+          onClick={() => onOpen(exceptions[0]?.id ?? '')}
+          disabled={!exceptions.length}
+          className="rounded-lg bg-[var(--sw-brand)] px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+        >
           处理首个异常
         </button>
       </div>
