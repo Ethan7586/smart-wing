@@ -43,6 +43,7 @@ const EXISTING_OVERSIZED = new Set([
   'apps/wechat-miniapp/miniprogram/pages/home/home-commerce.wxss',
   'docs/VI-CONVERGENCE-EXECUTION-PLAN.md',
   'docs/福利商城架构和补齐修改清单.md',
+  'docs/codex交接-2026-08-20-完整.md',
   'scripts/build-miniapp-assets.mjs',
 ]);
 
