@@ -25,7 +25,7 @@ import { INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIER
 
 import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStatus, FinanceDiscrepancyRow, SystemConfig, GuardrailActionOptions, AdminProfile } from './types';
 
-const LazyVoucherOperationsWorkstationV1 = React.lazy(() => import('./components/workstations/VoucherOperationsWorkstationV1').then(({ VoucherOperationsWorkstationV1 }) => ({ default: VoucherOperationsWorkstationV1 })));
+const LazyVoucherOperationsWorkstation = React.lazy(() => import('./components/workstations/VoucherOperationsWorkstation').then(({ VoucherOperationsWorkstation }) => ({ default: VoucherOperationsWorkstation })));
 const LazyMallApplicationWorkstation = React.lazy(() => import('./components/workstations/MallApplicationWorkstation').then(({ MallApplicationWorkstation }) => ({ default: MallApplicationWorkstation })));
 
 /**
@@ -442,7 +442,7 @@ export function App() {
                   </section>
                 }
               >
-                <LazyVoucherOperationsWorkstationV1 liveDataEnabled sessionPermissions={sessionPermissions} writeEnabled={false} onOpenGuardrail={handleOpenGuardrail} />
+                <LazyVoucherOperationsWorkstation sessionPermissions={sessionPermissions} writeEnabled={false} />
               </Suspense>
             </WorkstationLoadBoundary>
           )}
