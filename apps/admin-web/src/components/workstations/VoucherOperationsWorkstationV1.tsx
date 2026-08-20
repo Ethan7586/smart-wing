@@ -44,7 +44,8 @@ import {
   type LiveVoucherVoidBalanceHold,
   type VoucherApiStatus,
 } from '../../services/vouchers';
-import { VoucherWriteActionDialog, type VoucherWriteAction } from './VoucherWriteActionDialog';
+import { VoucherWriteActionDialog } from './VoucherWriteActionDialog';
+import type { VoucherWriteAction } from './voucherWriteAction';
 
 type ModuleId = 'overview' | 'foundation' | 'reserve' | 'approval' | 'center' | 'operations' | 'query' | 'consumption' | 'verify' | 'audit' | 'reconciliation';
 type VoucherStatus = '未激活' | '可使用' | '已禁用' | '已核销' | '已作废';
@@ -371,7 +372,11 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                     ['consumption', '7', '消费明细', '集团 / 商城'],
                   ].map(([id, step, label, owner], index, list) => (
                     <React.Fragment key={id}>
-                      <button type="button" onClick={() => setActiveModule(id as ModuleId)} className="flex-1 min-w-0 p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-[var(--sw-brand)] hover:bg-[var(--sw-brand-light)] text-left transition-colors">
+                      <button
+                        type="button"
+                        onClick={() => setActiveModule(id as ModuleId)}
+                        className="flex-1 min-w-0 p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-[var(--sw-brand)] hover:bg-[var(--sw-brand-light)] text-left transition-colors"
+                      >
                         <span className="w-6 h-6 rounded-lg bg-[var(--sw-brand)] text-white text-[11px] font-bold flex items-center justify-center">{step}</span>
                         <span className="block text-xs font-bold text-slate-800 mt-3">{label}</span>
                         <span className="block text-[10px] text-slate-400 mt-1">{owner}</span>
@@ -584,7 +589,12 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                   <h3 className="text-sm font-bold text-slate-900">是否启用卡券审批流程</h3>
                   <p className="text-[11px] text-slate-400 mt-1">关闭后备券申请直接通过；开启后按申请人、审批人节点流转。</p>
                 </div>
-                <button type="button" onClick={() => setApprovalEnabled((value) => !value)} aria-pressed={approvalEnabled} className={`w-12 h-7 rounded-full p-1 transition-colors ${approvalEnabled ? 'bg-[var(--sw-brand)]' : 'bg-slate-300'}`}>
+                <button
+                  type="button"
+                  onClick={() => setApprovalEnabled((value) => !value)}
+                  aria-pressed={approvalEnabled}
+                  className={`w-12 h-7 rounded-full p-1 transition-colors ${approvalEnabled ? 'bg-[var(--sw-brand)]' : 'bg-slate-300'}`}
+                >
                   <span className={`block w-5 h-5 bg-white rounded-full shadow transition-transform ${approvalEnabled ? 'translate-x-5' : ''}`} />
                 </button>
               </div>
@@ -1328,7 +1338,11 @@ const LiveVoucherReadWorkstation: React.FC<{ sessionPermissions: string[]; write
                           {activeModule === 'approval' && canWrite('voucher.reserve.approve') && (
                             <td className="px-4 py-3">
                               {item.status === 'submitted' ? (
-                                <button type="button" onClick={() => setWriteAction({ kind: 'approval', reserve: item })} className="rounded-lg border border-[var(--sw-brand)]/30 bg-[var(--sw-brand-light)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--sw-brand-dark)]">
+                                <button
+                                  type="button"
+                                  onClick={() => setWriteAction({ kind: 'approval', reserve: item })}
+                                  className="rounded-lg border border-[var(--sw-brand)]/30 bg-[var(--sw-brand-light)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--sw-brand-dark)]"
+                                >
                                   审批
                                 </button>
                               ) : (

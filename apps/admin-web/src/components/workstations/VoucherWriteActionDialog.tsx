@@ -13,15 +13,8 @@ import {
   VoucherOperationError,
 } from '../../services/voucherOperations';
 import type { LiveVoucher, LiveVoucherProgram, LiveVoucherRedemption, LiveVoucherReserve, LiveVoucherVoidBalanceHold } from '../../services/vouchers';
-
-export type VoucherWriteAction =
-  | { kind: 'reserve' }
-  | { kind: 'approval'; reserve: LiveVoucherReserve }
-  | { kind: 'issue' }
-  | { kind: 'status'; voucher: LiveVoucher }
-  | { kind: 'redeem' }
-  | { kind: 'reverse'; redemption: LiveVoucherRedemption }
-  | { kind: 'reconcile'; voidHold: LiveVoucherVoidBalanceHold };
+import { VoucherWriteActionFields, INITIAL_VOUCHER_WRITE_FIELDS, type VoucherWriteFieldValues } from './VoucherWriteActionFields';
+import { operationErrorMessage, titleFor, yuanToCents, type VoucherWriteAction } from './voucherWriteAction';
 
 interface VoucherWriteActionDialogProps {
   action: VoucherWriteAction | null;
@@ -31,58 +24,16 @@ interface VoucherWriteActionDialogProps {
   onCompleted: () => void;
 }
 
-function yuanToCents(value: string): number {
-  const normalized = value.trim();
-  if (!/^\d+(?:\.\d{1,2})?$/.test(normalized)) throw new Error('VOUCHER_CLIENT_INPUT_INVALID');
-  const [yuan, decimal = ''] = normalized.split('.');
-  const cents = Number(yuan) * 100 + Number(decimal.padEnd(2, '0'));
-  if (!Number.isSafeInteger(cents) || cents < 1) throw new Error('VOUCHER_CLIENT_INPUT_INVALID');
-  return cents;
-}
-
-function operationErrorMessage(error: unknown): string {
-  if (error instanceof VoucherOperationError) return error.message;
-  return error instanceof Error && error.message === 'VOUCHER_CLIENT_INPUT_INVALID' ? '请检查必填信息、金额和操作参数。' : '卡券操作未完成，请稍后重试。';
-}
-
-function titleFor(action: VoucherWriteAction): string {
-  switch (action.kind) {
-    case 'reserve':
-      return '创建备券申请';
-    case 'approval':
-      return '处理备券审批';
-    case 'issue':
-      return '发行电子券批次';
-    case 'status':
-      return '变更单券状态';
-    case 'redeem':
-      return '门店核销券码';
-    case 'reverse':
-      return '冲正核销流水';
-    case 'reconcile':
-      return '处理作废余额对账';
-  }
-}
-
 /**
  * The dialog is deliberately unavailable unless its parent has both the
  * matching server-derived permission and an explicit environment write flag.
  * Every high-risk submission performs server-session-bound TOTP step-up.
  */
 export function VoucherWriteActionDialog({ action, programs, reserves, onClose, onCompleted }: VoucherWriteActionDialogProps) {
-  const [programId, setProgramId] = useState('');
-  const [reserveId, setReserveId] = useState('');
-  const [quantity, setQuantity] = useState('');
+  const [fields, setFields] = useState<VoucherWriteFieldValues>(INITIAL_VOUCHER_WRITE_FIELDS);
+  const updateField = <K extends keyof VoucherWriteFieldValues>(key: K, value: VoucherWriteFieldValues[K]) => setFields((current) => ({ ...current, [key]: value }));
   const [reason, setReason] = useState('');
   const [evidence, setEvidence] = useState('');
-  const [decision, setDecision] = useState<'approved' | 'rejected'>('approved');
-  const [statusOperation, setStatusOperation] = useState<'activate' | 'disable' | 'extend' | 'void'>('activate');
-  const [extensionDays, setExtensionDays] = useState('30');
-  const [voucherCode, setVoucherCode] = useState('');
-  const [amountYuan, setAmountYuan] = useState('');
-  const [merchantReference, setMerchantReference] = useState('');
-  const [reconciliationReference, setReconciliationReference] = useState('');
-  const [reconciliationNote, setReconciliationNote] = useState('');
   const [challengeId, setChallengeId] = useState<string | null>(null);
   const [verificationCode, setVerificationCode] = useState('');
   const [notice, setNotice] = useState('');
@@ -92,37 +43,37 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
   if (!action) return null;
   const requiresStepUp = action.kind !== 'reserve';
   const approvedReserves = reserves.filter((item) => item.status === 'approved');
-  const selectedProgramId = programId || programs[0]?.id || '';
-  const selectedReserveId = reserveId || approvedReserves[0]?.id || '';
+  const selectedProgramId = fields.programId || programs[0]?.id || '';
+  const selectedReserveId = fields.reserveId || approvedReserves[0]?.id || '';
 
   const submitOperation = async () => {
     switch (action.kind) {
       case 'reserve':
-        await createVoucherReserve({ voucherProgramId: selectedProgramId, quantity: Number(quantity), reason });
+        await createVoucherReserve({ voucherProgramId: selectedProgramId, quantity: Number(fields.quantity), reason });
         return;
       case 'approval':
-        await decideVoucherReserve(action.reserve.id, { decision, reason, evidence });
+        await decideVoucherReserve(action.reserve.id, { decision: fields.decision, reason, evidence });
         return;
       case 'issue':
         await issueVoucherBatch(selectedReserveId);
         return;
       case 'status':
         await changeVoucherStatus(action.voucher.id, {
-          operation: statusOperation,
+          operation: fields.statusOperation,
           expectedVersion: action.voucher.version,
-          extensionDays: statusOperation === 'extend' ? Number(extensionDays) : undefined,
+          extensionDays: fields.statusOperation === 'extend' ? Number(fields.extensionDays) : undefined,
           reason,
           evidence,
         });
         return;
       case 'redeem':
-        await redeemVoucher({ voucherCode, amountCents: yuanToCents(amountYuan), merchantReference });
+        await redeemVoucher({ voucherCode: fields.voucherCode, amountCents: yuanToCents(fields.amountYuan), merchantReference: fields.merchantReference });
         return;
       case 'reverse':
         await reverseVoucherRedemption(action.redemption.id, reason);
         return;
       case 'reconcile':
-        await reconcileVoucherVoidBalanceHold(action.voidHold.id, { reconciliationReference, reconciliationNote });
+        await reconcileVoucherVoidBalanceHold(action.voidHold.id, { reconciliationReference: fields.reconciliationReference, reconciliationNote: fields.reconciliationNote });
         return;
     }
   };
@@ -167,180 +118,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
         </div>
 
         <div className="space-y-4 p-5">
-          {action.kind === 'reserve' && (
-            <>
-              <label className="block text-xs font-semibold text-slate-600">
-                卡券产品
-                <select value={selectedProgramId} onChange={(event) => setProgramId(event.target.value)} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs outline-none focus:border-[var(--sw-brand)]">
-                  {programs.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}（¥{(item.denominationCents / 100).toFixed(2)}）
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block text-xs font-semibold text-slate-600">
-                申请数量
-                <input
-                  value={quantity}
-                  onChange={(event) => setQuantity(event.target.value)}
-                  inputMode="numeric"
-                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs outline-none focus:border-[var(--sw-brand)]"
-                  placeholder="请输入 1–1,000,000 的整数"
-                />
-              </label>
-            </>
-          )}
-
-          {action.kind === 'approval' && (
-            <>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
-                <span className="text-slate-500">申请单：</span>
-                <strong className="font-mono text-slate-800">{action.reserve.requestNo}</strong>
-                <span className="ml-3 text-slate-500">产品：</span>
-                <strong className="text-slate-800">{action.reserve.programName}</strong>
-              </div>
-              <label className="block text-xs font-semibold text-slate-600">
-                审批结果
-                <select
-                  value={decision}
-                  onChange={(event) => setDecision(event.target.value as 'approved' | 'rejected')}
-                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs outline-none focus:border-[var(--sw-brand)]"
-                >
-                  <option value="approved">同意</option>
-                  <option value="rejected">拒绝</option>
-                </select>
-              </label>
-            </>
-          )}
-
-          {action.kind === 'issue' && (
-            <>
-              <label className="block text-xs font-semibold text-slate-600">
-                已批准备券申请
-                <select value={selectedReserveId} onChange={(event) => setReserveId(event.target.value)} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs outline-none focus:border-[var(--sw-brand)]">
-                  {approvedReserves.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.requestNo} · {item.programName} · {item.requestedQuantity.toLocaleString('zh-CN')} 张
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <p className="rounded-xl border border-blue-100 bg-[var(--sw-brand-light)] p-3 text-[11px] leading-relaxed text-[var(--sw-brand-dark)]">首版只发行电子储值券：系统生成不可预测券码，不占用实体卡号。</p>
-            </>
-          )}
-
-          {action.kind === 'status' && (
-            <>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
-                <span className="text-slate-500">券码：</span>
-                <strong className="font-mono text-slate-800">{action.voucher.voucherCode}</strong>
-                <span className="ml-3 text-slate-500">当前版本：</span>
-                <strong className="font-mono text-slate-800">{action.voucher.version}</strong>
-              </div>
-              <label className="block text-xs font-semibold text-slate-600">
-                操作
-                <select
-                  value={statusOperation}
-                  onChange={(event) => setStatusOperation(event.target.value as 'activate' | 'disable' | 'extend' | 'void')}
-                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs outline-none focus:border-[var(--sw-brand)]"
-                >
-                  <option value="activate">激活</option>
-                  <option value="disable">禁用</option>
-                  <option value="extend">延期</option>
-                  <option value="void">作废</option>
-                </select>
-              </label>
-              {statusOperation === 'extend' && (
-                <label className="block text-xs font-semibold text-slate-600">
-                  延期天数
-                  <input
-                    value={extensionDays}
-                    onChange={(event) => setExtensionDays(event.target.value)}
-                    inputMode="numeric"
-                    className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs outline-none focus:border-[var(--sw-brand)]"
-                  />
-                </label>
-              )}
-              {statusOperation === 'void' && (
-                <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-[11px] leading-relaxed text-amber-800">作废不会自动退回企业余额。系统将冻结该券的未使用余额，生成一条仅财务人员可处理的人工对账记录。</p>
-              )}
-            </>
-          )}
-
-          {action.kind === 'redeem' && (
-            <>
-              <label className="block text-xs font-semibold text-slate-600">
-                券码
-                <input
-                  value={voucherCode}
-                  onChange={(event) => setVoucherCode(event.target.value)}
-                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 font-mono text-xs outline-none focus:border-[var(--sw-brand)]"
-                  placeholder="扫描或输入券码"
-                />
-              </label>
-              <label className="block text-xs font-semibold text-slate-600">
-                核销金额（元）
-                <input
-                  value={amountYuan}
-                  onChange={(event) => setAmountYuan(event.target.value)}
-                  inputMode="decimal"
-                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 font-mono text-xs outline-none focus:border-[var(--sw-brand)]"
-                  placeholder="例如 100.00"
-                />
-              </label>
-              <label className="block text-xs font-semibold text-slate-600">
-                门店交易参考号
-                <input
-                  value={merchantReference}
-                  onChange={(event) => setMerchantReference(event.target.value)}
-                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 font-mono text-xs outline-none focus:border-[var(--sw-brand)]"
-                  placeholder="POS 交易流水号"
-                />
-              </label>
-            </>
-          )}
-
-          {action.kind === 'reverse' && (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
-              <span className="text-slate-500">核销流水：</span>
-              <strong className="font-mono text-slate-800">{action.redemption.redemptionNo}</strong>
-              <span className="ml-3 text-slate-500">券码：</span>
-              <strong className="font-mono text-slate-800">{action.redemption.voucherCode}</strong>
-            </div>
-          )}
-
-          {action.kind === 'reconcile' && (
-            <>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
-                <span className="text-slate-500">冻结券码：</span>
-                <strong className="font-mono text-slate-800">{action.voidHold.voucherCode}</strong>
-                <span className="ml-3 text-slate-500">冻结金额：</span>
-                <strong className="font-mono text-slate-800">¥{(action.voidHold.amountCents / 100).toFixed(2)}</strong>
-              </div>
-              <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-[11px] leading-relaxed text-amber-800">此操作只记录人工对账完成，不会自动把冻结余额退回企业，也不会恢复该卡券。</p>
-              <label className="block text-xs font-semibold text-slate-600">
-                对账参考号
-                <input
-                  value={reconciliationReference}
-                  onChange={(event) => setReconciliationReference(event.target.value)}
-                  maxLength={160}
-                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 font-mono text-xs outline-none focus:border-[var(--sw-brand)]"
-                  placeholder="财务凭证或工单号"
-                />
-              </label>
-              <label className="block text-xs font-semibold text-slate-600">
-                对账说明
-                <textarea
-                  value={reconciliationNote}
-                  onChange={(event) => setReconciliationNote(event.target.value)}
-                  maxLength={500}
-                  className="mt-1.5 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-xs outline-none focus:border-[var(--sw-brand)]"
-                  placeholder="说明处置结论与依据"
-                />
-              </label>
-            </>
-          )}
+          <VoucherWriteActionFields action={action} programs={programs} approvedReserves={approvedReserves} selectedProgramId={selectedProgramId} selectedReserveId={selectedReserveId} values={fields} onChange={updateField} />
 
           {(action.kind === 'reserve' || action.kind === 'approval' || action.kind === 'status' || action.kind === 'reverse') && (
             <>
