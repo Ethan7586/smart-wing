@@ -680,7 +680,9 @@ export const LoginPage: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-1 text-xs text-slate-500">
                       <Building2 className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                      <span className="truncate">{mem.enterpriseName} · {mem.roleName}</span>
+                      <span className="truncate">
+                        {mem.enterpriseName} · {mem.roleName}
+                      </span>
                     </div>
                   </div>
 
@@ -770,7 +772,9 @@ export const LoginPage: React.FC = () => {
                       )}
                     </div>
 
-                    <p className="text-xs font-medium text-blue-100">{mem.roleName} · {mem.storeName}</p>
+                    <p className="text-xs font-medium text-blue-100">
+                      {mem.roleName} · {mem.storeName}
+                    </p>
                     <p className="text-[11px] text-slate-300">授权范围：{mem.dataScope}</p>
 
                     {mem.keyPermissions && mem.keyPermissions.length > 0 && (
@@ -855,7 +859,9 @@ export const LoginPage: React.FC = () => {
 
       {/* 主布局：认证卡片叠压在蓝色品牌底板上（桌面端覆盖约 80%） */}
       <div className={isStorefrontEmbed ? 'flex min-h-screen items-center justify-center overflow-x-hidden bg-transparent p-0' : 'flex-1 flex items-center justify-center overflow-x-hidden p-4 sm:p-6 lg:p-12'}>
-        <div className={`relative w-full ${stage === 2 ? 'max-w-[680px]' : 'max-w-[520px]'} rounded-3xl bg-gradient-to-br from-[var(--sw-brand)] to-[var(--sw-brand-dark)] shadow-xl ${isStorefrontEmbed ? 'overflow-visible p-3' : 'overflow-hidden'}`}>
+        <div
+          className={`relative w-full ${stage === 2 ? 'max-w-[680px]' : 'max-w-[520px]'} rounded-3xl bg-gradient-to-br from-[var(--sw-brand)] to-[var(--sw-brand-dark)] shadow-xl ${isStorefrontEmbed ? 'overflow-visible p-3' : 'overflow-hidden'}`}
+        >
           {isStorefrontEmbed && (
             <button
               type="button"

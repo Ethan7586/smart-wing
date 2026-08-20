@@ -65,12 +65,7 @@ describe('admin voucher read routes', () => {
     expect(callRpcMock).not.toHaveBeenCalled();
 
     callRpcMock.mockResolvedValueOnce([{ id: 'audit-1', action: 'voucher.redeemed', request_id: 'request-1' }]);
-    const response = await handleAdminVoucherAudit(
-      new Request('https://smart.example/api/v1/admin/voucher-audit?limit=20&offset=5'),
-      {},
-      contextWithPermissions([PERMISSIONS.voucherAuditRead]),
-      'voucher-audit-live'
-    );
+    const response = await handleAdminVoucherAudit(new Request('https://smart.example/api/v1/admin/voucher-audit?limit=20&offset=5'), {}, contextWithPermissions([PERMISSIONS.voucherAuditRead]), 'voucher-audit-live');
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({ dataSource: 'live', data: { items: [{ id: 'audit-1' }], limit: 20, offset: 5 } });
     expect(callRpcMock).toHaveBeenCalledWith({}, 'api_voucher_audit_scoped', { p_membership_id: 'membership-voucher-admin', p_limit: 20, p_offset: 5 });
@@ -79,12 +74,7 @@ describe('admin voucher read routes', () => {
   it('shows a scoped void-balance worklist to finance without consuming a step-up session', async () => {
     callRpcMock.mockReset();
     callRpcMock.mockResolvedValueOnce([{ id: 'hold-a', voucher_code: 'SWV-A', status: 'open' }]);
-    const response = await handleAdminVoucherVoidHolds(
-      new Request('https://smart.example/api/v1/admin/voucher-void-holds?limit=20&offset=5'),
-      {},
-      contextWithPermissions([PERMISSIONS.voucherReconcile]),
-      'voucher-void-holds-live'
-    );
+    const response = await handleAdminVoucherVoidHolds(new Request('https://smart.example/api/v1/admin/voucher-void-holds?limit=20&offset=5'), {}, contextWithPermissions([PERMISSIONS.voucherReconcile]), 'voucher-void-holds-live');
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({ dataSource: 'live', data: { items: [{ id: 'hold-a' }], limit: 20, offset: 5 } });
     expect(callRpcMock).toHaveBeenCalledWith({}, 'api_voucher_void_holds_scoped', { p_membership_id: 'membership-voucher-admin', p_limit: 20, p_offset: 5 });
@@ -184,9 +174,7 @@ describe('admin voucher write routes', () => {
     callRpcMock.mockReset();
     sha256Mock.mockReset();
     sha256Mock.mockResolvedValue('voucher-issue-electronic-hash');
-    callRpcMock
-      .mockResolvedValueOnce({ tenant_id: 'tenant-a', enterprise_id: 'enterprise-a', mall_id: 'mall-a' })
-      .mockResolvedValueOnce({ issueBatch: { id: 'batch-electronic', status: 'issued' } });
+    callRpcMock.mockResolvedValueOnce({ tenant_id: 'tenant-a', enterprise_id: 'enterprise-a', mall_id: 'mall-a' }).mockResolvedValueOnce({ issueBatch: { id: 'batch-electronic', status: 'issued' } });
     const response = await handleIssueAdminVoucherBatch(
       new Request('https://smart.example/api/v1/admin/voucher-reserves/reserve-a/issue', {
         method: 'POST',
@@ -201,20 +189,23 @@ describe('admin voucher write routes', () => {
     expect(response.status).toBe(201);
     await expect(response.json()).resolves.toMatchObject({ issueBatch: { id: 'batch-electronic', status: 'issued' } });
     expect(callRpcMock).toHaveBeenNthCalledWith(1, {}, 'api_voucher_reserve_authorization_scope', { p_reserve_request_id: 'reserve-a' });
-    expect(callRpcMock).toHaveBeenNthCalledWith(2, {}, 'api_issue_voucher_batch_authorized', expect.objectContaining({
-      p_card_pool_id: null,
-      p_request_hash: 'voucher-issue-electronic-hash',
-      p_idempotency_key: 'issue-electronic-a',
-    }));
+    expect(callRpcMock).toHaveBeenNthCalledWith(
+      2,
+      {},
+      'api_issue_voucher_batch_authorized',
+      expect.objectContaining({
+        p_card_pool_id: null,
+        p_request_hash: 'voucher-issue-electronic-hash',
+        p_idempotency_key: 'issue-electronic-a',
+      })
+    );
   });
 
   it('redeems only after resolving the voucher scope on the server, recording a deterministic idempotency request', async () => {
     callRpcMock.mockReset();
     sha256Mock.mockReset();
     sha256Mock.mockResolvedValue('voucher-redemption-hash');
-    callRpcMock
-      .mockResolvedValueOnce({ id: 'voucher-a', tenant_id: 'tenant-a', enterprise_id: 'enterprise-a', mall_id: 'mall-a' })
-      .mockResolvedValueOnce({ id: 'redemption-a', status: 'confirmed', redeemedAmountCents: 5000 });
+    callRpcMock.mockResolvedValueOnce({ id: 'voucher-a', tenant_id: 'tenant-a', enterprise_id: 'enterprise-a', mall_id: 'mall-a' }).mockResolvedValueOnce({ id: 'redemption-a', status: 'confirmed', redeemedAmountCents: 5000 });
     const response = await handleRedeemAdminVoucher(
       new Request('https://smart.example/api/v1/admin/voucher-redemptions', {
         method: 'POST',
@@ -284,9 +275,7 @@ describe('admin voucher write routes', () => {
     callRpcMock.mockReset();
     sha256Mock.mockReset();
     sha256Mock.mockResolvedValue('voucher-void-hold-hash');
-    callRpcMock
-      .mockResolvedValueOnce({ tenant_id: 'tenant-a', enterprise_id: 'enterprise-a', mall_id: 'mall-a' })
-      .mockResolvedValueOnce({ voidBalanceHold: { id: 'hold-a', status: 'reconciled' } });
+    callRpcMock.mockResolvedValueOnce({ tenant_id: 'tenant-a', enterprise_id: 'enterprise-a', mall_id: 'mall-a' }).mockResolvedValueOnce({ voidBalanceHold: { id: 'hold-a', status: 'reconciled' } });
     const response = await handleReconcileAdminVoucherVoidHold(
       new Request('https://smart.example/api/v1/admin/voucher-void-holds/hold-a/reconcile', {
         method: 'POST',
@@ -301,12 +290,17 @@ describe('admin voucher write routes', () => {
     expect(response.status).toBe(201);
     await expect(response.json()).resolves.toMatchObject({ voidBalanceHold: { id: 'hold-a', status: 'reconciled' } });
     expect(callRpcMock).toHaveBeenNthCalledWith(1, {}, 'api_voucher_void_hold_authorization_scope', { p_void_hold_id: 'hold-a' });
-    expect(callRpcMock).toHaveBeenNthCalledWith(2, {}, 'api_reconcile_voucher_void_hold_authorized', expect.objectContaining({
-      p_void_hold_id: 'hold-a',
-      p_reconciliation_reference: 'FIN-20260817-001',
-      p_reconciliation_note: '已完成线下核验',
-      p_idempotency_key: 'void-hold-a',
-      p_request_hash: 'voucher-void-hold-hash',
-    }));
+    expect(callRpcMock).toHaveBeenNthCalledWith(
+      2,
+      {},
+      'api_reconcile_voucher_void_hold_authorized',
+      expect.objectContaining({
+        p_void_hold_id: 'hold-a',
+        p_reconciliation_reference: 'FIN-20260817-001',
+        p_reconciliation_note: '已完成线下核验',
+        p_idempotency_key: 'void-hold-a',
+        p_request_hash: 'voucher-void-hold-hash',
+      })
+    );
   });
 });

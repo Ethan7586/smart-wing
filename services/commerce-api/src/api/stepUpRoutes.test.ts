@@ -13,7 +13,7 @@ const { callRpcMock, readSessionMock, decryptJsonMock, verifyTotpMock } = vi.hoi
 vi.mock('./supabase', () => ({ callRpc: callRpcMock }));
 vi.mock('./crypto', () => ({ decryptJson: decryptJsonMock }));
 vi.mock('./totp', () => ({ verifyTotp: verifyTotpMock }));
-vi.mock('./session', async (importOriginal) => ({ ...await importOriginal<typeof import('./session')>(), readSession: readSessionMock }));
+vi.mock('./session', async (importOriginal) => ({ ...(await importOriginal<typeof import('./session')>()), readSession: readSessionMock }));
 
 const env: WorkerEnv = {
   ADMIN_SESSION_SIGNING_KEY: 'test-admin-step-up-signing-key-longer-than-32-bytes',
@@ -34,15 +34,29 @@ function authorization(): AuthorizationContext {
     authzVersion: 3,
   };
   return {
-    tenantId: 'tenant-a', enterpriseId: 'enterprise-a', mallId: 'mall-a', mallCode: 'MALL_A', userId: 'user-a', employeeNo: 'U001',
-    roles: membership.roleIds, permissions: membership.permissions, membership, stepUpAt: null,
+    tenantId: 'tenant-a',
+    enterpriseId: 'enterprise-a',
+    mallId: 'mall-a',
+    mallCode: 'MALL_A',
+    userId: 'user-a',
+    employeeNo: 'U001',
+    roles: membership.roleIds,
+    permissions: membership.permissions,
+    membership,
+    stepUpAt: null,
   };
 }
 
 function activeSession() {
   return {
-    sessionId: 'session-1234567890', employeeNo: 'U001', mallCode: 'MALL_A', target: 'admin' as const,
-    memberId: 'member-admin-a', membershipId: 'membership-admin-a', authzVersion: 3, expiresAt: Math.floor(Date.now() / 1_000) + 3600,
+    sessionId: 'session-1234567890',
+    employeeNo: 'U001',
+    mallCode: 'MALL_A',
+    target: 'admin' as const,
+    memberId: 'member-admin-a',
+    membershipId: 'membership-admin-a',
+    authzVersion: 3,
+    expiresAt: Math.floor(Date.now() / 1_000) + 3600,
   };
 }
 
@@ -88,9 +102,7 @@ describe('admin step-up routes', () => {
     decryptJsonMock.mockReset();
     verifyTotpMock.mockReset();
     readSessionMock.mockResolvedValue(activeSession());
-    callRpcMock
-      .mockResolvedValueOnce({ secretCiphertext: 'encrypted-factor' })
-      .mockResolvedValueOnce({ verifiedAt: '2026-08-17T08:00:00.000Z' });
+    callRpcMock.mockResolvedValueOnce({ secretCiphertext: 'encrypted-factor' }).mockResolvedValueOnce({ verifiedAt: '2026-08-17T08:00:00.000Z' });
     decryptJsonMock.mockResolvedValue({ totpSecret: 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ' });
     verifyTotpMock.mockResolvedValue(true);
     const response = await handleVerifyAdminStepUp(

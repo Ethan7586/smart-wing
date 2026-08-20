@@ -44,7 +44,7 @@ describe('whyouye product-pool write adapter', () => {
       }),
       {},
       context(),
-      'pool-preview',
+      'pool-preview'
     );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
@@ -65,7 +65,7 @@ describe('whyouye product-pool write adapter', () => {
       }),
       { WHYOUYE_API_TOKEN: 'test-token', WHYOUYE_ORG_ID: 'org-a', WHYOUYE_SITE_ID: 'site-a' },
       context(),
-      'pool-confirmation-required',
+      'pool-confirmation-required'
     );
     expect(response.status).toBe(409);
     await expect(response.json()).resolves.toMatchObject({ error: { code: 'EXTERNAL_WRITE_CONFIRMATION_REQUIRED' } });
@@ -80,7 +80,7 @@ describe('whyouye product-pool write adapter', () => {
       }),
       {},
       context(),
-      'pool-site-target-preview',
+      'pool-site-target-preview'
     );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({ payload: { siteIds: 'site-a', operStatus: 3 } });
@@ -91,7 +91,7 @@ describe('whyouye product-pool write adapter', () => {
       new Request('https://smart.example/api/v1/admin/integrations/whyouye/status'),
       { WHYOUYE_API_TOKEN: 'test-token', WHYOUYE_ORG_ID: 'org-a', WHYOUYE_SITE_ID: 'site-a' },
       context(),
-      'pool-status',
+      'pool-status'
     );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
@@ -117,7 +117,7 @@ describe('whyouye product-pool write adapter', () => {
       }),
       env,
       context(),
-      'jd-vop-commit',
+      'jd-vop-commit'
     );
     expect(response.status).toBe(201);
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -137,7 +137,7 @@ describe('whyouye product-pool write adapter', () => {
       }),
       {},
       context(false),
-      'permission-denied',
+      'permission-denied'
     );
     expect(response.status).toBe(403);
     expect(fetchMock).not.toHaveBeenCalled();

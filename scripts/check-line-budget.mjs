@@ -4,7 +4,10 @@ import { extname, join, relative, sep } from 'node:path';
 const ROOT = process.cwd();
 const LIMIT = 299;
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.css', '.wxml', '.wxss', '.md', '.json', '.toml', '.yml', '.yaml', '.sql']);
-const IGNORED_DIRECTORIES = new Set(['.git', '.next', '.open-next', '.wrangler', 'dist', 'node_modules', 'deliverables', 'tools']);
+// Local-only archive trees are excluded for the same reason as in
+// scripts/audit/workspace.mjs: they are untracked copies of former
+// worktrees and must never contribute findings to a repository gate.
+const IGNORED_DIRECTORIES = new Set(['.git', '.next', '.open-next', '.wrangler', 'dist', 'node_modules', 'deliverables', 'tools', 'pre-contract-code-merge-20260820', 'smart-wing-branch-work']);
 const GENERATED_OR_IMMUTABLE = [
   /(^|\/)package-lock\.json$/,
   /^.*\.tsbuildinfo$/,
@@ -39,6 +42,7 @@ const EXISTING_OVERSIZED = new Set([
   'apps/wechat-miniapp/00-新任务从这里开始/10-小程序开发完全说明.md',
   'apps/wechat-miniapp/miniprogram/pages/home/home-commerce.wxss',
   'docs/VI-CONVERGENCE-EXECUTION-PLAN.md',
+  'docs/福利商城架构和补齐修改清单.md',
   'scripts/build-miniapp-assets.mjs',
 ]);
 

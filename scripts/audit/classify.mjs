@@ -30,7 +30,10 @@ function exportsOf(source) {
   const list = /export\s+(?:type\s+)?\{([^}]*)\}/g;
   while ((match = list.exec(source)) !== null) {
     for (const piece of match[1].split(',')) {
-      const parts = piece.trim().replace(/^type\s+/, '').split(/\s+as\s+/);
+      const parts = piece
+        .trim()
+        .replace(/^type\s+/, '')
+        .split(/\s+as\s+/);
       const name = (parts[1] ?? parts[0]).trim();
       if (name) names.add(name);
     }

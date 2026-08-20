@@ -26,7 +26,10 @@ function auditBlocks(files) {
   const findings = [];
   for (const file of files) {
     if (rel(file).includes('.test.')) continue;
-    const lines = read(file).split('\n').map(normalise).filter((line) => line.length > 0 && line !== '}' && line !== '{');
+    const lines = read(file)
+      .split('\n')
+      .map(normalise)
+      .filter((line) => line.length > 0 && line !== '}' && line !== '{');
     for (let index = 0; index + MIN_BLOCK_LINES <= lines.length; index += 1) {
       const block = lines.slice(index, index + MIN_BLOCK_LINES).join('\n');
       if (block.length < 240) continue;
@@ -71,13 +74,15 @@ function auditSingleOwner(files) {
 
 function auditRouterOwnership(files) {
   const findings = [];
-  const routers = files.filter((file) => {
-    const path = rel(file);
-    if (!path.startsWith('services/') || path.includes('.test.')) return false;
-    const source = read(file);
-    // A dispatcher is a file that maps request paths onto handlers.
-    return /\/api\/v1/.test(source) && /(switch\s*\(\s*pathname|url\.pathname\s*===|pathname\s*===)/.test(source);
-  }).map(rel);
+  const routers = files
+    .filter((file) => {
+      const path = rel(file);
+      if (!path.startsWith('services/') || path.includes('.test.')) return false;
+      const source = read(file);
+      // A dispatcher is a file that maps request paths onto handlers.
+      return /\/api\/v1/.test(source) && /(switch\s*\(\s*pathname|url\.pathname\s*===|pathname\s*===)/.test(source);
+    })
+    .map(rel);
   if (routers.length > 1) {
     findings.push({ kind: 'router', file: routers.join(' | '), detail: `${routers.length} parallel route dispatchers; exactly one thin composer allowed` });
   }
@@ -86,9 +91,7 @@ function auditRouterOwnership(files) {
 
 function auditErrorEnvelope(files) {
   const findings = [];
-  const owners = files
-    .filter((file) => !rel(file).includes('.test.') && /error:\s*\{\s*code/.test(read(file)))
-    .map(rel);
+  const owners = files.filter((file) => !rel(file).includes('.test.') && /error:\s*\{\s*code/.test(read(file))).map(rel);
   if (owners.length > 1) {
     findings.push({ kind: 'envelope', file: owners.join(' | '), detail: `${owners.length} error envelope builders; only ErrorMapper may build it` });
   }
@@ -116,13 +119,7 @@ function auditConfigDuplication() {
 
 export function auditDuplicates() {
   const files = sourceFiles();
-  return [
-    ...auditSingleOwner(files),
-    ...auditRouterOwnership(files),
-    ...auditErrorEnvelope(files),
-    ...auditConfigDuplication(),
-    ...auditBlocks(files),
-  ];
+  return [...auditSingleOwner(files), ...auditRouterOwnership(files), ...auditErrorEnvelope(files), ...auditConfigDuplication(), ...auditBlocks(files)];
 }
 
 if (process.argv[1]?.endsWith('duplicate.mjs')) {

@@ -36,7 +36,7 @@ export interface PoolPreviewResult {
 }
 
 async function parseResponse(response: Response): Promise<PoolPreviewResult> {
-  const payload = (await response.json().catch(() => null)) as { error?: { message?: unknown }; message?: unknown } & Partial<PoolPreviewResult> | null;
+  const payload = (await response.json().catch(() => null)) as ({ error?: { message?: unknown }; message?: unknown } & Partial<PoolPreviewResult>) | null;
   if (!response.ok) {
     const message = typeof payload?.error?.message === 'string' ? payload.error.message : typeof payload?.message === 'string' ? payload.message : `请求失败（${response.status}）`;
     throw new Error(message);

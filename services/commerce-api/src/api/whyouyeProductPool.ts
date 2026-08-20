@@ -77,12 +77,7 @@ const DEFAULT_PRICING: PoolPricing = {
  * It never claims to create an arbitrary partner product: their UI uses a
  * distinct, guarded file-import flow for that capability.
  */
-export async function handleWhyouyeProductPoolEnroll(
-  request: Request,
-  env: WorkerEnv,
-  authorization: AuthorizationContext,
-  requestId: string,
-): Promise<Response> {
+export async function handleWhyouyeProductPoolEnroll(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   const permissionError = requireProductPoolWritePermission(request, authorization, requestId);
   if (permissionError) return permissionError;
   const body = await readJsonBody(request);
@@ -123,12 +118,7 @@ export async function handleWhyouyeProductPoolEnroll(
  * Reports only capability readiness, never the partner token or account code.
  * This gives the admin UI an honest signal before an operator starts a write.
  */
-export function handleWhyouyeIntegrationStatus(
-  request: Request,
-  env: WorkerEnv,
-  authorization: AuthorizationContext,
-  requestId: string,
-): Response {
+export function handleWhyouyeIntegrationStatus(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Response {
   if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
   if (authorization.membership.target !== 'admin') return apiError(403, 'FORBIDDEN', '该身份不能查看甲方商品池对接状态', requestId);
   const canRead = authorize(authorization, PERMISSIONS.catalogRead).allowed || authorize(authorization, PERMISSIONS.productPublish).allowed;
@@ -150,12 +140,7 @@ export function handleWhyouyeIntegrationStatus(
 }
 
 /** Adds existing JD VOP product IDs to the specific partner pool. */
-export async function handleWhyouyeJdVopPoolEnroll(
-  request: Request,
-  env: WorkerEnv,
-  authorization: AuthorizationContext,
-  requestId: string,
-): Promise<Response> {
+export async function handleWhyouyeJdVopPoolEnroll(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   const permissionError = requireProductPoolWritePermission(request, authorization, requestId);
   if (permissionError) return permissionError;
   const body = await readJsonBody(request);
@@ -198,9 +183,7 @@ function parseGeneralPoolInput(value: unknown): GeneralPoolInput | null {
   const pricing = parsePricing(value.pricing);
   const targetSiteIds = parseOptionalProductIds(value.targetSiteIds, 20);
   const operStatus = value.operStatus === undefined ? null : value.operStatus === 3 || value.operStatus === 4 ? value.operStatus : null;
-  return mode && source !== null && remoteProductIds && pricing && targetSiteIds !== null && (value.operStatus === undefined || operStatus !== null)
-    ? { mode, source, remoteProductIds, pricing, targetSiteIds, operStatus }
-    : null;
+  return mode && source !== null && remoteProductIds && pricing && targetSiteIds !== null && (value.operStatus === undefined || operStatus !== null) ? { mode, source, remoteProductIds, pricing, targetSiteIds, operStatus } : null;
 }
 
 function parseJdVopPoolInput(value: unknown): JdVopPoolInput | null {
@@ -252,14 +235,14 @@ function parsePricing(value: unknown): PoolPricing | null {
     if (typeof candidate !== 'string' || candidate.length > 200) return null;
     result[key] = candidate;
   }
-  return PRICE_WAYS.has(result.priceWay)
-    && PRICE_TYPES.has(result.priceType)
-    && PRICE_ADJUSTMENTS.has(result.priceAdjust)
-    && PRICE_UNITS.has(result.priceUnit)
-    && PRICE_WAYS.has(result.distribPriceWay)
-    && PRICE_TYPES.has(result.distribPriceType)
-    && PRICE_ADJUSTMENTS.has(result.distribPriceAdjust)
-    && PRICE_UNITS.has(result.distribPriceUnit)
+  return PRICE_WAYS.has(result.priceWay) &&
+    PRICE_TYPES.has(result.priceType) &&
+    PRICE_ADJUSTMENTS.has(result.priceAdjust) &&
+    PRICE_UNITS.has(result.priceUnit) &&
+    PRICE_WAYS.has(result.distribPriceWay) &&
+    PRICE_TYPES.has(result.distribPriceType) &&
+    PRICE_ADJUSTMENTS.has(result.distribPriceAdjust) &&
+    PRICE_UNITS.has(result.distribPriceUnit)
     ? result
     : null;
 }
@@ -280,21 +263,10 @@ function readCredentials(env: WorkerEnv, requireAccountCode = false): WhyouyeCre
 }
 
 function integrationNotConfigured(requestId: string, jdVop = false): Response {
-  return apiError(
-    503,
-    'WHYOUYE_INTEGRATION_NOT_CONFIGURED',
-    jdVop ? '甲方京东商品池密钥尚未配置' : '甲方商品池密钥尚未配置',
-    requestId,
-  );
+  return apiError(503, 'WHYOUYE_INTEGRATION_NOT_CONFIGURED', jdVop ? '甲方京东商品池密钥尚未配置' : '甲方商品池密钥尚未配置', requestId);
 }
 
-async function postToWhyouye(
-  endpoint: string,
-  payload: Record<string, unknown>,
-  credentials: WhyouyeCredentials,
-  productCount: number,
-  requestId: string,
-): Promise<Response> {
+async function postToWhyouye(endpoint: string, payload: Record<string, unknown>, credentials: WhyouyeCredentials, productCount: number, requestId: string): Promise<Response> {
   let remote: Response;
   try {
     remote = await fetch(`${WHYOUYE_ORIGIN}${endpoint}`, {

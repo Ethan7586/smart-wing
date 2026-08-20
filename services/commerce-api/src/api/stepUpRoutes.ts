@@ -26,13 +26,11 @@ function isStepUpSession(session: SessionPayload | null, authorization: Authoriz
 }
 
 function startResult(value: StepUpStartResult): { challengeId: string; expiresAt: string } | null {
-  return typeof value.challengeId === 'string' && value.challengeId.length > 0 && typeof value.expiresAt === 'string'
-    ? { challengeId: value.challengeId, expiresAt: value.expiresAt }
-    : null;
+  return typeof value.challengeId === 'string' && value.challengeId.length > 0 && typeof value.expiresAt === 'string' ? { challengeId: value.challengeId, expiresAt: value.expiresAt } : null;
 }
 
 function totpSecret(value: unknown): string | null {
-  const payload = typeof value === 'object' && value !== null ? value as MfaSecretPayload : null;
+  const payload = typeof value === 'object' && value !== null ? (value as MfaSecretPayload) : null;
   return typeof payload?.totpSecret === 'string' && payload.totpSecret.length >= 16 ? payload.totpSecret : null;
 }
 

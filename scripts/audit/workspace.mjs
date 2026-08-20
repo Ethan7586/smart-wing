@@ -82,20 +82,7 @@ export function rel(file) {
 /** Resolves a relative import specifier to a real file, mirroring bundler resolution. */
 export function resolveRelativeImport(fromFile, specifier) {
   const base = resolve(dirname(fromFile), specifier);
-  const candidates = [
-    base,
-    `${base}.ts`,
-    `${base}.tsx`,
-    `${base}.mts`,
-    `${base}.js`,
-    `${base}.jsx`,
-    `${base}.mjs`,
-    `${base}.cjs`,
-    join(base, 'index.ts'),
-    join(base, 'index.tsx'),
-    join(base, 'index.js'),
-    join(base, 'index.mjs'),
-  ];
+  const candidates = [base, `${base}.ts`, `${base}.tsx`, `${base}.mts`, `${base}.js`, `${base}.jsx`, `${base}.mjs`, `${base}.cjs`, join(base, 'index.ts'), join(base, 'index.tsx'), join(base, 'index.js'), join(base, 'index.mjs')];
   for (const candidate of candidates) {
     try {
       if (statSync(candidate).isFile()) return candidate;
@@ -151,12 +138,18 @@ export function importedBindings(source, specifier) {
     const braces = clause.match(/\{([^}]*)\}/);
     if (braces) {
       for (const piece of braces[1].split(',')) {
-        const parts = piece.trim().replace(/^type\s+/, '').split(/\s+as\s+/);
+        const parts = piece
+          .trim()
+          .replace(/^type\s+/, '')
+          .split(/\s+as\s+/);
         const name = parts[0].trim();
         if (name) bindings.push(name);
       }
     }
-    const defaultBinding = clause.replace(/\{[^}]*\}/, '').replace(/,/g, '').trim();
+    const defaultBinding = clause
+      .replace(/\{[^}]*\}/, '')
+      .replace(/,/g, '')
+      .trim();
     if (defaultBinding && !defaultBinding.startsWith('*')) bindings.push('default');
   }
   return bindings;

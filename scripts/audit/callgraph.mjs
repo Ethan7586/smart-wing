@@ -13,10 +13,37 @@ import { join } from 'node:path';
 import { ROOT, sourceFiles, read, rel, imports, importedBindings, exportedNames, resolveRelativeImport, workspacePackages } from './workspace.mjs';
 
 const NODE_BUILTINS = new Set([
-  'node:fs', 'node:path', 'node:crypto', 'node:url', 'node:util', 'node:os', 'node:child_process',
-  'node:stream', 'node:buffer', 'node:events', 'node:http', 'node:https', 'node:zlib', 'node:assert',
-  'node:worker_threads', 'node:timers', 'node:test', 'fs', 'path', 'crypto', 'url', 'util', 'os',
-  'stream', 'buffer', 'events', 'http', 'https', 'zlib', 'assert', 'child_process',
+  'node:fs',
+  'node:path',
+  'node:crypto',
+  'node:url',
+  'node:util',
+  'node:os',
+  'node:child_process',
+  'node:stream',
+  'node:buffer',
+  'node:events',
+  'node:http',
+  'node:https',
+  'node:zlib',
+  'node:assert',
+  'node:worker_threads',
+  'node:timers',
+  'node:test',
+  'fs',
+  'path',
+  'crypto',
+  'url',
+  'util',
+  'os',
+  'stream',
+  'buffer',
+  'events',
+  'http',
+  'https',
+  'zlib',
+  'assert',
+  'child_process',
 ]);
 
 function packageRootFor(file) {
@@ -35,12 +62,7 @@ function packageRootFor(file) {
 function declaredDependencies(workspacePackage) {
   if (!workspacePackage) return null;
   const json = workspacePackage.json ?? {};
-  return new Set([
-    ...Object.keys(json.dependencies ?? {}),
-    ...Object.keys(json.devDependencies ?? {}),
-    ...Object.keys(json.peerDependencies ?? {}),
-    ...Object.keys(json.optionalDependencies ?? {}),
-  ]);
+  return new Set([...Object.keys(json.dependencies ?? {}), ...Object.keys(json.devDependencies ?? {}), ...Object.keys(json.peerDependencies ?? {}), ...Object.keys(json.optionalDependencies ?? {})]);
 }
 
 function rootDependencies() {
@@ -63,7 +85,11 @@ export function auditCallGraph() {
   const findings = [];
   const files = sourceFiles();
   const rootDeps = rootDependencies();
-  const workspaceNames = new Set(workspacePackages().map((entry) => entry.json?.name).filter(Boolean));
+  const workspaceNames = new Set(
+    workspacePackages()
+      .map((entry) => entry.json?.name)
+      .filter(Boolean)
+  );
 
   for (const file of files) {
     const source = read(file);

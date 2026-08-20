@@ -39,18 +39,7 @@ const LOCAL_ORDER_DEMO_ENABLED = localPreviewEnv?.DEV === true && localPreviewEn
  * gated by both Vite development mode and the explicit demo flag above.
  * The demo never reaches the commerce API and cannot submit writes.
  */
-const LOCAL_ORDER_DEMO_PERMISSIONS = [
-  'catalog.read',
-  'order.read',
-  'order.ship',
-  'order.refund',
-  'tenant.manage',
-  'finance.reconcile',
-  'member.read',
-  'role.read',
-  'mall.read',
-  'commercial_resource.read',
-];
+const LOCAL_ORDER_DEMO_PERMISSIONS = ['catalog.read', 'order.read', 'order.ship', 'order.refund', 'tenant.manage', 'finance.reconcile', 'member.read', 'role.read', 'mall.read', 'commercial_resource.read'];
 
 export function allowedWorkstationsFor(permissions: string[], roles: string[] = []): WorkstationId[] {
   const allowed = new Set<WorkstationId>(['cockpit']);

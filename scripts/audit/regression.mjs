@@ -24,7 +24,10 @@ function exportsOf(source) {
   const list = /export\s+(?:type\s+)?\{([^}]*)\}/g;
   while ((match = list.exec(source)) !== null) {
     for (const piece of match[1].split(',')) {
-      const parts = piece.trim().replace(/^type\s+/, '').split(/\s+as\s+/);
+      const parts = piece
+        .trim()
+        .replace(/^type\s+/, '')
+        .split(/\s+as\s+/);
       const name = (parts[1] ?? parts[0]).trim();
       if (name) names.add(name);
     }
@@ -37,7 +40,7 @@ const rows = [];
 
 for (const file of changed) {
   const before = run(`git show ${BASELINE}:${file}`);
-  if (!before) continue;                       // added in current tree, not a regression
+  if (!before) continue; // added in current tree, not a regression
   // Always read the working tree: it is the thing that will be built and shipped.
   if (!existsSync(file)) continue;
   const after = readFileSync(file, 'utf8');

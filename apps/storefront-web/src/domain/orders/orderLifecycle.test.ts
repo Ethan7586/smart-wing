@@ -3,16 +3,7 @@ import { API_ORDER_STATUSES, canRequestAfterSale, mapApiOrderStatus, orderStatus
 
 describe('order lifecycle contract', () => {
   it('maps every server status to the storefront status without losing cancellations or refunds', () => {
-    expect(API_ORDER_STATUSES.map(mapApiOrderStatus)).toEqual([
-      'pending_payment',
-      'pending_shipment',
-      'pending_shipment',
-      'pending_receipt',
-      'completed',
-      'cancelled',
-      'after_sale',
-      'refunded',
-    ]);
+    expect(API_ORDER_STATUSES.map(mapApiOrderStatus)).toEqual(['pending_payment', 'pending_shipment', 'pending_shipment', 'pending_receipt', 'completed', 'cancelled', 'after_sale', 'refunded']);
   });
 
   it('only permits after-sale requests for fulfilled orders', () => {

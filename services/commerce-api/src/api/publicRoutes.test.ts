@@ -233,7 +233,7 @@ describe('health and readiness endpoints', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('returns only the verified member\'s active storefront and admin choices before a session is created', async () => {
+  it("returns only the verified member's active storefront and admin choices before a session is created", async () => {
     const passwordHash = await hashPassword('SmartWing2026');
     const runtime = {
       id: 'membership-storefront-ethan',
@@ -253,13 +253,7 @@ describe('health and readiness endpoints', () => {
       { id: 'membership-storefront-ethan', target: 'storefront', status: 'active', enterpriseName: '示范企业', storeName: '智慧翼企业福利商城', roleName: '员工会员', dataScope: '个人福利账户', accountTypeLabel: '福利账户' },
       { id: 'membership-platform-owner-ethan-v1', target: 'admin', status: 'active', enterpriseName: '智慧翼福利平台', storeName: '智慧翼平台运营后台', roleName: '平台业主', dataScope: '平台级全部授权范围', subjectScope: '平台' },
     ];
-    const responses = [
-      true,
-      { memberId: 'member-ethan', membershipId: 'membership-storefront-ethan', target: 'storefront', passwordHash },
-      runtime,
-      true,
-      selectable,
-    ];
+    const responses = [true, { memberId: 'member-ethan', membershipId: 'membership-storefront-ethan', target: 'storefront', passwordHash }, runtime, true, selectable];
     const fetchMock = vi.fn(async () => new Response(JSON.stringify(responses.shift()), { status: 200, headers: { 'content-type': 'application/json' } }));
     vi.stubGlobal('fetch', fetchMock);
 

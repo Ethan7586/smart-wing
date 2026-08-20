@@ -49,62 +49,58 @@ describe('order management presentation helpers', () => {
   });
 
   it('rejects an order page that is JSON but omits the required line count', async () => {
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            items: [
-              {
-                id: 'o1',
-                orderNo: 'ORD-1',
-                status: 'paid',
-                payableCents: 100,
-                paidCents: 100,
-                welfarePaidCents: 0,
-                mealPaidCents: 0,
-                itemCount: 1,
-                firstProductName: '礼品',
-                supplierNames: [],
-                createdAt: '2026-08-19T00:00:00Z',
-                updatedAt: '2026-08-19T00:00:00Z',
-              },
-            ],
-            total: 1,
-          })
-        )
-      );
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              id: 'o1',
+              orderNo: 'ORD-1',
+              status: 'paid',
+              payableCents: 100,
+              paidCents: 100,
+              welfarePaidCents: 0,
+              mealPaidCents: 0,
+              itemCount: 1,
+              firstProductName: '礼品',
+              supplierNames: [],
+              createdAt: '2026-08-19T00:00:00Z',
+              updatedAt: '2026-08-19T00:00:00Z',
+            },
+          ],
+          total: 1,
+        })
+      )
+    );
     await expect(loadOrderPage(DEFAULT_ORDER_FILTERS)).rejects.toThrow('订单查询服务返回了不完整的数据');
     fetchMock.mockRestore();
   });
 
   it('keeps a legacy zero-line order readable instead of rejecting the full page', async () => {
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            items: [
-              {
-                id: 'o-archived-lines',
-                orderNo: 'ORD-ARCHIVED-LINES',
-                status: 'completed',
-                payableCents: 100,
-                paidCents: 100,
-                welfarePaidCents: 0,
-                mealPaidCents: 0,
-                lineCount: 0,
-                itemCount: 1,
-                firstProductName: '已归档商品',
-                supplierNames: [],
-                createdAt: '2026-08-19T00:00:00Z',
-                updatedAt: '2026-08-19T00:00:00Z',
-              },
-            ],
-            total: 1,
-          })
-        )
-      );
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              id: 'o-archived-lines',
+              orderNo: 'ORD-ARCHIVED-LINES',
+              status: 'completed',
+              payableCents: 100,
+              paidCents: 100,
+              welfarePaidCents: 0,
+              mealPaidCents: 0,
+              lineCount: 0,
+              itemCount: 1,
+              firstProductName: '已归档商品',
+              supplierNames: [],
+              createdAt: '2026-08-19T00:00:00Z',
+              updatedAt: '2026-08-19T00:00:00Z',
+            },
+          ],
+          total: 1,
+        })
+      )
+    );
 
     await expect(loadOrderPage(DEFAULT_ORDER_FILTERS)).resolves.toMatchObject({
       items: [{ orderNo: 'ORD-ARCHIVED-LINES', lineCount: 0 }],

@@ -10,20 +10,46 @@ import { walk, rel, ROOT } from './workspace.mjs';
 
 /** Tool-mandated names that cannot be renamed without breaking their ecosystem. */
 const EXEMPT_FILES = new Set([
-  'package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.node.json', 'tsconfig.app.json',
-  'vite.config.ts', 'vitest.config.ts', 'next.config.ts', 'next-env.d.ts', 'postcss.config.js',
-  'tailwind.config.ts', 'eslint.config.js', '.eslintrc.json', '.prettierrc.json', '.prettierignore',
-  '.editorconfig', '.gitignore', '.gitattributes', '.npmrc', '.nvmrc', 'README.md', 'LICENSE',
-  'Caddyfile', 'Dockerfile', 'docker-compose.yml', 'project.config.json', 'project.private.config.json',
-  'sitemap.config.json', 'components.json', 'manifest.json', 'app.json', 'THIRD_PARTY_NOTICES.md',
+  'package.json',
+  'package-lock.json',
+  'tsconfig.json',
+  'tsconfig.node.json',
+  'tsconfig.app.json',
+  'vite.config.ts',
+  'vitest.config.ts',
+  'next.config.ts',
+  'next-env.d.ts',
+  'postcss.config.js',
+  'tailwind.config.ts',
+  'eslint.config.js',
+  '.eslintrc.json',
+  '.prettierrc.json',
+  '.prettierignore',
+  '.editorconfig',
+  '.gitignore',
+  '.gitattributes',
+  '.npmrc',
+  '.nvmrc',
+  'README.md',
+  'LICENSE',
+  'Caddyfile',
+  'Dockerfile',
+  'docker-compose.yml',
+  'project.config.json',
+  'project.private.config.json',
+  'sitemap.config.json',
+  'components.json',
+  'manifest.json',
+  'app.json',
+  'THIRD_PARTY_NOTICES.md',
 ]);
 
 /** Directories whose contents are exempt by the project's own naming rule. */
 const EXEMPT_PREFIXES = [
-  'scripts/audit/',   // 代码审计
-  'database/',        // SQL migrations keep timestamp_snake naming
-  'docs/',            // requirement and decision documents
-  'infrastructure/',  // vendor-mandated deployment file names
+  'scripts/audit/', // 代码审计
+  'database/', // SQL migrations keep timestamp_snake naming
+  'docs/', // requirement and decision documents
+  'infrastructure/', // vendor-mandated deployment file names
   '.github/',
   '.vercel/',
   'node_modules/',

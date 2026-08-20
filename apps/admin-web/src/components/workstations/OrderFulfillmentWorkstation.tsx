@@ -239,11 +239,7 @@ export const OrderFulfillmentWorkstation: React.FC<OrderFulfillmentProps> = ({ o
                     <span className="font-mono font-bold text-slate-900">{ord.orderNo}</span>
                     <span
                       className={`px-2 py-0.2 rounded text-[10px] font-bold ${
-                        ord.isProblematic
-                          ? 'bg-rose-100 text-rose-700 border border-rose-200'
-                          : ord.status === 'refund_pending'
-                            ? 'bg-purple-100 text-purple-700 border border-purple-200'
-                            : 'bg-blue-100 text-blue-700 border border-blue-200'
+                        ord.isProblematic ? 'bg-rose-100 text-rose-700 border border-rose-200' : ord.status === 'refund_pending' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-blue-100 text-blue-700 border border-blue-200'
                       }`}
                     >
                       {orderStatusLabel(ord.status)}
