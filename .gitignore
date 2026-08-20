@@ -28,6 +28,3 @@ gitpointer.broken.txt
 .dev.vars
 **/.dev.vars
 
-# Requirement workbook carries vendor credentials in the interface sheet.
-# It stays on disk for reading, never in version control.
-docs/福利商城功能清单.xlsx
