@@ -34,6 +34,16 @@ function scopeBindings(value: unknown): ScopeBinding[] | null {
 }
 
 /**
+ * A distributor identity is projected only from server-resolved scope bindings,
+ * never from the session's context payload, and only when exactly one distinct
+ * distributor is granted. Zero or ambiguous grants fail closed.
+ */
+function projectedDistributorId(bindings: ScopeBinding[]): string | null {
+  const ids = [...new Set(bindings.filter((binding) => binding.kind === 'distributor').map((binding) => binding.resourceId))];
+  return ids.length === 1 ? ids[0] : null;
+}
+
+/**
  * Resolves the one membership referenced by the host-only signed cookie. This
  * is intentionally called on every request; permissions are never stored in a
  * cookie and a revoked membership is rejected immediately.
@@ -177,7 +187,7 @@ function parseAuthorizationContext(value: unknown, membership: Membership | null
   if (tenantId !== membership.context.tenantId || enterpriseId !== membership.context.enterpriseId || mallId !== membership.context.mallId || userId !== membership.context.userId) return null;
   return {
     tenantId,
-    distributorId: membership.context.distributorId ?? null,
+    distributorId: projectedDistributorId(membership.scopeBindings),
     enterpriseId,
     mallId,
     mallCode,
