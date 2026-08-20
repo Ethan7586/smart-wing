@@ -9,14 +9,16 @@ import {
   handleAdminVoucherReserves,
   handleAdminVoucherVoidHolds,
   handleAdminVouchers,
+} from '../voucherReadRoutes';
+import {
   handleChangeAdminVoucherStatus,
   handleCreateAdminVoucherReserve,
   handleDecideAdminVoucherReserve,
   handleIssueAdminVoucherBatch,
-  handleRedeemAdminVoucher,
   handleReconcileAdminVoucherVoidHold,
+  handleRedeemAdminVoucher,
   handleReverseAdminVoucherRedemption,
-} from '../voucherRoutes';
+} from '../voucherWriteRoutes';
 import { handleWhyouyeIntegrationStatus, handleWhyouyeJdVopPoolEnroll, handleWhyouyeProductPoolEnroll } from '../whyouyeProductPool';
 import { handleAdminAfterSaleExport, handleAdminAfterSalePage, handleAdminOrderExport, handleAdminOrderPage } from '../adminOrderRoutes';
 import { handleCreateCustomRole, handleCustomRoleCenter, handleSetCustomRoleStatus, handleUpdateCustomRole } from '../customRoleRoutes';

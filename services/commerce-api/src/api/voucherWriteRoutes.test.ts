@@ -1,125 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
-import { PERMISSIONS, type Membership } from '@smart-wing/api-contract';
-import {
-  handleAdminVoucherDetail,
-  handleAdminVoucherAudit,
-  handleAdminVoucherVoidHolds,
-  handleAdminVoucherOverview,
-  handleAdminVouchers,
-  handleChangeAdminVoucherStatus,
-  handleCreateAdminVoucherReserve,
-  handleIssueAdminVoucherBatch,
-  handleRedeemAdminVoucher,
-  handleReconcileAdminVoucherVoidHold,
-  handleReverseAdminVoucherRedemption,
-} from './voucherRoutes';
-import type { AuthorizationContext } from './types';
+import { PERMISSIONS } from '@smart-wing/api-contract';
+import { handleChangeAdminVoucherStatus, handleCreateAdminVoucherReserve, handleIssueAdminVoucherBatch, handleReconcileAdminVoucherVoidHold, handleRedeemAdminVoucher, handleReverseAdminVoucherRedemption } from './voucherWriteRoutes';
+import { context, contextWithPermissions } from './voucherTestSupport';
 
 const { callRpcMock, sha256Mock } = vi.hoisted(() => ({ callRpcMock: vi.fn(), sha256Mock: vi.fn() }));
 
 vi.mock('./supabase', () => ({ callRpc: callRpcMock }));
 vi.mock('./crypto', () => ({ sha256: sha256Mock }));
-
-function context(overrides: Partial<AuthorizationContext> = {}): AuthorizationContext {
-  const membership: Membership = {
-    id: 'membership-voucher-admin',
-    memberId: 'member-voucher-admin',
-    target: 'admin',
-    status: 'active',
-    roleIds: ['role-voucher-mall-operator-v1'],
-    permissions: [PERMISSIONS.voucherRead],
-    context: { tenantId: 'tenant-a', enterpriseId: 'enterprise-a', mallId: 'mall-a', userId: 'user-a' },
-    scopeBindings: [{ kind: 'mall', resourceId: 'mall-a' }],
-    expiresAt: null,
-    authzVersion: 1,
-  };
-  return {
-    tenantId: 'tenant-a',
-    enterpriseId: 'enterprise-a',
-    mallId: 'mall-a',
-    mallCode: 'MALL_A',
-    userId: 'user-a',
-    employeeNo: 'U001',
-    roles: membership.roleIds,
-    permissions: membership.permissions,
-    membership,
-    stepUpAt: null,
-    ...overrides,
-  };
-}
-
-function contextWithPermissions(permissions: AuthorizationContext['permissions'], stepUpAt: string | null = null): AuthorizationContext {
-  const base = context();
-  return context({
-    permissions,
-    membership: { ...base.membership, permissions },
-    stepUpAt,
-  });
-}
-
-describe('admin voucher read routes', () => {
-  it('allows audit records only to an explicitly authorized, scoped auditor', async () => {
-    callRpcMock.mockReset();
-    const noAuditResponse = await handleAdminVoucherAudit(new Request('https://smart.example/api/v1/admin/voucher-audit'), {}, context(), 'voucher-audit-denied');
-    expect(noAuditResponse.status).toBe(403);
-    expect(callRpcMock).not.toHaveBeenCalled();
-
-    callRpcMock.mockResolvedValueOnce([{ id: 'audit-1', action: 'voucher.redeemed', request_id: 'request-1' }]);
-    const response = await handleAdminVoucherAudit(new Request('https://smart.example/api/v1/admin/voucher-audit?limit=20&offset=5'), {}, contextWithPermissions([PERMISSIONS.voucherAuditRead]), 'voucher-audit-live');
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ dataSource: 'live', data: { items: [{ id: 'audit-1' }], limit: 20, offset: 5 } });
-    expect(callRpcMock).toHaveBeenCalledWith({}, 'api_voucher_audit_scoped', { p_membership_id: 'membership-voucher-admin', p_limit: 20, p_offset: 5 });
-  });
-
-  it('shows a scoped void-balance worklist to finance without consuming a step-up session', async () => {
-    callRpcMock.mockReset();
-    callRpcMock.mockResolvedValueOnce([{ id: 'hold-a', voucher_code: 'SWV-A', status: 'open' }]);
-    const response = await handleAdminVoucherVoidHolds(new Request('https://smart.example/api/v1/admin/voucher-void-holds?limit=20&offset=5'), {}, contextWithPermissions([PERMISSIONS.voucherReconcile]), 'voucher-void-holds-live');
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ dataSource: 'live', data: { items: [{ id: 'hold-a' }], limit: 20, offset: 5 } });
-    expect(callRpcMock).toHaveBeenCalledWith({}, 'api_voucher_void_holds_scoped', { p_membership_id: 'membership-voucher-admin', p_limit: 20, p_offset: 5 });
-  });
-
-  it('rejects void-balance worklist access before querying data without reconciliation permission', async () => {
-    callRpcMock.mockReset();
-    const response = await handleAdminVoucherVoidHolds(new Request('https://smart.example/api/v1/admin/voucher-void-holds'), {}, context(), 'voucher-void-holds-denied');
-    expect(response.status).toBe(403);
-    expect(callRpcMock).not.toHaveBeenCalled();
-  });
-
-  it('rejects overview requests before querying data when voucher read permission is absent', async () => {
-    callRpcMock.mockReset();
-    const authorization = context({ permissions: [], membership: { ...context().membership, permissions: [] } });
-    const response = await handleAdminVoucherOverview(new Request('https://smart.example/api/v1/admin/vouchers/overview'), {}, authorization, 'voucher-overview-denied');
-    expect(response.status).toBe(403);
-    expect(callRpcMock).not.toHaveBeenCalled();
-  });
-
-  it('returns a marked live payload scoped to the resolved membership', async () => {
-    callRpcMock.mockReset();
-    callRpcMock.mockResolvedValueOnce({ activeVoucherCount: 3, remainingValueCents: 90000 });
-    const response = await handleAdminVoucherOverview(new Request('https://smart.example/api/v1/admin/vouchers/overview'), {}, context(), 'voucher-overview-live');
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ dataSource: 'live', data: { activeVoucherCount: 3 }, requestId: 'voucher-overview-live' });
-    expect(callRpcMock).toHaveBeenCalledWith({}, 'api_voucher_overview_scoped', { p_membership_id: 'membership-voucher-admin' });
-  });
-
-  it('rejects an invalid status filter before querying data', async () => {
-    callRpcMock.mockReset();
-    const response = await handleAdminVouchers(new Request('https://smart.example/api/v1/admin/vouchers?status=anything'), {}, context(), 'voucher-filter-invalid');
-    expect(response.status).toBe(422);
-    expect(callRpcMock).not.toHaveBeenCalled();
-  });
-
-  it('refuses a voucher from another tenant after loading its server-side resource scope', async () => {
-    callRpcMock.mockReset();
-    callRpcMock.mockResolvedValueOnce({ tenant_id: 'tenant-b', enterprise_id: 'enterprise-b', mall_id: 'mall-b' });
-    const response = await handleAdminVoucherDetail(new Request('https://smart.example/api/v1/admin/vouchers/voucher-b'), {}, context(), 'voucher-b', 'voucher-cross-tenant');
-    expect(response.status).toBe(403);
-    expect(callRpcMock).toHaveBeenCalledTimes(1);
-    expect(callRpcMock).toHaveBeenCalledWith({}, 'api_voucher_authorization_scope', { p_voucher_id: 'voucher-b' });
-  });
-});
 
 describe('admin voucher write routes', () => {
   it('requires an idempotency key before creating a reserve request', async () => {

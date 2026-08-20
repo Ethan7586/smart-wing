@@ -5,7 +5,7 @@ import { apiError, json, methodNotAllowed } from './http';
 import { authorizationEvidence, authorizationScope, invalidBody, loadResourceScope, readJsonBody } from './routerSupport';
 import { callRpc } from './supabase';
 import type { AuthorizationContext, WorkerEnv } from './types';
-import { parseCatalogImportInput } from './validation';
+import { parseCatalogImportInput } from './catalogInput';
 
 export async function handleAdminCatalog(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
