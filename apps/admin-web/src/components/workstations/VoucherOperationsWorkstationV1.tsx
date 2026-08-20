@@ -176,7 +176,7 @@ function StatusTag({ value }: { value: VoucherStatus | ApplicationStatus }) {
 
 function MetricCard({ label, value, note, icon: Icon, tone = 'blue' }: { label: string; value: string; note: string; icon: React.ElementType; tone?: 'blue' | 'green' | 'amber' | 'rose' }) {
   const toneMap = {
-    blue: 'bg-blue-50 text-[#1F5EFF] border-blue-100',
+    blue: 'bg-blue-50 text-[var(--sw-brand)] border-blue-100',
     green: 'bg-emerald-50 text-emerald-600 border-emerald-100',
     amber: 'bg-amber-50 text-amber-600 border-amber-100',
     rose: 'bg-rose-50 text-rose-600 border-rose-100',
@@ -263,12 +263,12 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
 
   return (
     <div className="min-h-full bg-[#F5F7FB] p-5 lg:p-6 space-y-4">
-      <section className="bg-gradient-to-r from-[#07182F] via-[#102E61] to-[#143A8F] rounded-2xl p-5 text-white overflow-hidden relative shadow-lg shadow-blue-950/10">
-        <div className="absolute -right-16 -top-20 w-64 h-64 rounded-full bg-[#1F5EFF]/25 blur-2xl" />
+      <section className="bg-gradient-to-r from-[var(--sw-brand-ink)] via-[#102E61] to-[var(--sw-brand-dark)] rounded-2xl p-5 text-white overflow-hidden relative shadow-lg shadow-blue-950/10">
+        <div className="absolute -right-16 -top-20 w-64 h-64 rounded-full bg-[var(--sw-brand)]/25 blur-2xl" />
         <div className="relative flex items-start justify-between gap-6">
           <div>
             <div className="flex items-center gap-2.5">
-              <span className="w-10 h-10 rounded-xl bg-[#1F5EFF] flex items-center justify-center shadow-lg shadow-blue-900/40">
+              <span className="w-10 h-10 rounded-xl bg-[var(--sw-brand)] flex items-center justify-center shadow-lg shadow-blue-900/40">
                 <TicketCheck className="w-5 h-5" />
               </span>
               <div>
@@ -298,9 +298,9 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                   key={id}
                   type="button"
                   onClick={() => setActiveModule(id)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-colors ${active ? 'bg-[#EAF1FF] text-[#143A8F] ring-1 ring-[#1F5EFF]/20' : 'text-slate-600 hover:bg-slate-50'}`}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-colors ${active ? 'bg-[var(--sw-brand-light)] text-[var(--sw-brand-dark)] ring-1 ring-[var(--sw-brand)]/20' : 'text-slate-600 hover:bg-slate-50'}`}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-[#1F5EFF]' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-[var(--sw-brand)]' : 'text-slate-400'}`} />
                   <span className="min-w-0 flex-1">
                     <span className="block text-xs font-semibold truncate">{label}</span>
                     <span className="block text-[10px] text-slate-400 truncate mt-0.5">{owner}</span>
@@ -321,7 +321,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-bold text-slate-900">{activeMeta.label}</h2>
-                <span className="px-2 py-0.5 rounded-full bg-[#EAF1FF] text-[#143A8F] text-[10px] font-semibold">{activeMeta.owner}</span>
+                <span className="px-2 py-0.5 rounded-full bg-[var(--sw-brand-light)] text-[var(--sw-brand-dark)] text-[10px] font-semibold">{activeMeta.owner}</span>
               </div>
               <p className="text-[11px] text-amber-700 mt-1">当前展示预置测试数据；刷新会回到初始状态，不能作为生产记录。</p>
             </div>
@@ -334,7 +334,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                 <button
                   type="button"
                   onClick={() => (activeModule === 'reserve' ? setShowReserveForm(true) : setActiveModule('reserve'))}
-                  className="px-3 py-2 rounded-xl bg-[#1F5EFF] text-white text-xs font-semibold hover:bg-[#174CCC] flex items-center gap-1.5 shadow-sm"
+                  className="px-3 py-2 rounded-xl bg-[var(--sw-brand)] text-white text-xs font-semibold hover:bg-[#174CCC] flex items-center gap-1.5 shadow-sm"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   {activeModule === 'reserve' ? '新增备券' : '创建卡券'}
@@ -371,12 +371,12 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                     ['consumption', '7', '消费明细', '集团 / 商城'],
                   ].map(([id, step, label, owner], index, list) => (
                     <React.Fragment key={id}>
-                      <button type="button" onClick={() => setActiveModule(id as ModuleId)} className="flex-1 min-w-0 p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-[#1F5EFF] hover:bg-[#EAF1FF] text-left transition-colors">
-                        <span className="w-6 h-6 rounded-lg bg-[#1F5EFF] text-white text-[11px] font-bold flex items-center justify-center">{step}</span>
+                      <button type="button" onClick={() => setActiveModule(id as ModuleId)} className="flex-1 min-w-0 p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-[var(--sw-brand)] hover:bg-[var(--sw-brand-light)] text-left transition-colors">
+                        <span className="w-6 h-6 rounded-lg bg-[var(--sw-brand)] text-white text-[11px] font-bold flex items-center justify-center">{step}</span>
                         <span className="block text-xs font-bold text-slate-800 mt-3">{label}</span>
                         <span className="block text-[10px] text-slate-400 mt-1">{owner}</span>
                       </button>
-                      {index < list.length - 1 && <ArrowRight className="w-4 h-4 text-[#1F5EFF] self-center shrink-0" />}
+                      {index < list.length - 1 && <ArrowRight className="w-4 h-4 text-[var(--sw-brand)] self-center shrink-0" />}
                     </React.Fragment>
                   ))}
                 </div>
@@ -385,12 +385,12 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
                   <div className="flex items-center gap-2">
-                    <Database className="w-4 h-4 text-[#1F5EFF]" />
+                    <Database className="w-4 h-4 text-[var(--sw-brand)]" />
                     <h3 className="text-sm font-bold text-slate-900">资源底座</h3>
                   </div>
                   <div className="mt-4 grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-xl bg-[#EAF1FF] border border-blue-100">
-                      <span className="text-[10px] text-[#143A8F]">可分配卡号</span>
+                    <div className="p-3 rounded-xl bg-[var(--sw-brand-light)] border border-blue-100">
+                      <span className="text-[10px] text-[var(--sw-brand-dark)]">可分配卡号</span>
                       <strong className="block text-lg font-mono text-slate-900 mt-1">20,000</strong>
                     </div>
                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
@@ -428,10 +428,10 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
               <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-[#1F5EFF]" />
+                    <Building2 className="w-4 h-4 text-[var(--sw-brand)]" />
                     <h3 className="text-sm font-bold">客户管理</h3>
                   </div>
-                  <button className="text-xs text-[#1F5EFF] font-semibold">查看全部</button>
+                  <button className="text-xs text-[var(--sw-brand)] font-semibold">查看全部</button>
                 </div>
                 <div className="mt-4 space-y-3">
                   {['湖北博钛智能科技', '武汉优页科技', '华中数智服务中心'].map((name, index) => (
@@ -448,10 +448,10 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
               <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <TicketCheck className="w-4 h-4 text-[#1F5EFF]" />
+                    <TicketCheck className="w-4 h-4 text-[var(--sw-brand)]" />
                     <h3 className="text-sm font-bold">产品档案</h3>
                   </div>
-                  <button className="text-xs text-[#1F5EFF] font-semibold">新增档案</button>
+                  <button className="text-xs text-[var(--sw-brand)] font-semibold">新增档案</button>
                 </div>
                 <div className="mt-4 space-y-3">
                   {[
@@ -467,18 +467,18 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                     </div>
                   ))}
                 </div>
-                <div className="mt-3 p-3 rounded-xl bg-[#EAF1FF] text-[11px] text-[#143A8F]">MVP 产品类型先支持储值券，后续再扩展其他券型。</div>
+                <div className="mt-3 p-3 rounded-xl bg-[var(--sw-brand-light)] text-[11px] text-[var(--sw-brand-dark)]">MVP 产品类型先支持储值券，后续再扩展其他券型。</div>
               </div>
               <div className="col-span-2 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
-                    <Database className="w-4 h-4 text-[#1F5EFF]" />
+                    <Database className="w-4 h-4 text-[var(--sw-brand)]" />
                     <div>
                       <h3 className="text-sm font-bold">卡号库</h3>
                       <p className="text-[11px] text-slate-400 mt-1">平台 Admin 维护实体卡号资源；电子券不占用实体卡号。</p>
                     </div>
                   </div>
-                  <button className="px-3 py-2 rounded-xl bg-[#1F5EFF] text-white text-xs font-semibold flex items-center gap-1.5">
+                  <button className="px-3 py-2 rounded-xl bg-[var(--sw-brand)] text-white text-xs font-semibold flex items-center gap-1.5">
                     <Plus className="w-3.5 h-3.5" />
                     生成卡号
                   </button>
@@ -503,7 +503,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
           {activeModule === 'reserve' && (
             <div className="space-y-4">
               {showReserveForm && (
-                <div className="bg-white border border-[#1F5EFF]/30 rounded-2xl p-5 shadow-sm">
+                <div className="bg-white border border-[var(--sw-brand)]/30 rounded-2xl p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-sm font-bold text-slate-900">新增备券申请</h3>
@@ -518,9 +518,9 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                       <label key={label} className="text-[11px] font-medium text-slate-500">
                         <span className="block mb-1.5">{label}</span>
                         {index === 0 || index === 5 ? (
-                          <input className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs outline-none focus:border-[#1F5EFF]" placeholder={index === 0 ? '请输入名称' : '请输入正整数'} />
+                          <input className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs outline-none focus:border-[var(--sw-brand)]" placeholder={index === 0 ? '请输入名称' : '请输入正整数'} />
                         ) : (
-                          <select className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[#1F5EFF]">
+                          <select className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs outline-none focus:border-[var(--sw-brand)]">
                             <option>请选择</option>
                             <option>{index === 1 ? '湖北博钛智能科技' : index === 2 ? '企业储值券' : index === 3 ? '智慧翼福利商城' : '仅输入券码'}</option>
                           </select>
@@ -532,7 +532,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                     <button onClick={() => setShowReserveForm(false)} className="px-3 py-2 rounded-lg border border-slate-200 text-xs">
                       取消
                     </button>
-                    <button onClick={() => setShowReserveForm(false)} className="px-3 py-2 rounded-lg bg-[#1F5EFF] text-white text-xs font-semibold">
+                    <button onClick={() => setShowReserveForm(false)} className="px-3 py-2 rounded-lg bg-[var(--sw-brand)] text-white text-xs font-semibold">
                       提交审批
                     </button>
                   </div>
@@ -565,7 +565,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                         </td>
                         <td className="px-4 py-3 text-slate-500 whitespace-nowrap">{item.createdAt}</td>
                         <td className="px-4 py-3">
-                          <button onClick={() => (item.status === '待审核' ? setActiveModule('approval') : undefined)} className="text-[#1F5EFF] font-semibold">
+                          <button onClick={() => (item.status === '待审核' ? setActiveModule('approval') : undefined)} className="text-[var(--sw-brand)] font-semibold">
                             {item.status === '待审核' ? '去审批' : '详情'}
                           </button>
                         </td>
@@ -584,7 +584,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                   <h3 className="text-sm font-bold text-slate-900">是否启用卡券审批流程</h3>
                   <p className="text-[11px] text-slate-400 mt-1">关闭后备券申请直接通过；开启后按申请人、审批人节点流转。</p>
                 </div>
-                <button type="button" onClick={() => setApprovalEnabled((value) => !value)} aria-pressed={approvalEnabled} className={`w-12 h-7 rounded-full p-1 transition-colors ${approvalEnabled ? 'bg-[#1F5EFF]' : 'bg-slate-300'}`}>
+                <button type="button" onClick={() => setApprovalEnabled((value) => !value)} aria-pressed={approvalEnabled} className={`w-12 h-7 rounded-full p-1 transition-colors ${approvalEnabled ? 'bg-[var(--sw-brand)]' : 'bg-slate-300'}`}>
                   <span className={`block w-5 h-5 bg-white rounded-full shadow transition-transform ${approvalEnabled ? 'translate-x-5' : ''}`} />
                 </button>
               </div>
@@ -598,9 +598,9 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                     <span className="text-[10px] text-slate-400">申请人</span>
                     <strong className="block text-xs mt-1">集团福利管理员</strong>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-[#1F5EFF]" />
-                  <div className="flex-1 p-3 rounded-xl bg-[#EAF1FF] border border-blue-100">
-                    <span className="text-[10px] text-[#143A8F]">审批人</span>
+                  <ArrowRight className="w-4 h-4 text-[var(--sw-brand)]" />
+                  <div className="flex-1 p-3 rounded-xl bg-[var(--sw-brand-light)] border border-blue-100">
+                    <span className="text-[10px] text-[var(--sw-brand-dark)]">审批人</span>
                     <strong className="block text-xs mt-1 text-slate-900">集团运营负责人</strong>
                   </div>
                 </div>
@@ -626,7 +626,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                         <button onClick={() => updateApplication(item.id, '已拒绝')} className="px-3 py-2 rounded-lg border border-rose-200 text-rose-600 text-xs font-semibold">
                           拒绝
                         </button>
-                        <button onClick={() => updateApplication(item.id, '已同意')} className="px-3 py-2 rounded-lg bg-[#1F5EFF] text-white text-xs font-semibold">
+                        <button onClick={() => updateApplication(item.id, '已同意')} className="px-3 py-2 rounded-lg bg-[var(--sw-brand)] text-white text-xs font-semibold">
                           同意并生成资源
                         </button>
                       </div>
@@ -663,7 +663,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                           </td>
                         ))}
                         <td className="px-4 py-3">
-                          <button onClick={() => setActiveModule('query')} className="text-[#1F5EFF] font-semibold">
+                          <button onClick={() => setActiveModule('query')} className="text-[var(--sw-brand)] font-semibold">
                             查看卡券
                           </button>
                         </td>
@@ -693,7 +693,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                           setOperationKind(kind);
                           setOperationPreview(null);
                         }}
-                        className={`px-4 py-2 rounded-xl border text-xs font-semibold ${styles} ${operationKind === kind ? 'ring-2 ring-[#1F5EFF]/20 bg-slate-50' : 'bg-white'}`}
+                        className={`px-4 py-2 rounded-xl border text-xs font-semibold ${styles} ${operationKind === kind ? 'ring-2 ring-[var(--sw-brand)]/20 bg-slate-50' : 'bg-white'}`}
                       >
                         {kind === '激活' ? (
                           <CheckCircle2 className="w-3.5 h-3.5 inline mr-1.5" />
@@ -722,7 +722,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                           setSelectionMode(mode);
                           setOperationPreview(null);
                         }}
-                        className="accent-[#1F5EFF]"
+                        className="accent-[var(--sw-brand)]"
                       />
                       {mode}
                     </label>
@@ -738,10 +738,10 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                       setOperationTarget(event.target.value);
                       setOperationPreview(null);
                     }}
-                    className="flex-1 h-10 px-3 rounded-xl border border-slate-200 text-xs outline-none focus:border-[#1F5EFF]"
+                    className="flex-1 h-10 px-3 rounded-xl border border-slate-200 text-xs outline-none focus:border-[var(--sw-brand)]"
                     placeholder={selectionMode === '券号' ? '输入券号或券码，例如 QH26081616200018' : selectionMode === '券号段' ? '输入开始券号 ~ 结束券号' : '输入发行批次号'}
                   />
-                  <button onClick={previewOperation} className="px-4 h-10 rounded-xl bg-[#1F5EFF] text-white text-xs font-semibold flex items-center gap-1.5">
+                  <button onClick={previewOperation} className="px-4 h-10 rounded-xl bg-[var(--sw-brand)] text-white text-xs font-semibold flex items-center gap-1.5">
                     <Eye className="w-3.5 h-3.5" />
                     预览影响
                   </button>
@@ -773,7 +773,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                   <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 text-xs outline-none focus:border-[#1F5EFF]"
+                    className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 text-xs outline-none focus:border-[var(--sw-brand)]"
                     placeholder="搜索券号、券码、批次、客户或绑定用户"
                   />
                 </div>
@@ -818,7 +818,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                         <td className="px-4 py-3">{item.validUntil}</td>
                         <td className="px-4 py-3">{item.boundUser}</td>
                         <td className="px-4 py-3">
-                          <button onClick={() => setSelectedVoucher(item)} className="text-[#1F5EFF] font-semibold">
+                          <button onClick={() => setSelectedVoucher(item)} className="text-[var(--sw-brand)] font-semibold">
                             详情
                           </button>
                         </td>
@@ -829,7 +829,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                 {filteredVouchers.length === 0 && <div className="py-12 text-center text-xs text-slate-400">没有符合条件的卡券</div>}
               </div>
               {selectedVoucher && (
-                <div className="bg-white border border-[#1F5EFF]/30 rounded-2xl p-5 shadow-sm">
+                <div className="bg-white border border-[var(--sw-brand)]/30 rounded-2xl p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">
@@ -855,7 +855,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                       </div>
                     ))}
                   </div>
-                  <div className="mt-4 border-l-2 border-[#1F5EFF] pl-4 text-[11px] text-slate-500">2026-08-16 16:20 生成卡券 → 2026-08-16 17:03 绑定用户 → 当前状态：{selectedVoucher.status}</div>
+                  <div className="mt-4 border-l-2 border-[var(--sw-brand)] pl-4 text-[11px] text-slate-500">2026-08-16 16:20 生成卡券 → 2026-08-16 17:03 绑定用户 → 当前状态：{selectedVoucher.status}</div>
                 </div>
               )}
             </div>
@@ -903,7 +903,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
             <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(300px,.8fr)] gap-4">
               <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
                 <div className="flex items-center gap-2">
-                  <Store className="w-5 h-5 text-[#1F5EFF]" />
+                  <Store className="w-5 h-5 text-[var(--sw-brand)]" />
                   <div>
                     <h3 className="text-sm font-bold text-slate-900">门店券码核销</h3>
                     <p className="text-[11px] text-slate-400 mt-0.5">扫描券二维码，或输入券号与券码</p>
@@ -920,10 +920,10 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                           setVerifyCode(event.target.value);
                           setVerifyState('idle');
                         }}
-                        className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 bg-white text-xs font-mono outline-none focus:border-[#1F5EFF]"
+                        className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 bg-white text-xs font-mono outline-none focus:border-[var(--sw-brand)]"
                       />
                     </div>
-                    <button onClick={runVerify} className="px-4 h-10 rounded-xl bg-[#1F5EFF] text-white text-xs font-semibold">
+                    <button onClick={runVerify} className="px-4 h-10 rounded-xl bg-[var(--sw-brand)] text-white text-xs font-semibold">
                       校验卡券
                     </button>
                   </div>
@@ -936,10 +936,10 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                   </div>
                 )}
                 {(verifyState === 'matched' || verifyState === 'done') && (
-                  <div className={`mt-4 p-4 rounded-xl border ${verifyState === 'done' ? 'bg-emerald-50 border-emerald-200' : 'bg-[#EAF1FF] border-blue-200'}`}>
+                  <div className={`mt-4 p-4 rounded-xl border ${verifyState === 'done' ? 'bg-emerald-50 border-emerald-200' : 'bg-[var(--sw-brand-light)] border-blue-200'}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className={`w-5 h-5 ${verifyState === 'done' ? 'text-emerald-600' : 'text-[#1F5EFF]'}`} />
+                        <CheckCircle2 className={`w-5 h-5 ${verifyState === 'done' ? 'text-emerald-600' : 'text-[var(--sw-brand)]'}`} />
                         <strong className="text-sm text-slate-900">{verifyState === 'done' ? '核销成功' : '卡券校验通过'}</strong>
                       </div>
                       <span className="text-[10px] font-mono text-slate-500">{verifyCode}</span>
@@ -984,7 +984,7 @@ const VoucherPrototypeWorkstation: React.FC<VoucherOperationsProps> = ({ onOpenG
                     ))}
                   </div>
                 </div>
-                <div className="bg-[#07182F] rounded-2xl p-5 text-white">
+                <div className="bg-[var(--sw-brand-ink)] rounded-2xl p-5 text-white">
                   <div className="flex items-center gap-2">
                     <UserCheck className="w-4 h-4 text-blue-300" />
                     <strong className="text-sm">会员码边界</strong>
@@ -1005,9 +1005,9 @@ function DataToolbar({ query, setQuery, placeholder }: { query: string; setQuery
     <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3">
       <div className="relative flex-1">
         <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 text-xs outline-none focus:border-[#1F5EFF]" placeholder={placeholder} />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 text-xs outline-none focus:border-[var(--sw-brand)]" placeholder={placeholder} />
       </div>
-      <button className="h-9 px-4 rounded-xl bg-[#1F5EFF] text-white text-xs font-semibold">搜索</button>
+      <button className="h-9 px-4 rounded-xl bg-[var(--sw-brand)] text-white text-xs font-semibold">搜索</button>
       <button onClick={() => setQuery('')} className="h-9 px-4 rounded-xl border border-slate-200 text-xs text-slate-600">
         重置
       </button>
@@ -1161,11 +1161,11 @@ const LiveVoucherReadWorkstation: React.FC<{ sessionPermissions: string[]; write
 
   return (
     <div className="min-h-full space-y-4 bg-[#F5F7FB] p-5 lg:p-6">
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#07182F] via-[#102E61] to-[#143A8F] p-5 text-white shadow-lg shadow-blue-950/10">
-        <div className="absolute -right-16 -top-20 h-64 w-64 rounded-full bg-[#1F5EFF]/25 blur-2xl" />
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[var(--sw-brand-ink)] via-[#102E61] to-[var(--sw-brand-dark)] p-5 text-white shadow-lg shadow-blue-950/10">
+        <div className="absolute -right-16 -top-20 h-64 w-64 rounded-full bg-[var(--sw-brand)]/25 blur-2xl" />
         <div className="relative flex items-start justify-between gap-6">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1F5EFF] shadow-lg shadow-blue-900/40">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--sw-brand)] shadow-lg shadow-blue-900/40">
               <TicketCheck className="h-5 w-5" />
             </span>
             <div>
@@ -1194,9 +1194,9 @@ const LiveVoucherReadWorkstation: React.FC<{ sessionPermissions: string[]; write
                   key={id}
                   type="button"
                   onClick={() => switchModule(id)}
-                  className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-colors ${active ? 'bg-[#EAF1FF] text-[#143A8F] ring-1 ring-[#1F5EFF]/20' : 'text-slate-600 hover:bg-slate-50'}`}
+                  className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-colors ${active ? 'bg-[var(--sw-brand-light)] text-[var(--sw-brand-dark)] ring-1 ring-[var(--sw-brand)]/20' : 'text-slate-600 hover:bg-slate-50'}`}
                 >
-                  <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-[#1F5EFF]' : 'text-slate-400'}`} />
+                  <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-[var(--sw-brand)]' : 'text-slate-400'}`} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-xs font-semibold">{label}</span>
                     <span className="mt-0.5 block truncate text-[10px] text-slate-400">{owner}</span>
@@ -1216,7 +1216,7 @@ const LiveVoucherReadWorkstation: React.FC<{ sessionPermissions: string[]; write
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-bold text-slate-900">{activeMeta.label}</h2>
-                <span className="rounded-full bg-[#EAF1FF] px-2 py-0.5 text-[10px] font-semibold text-[#143A8F]">{activeMeta.owner}</span>
+                <span className="rounded-full bg-[var(--sw-brand-light)] px-2 py-0.5 text-[10px] font-semibold text-[var(--sw-brand-dark)]">{activeMeta.owner}</span>
               </div>
               <p className="mt-1 text-[11px] text-emerald-700">仅显示通过正式权限校验的服务端数据。</p>
             </div>
@@ -1256,7 +1256,7 @@ const LiveVoucherReadWorkstation: React.FC<{ sessionPermissions: string[]; write
                           key={id}
                           type="button"
                           onClick={() => switchModule(id as ModuleId)}
-                          className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-left text-xs font-semibold text-slate-700 hover:border-[#1F5EFF] hover:bg-[#EAF1FF]"
+                          className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-left text-xs font-semibold text-slate-700 hover:border-[var(--sw-brand)] hover:bg-[var(--sw-brand-light)]"
                         >
                           {label}
                         </button>
@@ -1328,7 +1328,7 @@ const LiveVoucherReadWorkstation: React.FC<{ sessionPermissions: string[]; write
                           {activeModule === 'approval' && canWrite('voucher.reserve.approve') && (
                             <td className="px-4 py-3">
                               {item.status === 'submitted' ? (
-                                <button type="button" onClick={() => setWriteAction({ kind: 'approval', reserve: item })} className="rounded-lg border border-[#1F5EFF]/30 bg-[#EAF1FF] px-2.5 py-1.5 text-[11px] font-semibold text-[#143A8F]">
+                                <button type="button" onClick={() => setWriteAction({ kind: 'approval', reserve: item })} className="rounded-lg border border-[var(--sw-brand)]/30 bg-[var(--sw-brand-light)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--sw-brand-dark)]">
                                   审批
                                 </button>
                               ) : (
@@ -1344,7 +1344,7 @@ const LiveVoucherReadWorkstation: React.FC<{ sessionPermissions: string[]; write
               )}
               <div className="mt-4">
                 {activeModule === 'reserve' && canWrite('voucher.reserve.create') ? (
-                  <button type="button" onClick={() => setWriteAction({ kind: 'reserve' })} className="rounded-xl bg-[#1F5EFF] px-4 py-2.5 text-xs font-semibold text-white">
+                  <button type="button" onClick={() => setWriteAction({ kind: 'reserve' })} className="rounded-xl bg-[var(--sw-brand)] px-4 py-2.5 text-xs font-semibold text-white">
                     创建备券申请
                   </button>
                 ) : activeModule === 'approval' && canWrite('voucher.reserve.approve') ? (
@@ -1392,7 +1392,7 @@ const LiveVoucherReadWorkstation: React.FC<{ sessionPermissions: string[]; write
                     type="button"
                     onClick={() => setWriteAction({ kind: 'issue' })}
                     disabled={!reserves.some((item) => item.status === 'approved')}
-                    className="rounded-xl bg-[#1F5EFF] px-4 py-2.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-xl bg-[var(--sw-brand)] px-4 py-2.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     发行电子券批次
                   </button>
@@ -1434,7 +1434,7 @@ const LiveVoucherReadWorkstation: React.FC<{ sessionPermissions: string[]; write
                                 type="button"
                                 onClick={() => setWriteAction({ kind: 'status', voucher: item })}
                                 disabled={item.status === 'redeemed' || item.status === 'expired' || item.status === 'void'}
-                                className="rounded-lg border border-[#1F5EFF]/30 bg-[#EAF1FF] px-2.5 py-1.5 text-[11px] font-semibold text-[#143A8F] disabled:cursor-not-allowed disabled:opacity-50"
+                                className="rounded-lg border border-[var(--sw-brand)]/30 bg-[var(--sw-brand-light)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--sw-brand-dark)] disabled:cursor-not-allowed disabled:opacity-50"
                               >
                                 状态操作
                               </button>
@@ -1467,7 +1467,7 @@ const LiveVoucherReadWorkstation: React.FC<{ sessionPermissions: string[]; write
                     onKeyDown={(event) => {
                       if (event.key === 'Enter') runVoucherSearch();
                     }}
-                    className="h-9 w-full rounded-xl border border-slate-200 pl-9 pr-3 text-xs outline-none focus:border-[#1F5EFF]"
+                    className="h-9 w-full rounded-xl border border-slate-200 pl-9 pr-3 text-xs outline-none focus:border-[var(--sw-brand)]"
                     placeholder="搜索券码、卡号或产品名称"
                   />
                 </div>
@@ -1477,7 +1477,7 @@ const LiveVoucherReadWorkstation: React.FC<{ sessionPermissions: string[]; write
                     setStatusFilter(event.target.value as VoucherApiStatus | 'all');
                     setSearchVersion((current) => current + 1);
                   }}
-                  className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs outline-none focus:border-[#1F5EFF]"
+                  className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs outline-none focus:border-[var(--sw-brand)]"
                 >
                   <option value="all">全部状态</option>
                   {Object.entries(liveVoucherStatusLabel).map(([value, label]) => (
@@ -1486,7 +1486,7 @@ const LiveVoucherReadWorkstation: React.FC<{ sessionPermissions: string[]; write
                     </option>
                   ))}
                 </select>
-                <button type="button" onClick={runVoucherSearch} className="h-9 rounded-xl bg-[#1F5EFF] px-4 text-xs font-semibold text-white">
+                <button type="button" onClick={runVoucherSearch} className="h-9 rounded-xl bg-[var(--sw-brand)] px-4 text-xs font-semibold text-white">
                   查询
                 </button>
               </div>
@@ -1522,7 +1522,7 @@ const LiveVoucherReadWorkstation: React.FC<{ sessionPermissions: string[]; write
                                 type="button"
                                 onClick={() => setWriteAction({ kind: 'status', voucher: item })}
                                 disabled={item.status === 'redeemed' || item.status === 'expired' || item.status === 'void'}
-                                className="rounded-lg border border-[#1F5EFF]/30 bg-[#EAF1FF] px-2.5 py-1.5 text-[11px] font-semibold text-[#143A8F] disabled:cursor-not-allowed disabled:opacity-50"
+                                className="rounded-lg border border-[var(--sw-brand)]/30 bg-[var(--sw-brand-light)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--sw-brand-dark)] disabled:cursor-not-allowed disabled:opacity-50"
                               >
                                 状态操作
                               </button>
@@ -1682,7 +1682,7 @@ const LiveVoucherReadWorkstation: React.FC<{ sessionPermissions: string[]; write
                       <h3 className="text-sm font-bold text-slate-900">门店券码核销</h3>
                       <p className="mt-1 text-xs leading-relaxed text-slate-500">核销必须提供券码、金额和门店交易参考号；服务器会锁定单券、校验余额并写入不可变流水。</p>
                     </div>
-                    <button type="button" onClick={() => setWriteAction({ kind: 'redeem' })} className="rounded-xl bg-[#1F5EFF] px-4 py-2.5 text-xs font-semibold text-white">
+                    <button type="button" onClick={() => setWriteAction({ kind: 'redeem' })} className="rounded-xl bg-[var(--sw-brand)] px-4 py-2.5 text-xs font-semibold text-white">
                       发起核销
                     </button>
                   </div>

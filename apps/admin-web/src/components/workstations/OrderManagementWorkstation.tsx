@@ -59,7 +59,7 @@ export function OrderManagementWorkstation({ orders, onUpdateOrders, onOpenGuard
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-base font-bold text-slate-900">订单管理系统 (Order Management System)</h2>
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[#1769ff]">当前授权订单范围</span>
+              <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[var(--sw-brand)]">当前授权订单范围</span>
               <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${isLiveOrders ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-amber-200 bg-amber-50 text-amber-700'}`}>
                 {isLiveOrders ? '生产订单实时读取' : '演示订单数据 · 尚未连接生产库'}
               </span>
@@ -83,7 +83,7 @@ export function OrderManagementWorkstation({ orders, onUpdateOrders, onOpenGuard
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`rounded-t-lg px-4 py-2.5 text-xs font-semibold transition-colors ${activeTab === tab.id ? 'bg-[#1769ff] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
+                className={`rounded-t-lg px-4 py-2.5 text-xs font-semibold transition-colors ${activeTab === tab.id ? 'bg-[var(--sw-brand)] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
               >
                 {tab.label}
                 {tab.id === 'orders' && <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] ${activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>{metrics.total}</span>}
@@ -125,7 +125,7 @@ export function OrderManagementWorkstation({ orders, onUpdateOrders, onOpenGuard
 
 function MetricCard({ label, value, note, tone, onClick }: { label: string; value: number; note: string; tone: 'blue' | 'violet' | 'amber' | 'rose'; onClick: () => void }) {
   const tones = {
-    blue: 'border-blue-100 bg-blue-50/50 text-[#1769ff]',
+    blue: 'border-blue-100 bg-blue-50/50 text-[var(--sw-brand)]',
     violet: 'border-violet-100 bg-violet-50/50 text-violet-700',
     amber: 'border-amber-100 bg-amber-50/50 text-amber-700',
     rose: 'border-rose-100 bg-rose-50/50 text-rose-700',
@@ -159,7 +159,7 @@ function ExceptionSummary({ orders, onOpen }: { orders: Order[]; onOpen: (orderI
           <h3 className="text-sm font-bold text-slate-800">异常订单队列</h3>
           <p className="mt-1 text-xs text-slate-500">异常处置会在订单履约台保留全生命周期时间线、资金分摊与重试记录。</p>
         </div>
-        <button type="button" onClick={() => onOpen(exceptions[0]?.id ?? '')} disabled={!exceptions.length} className="rounded-lg bg-[#1769ff] px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
+        <button type="button" onClick={() => onOpen(exceptions[0]?.id ?? '')} disabled={!exceptions.length} className="rounded-lg bg-[var(--sw-brand)] px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
           处理首个异常
         </button>
       </div>
@@ -167,7 +167,7 @@ function ExceptionSummary({ orders, onOpen }: { orders: Order[]; onOpen: (orderI
         <div className="divide-y divide-slate-100">
           {exceptions.map((order) => (
             <div key={order.id} className="grid gap-3 px-5 py-4 text-xs md:grid-cols-[180px_1fr_160px_84px]">
-              <span className="font-mono font-semibold text-[#1769ff]">{order.orderNo}</span>
+              <span className="font-mono font-semibold text-[var(--sw-brand)]">{order.orderNo}</span>
               <span>
                 <span className="block font-medium text-slate-700">{order.problemSummary ?? '订单履约异常待处理'}</span>
                 <span className="mt-1 block text-slate-400">
@@ -177,7 +177,7 @@ function ExceptionSummary({ orders, onOpen }: { orders: Order[]; onOpen: (orderI
               <span className="self-center">
                 <span className="rounded-md bg-rose-50 px-2 py-1 text-rose-700">{order.problemType ?? orderStatusLabel(order.status)}</span>
               </span>
-              <button type="button" onClick={() => onOpen(order.id)} className="self-center font-semibold text-[#1769ff] hover:underline">
+              <button type="button" onClick={() => onOpen(order.id)} className="self-center font-semibold text-[var(--sw-brand)] hover:underline">
                 去处置
               </button>
             </div>

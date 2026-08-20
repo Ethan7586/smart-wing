@@ -36,7 +36,7 @@ export function OrderTable({ orders, canShip, onSelect, onShip }: OrderTableProp
           {orders.map((order) => (
             <tr key={order.id} className="hover:bg-blue-50/30">
               <td className="px-4 py-3">
-                <button type="button" onClick={() => onSelect(order)} className="font-mono font-semibold text-[#1769ff] hover:underline">
+                <button type="button" onClick={() => onSelect(order)} className="font-mono font-semibold text-[var(--sw-brand)] hover:underline">
                   {order.orderNo}
                 </button>
               </td>
@@ -56,7 +56,7 @@ export function OrderTable({ orders, canShip, onSelect, onShip }: OrderTableProp
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-slate-500">{formatDate(order.createdAt)}</td>
               <td className="whitespace-nowrap px-4 py-3">
-                <button type="button" onClick={() => onSelect(order)} className="font-medium text-[#1769ff] hover:underline">
+                <button type="button" onClick={() => onSelect(order)} className="font-medium text-[var(--sw-brand)] hover:underline">
                   详情
                 </button>
                 {canShip && ['paid', 'processing'].includes(order.status) && (

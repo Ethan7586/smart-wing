@@ -90,7 +90,7 @@ function State({ text, retry, reset }: { text: string; retry?: () => void; reset
     <div className="flex min-h-72 flex-col items-center justify-center gap-3 px-6 text-center">
       <p className="text-sm font-medium text-slate-600">{text}</p>
       {retry && (
-        <button type="button" onClick={retry} className="rounded-lg bg-[#1769ff] px-3 py-2 text-xs font-semibold text-white">
+        <button type="button" onClick={retry} className="rounded-lg bg-[var(--sw-brand)] px-3 py-2 text-xs font-semibold text-white">
           重新加载
         </button>
       )}

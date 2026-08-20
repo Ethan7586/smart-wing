@@ -124,7 +124,7 @@ export const CockpitWorkstation: React.FC<CockpitWorkstationProps> = ({ orders, 
                 <h2 className="text-base font-semibold text-slate-900">{isEn ? 'Start with what impacts operations' : '先处理影响经营的事项'}</h2>
                 <p className="mt-1 text-xs text-slate-500">{isEn ? 'Sorted by impact on transactions and employee experience.' : '按对交易、履约和员工体验的影响排序。'}</p>
               </div>
-              <button type="button" onClick={() => onNavigateToWorkstation('order')} className="inline-flex items-center gap-1 self-start text-xs font-medium text-[#1769ff] hover:text-blue-800 sm:self-auto">
+              <button type="button" onClick={() => onNavigateToWorkstation('order')} className="inline-flex items-center gap-1 self-start text-xs font-medium text-[var(--sw-brand)] hover:text-blue-800 sm:self-auto">
                 {isEn ? 'Open order workspace' : '进入订单工作台'} <ArrowRight className="h-3.5 w-3.5" />
               </button>
             </div>
@@ -171,7 +171,7 @@ export const CockpitWorkstation: React.FC<CockpitWorkstationProps> = ({ orders, 
                     : `${formatNumber(situation.orderCount)} 笔订单中，${formatNumber(situation.orderCount - situation.completed)} 笔尚未闭环。`}
                 </p>
               </div>
-              <button type="button" onClick={() => onNavigateToWorkstation('order')} className="text-xs font-medium text-[#1769ff] hover:text-blue-800">
+              <button type="button" onClick={() => onNavigateToWorkstation('order')} className="text-xs font-medium text-[var(--sw-brand)] hover:text-blue-800">
                 {isEn ? 'All orders' : '全部订单'}
               </button>
             </div>
@@ -190,7 +190,7 @@ export const CockpitWorkstation: React.FC<CockpitWorkstationProps> = ({ orders, 
                 <h2 className="text-base font-semibold text-slate-900">{isEn ? 'Enterprise mall status' : '企业商城经营状态'}</h2>
                 <p className="mt-1 text-xs text-slate-500">{isEn ? `${situation.enterpriseWarnings} enterprise welfare budget requires review.` : `${formatNumber(situation.enterpriseWarnings)} 个企业福利预算需要复核。`}</p>
               </div>
-              <button type="button" onClick={() => onNavigateToWorkstation('enterprise')} className="self-start text-xs font-medium text-[#1769ff] hover:text-blue-800 sm:self-auto">
+              <button type="button" onClick={() => onNavigateToWorkstation('enterprise')} className="self-start text-xs font-medium text-[var(--sw-brand)] hover:text-blue-800 sm:self-auto">
                 {isEn ? 'All enterprises' : '全部企业'}
               </button>
             </div>
@@ -238,7 +238,7 @@ export const CockpitWorkstation: React.FC<CockpitWorkstationProps> = ({ orders, 
                     : `${formatNumber(situation.catalogCount)} 个商品中，有 ${formatNumber(situation.pendingClassification)} 个暂未向员工展示。`}
                 </p>
               </div>
-              <button type="button" onClick={() => onNavigateToWorkstation('product', 'status', '待分类审核')} className="text-xs font-medium text-[#1769ff] hover:text-blue-800">
+              <button type="button" onClick={() => onNavigateToWorkstation('product', 'status', '待分类审核')} className="text-xs font-medium text-[var(--sw-brand)] hover:text-blue-800">
                 {isEn ? 'Review catalogue' : '查看目录'}
               </button>
             </div>
@@ -253,7 +253,7 @@ export const CockpitWorkstation: React.FC<CockpitWorkstationProps> = ({ orders, 
                 <h2 className="text-base font-semibold text-slate-900">{isEn ? 'Catalogue health' : '商品与库存'}</h2>
                 <p className="mt-1 text-xs text-slate-500">{isEn ? 'Keep the catalogue ready for employees to browse and order.' : '确保商品目录满足员工浏览和下单条件。'}</p>
               </div>
-              <button type="button" onClick={() => onNavigateToWorkstation('product', 'status', '待分类审核')} className="text-xs font-medium text-[#1769ff] hover:text-blue-800">
+              <button type="button" onClick={() => onNavigateToWorkstation('product', 'status', '待分类审核')} className="text-xs font-medium text-[var(--sw-brand)] hover:text-blue-800">
                 {isEn ? 'Manage products' : '商品治理'}
               </button>
             </div>
@@ -302,7 +302,7 @@ function PriorityRow({ item }: { item: PriorityItem }) {
         <p className="mt-1 text-xs leading-5 text-slate-600">{item.description}</p>
         <p className="mt-1 text-[11px] text-slate-400">{item.meta}</p>
       </div>
-      <button type="button" onClick={item.action} className="shrink-0 self-center rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#1769ff]">
+      <button type="button" onClick={item.action} className="shrink-0 self-center rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[var(--sw-brand)]">
         {item.actionLabel}
       </button>
     </div>
@@ -310,7 +310,7 @@ function PriorityRow({ item }: { item: PriorityItem }) {
 }
 
 function OverviewMetric({ label, value, tone }: { label: string; value: string; tone: 'amber' | 'blue' | 'red' | 'green' | 'default' }) {
-  const valueClass = tone === 'amber' ? 'text-amber-600' : tone === 'blue' ? 'text-[#1769ff]' : tone === 'red' ? 'text-rose-600' : tone === 'green' ? 'text-emerald-600' : 'text-slate-900';
+  const valueClass = tone === 'amber' ? 'text-amber-600' : tone === 'blue' ? 'text-[var(--sw-brand)]' : tone === 'red' ? 'text-rose-600' : tone === 'green' ? 'text-emerald-600' : 'text-slate-900';
   return (
     <div>
       <p className="text-xs text-slate-500">{label}</p>
@@ -327,7 +327,7 @@ function SalesPerformanceSection({ sales, isDemo, isEn }: { sales: SalesOverview
           <h2 className="text-base font-semibold text-slate-900">{isEn ? 'Sales performance' : '销售表现'}</h2>
           <p className="mt-1 text-xs leading-5 text-slate-500">{isEn ? 'See whether the mall is selling, what is selling, and where demand is concentrated.' : '一眼看出有没有成交、卖得最好的商品，以及需求集中在哪些品类。'}</p>
         </div>
-        <span className={`self-start rounded-full px-2.5 py-1 text-[11px] font-medium ${isDemo ? 'bg-amber-50 text-amber-700' : sales ? 'bg-blue-50 text-[#1769ff]' : 'bg-slate-100 text-slate-500'}`}>
+        <span className={`self-start rounded-full px-2.5 py-1 text-[11px] font-medium ${isDemo ? 'bg-amber-50 text-amber-700' : sales ? 'bg-blue-50 text-[var(--sw-brand)]' : 'bg-slate-100 text-slate-500'}`}>
           {isDemo ? (isEn ? 'Demo data' : '演示数据') : sales ? (isEn ? 'Current authorised scope' : '当前授权范围') : isEn ? 'Order permission required' : '需订单查看权限'}
         </span>
       </div>
@@ -380,7 +380,7 @@ function SalesMetric({ label, value, hint, accent = false }: { label: string; va
   return (
     <div className="rounded-lg border border-slate-100 bg-slate-50/70 px-4 py-3.5">
       <p className="text-xs text-slate-500">{label}</p>
-      <p className={`mt-2 text-2xl font-semibold tracking-tight ${accent ? 'text-[#1769ff]' : 'text-slate-900'}`}>{value}</p>
+      <p className={`mt-2 text-2xl font-semibold tracking-tight ${accent ? 'text-[var(--sw-brand)]' : 'text-slate-900'}`}>{value}</p>
       <p className="mt-1.5 text-[11px] leading-4 text-slate-400">{hint}</p>
     </div>
   );
@@ -407,7 +407,7 @@ function SalesTrendChart({ series, isEn }: { series: SalesOverview['trend']; isE
               <div key={point.date} className="flex h-full min-w-0 flex-1 flex-col justify-end">
                 <div className="mb-2 text-center text-[11px] font-medium text-slate-700">{point.salesCents ? compactCents(point.salesCents) : ''}</div>
                 <div
-                  className="mx-auto w-full max-w-12 rounded-t bg-[#1769ff]"
+                  className="mx-auto w-full max-w-12 rounded-t bg-[var(--sw-brand)]"
                   style={{ height: `${point.salesCents ? Math.max(7, Math.round((point.salesCents / maxValue) * 100)) : 2}%` }}
                   aria-label={`${point.date}: ${formatCents(point.salesCents)}`}
                 />
@@ -442,7 +442,7 @@ function SalesTrendChart({ series, isEn }: { series: SalesOverview['trend']; isE
 }
 
 function SalesCategoryDonut({ categories, isEn }: { categories: SalesOverview['categories']; isEn: boolean }) {
-  const colors = ['#1769ff', '#5bb9f4', '#7c6ee6', '#f2a54a', '#94a3b8'];
+  const colors = ['var(--sw-brand)', '#5bb9f4', '#7c6ee6', '#f2a54a', '#94a3b8'];
   const total = categories.reduce((sum, category) => sum + category.salesCents, 0);
   let cursor = 0;
   const gradient = categories
@@ -544,7 +544,7 @@ function EmptyChartMessage({ isEn }: { isEn: boolean }) {
 function StageMetric({ icon: Icon, label, value, active = false }: { icon: React.ElementType; label: string; value: number; active?: boolean }) {
   return (
     <div className={`rounded-lg border p-3 ${active ? 'border-blue-100 bg-blue-50/60' : 'border-slate-100 bg-white'}`}>
-      <Icon className={`h-4 w-4 ${active ? 'text-[#1769ff]' : 'text-slate-400'}`} />
+      <Icon className={`h-4 w-4 ${active ? 'text-[var(--sw-brand)]' : 'text-slate-400'}`} />
       <p className="mt-5 text-2xl font-semibold tracking-tight text-slate-900">{formatNumber(value)}</p>
       <p className="mt-1 text-xs text-slate-500">{label}</p>
     </div>
@@ -581,7 +581,7 @@ function OrderVolumeChart({ orders, isEn }: { orders: Order[]; isEn: boolean }) 
         {series.map((item) => (
           <div key={item.key} className="flex h-full min-w-0 flex-1 flex-col justify-end">
             <div className="mb-2 text-center text-xs font-medium text-slate-700">{item.value || ''}</div>
-            <div className="mx-auto w-full max-w-10 rounded-t bg-[#1769ff] transition-[height]" style={{ height: `${item.value ? Math.max(8, Math.round((item.value / maxValue) * 100)) : 2}%` }} aria-label={`${item.label}: ${item.value}`} />
+            <div className="mx-auto w-full max-w-10 rounded-t bg-[var(--sw-brand)] transition-[height]" style={{ height: `${item.value ? Math.max(8, Math.round((item.value / maxValue) * 100)) : 2}%` }} aria-label={`${item.label}: ${item.value}`} />
           </div>
         ))}
       </div>
@@ -603,7 +603,7 @@ function OrderVolumeChart({ orders, isEn }: { orders: Order[]; isEn: boolean }) 
 function OrderStatusDonut({ orders, isEn }: { orders: Order[]; isEn: boolean }) {
   const slices = useMemo(() => {
     const groups = [
-      { label: isEn ? 'To ship' : '待发货', statuses: ['pending_payment', 'paid', 'processing', 'pending_shipment'] as Order['status'][], color: '#1769ff' },
+      { label: isEn ? 'To ship' : '待发货', statuses: ['pending_payment', 'paid', 'processing', 'pending_shipment'] as Order['status'][], color: 'var(--sw-brand)' },
       { label: isEn ? 'In transit' : '运输中', statuses: ['shipped', 'pending_receipt'] as Order['status'][], color: '#5bb9f4' },
       { label: isEn ? 'Completed' : '已完成', statuses: ['completed'] as Order['status'][], color: '#28a879' },
       { label: isEn ? 'After-sales' : '售后', statuses: ['refund_pending', 'refunded'] as Order['status'][], color: '#f2a54a' },
@@ -653,7 +653,7 @@ function CatalogueCompositionChart({ products, isEn }: { products: Product[]; is
       counts.set(category, (counts.get(category) || 0) + 1);
     });
     return [...counts.entries()]
-      .map(([label, value], index) => ({ label, value, color: label === pendingLabel ? '#f2a54a' : index === 1 ? '#1769ff' : index === 2 ? '#5bb9f4' : '#94a3b8' }))
+      .map(([label, value], index) => ({ label, value, color: label === pendingLabel ? '#f2a54a' : index === 1 ? 'var(--sw-brand)' : index === 2 ? '#5bb9f4' : '#94a3b8' }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 5);
   }, [isEn, products]);
@@ -695,7 +695,7 @@ function EnterpriseRow({ enterprise, isEn, onClick }: { enterprise: Enterprise; 
       <td className="px-4 py-3.5">
         <div className="flex min-w-28 items-center gap-2">
           <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100">
-            <div className={`h-full rounded-full ${attention ? 'bg-amber-500' : 'bg-[#1769ff]'}`} style={{ width: `${usage}%` }} />
+            <div className={`h-full rounded-full ${attention ? 'bg-amber-500' : 'bg-[var(--sw-brand)]'}`} style={{ width: `${usage}%` }} />
           </div>
           <span className="tabular-nums text-slate-600">{usage}%</span>
         </div>
@@ -720,8 +720,8 @@ function SimpleStat({ icon: Icon, label, value, emphasis = false }: { icon: Reac
 function QuickAction({ icon: Icon, label, onClick }: { icon: React.ElementType; label: string; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick} className="group rounded-lg border border-slate-100 px-3 py-3 text-left transition hover:border-blue-100 hover:bg-blue-50/60">
-      <Icon className="h-4 w-4 text-slate-400 transition group-hover:text-[#1769ff]" />
-      <span className="mt-4 block text-xs font-medium text-slate-700 group-hover:text-[#1769ff]">{label}</span>
+      <Icon className="h-4 w-4 text-slate-400 transition group-hover:text-[var(--sw-brand)]" />
+      <span className="mt-4 block text-xs font-medium text-slate-700 group-hover:text-[var(--sw-brand)]">{label}</span>
     </button>
   );
 }

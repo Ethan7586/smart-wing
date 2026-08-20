@@ -110,7 +110,7 @@ function AfterSaleTable({ items, canRefund, onSelect, onRefund }: { items: After
           {items.map((item) => (
             <tr key={item.id} className="hover:bg-blue-50/30">
               <td className="px-4 py-3">
-                <button type="button" onClick={() => onSelect(item)} className="font-mono font-semibold text-[#1769ff] hover:underline">
+                <button type="button" onClick={() => onSelect(item)} className="font-mono font-semibold text-[var(--sw-brand)] hover:underline">
                   {item.afterSaleNo}
                 </button>
               </td>
@@ -125,7 +125,7 @@ function AfterSaleTable({ items, canRefund, onSelect, onRefund }: { items: After
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-slate-500">{formatDate(item.createdAt)}</td>
               <td className="whitespace-nowrap px-4 py-3">
-                <button type="button" onClick={() => onSelect(item)} className="font-medium text-[#1769ff] hover:underline">
+                <button type="button" onClick={() => onSelect(item)} className="font-medium text-[var(--sw-brand)] hover:underline">
                   详情
                 </button>
                 {canRefund && item.status === 'approved' && (
@@ -146,7 +146,7 @@ function State({ text, retry, reset }: { text: string; retry?: () => void; reset
     <div className="flex min-h-72 flex-col items-center justify-center gap-3 px-6 text-center">
       <p className="text-sm font-medium text-slate-600">{text}</p>
       {retry && (
-        <button type="button" onClick={retry} className="rounded-lg bg-[#1769ff] px-3 py-2 text-xs font-semibold text-white">
+        <button type="button" onClick={retry} className="rounded-lg bg-[var(--sw-brand)] px-3 py-2 text-xs font-semibold text-white">
           重新加载
         </button>
       )}

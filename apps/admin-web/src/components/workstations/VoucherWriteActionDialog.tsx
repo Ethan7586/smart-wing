@@ -171,7 +171,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
             <>
               <label className="block text-xs font-semibold text-slate-600">
                 卡券产品
-                <select value={selectedProgramId} onChange={(event) => setProgramId(event.target.value)} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs outline-none focus:border-[#1F5EFF]">
+                <select value={selectedProgramId} onChange={(event) => setProgramId(event.target.value)} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs outline-none focus:border-[var(--sw-brand)]">
                   {programs.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.name}（¥{(item.denominationCents / 100).toFixed(2)}）
@@ -185,7 +185,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
                   value={quantity}
                   onChange={(event) => setQuantity(event.target.value)}
                   inputMode="numeric"
-                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs outline-none focus:border-[#1F5EFF]"
+                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs outline-none focus:border-[var(--sw-brand)]"
                   placeholder="请输入 1–1,000,000 的整数"
                 />
               </label>
@@ -205,7 +205,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
                 <select
                   value={decision}
                   onChange={(event) => setDecision(event.target.value as 'approved' | 'rejected')}
-                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs outline-none focus:border-[#1F5EFF]"
+                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs outline-none focus:border-[var(--sw-brand)]"
                 >
                   <option value="approved">同意</option>
                   <option value="rejected">拒绝</option>
@@ -218,7 +218,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
             <>
               <label className="block text-xs font-semibold text-slate-600">
                 已批准备券申请
-                <select value={selectedReserveId} onChange={(event) => setReserveId(event.target.value)} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs outline-none focus:border-[#1F5EFF]">
+                <select value={selectedReserveId} onChange={(event) => setReserveId(event.target.value)} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs outline-none focus:border-[var(--sw-brand)]">
                   {approvedReserves.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.requestNo} · {item.programName} · {item.requestedQuantity.toLocaleString('zh-CN')} 张
@@ -226,7 +226,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
                   ))}
                 </select>
               </label>
-              <p className="rounded-xl border border-blue-100 bg-[#EAF1FF] p-3 text-[11px] leading-relaxed text-[#143A8F]">首版只发行电子储值券：系统生成不可预测券码，不占用实体卡号。</p>
+              <p className="rounded-xl border border-blue-100 bg-[var(--sw-brand-light)] p-3 text-[11px] leading-relaxed text-[var(--sw-brand-dark)]">首版只发行电子储值券：系统生成不可预测券码，不占用实体卡号。</p>
             </>
           )}
 
@@ -243,7 +243,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
                 <select
                   value={statusOperation}
                   onChange={(event) => setStatusOperation(event.target.value as 'activate' | 'disable' | 'extend' | 'void')}
-                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs outline-none focus:border-[#1F5EFF]"
+                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs outline-none focus:border-[var(--sw-brand)]"
                 >
                   <option value="activate">激活</option>
                   <option value="disable">禁用</option>
@@ -258,7 +258,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
                     value={extensionDays}
                     onChange={(event) => setExtensionDays(event.target.value)}
                     inputMode="numeric"
-                    className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs outline-none focus:border-[#1F5EFF]"
+                    className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs outline-none focus:border-[var(--sw-brand)]"
                   />
                 </label>
               )}
@@ -275,7 +275,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
                 <input
                   value={voucherCode}
                   onChange={(event) => setVoucherCode(event.target.value)}
-                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 font-mono text-xs outline-none focus:border-[#1F5EFF]"
+                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 font-mono text-xs outline-none focus:border-[var(--sw-brand)]"
                   placeholder="扫描或输入券码"
                 />
               </label>
@@ -285,7 +285,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
                   value={amountYuan}
                   onChange={(event) => setAmountYuan(event.target.value)}
                   inputMode="decimal"
-                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 font-mono text-xs outline-none focus:border-[#1F5EFF]"
+                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 font-mono text-xs outline-none focus:border-[var(--sw-brand)]"
                   placeholder="例如 100.00"
                 />
               </label>
@@ -294,7 +294,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
                 <input
                   value={merchantReference}
                   onChange={(event) => setMerchantReference(event.target.value)}
-                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 font-mono text-xs outline-none focus:border-[#1F5EFF]"
+                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 font-mono text-xs outline-none focus:border-[var(--sw-brand)]"
                   placeholder="POS 交易流水号"
                 />
               </label>
@@ -325,7 +325,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
                   value={reconciliationReference}
                   onChange={(event) => setReconciliationReference(event.target.value)}
                   maxLength={160}
-                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 font-mono text-xs outline-none focus:border-[#1F5EFF]"
+                  className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 font-mono text-xs outline-none focus:border-[var(--sw-brand)]"
                   placeholder="财务凭证或工单号"
                 />
               </label>
@@ -335,7 +335,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
                   value={reconciliationNote}
                   onChange={(event) => setReconciliationNote(event.target.value)}
                   maxLength={500}
-                  className="mt-1.5 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-xs outline-none focus:border-[#1F5EFF]"
+                  className="mt-1.5 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-xs outline-none focus:border-[var(--sw-brand)]"
                   placeholder="说明处置结论与依据"
                 />
               </label>
@@ -350,7 +350,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
                   value={reason}
                   onChange={(event) => setReason(event.target.value)}
                   maxLength={500}
-                  className="mt-1.5 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-xs outline-none focus:border-[#1F5EFF]"
+                  className="mt-1.5 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-xs outline-none focus:border-[var(--sw-brand)]"
                   placeholder="请填写可审计的业务原因"
                 />
               </label>
@@ -361,7 +361,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
                     value={evidence}
                     onChange={(event) => setEvidence(event.target.value)}
                     maxLength={2000}
-                    className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs outline-none focus:border-[#1F5EFF]"
+                    className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-xs outline-none focus:border-[var(--sw-brand)]"
                     placeholder="例如审批单号、工单号"
                   />
                 </label>
@@ -370,8 +370,8 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
           )}
 
           {requiresStepUp && (
-            <div className="rounded-xl border border-blue-100 bg-[#EAF1FF] p-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#143A8F]">
+            <div className="rounded-xl border border-blue-100 bg-[var(--sw-brand-light)] p-3">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[var(--sw-brand-dark)]">
                 <ShieldCheck className="h-4 w-4" />
                 二次认证
               </div>
@@ -383,7 +383,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
                     onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
                     inputMode="numeric"
                     autoComplete="one-time-code"
-                    className="mt-1.5 h-10 w-full rounded-xl border border-blue-200 bg-white px-3 font-mono text-sm tracking-[0.25em] outline-none focus:border-[#1F5EFF]"
+                    className="mt-1.5 h-10 w-full rounded-xl border border-blue-200 bg-white px-3 font-mono text-sm tracking-[0.25em] outline-none focus:border-[var(--sw-brand)]"
                   />
                 </label>
               ) : (
@@ -408,7 +408,7 @@ export function VoucherWriteActionDialog({ action, programs, reserves, onClose, 
           <button type="button" onClick={onClose} disabled={submitting} className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-medium text-slate-600">
             取消
           </button>
-          <button type="button" onClick={() => void handleSubmit()} disabled={submitting || !canSubmit} className="rounded-xl bg-[#1F5EFF] px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
+          <button type="button" onClick={() => void handleSubmit()} disabled={submitting || !canSubmit} className="rounded-xl bg-[var(--sw-brand)] px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
             {submitting ? '处理中…' : requiresStepUp && !challengeId ? '发起二次认证' : '确认并提交'}
           </button>
         </div>
