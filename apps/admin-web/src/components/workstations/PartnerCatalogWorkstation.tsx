@@ -8,6 +8,7 @@ type ChannelDefinition = {
   group: string;
   aliases: string[];
   capability: string;
+  readinessNote?: string;
 };
 
 export type ChannelCatalogCard = ChannelDefinition & {
@@ -23,7 +24,14 @@ const CHANNEL_DEFINITIONS: readonly ChannelDefinition[] = [
   { code: 'voucher-card', name: '平台虚拟卡券', group: '虚拟商品', aliases: ['voucher-card', 'card', '虚拟卡券'], capability: '卡券目录、发券与核销状态' },
   { code: 'voucher-recharge', name: '平台虚拟直充', group: '虚拟商品', aliases: ['voucher-recharge', 'recharge', '虚拟直充'], capability: '直充商品、下单与结果回调' },
   { code: 'voucher-gift', name: '虚拟礼包', group: '虚拟商品', aliases: ['voucher-gift', 'gift-package', '虚拟礼包'], capability: '礼包组合、发放与状态查询' },
-  { code: 'fresh-gift', name: '蛋糕 / 鲜花 / 零食', group: '本地生活', aliases: ['fresh-gift', 'cake', 'flower', '蛋糕', '鲜花'], capability: '区域商品、配送时段与履约回传' },
+  {
+    code: 'cake-uncle',
+    name: '蛋糕叔叔',
+    group: '本地生活',
+    aliases: ['cake-uncle', 'dgss', 'fresh-gift', 'cake', 'flower', '蛋糕叔叔', '蛋糕', '鲜花'],
+    capability: '商品目录、价格库存、配送范围与可约时段（先仅读同步）',
+    readinessNote: '测试环境与签名规则已登记；待服务端安全配置凭据并以实际响应完成验收。',
+  },
   { code: 'book', name: '图书', group: '图书商品', aliases: ['book', 'winxuan', '图书', '文轩'], capability: '图书目录、库存与订单回传' },
 ];
 
@@ -158,7 +166,7 @@ export function PartnerCatalogWorkstation() {
 function ChannelCard({ channel }: { channel: ChannelCatalogCard }) {
   const detail = channel.connection ? connectionDetail(channel.connection, channel.successfulSyncs) : { label: '待登记', description: '尚未保存服务端接入资料', tone: 'pending' as const };
   const Icon = detail.tone === 'active' ? CheckCircle2 : detail.tone === 'pending' ? CircleDashed : CircleAlert;
-  return <article className="rounded-xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-[11px] font-semibold text-slate-400">{channel.group}</p><h3 className="mt-1 text-base font-bold text-slate-900">{channel.name}</h3></div><span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold ${detail.tone === 'active' ? 'bg-emerald-50 text-emerald-700' : detail.tone === 'pending' ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'}`}><Icon className="h-3.5 w-3.5" />{detail.label}</span></div><p className="mt-3 text-xs leading-5 text-slate-600">{channel.capability}</p><p className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500">{detail.description}</p></article>;
+  return <article className="rounded-xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-[11px] font-semibold text-slate-400">{channel.group}</p><h3 className="mt-1 text-base font-bold text-slate-900">{channel.name}</h3></div><span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold ${detail.tone === 'active' ? 'bg-emerald-50 text-emerald-700' : detail.tone === 'pending' ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'}`}><Icon className="h-3.5 w-3.5" />{detail.label}</span></div><p className="mt-3 text-xs leading-5 text-slate-600">{channel.capability}</p>{channel.readinessNote && <p className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-xs leading-5 text-blue-800">{channel.readinessNote}</p>}<p className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500">{detail.description}</p></article>;
 }
 
 function connectionDetail(connection: PartnerCatalogConnection, successfulSyncs: number): { label: string; description: string; tone: 'active' | 'pending' | 'warning' } {

@@ -17,4 +17,14 @@ describe('channel catalog evidence cards', () => {
     );
     expect(cards.find((channel) => channel.code === 'jd')).toMatchObject({ connection: { id: 'conn-1' }, successfulSyncs: 1 });
   });
+
+  it('keeps the Cake Uncle adapter truthful until an actual service-side connection is recorded', () => {
+    const cake = buildChannelCatalogCards([], []).find((channel) => channel.code === 'cake-uncle');
+    expect(cake).toMatchObject({
+      name: '蛋糕叔叔',
+      capability: expect.stringContaining('仅读同步'),
+      connection: null,
+      successfulSyncs: 0,
+    });
+  });
 });
