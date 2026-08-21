@@ -2,7 +2,14 @@ import React, { Suspense, useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { loadAdminOverview, setLiveProductStatus, shipLiveOrder, type LiveOperationsSummary } from './services/catalog';
+
+// Workstations
+import { OrderManagementWorkstation } from './components/workstations/OrderManagementWorkstation';
+import { ControlCenterWorkstation } from './components/workstations/ControlCenterWorkstation';
+import { DistributionWorkstation } from './components/workstations/DistributionWorkstation';
+import { PartnerCatalogWorkstation } from './components/workstations/PartnerCatalogWorkstation';
 import { WorkstationLoadBoundary } from './components/WorkstationLoadBoundary';
+import { AdminSessionError } from './components/AdminSessionError';
 
 // Workstations are independent work areas. Loading all of them before an
 // operator can see the cockpit made the administration shell unnecessarily
@@ -35,13 +42,36 @@ function dismissBootstrapMessage() {
 }
 
 // Mock Datasets
-import { INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIERS, INITIAL_CASES, INITIAL_FINANCE_DISCREPANCIES, INITIAL_SYSTEM_CONFIG } from './data/mockData';
+import { INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIERS, INITIAL_CASES, INITIAL_FINANCE_DISCREPANCIES } from './data/mockData';
 
-import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStatus, FinanceDiscrepancyRow, SystemConfig, GuardrailActionOptions, AdminProfile } from './types';
+import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStatus, FinanceDiscrepancyRow, GuardrailActionOptions, AdminProfile } from './types';
 
-const LazyVoucherOperationsWorkstationV1 = React.lazy(() =>
-  import('./components/workstations/VoucherOperationsWorkstationV1').then(({ VoucherOperationsWorkstationV1 }) => ({ default: VoucherOperationsWorkstationV1 }))
-);
+const LazyVoucherOperationsWorkstationV1 = React.lazy(() => import('./components/workstations/VoucherOperationsWorkstationV1').then(({ VoucherOperationsWorkstationV1 }) => ({ default: VoucherOperationsWorkstationV1 })));
+const LazyMallApplicationWorkstation = React.lazy(() => import('./components/workstations/MallApplicationWorkstation').then(({ MallApplicationWorkstation }) => ({ default: MallApplicationWorkstation })));
+
+/**
+ * A deliberate local-only review mode for visual acceptance.  It is disabled
+ * in every production build and never issues a request to the commerce API.
+ */
+const localPreviewEnv = (import.meta as unknown as { env?: { DEV?: boolean; VITE_ORDER_DEMO?: string } }).env;
+const LOCAL_ORDER_DEMO_ENABLED = localPreviewEnv?.DEV === true && localPreviewEnv.VITE_ORDER_DEMO === 'true';
+/**
+ * Local visual acceptance intentionally exposes every workstation, but is
+ * gated by both Vite development mode and the explicit demo flag above.
+ * The demo never reaches the commerce API and cannot submit writes.
+ */
+const LOCAL_ORDER_DEMO_PERMISSIONS = [
+  'catalog.read',
+  'order.read',
+  'order.ship',
+  'order.refund',
+  'tenant.manage',
+  'finance.reconcile',
+  'member.read',
+  'role.read',
+  'mall.read',
+  'commercial_resource.read',
+];
 
 export function allowedWorkstationsFor(permissions: string[], roles: string[] = []): WorkstationId[] {
   const allowed = new Set<WorkstationId>(['cockpit']);
@@ -51,19 +81,17 @@ export function allowedWorkstationsFor(permissions: string[], roles: string[] = 
   // operator sessions are still returning an incomplete permission projection.
   // This exposes only the unified-Admin menu entry; every API/write operation
   // continues to be authorized by the server.
-  const hasVoucherWorkspaceRole = [
-    'platform_owner',
-    'role-platform-owner-v2',
-    'enterprise_manager',
-    'role-enterprise-manager-v2',
-    'mall_admin',
-    'role-mall-admin',
-    'role-test-seller',
-    'role-test-operations',
-  ].some((role) => roleCodes.has(role));
+  const hasVoucherWorkspaceRole = ['platform_owner', 'role-platform-owner-v2', 'enterprise_manager', 'role-enterprise-manager-v2', 'mall_admin', 'role-mall-admin', 'role-test-seller', 'role-test-operations'].some((role) =>
+    roleCodes.has(role)
+  );
   if (has('catalog.read') || has('product.publish')) allowed.add('product');
   if (has('order.read') || has('order.ship')) allowed.add('order');
+  if (has('catalog.read') && has('order.read')) allowed.add('control');
+  if (has('order.read') || has('tenant.manage')) allowed.add('distribution');
+  if (has('catalog.read') || has('commercial_resource.read') || has('commercial_resource.manage')) allowed.add('partnerCatalog');
   if (has('tenant.manage') || has('role.grant') || has('audit.read')) allowed.add('enterprise');
+  if (permissions.some((permission) => permission.startsWith('mall.')) || ['platform_owner', 'role-platform-owner-v2', 'enterprise_manager', 'role-enterprise-manager-v2', 'mall_admin', 'role-mall-admin'].some((role) => roleCodes.has(role)))
+    allowed.add('mall');
   // The voucher desk is one capability of the unified Admin, not a separate
   // system. Merchants with catalogue/order access can see it; server-side
   // permissions still govern every future write action.
@@ -141,14 +169,26 @@ export function resolveAdminAccount(employeeNo: unknown, roles: unknown): AdminP
     { pattern: /^cs00[1-5]$/, role: '测试客服', permissionTags: ['订单查看', '售后处理', '成员查看'] },
     { pattern: /^admin00[1-5]$/, role: '测试企业管理员', permissionTags: ['成员管理', '支付对账', '审计查看'] },
   ].find((candidate) => candidate.pattern.test(normalizedEmployeeNo));
-  return profile
-    ? { username: normalizedEmployeeNo, displayName: normalizedEmployeeNo, role: profile.role, permissionTags: profile.permissionTags }
-    : null;
+  return profile ? { username: normalizedEmployeeNo, displayName: normalizedEmployeeNo, role: profile.role, permissionTags: profile.permissionTags } : null;
+}
+
+export const ADMIN_LOGIN_URL = 'https://hbbtzn.com/login/?target=admin';
+const LOGIN_BOUNCE_KEY = 'sw_admin_login_bounce';
+
+export type AuthFailure = { kind: 'unauthenticated' } | { kind: 'wrong_entrance'; target: string } | { kind: 'profile_unresolved'; employeeNo: string; roles: string[] } | { kind: 'request_failed'; detail: string };
+
+/** Turns a rejected overview payload into a reason the operator can act on. */
+export function classifyAuthFailure(payload: { authenticated?: unknown; authorization?: { target?: unknown; employeeNo?: unknown; roles?: unknown } } | null | undefined): AuthFailure {
+  if (payload?.authenticated !== true) return { kind: 'unauthenticated' };
+  const target = typeof payload.authorization?.target === 'string' ? payload.authorization.target : '未知';
+  if (target !== 'admin') return { kind: 'wrong_entrance', target };
+  const roles = Array.isArray(payload.authorization?.roles) ? payload.authorization.roles.filter((role): role is string => typeof role === 'string') : [];
+  return { kind: 'profile_unresolved', employeeNo: typeof payload.authorization?.employeeNo === 'string' ? payload.authorization.employeeNo : '未知', roles };
 }
 
 export function App() {
   // Navigation & UI States
-  const [activeWorkstation, setActiveWorkstation] = useState<WorkstationId>('cockpit');
+  const [activeWorkstation, setActiveWorkstation] = useState<WorkstationId>(LOCAL_ORDER_DEMO_ENABLED ? 'order' : 'cockpit');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
   const [isCaseCenterOpen, setIsCaseCenterOpen] = useState<boolean>(false);
@@ -162,6 +202,7 @@ export function App() {
   const [isLiveCatalog, setIsLiveCatalog] = useState(false);
   const [liveOperations, setLiveOperations] = useState<LiveOperationsSummary | null>(null);
   const [authChecking, setAuthChecking] = useState(true);
+  const [authFailure, setAuthFailure] = useState<AuthFailure | null>(null);
   const [isSecurityCenterOpen, setIsSecurityCenterOpen] = useState(false);
 
   // Application Domain State (In-Memory Mock Single Source of Truth)
@@ -171,7 +212,6 @@ export function App() {
   const [suppliers, setSuppliers] = useState<Supplier[]>(INITIAL_SUPPLIERS);
   const [cases, setCases] = useState<CaseItem[]>(INITIAL_CASES);
   const [discrepancies, setDiscrepancies] = useState<FinanceDiscrepancyRow[]>(INITIAL_FINANCE_DISCREPANCIES);
-  const [systemConfig, setSystemConfig] = useState<SystemConfig>(INITIAL_SYSTEM_CONFIG);
 
   // Sub-filter parameters for cross-workstation navigation
   const [filterParams, setFilterParams] = useState<{
@@ -195,10 +235,16 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    if (!authChecking && currentUser) dismissBootstrapMessage();
-  }, [authChecking, currentUser]);
+    if (LOCAL_ORDER_DEMO_ENABLED) {
+      setCurrentUser(resolveAdminAccount('ORDER-DEMO-LOCAL', ['platform_owner']));
+      setSessionPermissions(LOCAL_ORDER_DEMO_PERMISSIONS);
+      setSessionRoles(['platform_owner']);
+      setIsLiveCatalog(false);
+      setAuthFailure(null);
+      setAuthChecking(false);
+      return;
+    }
 
-  useEffect(() => {
     let active = true;
     void loadAdminOverview()
       .then((payload) => {
@@ -213,17 +259,30 @@ export function App() {
           setLiveOperations(payload.summary);
           setIsLiveCatalog(true);
           setAuthChecking(false);
+          sessionStorage.removeItem(LOGIN_BOUNCE_KEY);
           return;
         }
-        setBootstrapMessage('正在前往统一登录页', '当前后台会话尚未建立，正在跳转到安全登录页。');
-        window.location.replace('https://hbbtzn.com/login/?target=admin');
+        finishAuthCheck(classifyAuthFailure(payload));
       })
-      .catch(() => {
-        if (active) {
-          setBootstrapMessage('正在前往统一登录页', '当前后台会话尚未建立，正在跳转到安全登录页。');
-          window.location.replace('https://hbbtzn.com/login/?target=admin');
-        }
+      .catch((cause: unknown) => {
+        if (!active) return;
+        finishAuthCheck({ kind: 'request_failed', detail: cause instanceof Error ? cause.message : String(cause) });
       });
+
+    // Every terminating path must clear authChecking. Leaving it set renders the
+    // dark session screen forever, which is indistinguishable from a blank page.
+    function finishAuthCheck(failure: AuthFailure): void {
+      setAuthFailure(failure);
+      setAuthChecking(false);
+      // Only an anonymous visitor is bounced automatically, and only once per
+      // tab, so an admin session the console rejects cannot ping-pong with the
+      // login page instead of showing why it was rejected.
+      if (failure.kind !== 'unauthenticated') return;
+      if (sessionStorage.getItem(LOGIN_BOUNCE_KEY) === '1') return;
+      sessionStorage.setItem(LOGIN_BOUNCE_KEY, '1');
+      window.location.replace(ADMIN_LOGIN_URL);
+    }
+
     return () => {
       active = false;
     };
@@ -274,6 +333,7 @@ export function App() {
   };
 
   const handleLogout = async () => {
+    if (LOCAL_ORDER_DEMO_ENABLED) return;
     await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => undefined);
     setCurrentUser(null);
     window.location.replace('https://hbbtzn.com/login/?target=admin');
@@ -287,7 +347,9 @@ export function App() {
     );
   }
 
-  if (!currentUser) return null;
+  if (authFailure) return <AdminSessionError failure={authFailure} loginUrl={ADMIN_LOGIN_URL} />;
+
+  if (!currentUser) return <AdminSessionError failure={{ kind: 'unauthenticated' }} loginUrl={ADMIN_LOGIN_URL} />;
 
   const allowedWorkstations = allowedWorkstationsFor(sessionPermissions, sessionRoles);
   const visibleWorkstation = allowedWorkstations.includes(activeWorkstation) ? activeWorkstation : 'cockpit';
@@ -304,9 +366,13 @@ export function App() {
 
   const activeWorkstationName = {
     cockpit: isEn ? 'Cockpit' : '经营驾驶舱',
+    control: isEn ? 'Smart Wing Control Center' : '智慧翼中控台',
     product: isEn ? 'Products' : '商品治理台',
-    order: isEn ? 'Orders' : '订单履约台',
+    order: isEn ? 'Order Management' : '订单管理系统',
+    distribution: isEn ? 'Channel & Distribution' : '渠道与分销系统',
+    partnerCatalog: isEn ? 'Partner Catalog Integration' : '甲方商品池接入',
     enterprise: isEn ? 'Enterprises' : '企业福利台',
+    mall: isEn ? 'Mall Applications' : '商城应用台',
     voucher: isEn ? 'Vouchers' : '卡券运营台',
     supplier: isEn ? 'Suppliers' : '供应商协同台',
     finance: isEn ? 'Finance' : '财务与对账台',
@@ -362,52 +428,67 @@ export function App() {
 
         {/* 3. Main Workstation Area */}
         <main className="flex-1 overflow-y-auto bg-[#f8fafc]">
-          <React.Suspense fallback={<WorkstationLoading />}>
-            {visibleWorkstation === 'cockpit' && <CockpitWorkstation orders={orders} products={products} enterprises={enterprises} liveOperations={liveOperations} onNavigateToWorkstation={handleNavigateToWorkstation} language={language} />}
+          {LOCAL_ORDER_DEMO_ENABLED && (
+            <div className="mx-6 mt-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+              <span className="font-bold">本地演示预览</span>
+              <span>当前展示的是演示订单，不连接线上服务，所有写操作均不会提交。</span>
+            </div>
+          )}
+          {visibleWorkstation === 'cockpit' && <CockpitWorkstation orders={orders} products={products} enterprises={enterprises} liveOperations={liveOperations} onNavigateToWorkstation={handleNavigateToWorkstation} language={language} />}
 
-            {visibleWorkstation === 'product' && (
-              <ProductGovernanceWorkstation
-                products={products}
-                onUpdateProducts={setProducts}
-                onOpenGuardrail={handleOpenGuardrail}
-                initialFilterStatus={filterParams.key === 'status' ? filterParams.value : undefined}
-                isLiveCatalog={isLiveCatalog}
-                onSetProductStatus={setLiveProductStatus}
-              />
-            )}
+          {visibleWorkstation === 'control' && <ControlCenterWorkstation />}
 
-            {visibleWorkstation === 'order' && (
-              <OrderFulfillmentWorkstation
-                orders={orders}
-                onUpdateOrders={setOrders}
-                onOpenGuardrail={handleOpenGuardrail}
-                initialProblemType={filterParams.key === 'problemType' ? filterParams.value : undefined}
-                isLiveOrders={isLiveCatalog}
-                onShipOrder={shipLiveOrder}
-              />
-            )}
+          {visibleWorkstation === 'product' && (
+            <ProductGovernanceWorkstation
+              products={products}
+              onUpdateProducts={setProducts}
+              onOpenGuardrail={handleOpenGuardrail}
+              initialFilterStatus={filterParams.key === 'status' ? filterParams.value : undefined}
+              isLiveCatalog={isLiveCatalog}
+              onSetProductStatus={setLiveProductStatus}
+            />
+          )}
 
-            {visibleWorkstation === 'enterprise' && <EnterpriseWelfareWorkstation enterprises={enterprises} onOpenGuardrail={handleOpenGuardrail} initialSearchName={filterParams.key === 'search' ? filterParams.value : undefined} />}
+          {visibleWorkstation === 'order' && (
+            <OrderManagementWorkstation
+              orders={orders}
+              onUpdateOrders={setOrders}
+              onOpenGuardrail={handleOpenGuardrail}
+              initialProblemType={filterParams.key === 'problemType' ? filterParams.value : undefined}
+              isLiveOrders={isLiveCatalog}
+              onShipOrder={shipLiveOrder}
+              sessionPermissions={sessionPermissions}
+            />
+          )}
 
-            {visibleWorkstation === 'voucher' && (
-              <WorkstationLoadBoundary onReturnToCockpit={() => setActiveWorkstation('cockpit')}>
-                <Suspense
-                  fallback={
-                    <section className="m-6 max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                      <h2 className="text-base font-bold text-slate-900">正在加载卡券运营台…</h2>
-                      <p className="mt-2 text-sm leading-6 text-slate-600">正在准备已授权的卡券工作台。</p>
-                    </section>
-                  }
-                >
-                  <LazyVoucherOperationsWorkstationV1
-                    liveDataEnabled
-                    sessionPermissions={sessionPermissions}
-                    writeEnabled={false}
-                    onOpenGuardrail={handleOpenGuardrail}
-                  />
-                </Suspense>
-              </WorkstationLoadBoundary>
-            )}
+          {visibleWorkstation === 'distribution' && <DistributionWorkstation />}
+
+          {visibleWorkstation === 'partnerCatalog' && <PartnerCatalogWorkstation />}
+
+          {visibleWorkstation === 'enterprise' && <EnterpriseWelfareWorkstation enterprises={enterprises} onOpenGuardrail={handleOpenGuardrail} initialSearchName={filterParams.key === 'search' ? filterParams.value : undefined} />}
+
+          {visibleWorkstation === 'mall' && (
+            <WorkstationLoadBoundary onReturnToCockpit={() => setActiveWorkstation('cockpit')}>
+              <Suspense fallback={<section className="m-6 rounded-2xl border border-slate-200 bg-white p-8 font-bold text-slate-700">正在读取商城应用与版本…</section>}>
+                <LazyMallApplicationWorkstation />
+              </Suspense>
+            </WorkstationLoadBoundary>
+          )}
+
+          {visibleWorkstation === 'voucher' && (
+            <WorkstationLoadBoundary onReturnToCockpit={() => setActiveWorkstation('cockpit')}>
+              <Suspense
+                fallback={
+                  <section className="m-6 max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <h2 className="text-base font-bold text-slate-900">正在加载卡券运营台…</h2>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">正在准备已授权的卡券工作台。</p>
+                  </section>
+                }
+              >
+                <LazyVoucherOperationsWorkstationV1 liveDataEnabled sessionPermissions={sessionPermissions} writeEnabled={false} onOpenGuardrail={handleOpenGuardrail} />
+              </Suspense>
+            </WorkstationLoadBoundary>
+          )}
 
             {visibleWorkstation === 'supplier' && <SupplierGovernanceWorkstation suppliers={suppliers} onUpdateSuppliers={setSuppliers} onOpenGuardrail={handleOpenGuardrail} />}
 
@@ -432,8 +513,7 @@ export function App() {
 
             {visibleWorkstation === 'qualification' && <QualificationCenterWorkstation />}
 
-            {visibleWorkstation === 'system' && <SystemControlWorkstation config={systemConfig} onUpdateConfig={setSystemConfig} onOpenGuardrail={handleOpenGuardrail} />}
-          </React.Suspense>
+          {visibleWorkstation === 'system' && <SystemControlWorkstation onOpenControlCenter={() => setActiveWorkstation('control')} />}
         </main>
         <React.Suspense fallback={null}>{isSecurityCenterOpen && <AccountSecurityModal open onClose={() => setIsSecurityCenterOpen(false)} onSignedOut={handleLogout} />}</React.Suspense>
 

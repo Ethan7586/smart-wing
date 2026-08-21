@@ -1,4 +1,4 @@
-export type WorkstationId = 'cockpit' | 'product' | 'order' | 'enterprise' | 'voucher' | 'supplier' | 'finance' | 'membership' | 'qualification' | 'system';
+export type WorkstationId = 'cockpit' | 'control' | 'product' | 'order' | 'distribution' | 'partnerCatalog' | 'enterprise' | 'mall' | 'voucher' | 'supplier' | 'finance' | 'membership' | 'qualification' | 'system';
 
 export interface WorkstationMeta {
   id: WorkstationId;
@@ -88,7 +88,10 @@ export interface Product {
 }
 
 // Order Fulfillment Types
-export type OrderStatus = '待付款' | '库存预占' | '已支付' | '待发货' | '已发货' | '已签收' | '退款申请中' | '已退款' | '异常挂起';
+import type { OrderStatus as CanonicalOrderStatus } from '@smart-wing/api-contract';
+
+/** Machine-readable lifecycle state shared with every client and the API. */
+export type OrderStatus = CanonicalOrderStatus;
 
 export interface TimelineEvent {
   id: string;
@@ -110,6 +113,8 @@ export interface RetryLog {
 
 export interface Order {
   id: string;
+  /** Human-readable business identifier. Keep the database id for API mutations. */
+  orderNo: string;
   parentOrderId?: string;
   enterpriseId: string;
   enterpriseName: string;
@@ -121,6 +126,12 @@ export interface Order {
   productImage: string;
   specName: string;
   quantity: number;
+  /** Canonical money values. Keep calculations and API payloads in integer cents. */
+  unitPriceCents: number;
+  totalCents: number;
+  corporateBudgetPaidCents: number;
+  employeeSelfPaidCents: number;
+  /** Legacy display conveniences. Do not use these floating-point values for calculations. */
   unitPrice: number;
   totalAmount: number;
   corporateBudgetPaid: number;

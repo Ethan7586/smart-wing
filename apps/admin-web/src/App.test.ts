@@ -49,4 +49,26 @@ describe('admin account profile resolution', () => {
     expect(allowedWorkstationsFor(['member.read'])).not.toContain('voucher');
     expect(allowedWorkstationsFor([], ['member'])).not.toContain('voucher');
   });
+
+  it('shows the mall application workstation only for mall-capable admin roles', () => {
+    expect(allowedWorkstationsFor(['mall.read'])).toContain('mall');
+    expect(allowedWorkstationsFor(['mall.decorate'])).toContain('mall');
+    expect(allowedWorkstationsFor([], ['role-enterprise-manager-v2'])).toContain('mall');
+    expect(allowedWorkstationsFor([], ['role-mall-admin'])).toContain('mall');
+    expect(allowedWorkstationsFor(['member.read'], ['member'])).not.toContain('mall');
+  });
+
+  it('exposes the four real-MVP module entries only when their underlying permissions are present', () => {
+    expect(allowedWorkstationsFor(['catalog.read', 'order.read'])).toEqual(expect.arrayContaining(['order', 'control', 'distribution', 'partnerCatalog']));
+    expect(allowedWorkstationsFor(['order.read'])).toEqual(expect.arrayContaining(['order', 'distribution']));
+    expect(allowedWorkstationsFor(['order.read'])).not.toContain('control');
+    expect(allowedWorkstationsFor(['catalog.read'])).toEqual(expect.arrayContaining(['partnerCatalog']));
+    expect(allowedWorkstationsFor(['member.read'])).not.toEqual(expect.arrayContaining(['order', 'control', 'distribution', 'partnerCatalog']));
+  });
+
+  it('can expose every workstation to a deliberately local, read-only visual-acceptance session', () => {
+    expect(
+      allowedWorkstationsFor(['catalog.read', 'order.read', 'tenant.manage', 'finance.reconcile', 'member.read', 'role.read', 'mall.read', 'commercial_resource.read'])
+    ).toEqual(['cockpit', 'product', 'order', 'control', 'distribution', 'partnerCatalog', 'enterprise', 'mall', 'voucher', 'supplier', 'finance', 'membership', 'qualification', 'system']);
+  });
 });

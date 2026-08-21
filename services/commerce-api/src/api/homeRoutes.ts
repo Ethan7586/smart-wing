@@ -1,6 +1,7 @@
 import { handleAccountLedgers, handleAccounts, handleBootstrap } from './accountRoutes';
 import { json, methodNotAllowed } from './http';
 import { handleOrders } from './orderRoutes';
+import { loadPublishedMallExperience } from './mallApplicationRoutes';
 import type { AuthorizationContext, WorkerEnv } from './types';
 
 /**
@@ -12,6 +13,7 @@ import type { AuthorizationContext, WorkerEnv } from './types';
 export async function handleHomeSnapshot(request: Request, env: WorkerEnv, authorization: AuthorizationContext, requestId: string): Promise<Response> {
   if (request.method !== 'GET') return methodNotAllowed(['GET'], requestId);
 
+  const experiencePromise = loadPublishedMallExperience(env, authorization);
   const responses = await Promise.all([
     handleBootstrap(request, env, authorization, requestId),
     handleAccounts(request, env, authorization, requestId),
@@ -22,5 +24,6 @@ export async function handleHomeSnapshot(request: Request, env: WorkerEnv, autho
   if (failed) return failed;
 
   const [bootstrap, accounts, orders, accountLedgers] = await Promise.all(responses.map((response) => response.json()));
-  return json({ bootstrap, accounts, orders, accountLedgers, requestId });
+  const experience = await experiencePromise;
+  return json({ bootstrap, accounts, orders, accountLedgers, experience, requestId });
 }

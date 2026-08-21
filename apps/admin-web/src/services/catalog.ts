@@ -1,4 +1,6 @@
-import type { Order, OrderStatus, Product, ProductStatus } from '../types';
+import type { Order, Product, ProductStatus } from '../types';
+import { isJsonRecord, requestAdminJson } from './adminJson';
+import { toAdminOrder, type ApiOrder } from './adminOrderProjection';
 
 type CatalogItem = {
   id?: unknown;
@@ -20,6 +22,10 @@ function text(value: unknown, fallback = ''): string {
 
 function number(value: unknown, fallback = 0): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function cents(value: unknown): number {
+  return typeof value === 'number' && Number.isSafeInteger(value) ? value : 0;
 }
 
 function toAdminProduct(item: CatalogItem): Product {
@@ -58,10 +64,10 @@ function toAdminProduct(item: CatalogItem): Product {
 
 /** Reads the full administration catalogue through the authorised commerce API. */
 export async function loadLiveCatalog(): Promise<Product[]> {
-  const response = await fetch('/api/v1/admin/products', { credentials: 'same-origin' });
-  if (!response.ok) throw new Error(`CATALOG_REQUEST_FAILED_${response.status}`);
-  const payload = (await response.json()) as { items?: unknown };
-  if (!Array.isArray(payload.items)) throw new Error('CATALOG_RESPONSE_INVALID');
+  const payload = await requestAdminJson<{ items: unknown[] }>('/api/v1/admin/products', {
+    label: '商品目录服务',
+    validate: (value): value is { items: unknown[] } => isJsonRecord(value) && Array.isArray(value.items),
+  });
   return payload.items.filter((item): item is CatalogItem => typeof item === 'object' && item !== null).map(toAdminProduct);
 }
 
@@ -121,94 +127,6 @@ export interface LiveOperationsSummary {
   sales: SalesOverview | null;
 }
 
-type ApiOrderItem = { productId?: unknown; productTitle?: unknown; productImage?: unknown; priceCents?: unknown; quantity?: unknown; specs?: unknown };
-type ApiOrder = {
-  id?: unknown;
-  orderNo?: unknown;
-  status?: unknown;
-  payableCents?: unknown;
-  welfarePaidCents?: unknown;
-  mealPaidCents?: unknown;
-  createdAt?: unknown;
-  updatedAt?: unknown;
-  items?: unknown;
-};
-
-function orderStatus(status: unknown): OrderStatus {
-  switch (status) {
-    case 'pending_payment':
-      return '待付款';
-    case 'paid':
-    case 'processing':
-      return '待发货';
-    case 'shipped':
-      return '已发货';
-    case 'completed':
-      return '已签收';
-    case 'refund_pending':
-      return '退款申请中';
-    case 'refunded':
-      return '已退款';
-    default:
-      return '异常挂起';
-  }
-}
-
-function isoDateTime(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined;
-  const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return undefined;
-  return /^\d{4}-\d{2}-\d{2}T/.test(value) ? value : date.toISOString();
-}
-
-function dateText(value: unknown): string {
-  const iso = isoDateTime(value);
-  return iso ? new Date(iso).toLocaleString('zh-CN', { hour12: false }) : '暂无时间记录';
-}
-
-function toAdminOrder(raw: ApiOrder): Order {
-  const items = Array.isArray(raw.items) ? raw.items : [];
-  const first = items[0] as ApiOrderItem | undefined;
-  const status = orderStatus(raw.status);
-  const amount = number(raw.payableCents) / 100;
-  const orderId = text(raw.id, text(raw.orderNo, crypto.randomUUID()));
-  const createdAtIso = isoDateTime(raw.createdAt);
-  const createdAt = dateText(raw.createdAt);
-  return {
-    id: orderId,
-    enterpriseId: 'production-enterprise',
-    enterpriseName: '授权企业范围',
-    employeeId: 'protected-member',
-    employeeName: '受保护会员',
-    employeeDept: '按最小必要原则隐藏',
-    productId: text(first?.productId),
-    productTitle: text(first?.productTitle, '订单商品'),
-    productImage: text(first?.productImage),
-    specName: '订单快照',
-    quantity: number(first?.quantity, 1),
-    unitPrice: number(first?.priceCents) / 100,
-    totalAmount: amount,
-    corporateBudgetPaid: number(raw.welfarePaidCents) / 100,
-    employeeSelfPaid: number(raw.mealPaidCents) / 100,
-    status,
-    isProblematic: status === '退款申请中' || status === '异常挂起',
-    problemType: status === '退款申请中' ? 'REFUND_DISPUTE' : undefined,
-    problemSummary: status === '退款申请中' ? '售后退款申请待处理' : undefined,
-    slaDeadline: '由供应商履约系统计算',
-    createdAtIso,
-    createdAt,
-    shippingAddress: '收货信息已脱敏',
-    timeline: [
-      { id: `${orderId}:created`, nodeName: '创建订单', timestamp: createdAt, status: 'success', operator: '系统', remark: '订单已在生产数据库创建。' },
-      { id: `${orderId}:status`, nodeName: '当前状态', timestamp: dateText(raw.updatedAt), status: status === '异常挂起' ? 'warning' : 'success', operator: '系统', remark: `当前状态：${status}` },
-    ],
-    retryLogs: [],
-    benefitsCard: { welfarePlanName: '企业福利账户', quotaUsed: number(raw.welfarePaidCents) / 100, remainingQuota: 0 },
-    supplierId: 'not-exposed',
-    supplierName: '供应商信息按订单权限展示',
-  };
-}
-
 export async function shipLiveOrder(orderId: string): Promise<void> {
   const response = await fetch(`/api/v1/orders/${encodeURIComponent(orderId)}/ship`, {
     method: 'POST',
@@ -224,6 +142,23 @@ export interface AdminOverview {
   products: Product[];
   orders: Order[];
   summary: LiveOperationsSummary;
+}
+
+type AdminOverviewPayload = {
+  authenticated: unknown;
+  authorization?: AdminOverview['authorization'];
+  products?: unknown;
+  orders?: unknown;
+  summary?: Partial<LiveOperationsSummary>;
+};
+
+function isAdminOverviewPayload(value: unknown): value is AdminOverviewPayload {
+  if (!isJsonRecord(value) || typeof value.authenticated !== 'boolean') return false;
+  // A rejected session is deliberately a small payload. A successful session
+  // must carry all first-paint collections, otherwise a partial rollout would
+  // silently masquerade as an empty business.
+  if (value.authenticated === false) return true;
+  return isJsonRecord(value.authorization) && Array.isArray(value.products) && Array.isArray(value.orders) && isJsonRecord(value.summary);
 }
 
 function array(value: unknown): unknown[] {
@@ -276,9 +211,10 @@ function toSalesOverview(value: unknown): SalesOverview | null {
 
 /** One protected request gives the admin app its session projection and first-paint facts. */
 export async function loadAdminOverview(): Promise<AdminOverview> {
-  const response = await fetch('/api/v1/admin/overview', { credentials: 'same-origin' });
-  if (!response.ok) throw new Error(`ADMIN_OVERVIEW_REQUEST_FAILED_${response.status}`);
-  const payload = (await response.json()) as { authenticated?: unknown; authorization?: AdminOverview['authorization']; products?: unknown; orders?: unknown; summary?: Partial<LiveOperationsSummary> };
+  const payload = await requestAdminJson<AdminOverviewPayload>('/api/v1/admin/overview', {
+    label: '运营概览服务',
+    validate: isAdminOverviewPayload,
+  });
   const products = Array.isArray(payload.products) ? payload.products.filter((item): item is CatalogItem => typeof item === 'object' && item !== null).map(toAdminProduct) : [];
   const orders = Array.isArray(payload.orders) ? payload.orders.filter((item): item is ApiOrder => typeof item === 'object' && item !== null).map(toAdminOrder) : [];
   return {

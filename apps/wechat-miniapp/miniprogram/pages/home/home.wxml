@@ -8,7 +8,7 @@
   <!-- 1. 品牌 · 购物车 · 通知 ------------------------------------------------ -->
   <view class="nav {{scrolled ? 'is-scrolled' : ''}}" style="padding-top: {{nav.statusBarHeight}}px;">
     <view class="nav-row" style="height: {{nav.navContentHeight}}px; padding-right: {{nav.rightInset}}px;">
-      <text class="nav-title">智慧翼福利商城</text>
+      <text class="nav-title">{{scope.brandTitle || '智慧翼福利商城'}}</text>
       <view class="nav-actions">
         <view class="nav-action sw-tap" bindtap="onOpenCart">
           <view class="i i-shopping-cart-ink"></view>
@@ -54,6 +54,9 @@
         <view class="scope-mark sw-brand-mark"></view>
         <text class="scope-text">{{scope.enterpriseName}} · {{scope.departmentName}}</text>
         <view class="i i-sm i-chevron-down-secondary"></view>
+      </view>
+      <view wx:if="{{mallAnnouncement}}" class="mall-announcement">
+        <text>{{mallAnnouncement}}</text>
       </view>
     </view>
 
@@ -111,7 +114,7 @@
 
     <!-- 6. 员工专享福利季 ---------------------------------------------------- -->
     <view class="sw-inset">
-      <view class="hero" data-label="员工专享福利季" bindtap="onPending">
+      <view class="hero hero-{{mallThemePreset}}" data-label="员工专享福利季" bindtap="onPending">
         <view class="hero-pattern sw-brand-pattern"></view>
         <view class="hero-copy">
           <text class="hero-title">{{hero.title}}</text>

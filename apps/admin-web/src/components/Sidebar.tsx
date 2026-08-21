@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, PackageCheck, Truck, Building2, Handshake, Receipt, ShieldCheck, Sparkles, ChevronLeft, ChevronRight, UsersRound, BadgeCheck, TicketCheck } from 'lucide-react';
+import { LayoutDashboard, PackageCheck, Truck, Building2, Handshake, Receipt, ShieldCheck, Sparkles, ChevronLeft, ChevronRight, UsersRound, BadgeCheck, TicketCheck, PanelsTopLeft } from 'lucide-react';
 import { WorkstationId, WorkstationMeta, AdminProfile } from '../types';
 
 interface SidebarProps {
@@ -46,6 +46,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: 'LayoutDashboard',
     },
     {
+      id: 'control',
+      name: isEn ? 'Smart Wing Control Center' : '智慧翼中控台',
+      badgeCount: pendingCounts.control || 0,
+      badgeColor: 'blue',
+      icon: 'PanelsTopLeft',
+    },
+    {
       id: 'product',
       name: isEn ? 'Products' : '商品治理台',
       badgeCount: unclassifiedProductsCount || pendingCounts.product || 0,
@@ -54,10 +61,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'order',
-      name: isEn ? 'Orders' : '订单履约台',
+      name: isEn ? 'Order Management' : '订单管理系统',
       badgeCount: pendingOrdersCount || pendingCounts.order || 0,
       badgeColor: 'red',
       icon: 'Truck',
+    },
+    {
+      id: 'distribution',
+      name: isEn ? 'Channel & Distribution' : '渠道与分销系统',
+      badgeCount: pendingCounts.distribution || 0,
+      badgeColor: 'blue',
+      icon: 'Handshake',
+    },
+    {
+      id: 'partnerCatalog',
+      name: isEn ? 'Partner Catalog Integration' : '甲方商品池接入',
+      badgeCount: pendingCounts.partnerCatalog || 0,
+      badgeColor: 'blue',
+      icon: 'PackageCheck',
     },
     {
       id: 'enterprise',
@@ -65,6 +86,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badgeCount: warningEnterprisesCount || pendingCounts.enterprise || 0,
       badgeColor: 'amber',
       icon: 'Building2',
+    },
+    {
+      id: 'mall',
+      name: isEn ? 'Mall Applications' : '商城应用台',
+      badgeCount: pendingCounts.mall || 0,
+      badgeColor: 'blue',
+      icon: 'PanelsTopLeft',
     },
     {
       id: 'voucher',
@@ -123,6 +151,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return <Building2 className="w-4 h-4" />;
       case 'TicketCheck':
         return <TicketCheck className="w-4 h-4" />;
+      case 'PanelsTopLeft':
+        return <PanelsTopLeft className="w-4 h-4" />;
       case 'Handshake':
         return <Handshake className="w-4 h-4" />;
       case 'Receipt':

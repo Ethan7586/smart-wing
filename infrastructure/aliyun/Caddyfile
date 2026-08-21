@@ -62,6 +62,27 @@ hbbtzn.com, www.hbbtzn.com {
 smart.hbbtzn.com {
   encode gzip
 
+  # 商城应用台验收环境。测试构建由独立 PM2 进程提供，不能回落到正式
+  # Admin，否则测试人员看到的会是生产首页而不是待验收版本。
+  @mallApplicationTestRoot path /admin-voucher-test
+  redir @mallApplicationTestRoot /admin-voucher-test/ 308
+
+  @mallApplicationTest path /admin-voucher-test/*
+  handle @mallApplicationTest {
+    reverse_proxy localhost:3011 {
+      header_up X-Real-IP {client_ip}
+    }
+  }
+
+  # 验收版只接管新增商城应用接口；其余正式 API 仍由 3000 端口提供。
+  # 这样可以在不重启正式商城的前提下完成端到端验收。
+  @mallApplicationTestApi path /api/v1/admin/mall-applications /api/v1/admin/mall-applications/*
+  handle @mallApplicationTestApi {
+    reverse_proxy localhost:3012 {
+      header_up X-Real-IP {client_ip}
+    }
+  }
+
   # 运营后台页面由 admin-web 服务，但身份、会话与交易 API 必须统一经过
   # commerce-api，确保后台域签发 __Host-hbbtzn_admin_session 独立 Cookie。
   @commerceApi path /api/health /api/ready /api/v1/*

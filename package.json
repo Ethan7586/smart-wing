@@ -33,6 +33,7 @@
     "test:miniapp-catalog": "node --test scripts/miniapp-catalog.test.cjs",
     "test:miniapp-performance": "node --test scripts/miniapp-performance.test.cjs",
     "test:miniapp-account": "node --test scripts/miniapp-account-presentation.test.cjs",
+    "test:miniapp-mall-experience": "node --test scripts/miniapp-mall-experience.test.cjs",
     "test:miniapp-share": "node --test scripts/miniapp-share.test.cjs",
     "test:miniapp-checkout": "node --test scripts/miniapp-checkout.test.cjs",
     "test:miniapp-payment": "node --test scripts/miniapp-payment.test.cjs",
@@ -52,13 +53,14 @@
     "format": "prettier --write --ignore-unknown .",
     "check:format": "prettier --check --ignore-unknown .",
     "lint": "npm run lint --workspace @smart-wing/storefront-web && npm run lint --workspace @smart-wing/admin-web && npm run lint --workspace @smart-wing/auth-web && npm run lint --workspace @smart-wing/commerce-api && npm run lint --workspace @smart-wing/core-read-cache",
-    "test": "npm run test --workspace @smart-wing/storefront-web && npm run test --workspace @smart-wing/commerce-api && npm run test --workspace @smart-wing/core-read-cache",
+    "test": "npm run test --workspace @smart-wing/storefront-web && npm run test --workspace @smart-wing/admin-web && npm run test --workspace @smart-wing/commerce-api && npm run test --workspace @smart-wing/core-read-cache",
     "audit:prod": "npm audit --omit=dev",
     "check:lines": "node scripts/check-line-budget.mjs",
     "verify:p0": "node scripts/verify-p0.mjs",
-    "quality": "npm run check:format && npm run check:lines && npm run check:web-tokens && npm run test:token-convergence && npm run check:platform-delivery && npm run check:vi && npm run test:vi && npm run check:miniapp && npm run test:miniapp-catalog && npm run test:miniapp-performance && npm run test:miniapp-account && npm run test:miniapp-share && npm run test:miniapp-checkout && npm run test:miniapp-payment && npm run test:wechat-silent-enrollment && npm run test:member-code-security && npm run test:catalog-media-cache && npm run test:catalog-manifest && npm run test:storefront-performance-score && npm run test:backup && npm run lint && npm test && npm run build && npm run audit:prod",
+    "quality": "npm run check:format && npm run check:lines && npm run check:web-tokens && npm run test:token-convergence && npm run check:platform-delivery && npm run check:vi && npm run test:vi && npm run check:miniapp && npm run test:miniapp-catalog && npm run test:miniapp-performance && npm run test:miniapp-account && npm run test:miniapp-mall-experience && npm run test:miniapp-share && npm run test:miniapp-checkout && npm run test:miniapp-payment && npm run test:wechat-silent-enrollment && npm run test:member-code-security && npm run test:catalog-media-cache && npm run test:catalog-manifest && npm run test:storefront-performance-score && npm run test:backup && npm run lint && npm test && npm run build && npm run audit:prod",
     "build:web-tokens": "node scripts/build-web-tokens.mjs",
-    "check:web-tokens": "node scripts/build-web-tokens.mjs --check"
+    "check:web-tokens": "node scripts/build-web-tokens.mjs --check",
+    "alert:client-errors": "node --env-file-if-exists=.env.production scripts/send-client-error-alerts.mjs"
   },
   "devDependencies": {
     "ali-oss": "6.23.0",
@@ -67,5 +69,8 @@
     "prettier": "^3.5.3",
     "sharp": "0.35.3",
     "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "nodemailer": "^9.0.5"
   }
 }

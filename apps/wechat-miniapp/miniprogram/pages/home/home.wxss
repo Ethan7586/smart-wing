@@ -159,6 +159,17 @@
   color: var(--sw-brand-dark);
 }
 
+.mall-announcement {
+  margin-top: var(--sw-space-1);
+  padding: var(--sw-space-1) var(--sw-space-1_5);
+  border-left: 6rpx solid var(--sw-brand);
+  border-radius: var(--sw-radius-small);
+  background: var(--sw-brand-light);
+  color: var(--sw-brand-dark);
+  font-size: var(--sw-fs-caption);
+  line-height: var(--sw-lh-caption);
+}
+
 /* ------------------------------------------------------- 3. search -------- */
 
 .search-wrap {

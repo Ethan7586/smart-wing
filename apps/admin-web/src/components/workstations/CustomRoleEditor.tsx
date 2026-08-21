@@ -139,7 +139,7 @@ export function RoleEditor({
         </div>
       ) : (
         <div className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs text-blue-800">
-          将复制“{role?.name}”的 {role?.permissions.length ?? 0} 项权限；新角色仍是普通自定义角色。
+          将复制“{role?.name}”的 {role?.permissions?.length ?? 0} 项权限；新角色仍是普通自定义角色。
         </div>
       )}
       <Field label="变更原因">
