@@ -15,15 +15,18 @@ import { EnterpriseWelfareWorkstation } from './components/workstations/Enterpri
 import { SupplierGovernanceWorkstation } from './components/workstations/SupplierGovernanceWorkstation';
 import { FinancialReconciliationWorkstation } from './components/workstations/FinancialReconciliationWorkstation';
 import { SystemControlWorkstation } from './components/workstations/SystemControlWorkstation';
+import { ControlCenterWorkstation } from './components/workstations/ControlCenterWorkstation';
+import { DistributionWorkstation } from './components/workstations/DistributionWorkstation';
+import { PartnerCatalogWorkstation } from './components/workstations/PartnerCatalogWorkstation';
 import { MembershipPermissionWorkstation } from './components/workstations/MembershipPermissionWorkstation';
 import { QualificationCenterWorkstation } from './components/workstations/QualificationCenterWorkstation';
 import { WorkstationLoadBoundary } from './components/WorkstationLoadBoundary';
 import { AdminSessionError } from './components/AdminSessionError';
 
 // Mock Datasets
-import { INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIERS, INITIAL_CASES, INITIAL_FINANCE_DISCREPANCIES, INITIAL_SYSTEM_CONFIG } from './data/mockData';
+import { INITIAL_ENTERPRISES, INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_SUPPLIERS, INITIAL_CASES, INITIAL_FINANCE_DISCREPANCIES } from './data/mockData';
 
-import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStatus, FinanceDiscrepancyRow, SystemConfig, GuardrailActionOptions, AdminProfile } from './types';
+import { WorkstationId, Order, Product, Enterprise, Supplier, CaseItem, CaseStatus, FinanceDiscrepancyRow, GuardrailActionOptions, AdminProfile } from './types';
 
 const LazyVoucherOperationsWorkstationV1 = React.lazy(() => import('./components/workstations/VoucherOperationsWorkstationV1').then(({ VoucherOperationsWorkstationV1 }) => ({ default: VoucherOperationsWorkstationV1 })));
 const LazyMallApplicationWorkstation = React.lazy(() => import('./components/workstations/MallApplicationWorkstation').then(({ MallApplicationWorkstation }) => ({ default: MallApplicationWorkstation })));
@@ -65,6 +68,9 @@ export function allowedWorkstationsFor(permissions: string[], roles: string[] = 
   );
   if (has('catalog.read') || has('product.publish')) allowed.add('product');
   if (has('order.read') || has('order.ship')) allowed.add('order');
+  if (has('catalog.read') && has('order.read')) allowed.add('control');
+  if (has('order.read') || has('tenant.manage')) allowed.add('distribution');
+  if (has('catalog.read') || has('commercial_resource.read') || has('commercial_resource.manage')) allowed.add('partnerCatalog');
   if (has('tenant.manage') || has('role.grant') || has('audit.read')) allowed.add('enterprise');
   if (permissions.some((permission) => permission.startsWith('mall.')) || ['platform_owner', 'role-platform-owner-v2', 'enterprise_manager', 'role-enterprise-manager-v2', 'mall_admin', 'role-mall-admin'].some((role) => roleCodes.has(role)))
     allowed.add('mall');
@@ -188,7 +194,6 @@ export function App() {
   const [suppliers, setSuppliers] = useState<Supplier[]>(INITIAL_SUPPLIERS);
   const [cases, setCases] = useState<CaseItem[]>(INITIAL_CASES);
   const [discrepancies, setDiscrepancies] = useState<FinanceDiscrepancyRow[]>(INITIAL_FINANCE_DISCREPANCIES);
-  const [systemConfig, setSystemConfig] = useState<SystemConfig>(INITIAL_SYSTEM_CONFIG);
 
   // Sub-filter parameters for cross-workstation navigation
   const [filterParams, setFilterParams] = useState<{
@@ -343,8 +348,11 @@ export function App() {
 
   const activeWorkstationName = {
     cockpit: isEn ? 'Cockpit' : '经营驾驶舱',
+    control: isEn ? 'Smart Wing Control Center' : '智慧翼中控台',
     product: isEn ? 'Products' : '商品治理台',
     order: isEn ? 'Order Management' : '订单管理系统',
+    distribution: isEn ? 'Channel & Distribution' : '渠道与分销系统',
+    partnerCatalog: isEn ? 'Partner Catalog Integration' : '甲方商品池接入',
     enterprise: isEn ? 'Enterprises' : '企业福利台',
     mall: isEn ? 'Mall Applications' : '商城应用台',
     voucher: isEn ? 'Vouchers' : '卡券运营台',
@@ -410,6 +418,8 @@ export function App() {
           )}
           {visibleWorkstation === 'cockpit' && <CockpitWorkstation orders={orders} products={products} enterprises={enterprises} liveOperations={liveOperations} onNavigateToWorkstation={handleNavigateToWorkstation} language={language} />}
 
+          {visibleWorkstation === 'control' && <ControlCenterWorkstation />}
+
           {visibleWorkstation === 'product' && (
             <ProductGovernanceWorkstation
               products={products}
@@ -432,6 +442,10 @@ export function App() {
               sessionPermissions={sessionPermissions}
             />
           )}
+
+          {visibleWorkstation === 'distribution' && <DistributionWorkstation />}
+
+          {visibleWorkstation === 'partnerCatalog' && <PartnerCatalogWorkstation />}
 
           {visibleWorkstation === 'enterprise' && <EnterpriseWelfareWorkstation enterprises={enterprises} onOpenGuardrail={handleOpenGuardrail} initialSearchName={filterParams.key === 'search' ? filterParams.value : undefined} />}
 
@@ -481,7 +495,7 @@ export function App() {
 
           {visibleWorkstation === 'qualification' && <QualificationCenterWorkstation />}
 
-          {visibleWorkstation === 'system' && <SystemControlWorkstation config={systemConfig} onUpdateConfig={setSystemConfig} onOpenGuardrail={handleOpenGuardrail} />}
+          {visibleWorkstation === 'system' && <SystemControlWorkstation onOpenControlCenter={() => setActiveWorkstation('control')} />}
         </main>
         <AccountSecurityModal open={isSecurityCenterOpen} onClose={() => setIsSecurityCenterOpen(false)} onSignedOut={handleLogout} />
 

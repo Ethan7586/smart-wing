@@ -30,8 +30,10 @@ const TABS: Array<{ id: ManagementTab; label: string }> = [
 export function OrderManagementWorkstation({ orders, onUpdateOrders, onOpenGuardrail, initialProblemType, isLiveOrders = false, onShipOrder, sessionPermissions }: OrderManagementWorkstationProps) {
   const [activeTab, setActiveTab] = useState<ManagementTab>('orders');
   const [focusedOrderId, setFocusedOrderId] = useState<string | undefined>();
-  const canShip = sessionPermissions.includes('order.ship');
-  const canRefund = sessionPermissions.includes('order.refund');
+  // A local or unavailable data source must never open a production-looking
+  // shipping/refund path.  The server still authorizes every live write.
+  const canShip = isLiveOrders && sessionPermissions.includes('order.ship');
+  const canRefund = isLiveOrders && sessionPermissions.includes('order.refund');
   const metrics = orderMetrics(orders);
   const requestShip = (order: OrderListItem, refresh: () => void) => {
     onOpenGuardrail(`确认订单发货：${order.orderNo}`, '订单发货', order.supplierNames.join('、') || '订单供应商', order.id, order.paidCents / 100, () => {
@@ -61,10 +63,10 @@ export function OrderManagementWorkstation({ orders, onUpdateOrders, onOpenGuard
               <h2 className="text-base font-bold text-slate-900">订单管理系统 (Order Management System)</h2>
               <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[#1769ff]">当前授权订单范围</span>
               <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${isLiveOrders ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-amber-200 bg-amber-50 text-amber-700'}`}>
-                {isLiveOrders ? '生产订单实时读取' : '演示订单数据 · 尚未连接生产库'}
+                {isLiveOrders ? '按当前授权范围实时读取' : '订单数据未接入，暂不可操作'}
               </span>
             </div>
-            <p className="mt-2 text-xs text-slate-500">查单、售后、异常处理与全生命周期履约统一在同一工作台完成；统计仅反映当前已载入的授权范围。</p>
+            <p className="mt-2 text-xs text-slate-500">商品订单、售后订单、异常订单与履约操作按当前授权范围读取；下单计划尚无生产数据模型，仅保留不可写的说明状态。</p>
           </div>
           <button type="button" onClick={() => setActiveTab('exceptions')} className="rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700 transition-colors hover:bg-rose-100">
             风险待处理 <span className="ml-1 font-semibold">{metrics.risk}</span> 单 <span className="ml-1">查看队列 →</span>

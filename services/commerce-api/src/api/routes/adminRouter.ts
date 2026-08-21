@@ -18,6 +18,14 @@ import {
 } from '../qualificationGovernanceRoutes';
 import type { AuthorizationContext, WorkerEnv } from '../types';
 import { handleRecordClientError } from '../clientErrorRoutes';
+import {
+  handleControlCenter,
+  handleControlSettings,
+  handleCreateDistributionChannel,
+  handleCreatePartnerCatalogConnection,
+  handleDistributionHub,
+  handlePartnerCatalogHub,
+} from '../operationsMvpRoutes';
 
 const API_PREFIX = '/api/v1';
 
@@ -28,6 +36,18 @@ export async function routeAdminRequest(request: Request, env: WorkerEnv, author
       return handleAdminCatalog(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/overview`:
       return handleAdminOverview(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/control-center`:
+      return handleControlCenter(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/control-center/settings`:
+      return handleControlSettings(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/distribution`:
+      return handleDistributionHub(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/distribution/channels`:
+      return handleCreateDistributionChannel(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/partner-catalog`:
+      return handlePartnerCatalogHub(request, env, authorization, requestId);
+    case `${API_PREFIX}/admin/partner-catalog/connections`:
+      return handleCreatePartnerCatalogConnection(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/orders/export`:
       return handleAdminOrderExport(request, env, authorization, requestId);
     case `${API_PREFIX}/admin/after-sales/export`:

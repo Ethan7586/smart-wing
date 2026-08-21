@@ -46,6 +46,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: 'LayoutDashboard',
     },
     {
+      id: 'control',
+      name: isEn ? 'Smart Wing Control Center' : '智慧翼中控台',
+      badgeCount: pendingCounts.control || 0,
+      badgeColor: 'blue',
+      icon: 'PanelsTopLeft',
+    },
+    {
       id: 'product',
       name: isEn ? 'Products' : '商品治理台',
       badgeCount: unclassifiedProductsCount || pendingCounts.product || 0,
@@ -58,6 +65,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badgeCount: pendingOrdersCount || pendingCounts.order || 0,
       badgeColor: 'red',
       icon: 'Truck',
+    },
+    {
+      id: 'distribution',
+      name: isEn ? 'Channel & Distribution' : '渠道与分销系统',
+      badgeCount: pendingCounts.distribution || 0,
+      badgeColor: 'blue',
+      icon: 'Handshake',
+    },
+    {
+      id: 'partnerCatalog',
+      name: isEn ? 'Partner Catalog Integration' : '甲方商品池接入',
+      badgeCount: pendingCounts.partnerCatalog || 0,
+      badgeColor: 'blue',
+      icon: 'PackageCheck',
     },
     {
       id: 'enterprise',
