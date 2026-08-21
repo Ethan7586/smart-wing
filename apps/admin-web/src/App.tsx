@@ -32,11 +32,6 @@ const CommandPaletteModal = React.lazy(() => import('./components/CommandPalette
 
 const WorkstationLoading = () => <div className="min-h-[320px] flex items-center justify-center text-sm text-slate-400">正在加载工作台…</div>;
 
-function setBootstrapMessage(title: string, detail: string) {
-  document.getElementById('app-loading-title')?.replaceChildren(title);
-  document.getElementById('app-loading-detail')?.replaceChildren(detail);
-}
-
 function dismissBootstrapMessage() {
   document.getElementById('app-loading')?.remove();
 }
@@ -218,6 +213,13 @@ export function App() {
     key?: string;
     value?: string;
   }>({});
+
+  // The HTML fallback prevents a white screen before React starts. Once this
+  // component mounts, React owns the page and must release that full-screen
+  // layer; otherwise it keeps intercepting every click above the live admin.
+  useEffect(() => {
+    dismissBootstrapMessage();
+  }, []);
 
   const handleToggleLanguage = () => {
     setLanguage((prev) => (prev === 'zh' ? 'en' : 'zh'));
